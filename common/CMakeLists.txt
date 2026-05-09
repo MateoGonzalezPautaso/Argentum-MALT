@@ -1,8 +1,14 @@
+file(GLOB COMMON_SRC
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+)
+
+file(GLOB COMMON_HEADERS
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
+)
+
 target_sources(taller_common
     PRIVATE
-    # .cpp files
-    foo.cpp
+    ${COMMON_SRC}
     PUBLIC
-    # .h files
-    foo.h
-    )
+    ${COMMON_HEADERS}
+)
