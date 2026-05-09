@@ -1,7 +1,14 @@
+file(GLOB CLIENT_SRC
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+)
+
+file(GLOB CLIENT_HEADERS
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
+)
+
 target_sources(taller_client
     PRIVATE
-    # .cpp files
-    main.cpp
+    ${CLIENT_SRC}
     PUBLIC
-    # .h files
-    )
+    ${CLIENT_HEADERS}
+)
