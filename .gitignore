@@ -40,3 +40,6 @@
 # Linux
 .*.swp
 *~
+
+# build
+./build
