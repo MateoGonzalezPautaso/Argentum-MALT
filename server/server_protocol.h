@@ -1,15 +1,15 @@
 #ifndef SERVER_PROTOCOL_H_
 #define SERVER_PROTOCOL_H_
 
-#include "../common/protocol.h"
 #include "../common/messages.h"
+#include "../common/protocol.h"
 
 /*
  * Protocolo desde la perspectiva del servidor:
  *   - recv_command  deserializa el próximo comando del cliente.
  *   - send_*        serializa y envía un evento al cliente.
  */
-class ServerProtocol : public Protocol {
+class ServerProtocol: public Protocol {
 private:
     // Deserializadores privados por tipo de comando
     ClientCommand recv_login();

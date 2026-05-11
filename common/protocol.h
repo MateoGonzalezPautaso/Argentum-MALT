@@ -13,7 +13,7 @@ protected:
     /* TODO
     uint32_t    recv_uint32();
     std::string recv_string();
-    bool        recv_bool(); 
+    bool        recv_bool();
 
     hacer las versiones send tambien
     */

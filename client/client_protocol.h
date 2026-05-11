@@ -1,15 +1,15 @@
 #ifndef CLIENT_PROTOCOL_H_
 #define CLIENT_PROTOCOL_H_
 
-#include "../common/protocol.h"
 #include "../common/messages.h"
+#include "../common/protocol.h"
 
 /*
  *   Protocolo desde la perspectiva del cliente:
  *   - send_*  serializa y envía un comando al servidor.
  *   - recv_event  deserializa y retorna el próximo evento del servidor.
  */
-class ClientProtocol : public Protocol {
+class ClientProtocol: public Protocol {
 private:
     // Deserializadores privados por tipo de evento
     ServerEvent recv_login_ok();
@@ -71,7 +71,7 @@ public:
     void send_clan_ban(const ClanBanCmd& cmd);
     void send_clan_kick(const ClanKickCmd& cmd);
     void send_clan_leave();
-    
+
     // Cheats
     void send_cheat_infinite_hp();
     void send_cheat_infinite_mana();
