@@ -6,17 +6,17 @@
 
 #include "socket.h"
 
-enum class OpCode : uint8_t {
-    USERNAME_OPCODE = 0x10,
-    DEFEAT_CMD_OPCODE = 0x0A,
-    EVENT_HEADER_OPCODE = 0x06,
-    EVENT_DEFEAT_OPCODE = 0x0C,
-    EVENT_APPEAR_OPCODE = 0x0D
-};
-
 class Protocol {
 protected:
     Socket& skt;
+
+    /* TODO
+    uint32_t    recv_uint32();
+    std::string recv_string();
+    bool        recv_bool(); 
+
+    hacer las versiones send tambien
+    */
 
     void send_uint8(uint8_t value);
     uint8_t recv_uint8();
@@ -32,10 +32,11 @@ protected:
 
 public:
     explicit Protocol(Socket& skt);
-
-    // It is virtual because destructors are not overwritten
-    // in derived classes, but are called in reverse order.
     virtual ~Protocol() = default;
+
+    // No copiable
+    Protocol(const Protocol&) = delete;
+    Protocol& operator=(const Protocol&) = delete;
 };
 
 #endif

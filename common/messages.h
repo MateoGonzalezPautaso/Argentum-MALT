@@ -294,7 +294,7 @@ using ClientCommand = std::variant<
 
 // 0x80
 struct LoginOkEvent {
-    entity_id_t player_id;
+    uint16_t player_id;
     std::string username;
     Race        race;
     Class       class_;
