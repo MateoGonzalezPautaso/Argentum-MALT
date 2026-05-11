@@ -23,7 +23,7 @@ SKIP_TESTS=0
 SKIP_INSTALL=0
 
 usage() {
-    echo "Uso: $0 [opciones]"
+    echo "Como usar: $0 [opciones]"
     echo ""
     echo "  --debug          Compilar en modo Debug (default: Release)"
     echo "  --skip-deps      Saltear instalación de dependencias"
