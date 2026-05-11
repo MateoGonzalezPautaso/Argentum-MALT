@@ -125,6 +125,7 @@ else
     sudo apt-get install -y \
         libgl1-mesa-dev \
         libgles2-mesa-dev \
+        libsdl2-image-dev \
         libegl1-mesa-dev
     ok "OpenGL instalado."
 

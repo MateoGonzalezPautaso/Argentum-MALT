@@ -1,37 +1,56 @@
-#include <iostream>
 #include <exception>
+#include <iostream>
+#include <string>
 
-#include <SDL2pp/SDL2pp.hh>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 
-using namespace SDL2pp;
+#include "config.h"
+#include "engine.h"
 
 int main() try {
-	// Initialize SDL library
-	SDL sdl(SDL_INIT_VIDEO);
+	const int img_flags = IMG_INIT_PNG;
+	if ((IMG_Init(img_flags) & img_flags) != img_flags) {
+		throw std::runtime_error(std::string("IMG_Init failed: ") + IMG_GetError());
+	}
 
-	// Create main window: 640x480 dimensions, resizable, "SDL2pp demo" title
-	Window window("SDL2pp demo",
-			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-			640, 480,
-			SDL_WINDOW_RESIZABLE);
+	const std::string config_path =
+			"client_config.toml";
+	ClientConfig config = load_client_config(config_path);
+	ClientEngine client(config);
 
-	// Create accelerated video renderer with default driver
-	Renderer renderer(window, -1, SDL_RENDERER_ACCELERATED);
+	bool running = true;
+	SDL_Event event{};
+	const uint32_t tick_ms = config.tick_ms;
+	uint32_t last_tick = SDL_GetTicks();
 
-	// Clear screen
-	renderer.Clear();
+	while (running) {
+		while (SDL_PollEvent(&event)) {
+			running = client.handle_event(event);
+			if (!running) {
+				break;
+			}
+		}
+		if (!running) {
+			break;
+		}
 
-	// Show rendered frame
-	renderer.Present();
+		const uint32_t now = SDL_GetTicks();
+		const uint32_t elapsed = now - last_tick;
+		if (elapsed >= tick_ms) {
+			last_tick = now;
+			client.show_sprite();
+		}
 
-	// 5 second delay
-	SDL_Delay(5000);
+		const uint32_t sleep_ms = (elapsed < tick_ms) ? (tick_ms - elapsed) : 0;
+		if (sleep_ms > 0) {
+			SDL_Delay(sleep_ms);
+		}
+	}
 
-	// Here all resources are automatically released and library deinitialized
+	IMG_Quit();
 	return 0;
 } catch (std::exception& e) {
-	// If case of error, print it and exit with error
 	std::cerr << e.what() << std::endl;
 	return 1;
 }

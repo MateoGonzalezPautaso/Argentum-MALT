@@ -6,6 +6,11 @@
 
 #include "socket.h"
 
+// TODO: Replace with full protocol definition.
+enum class OpCode : uint8_t {
+    Unknown = 0
+};
+
 class Protocol {
 protected:
     Socket& skt;
