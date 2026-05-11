@@ -1,0 +1,433 @@
+#ifndef MESSAGES_H_
+#define MESSAGES_H_
+
+/*
+ * messages.h
+ *
+ * Define todos los tipos de datos que viajan entre cliente y servidor.
+ * Este archivo es compartido por client/, server/ y tests/.
+ *
+ * Convenciones:
+ *  - Los structs reflejan exactamente los mensajes del protocolo (protocol.md).
+ *  - Command  = cliente -> servidor.
+ *  - Event    = servidor -> cliente.
+ *  - ClientCommand y ServerEvent son std::variant de todos los tipos concretos.
+ *    El receptor hace std::visit para despachar.
+ */
+
+#include <cstdint>
+#include <string>
+#include <variant>
+#include <vector>
+
+// ---------------------------------------------------------------------------
+// Enums (sección 7 de protocol.md)
+// ---------------------------------------------------------------------------
+
+enum class Race : uint8_t {
+    HUMAN  = 0x01,
+    ELF    = 0x02,
+    DWARF  = 0x03,
+    GNOME  = 0x04
+};
+
+enum class Class : uint8_t {
+    MAGE    = 0x01,
+    CLERIC  = 0x02,
+    PALADIN = 0x03,
+    WARRIOR = 0x04
+};
+
+enum class Direction : uint8_t {
+    NORTH = 0x00,
+    SOUTH = 0x01,
+    EAST  = 0x02,
+    WEST  = 0x03
+};
+
+enum class ItemType : uint8_t {
+    NONE           = 0x00,
+    SWORD          = 0x01,
+    AXE            = 0x02,
+    HAMMER         = 0x03,
+    ASH_STAFF      = 0x04,
+    ELVEN_FLUTE    = 0x05,
+    KNOTTED_STAFF  = 0x06,
+    STUDDED_STAFF  = 0x07,
+    SIMPLE_BOW     = 0x08,
+    COMPOSITE_BOW  = 0x09,
+    LEATHER_ARMOR  = 0x0A,
+    PLATE_ARMOR    = 0x0B,
+    BLUE_TUNIC     = 0x0C,
+    HOOD           = 0x0D,
+    IRON_HELMET    = 0x0E,
+    TURTLE_SHIELD  = 0x0F,
+    IRON_SHIELD    = 0x10,
+    MAGIC_HAT      = 0x11,
+    HEALTH_POTION  = 0x12,
+    MANA_POTION    = 0x13,
+    GOLD_DROP      = 0x14
+};
+
+enum class EquipSlot : uint8_t {
+    WEAPON = 0x00,
+    ARMOR  = 0x01,
+    HELMET = 0x02,
+    SHIELD = 0x03
+};
+
+enum class EntityType : uint8_t {
+    PLAYER = 0x00,
+    NPC    = 0x01
+};
+
+enum class LoginError : uint8_t {
+    INVALID_CREDENTIALS = 0x01,
+    ALREADY_LOGGED_IN   = 0x02,
+    SERVER_FULL         = 0x03
+};
+
+enum class CharacterError : uint8_t {
+    USERNAME_TAKEN   = 0x01,
+    INVALID_USERNAME = 0x02
+};
+
+enum class TransactionType : uint8_t {
+    BUY      = 0x01,
+    SELL     = 0x02,
+    DEPOSIT  = 0x03,
+    WITHDRAW = 0x04,
+    HEAL     = 0x05
+};
+
+enum class ChatMsgType : uint8_t {
+    SYSTEM  = 0x00,
+    PRIVATE = 0x01,
+    CLAN    = 0x02
+};
+
+enum class ClanNotifType : uint8_t {
+    MEMBER_ONLINE   = 0x00,
+    MEMBER_OFFLINE  = 0x01,
+    MEMBER_ATTACKED = 0x02,
+    JOIN_REQUEST    = 0x03,
+    JOIN_ACCEPTED   = 0x04,
+    JOIN_REJECTED   = 0x05,
+    KICKED          = 0x06
+};
+
+enum class ServerMsgSeverity : uint8_t {
+    INFO    = 0x00,
+    WARNING = 0x01,
+    ERROR   = 0x02
+};
+
+enum class TileType : uint8_t {
+    GRASS         = 0x00,
+    SAND          = 0x01,
+    FOREST        = 0x02,
+    WATER         = 0x03,
+    ROAD          = 0x04,
+    DUNGEON_FLOOR = 0x05,
+    WALL          = 0x06,
+    BUILDING_WALL = 0x07
+};
+
+// ---------------------------------------------------------------------------
+// Tipos de struct
+// ---------------------------------------------------------------------------
+
+struct Position {
+    uint16_t x = 0;
+    uint16_t y = 0;
+};
+
+struct InventorySlot {
+    uint8_t  slot_index   = 0;
+    ItemType item_type    = ItemType::NONE;
+    std::string item_name;
+    uint8_t  sprite_id    = 0;
+};
+
+struct TileInfo {
+    uint16_t x        = 0;
+    uint16_t y        = 0;
+    TileType type     = TileType::GRASS;
+    bool     walkable = true;
+};
+
+struct NpcItemEntry {
+    std::string item_name;
+    ItemType    item_type  = ItemType::NONE;
+    uint8_t     sprite_id  = 0;
+    uint32_t    price      = 0;
+};
+
+struct ClanMember {
+    std::string username;
+    bool        is_founder = false;
+    bool        is_online  = false;
+};
+
+// ---------------------------------------------------------------------------
+// Comandos: Cliente -> Servidor (sección 3.1 y 4 de protocol.md)
+// ---------------------------------------------------------------------------
+
+// 0x01
+struct LoginCmd {
+    std::string username;
+    std::string password;
+};
+
+// 0x02
+struct CreateCharacterCmd {
+    std::string username;
+    std::string password;
+    Race        race;
+    Class       class;
+};
+
+// 0x03
+struct MoveCmd {
+    Direction direction;
+};
+
+// 0x04
+struct AttackCmd {};
+
+// 0x05
+struct CastSpellCmd {};
+
+// 0x06
+struct PickupItemCmd {};
+
+// 0x07
+struct DropItemCmd {};
+
+// 0x08
+struct EquipItemCmd {};
+
+// 0x09
+struct UnequipItemCmd {};
+
+// 0x0A
+struct MeditateCmd {};
+
+// 0x0B
+struct ResurrectCmd {};
+
+// 0x0C
+struct NpcBuyCmd {};
+
+// 0x0D
+struct NpcSellCmd {};
+
+// 0x0E
+struct NpcHealCmd {};
+
+// 0x0F
+struct BankDepositCmd {};
+
+// 0x10
+struct BankWithdrawCmd {};
+
+// 0x11
+struct NpcListCmd {};
+
+// 0x12
+struct PrivateMsgCmd {};
+
+// 0x13 – 0x1A  Clanes
+struct ClanFoundCmd      {};
+struct ClanJoinRequestCmd{};
+struct ClanReviewCmd     {};
+struct ClanAcceptCmd     {};
+struct ClanRejectCmd     {};
+struct ClanBanCmd        {};
+struct ClanKickCmd       {};
+struct ClanLeaveCmd      {};
+
+// 0x1B – 0x1D  Cheats
+struct CheatInfiniteHpCmd   {};
+struct CheatInfiniteManaCmd {};
+struct CheatDieCmd          {};
+
+/*
+ * ClientCommand es la variante que engloba todos los comandos.
+ * El GameLoop hace std::visit sobre esta variante para despacharlos.
+ */
+using ClientCommand = std::variant<
+    LoginCmd,
+    CreateCharacterCmd,
+    MoveCmd,
+    AttackCmd,
+    CastSpellCmd,
+    PickupItemCmd,
+    DropItemCmd,
+    EquipItemCmd,
+    UnequipItemCmd,
+    MeditateCmd,
+    ResurrectCmd,
+    NpcBuyCmd,
+    NpcSellCmd,
+    NpcHealCmd,
+    BankDepositCmd,
+    BankWithdrawCmd,
+    NpcListCmd,
+    PrivateMsgCmd,
+    ClanFoundCmd,
+    ClanJoinRequestCmd,
+    ClanReviewCmd,
+    ClanAcceptCmd,
+    ClanRejectCmd,
+    ClanBanCmd,
+    ClanKickCmd,
+    ClanLeaveCmd,
+    CheatInfiniteHpCmd,
+    CheatInfiniteManaCmd,
+    CheatDieCmd
+>;
+
+// ---------------------------------------------------------------------------
+// Eventos: Servidor -> Cliente (sección 3.2 y 5 de protocol.md)
+// ---------------------------------------------------------------------------
+
+// 0x80
+struct LoginOkEvent {
+    entity_id_t player_id;
+    std::string username;
+    Race        race;
+    Class       class_;
+    uint8_t     level;
+    uint32_t    experience;
+    uint16_t    hp_current;
+    uint16_t    hp_max;
+    uint16_t    mana_current;
+    uint16_t    mana_max;
+    uint32_t    gold;
+    Position    pos;
+};
+
+// 0x81
+struct LoginErrorEvent {
+    LoginError  error_code;
+    std::string message;
+};
+
+// 0x82
+struct CharacterCreatedEvent {
+    LoginOkEvent data;
+};
+
+// 0x83
+struct CharacterErrorEvent {
+    CharacterError error_code;
+    std::string    message;
+};
+
+// 0x84
+struct MapInfoEvent {};
+
+// 0x85
+struct PlayerStatsEvent {};
+
+// 0x86
+struct EntitySpawnEvent {};
+
+// 0x87
+struct EntityDespawnEvent {};
+
+// 0x88
+struct EntityMoveEvent {};
+
+// 0x89
+struct DamageDealtEvent {};
+
+// 0x8A
+struct DamageReceivedEvent {};
+
+// 0x8B
+struct AttackDodgedEvent {};
+
+// 0x8C
+struct EntityDiedEvent {};
+
+// 0x8D
+struct PlayerRespawnedEvent {};
+
+// 0x8E / 0x8F
+struct MeditationStartEvent {};
+struct MeditationStopEvent  {};
+
+// 0x90
+struct InventoryUpdateEvent {};
+
+// 0x91
+struct EquipUpdateEvent {};
+
+// 0x92
+struct GoldUpdateEvent {};
+
+// 0x93
+struct ItemDroppedEvent {};
+
+// 0x94
+struct ItemPickedEvent {};
+
+// 0x95
+struct NpcItemListEvent {};
+
+// 0x96
+struct TransactionOkEvent {};
+
+// 0x97
+struct TransactionErrorEvent {};
+
+// 0x98
+struct ChatMsgEvent {};
+
+// 0x99
+struct ClanNotificationEvent {};
+
+// 0x9A
+struct ClanUpdateEvent {};
+
+// 0x9B
+struct ServerMsgEvent {};
+
+/*
+ * ServerEvent es la variante que engloba todos los eventos.
+ * El cliente hace std::visit sobre esta variante para renderizar/actualizar estado.
+ */
+using ServerEvent = std::variant<
+    LoginOkEvent,
+    LoginErrorEvent,
+    CharacterCreatedEvent,
+    CharacterErrorEvent,
+    MapInfoEvent,
+    PlayerStatsEvent,
+    EntitySpawnEvent,
+    EntityDespawnEvent,
+    EntityMoveEvent,
+    DamageDealtEvent,
+    DamageReceivedEvent,
+    AttackDodgedEvent,
+    EntityDiedEvent,
+    PlayerRespawnedEvent,
+    MeditationStartEvent,
+    MeditationStopEvent,
+    InventoryUpdateEvent,
+    EquipUpdateEvent,
+    GoldUpdateEvent,
+    ItemDroppedEvent,
+    ItemPickedEvent,
+    NpcItemListEvent,
+    TransactionOkEvent,
+    TransactionErrorEvent,
+    ChatMsgEvent,
+    ClanNotificationEvent,
+    ClanUpdateEvent,
+    ServerMsgEvent
+>;
+
+#endif  // MESSAGES_H_

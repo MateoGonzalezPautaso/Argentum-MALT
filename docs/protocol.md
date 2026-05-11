@@ -749,6 +749,18 @@ Todos los valores son `uint8_t`.
 0x03    SHIELD
 ```
 
+### TileType
+```
+0x00    GRASS
+0x01    SAND
+0x02    FOREST
+0x03    WATER
+0x04    ROAD
+0x05    DUNGEON_FLOOR
+0x06    WALL
+0x07    BUILDING_WALL
+```
+
 ### LogInError
 ```
 0x01    INVALID_CREDENTIALS
