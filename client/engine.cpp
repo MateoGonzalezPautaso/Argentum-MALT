@@ -2,13 +2,14 @@
 
 #include <SDL2/SDL.h>
 
-ClientEngine::ClientEngine(const ClientConfig& config)
+ClientEngine::ClientEngine(const ClientConfig& config, ClientProtocol& protocol)
         : sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO),
             window(config.window.title,
                     SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                     config.window.width, config.window.height,
                     SDL_WINDOW_RESIZABLE),
         renderer(window, config.background, config.sprites, config.window.width, config.window.height),
+        protocol(protocol),
         last_walk_tick(SDL_GetTicks()),
         walk_frame_ms(config.walk_frame_ms),
         move_step(config.move_step),
@@ -60,6 +61,7 @@ bool ClientEngine::handle_event(const SDL_Event& event) {
             last_walk_tick = now;
         }
         move_sprite(-move_step, 0);
+        protocol.send_command(MoveCmd{Direction::WEST});
         break;
     case SDLK_RIGHT:
         set_movable_src_y(dir_src_y_right);
@@ -68,6 +70,7 @@ bool ClientEngine::handle_event(const SDL_Event& event) {
             last_walk_tick = now;
         }
         move_sprite(move_step, 0);
+        protocol.send_command(MoveCmd{Direction::EAST});
         break;
     case SDLK_UP:
         set_movable_src_y(dir_src_y_up);
@@ -76,6 +79,7 @@ bool ClientEngine::handle_event(const SDL_Event& event) {
             last_walk_tick = now;
         }
         move_sprite(0, -move_step);
+        protocol.send_command(MoveCmd{Direction::NORTH});
         break;
     case SDLK_DOWN:
         set_movable_src_y(dir_src_y_down);
@@ -84,6 +88,7 @@ bool ClientEngine::handle_event(const SDL_Event& event) {
             last_walk_tick = now;
         }
         move_sprite(0, move_step);
+        protocol.send_command(MoveCmd{Direction::SOUTH});
         break;
     case SDLK_p:
         toggle_extra_sprite();

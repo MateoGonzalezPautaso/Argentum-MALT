@@ -5,7 +5,7 @@
 #include <SDL2pp/SDL2pp.hh>
 
 #include "config.h"
-
+#include "client_protocol.h"
 #include "renderer.h"
 
 class ClientEngine {
@@ -13,6 +13,7 @@ private:
     SDL2pp::SDL sdl;
     SDL2pp::Window window;
     ClientRenderer renderer;
+    ClientProtocol& protocol;
     uint32_t last_walk_tick = 0;
     uint32_t walk_frame_ms = 120;
     int move_step = 4;
@@ -24,7 +25,7 @@ private:
     int dir_src_y_right = 120;
 
 public:
-    explicit ClientEngine(const ClientConfig& config);
+    explicit ClientEngine(const ClientConfig& config, ClientProtocol& protocol);
 
     void show_sprite();
     void move_sprite(int dx, int dy);

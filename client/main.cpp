@@ -5,6 +5,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
+#include "../common/socket.h"
+#include "client_protocol.h"
 #include "config.h"
 #include "engine.h"
 
@@ -17,7 +19,10 @@ int main() try {
 	const std::string config_path =
 			"client_config.toml";
 	ClientConfig config = load_client_config(config_path);
-	ClientEngine client(config);
+
+	Socket skt("127.0.0.1", "1234");
+	ClientProtocol proto(std::move(skt));
+	ClientEngine client(config, proto);
 
 	bool running = true;
 	SDL_Event event{};
