@@ -150,7 +150,7 @@ struct CreateCharacterCmd {
     std::string username;
     std::string password;
     Race race;
-    Class class;
+    Class class_;
 };
 
 // 0x03
