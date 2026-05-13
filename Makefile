@@ -2,8 +2,8 @@
 
 compile-debug:
 	mkdir -p build/
-	/snap/bin/cmake -S . -B ./build -DCMAKE_BUILD_TYPE=Debug -DTALLER_MAKE_WARNINGS_AS_ERRORS=OFF $(EXTRA_GENERATE)
-	/snap/bin/cmake --build build/ $(EXTRA_COMPILE)
+	cmake -S . -B ./build -DCMAKE_BUILD_TYPE=Debug -DTALLER_MAKE_WARNINGS_AS_ERRORS=OFF $(EXTRA_GENERATE)
+	cmake --build build/ $(EXTRA_COMPILE)
 
 run-tests: compile-debug
 	./build/taller_tests
