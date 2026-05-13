@@ -4,42 +4,11 @@
 #include "../common/messages.h"
 #include "../common/protocol.h"
 
-/*
- * Protocolo desde la perspectiva del servidor:
- *   - recv_command  deserializa el próximo comando del cliente.
- *   - send_*        serializa y envía un evento al cliente.
- */
-class ServerProtocol: public Protocol {
-private:
-    // Deserializadores privados por tipo de comando
-    ClientCommand recv_login();
-    ClientCommand recv_create_character();
-    ClientCommand recv_move();
-    ClientCommand recv_attack();
-    ClientCommand recv_cast_spell();
-    ClientCommand recv_drop_item();
-    ClientCommand recv_equip_item();
-    ClientCommand recv_unequip_item();
-    ClientCommand recv_npc_buy();
-    ClientCommand recv_npc_sell();
-    ClientCommand recv_npc_heal();
-    ClientCommand recv_bank_deposit();
-    ClientCommand recv_bank_withdraw();
-    ClientCommand recv_npc_list();
-    ClientCommand recv_private_msg();
-    ClientCommand recv_clan_found();
-    ClientCommand recv_clan_join_request();
-    ClientCommand recv_clan_accept();
-    ClientCommand recv_clan_reject();
-    ClientCommand recv_clan_ban();
-    ClientCommand recv_clan_kick();
-
+class ServerProtocol {
 public:
-    ServerProtocol();
-    ~ServerProtocol() = default;
+    explicit ServerProtocol(Socket&& skt);
 
     // Envío de eventos (Servidor -> Cliente)
-
     void send_login_ok(const LoginOkEvent& ev);
     void send_login_error(const LoginErrorEvent& ev);
     void send_character_created(const CharacterCreatedEvent& ev);
@@ -72,11 +41,22 @@ public:
     // Envía cualquier evento usando std::visit.
     void send_event(const ServerEvent& ev);
 
-    // Recibe y deserializa el próximo comando del cliente, retornándolo como ClientCommand.
+    // Recibe y deserializa el próximo comando del cliente.
     ClientCommand recv_command();
 
     ServerProtocol(const ServerProtocol&) = delete;
     ServerProtocol& operator=(const ServerProtocol&) = delete;
+
+private:
+    Socket skt;
+    Protocol protocol;
+
+    // Deserializadores privados por tipo de comando
+    ClientCommand recv_login();
+    ClientCommand recv_create_character();
+    ClientCommand recv_move();
+    ClientCommand recv_attack();
+    // TODO ...
 };
 
 #endif  // SERVER_PROTOCOL_H_

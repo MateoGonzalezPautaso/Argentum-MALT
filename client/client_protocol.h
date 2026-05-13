@@ -4,50 +4,16 @@
 #include "../common/messages.h"
 #include "../common/protocol.h"
 
-/*
- *   Protocolo desde la perspectiva del cliente:
- *   - send_*  serializa y envía un comando al servidor.
- *   - recv_event  deserializa y retorna el próximo evento del servidor.
- */
-class ClientProtocol: public Protocol {
-private:
-    // Deserializadores privados por tipo de evento
-    ServerEvent recv_login_ok();
-    ServerEvent recv_login_error();
-    ServerEvent recv_character_created();
-    ServerEvent recv_character_error();
-    ServerEvent recv_map_info();
-    ServerEvent recv_player_stats();
-    ServerEvent recv_entity_spawn();
-    ServerEvent recv_entity_despawn();
-    ServerEvent recv_entity_move();
-    ServerEvent recv_damage_dealt();
-    ServerEvent recv_damage_received();
-    ServerEvent recv_attack_dodged();
-    ServerEvent recv_entity_died();
-    ServerEvent recv_player_respawned();
-    ServerEvent recv_inventory_update();
-    ServerEvent recv_equip_update();
-    ServerEvent recv_gold_update();
-    ServerEvent recv_item_dropped();
-    ServerEvent recv_item_picked();
-    ServerEvent recv_npc_item_list();
-    ServerEvent recv_transaction_ok();
-    ServerEvent recv_transaction_error();
-    ServerEvent recv_chat_msg();
-    ServerEvent recv_clan_notification();
-    ServerEvent recv_clan_update();
-    ServerEvent recv_server_msg();
-
+class ClientProtocol {
 public:
-    ClientProtocol();
-    ~ClientProtocol() = default;
+    explicit ClientProtocol(Socket&& skt);
 
     // Envío de comandos (Cliente -> Servidor)
-
     void send_login(const LoginCmd& cmd);
     void send_create_character(const CreateCharacterCmd& cmd);
     void send_move(const MoveCmd& cmd);
+
+    // TODO ...
     void send_attack(const AttackCmd& cmd);
     void send_cast_spell(const CastSpellCmd& cmd);
     void send_pickup_item();
@@ -80,11 +46,24 @@ public:
     // Envía cualquier comando usando std::visit.
     void send_command(const ClientCommand& cmd);
 
-    // Recibe y deserializa el próximo evento del servidor, retornándolo como ServerEvent.
+    // Recibe y deserializa el próximo evento del servidor.
     ServerEvent recv_event();
 
     ClientProtocol(const ClientProtocol&) = delete;
     ClientProtocol& operator=(const ClientProtocol&) = delete;
+
+private:
+    Socket skt;
+    Protocol protocol;
+
+    // Deserializadores privados por tipo de evento
+    ServerEvent recv_login_ok();
+    ServerEvent recv_login_error();
+    ServerEvent recv_character_created();
+    ServerEvent recv_character_error();
+    ServerEvent recv_map_info();
+
+    // TODO ...
 };
 
 #endif  // CLIENT_PROTOCOL_H_
