@@ -6,7 +6,7 @@
 
 ClientProtocol::ClientProtocol(Socket&& skt):
         skt(std::move(skt)),
-        protocol(skt) {}
+        protocol(this->skt) {}
 
 void ClientProtocol::send_move(const MoveCmd& cmd) {
     protocol.send_opcode(OpCode::MOVE);

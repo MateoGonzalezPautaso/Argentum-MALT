@@ -6,7 +6,7 @@
 
 ServerProtocol::ServerProtocol(Socket&& skt):
         skt(std::move(skt)),
-        protocol(skt) {}
+        protocol(this->skt) {}
 
 ClientCommand ServerProtocol::recv_command() {
     OpCode opcode = protocol.recv_opcode();
