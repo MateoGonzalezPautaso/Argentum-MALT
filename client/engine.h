@@ -39,9 +39,11 @@ public:
     explicit ClientEngine(const ClientConfig& config, ClientProtocol& protocol);
 
     void tick();
+    void show_menu();
     void show_sprite();
     void move_sprite(int dx, int dy);
     bool handle_event(const SDL_Event& event);
+    bool is_menu_click(int x, int y) const;
     void set_movable_src_y(int y);
     void step_movable_src_x(int step, int frame_count);
     void set_anchor_src_y(int y);

@@ -1,41 +1,27 @@
 #include <exception>
 #include <iostream>
-#include <string>
-
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 
 #include "../common/socket.h"
+#include "app.h"
 #include "client_protocol.h"
-#include "config.h"
 #include "engine.h"
 
 int main() try {
-	const int img_flags = IMG_INIT_PNG;
-	if ((IMG_Init(img_flags) & img_flags) != img_flags) {
-		throw std::runtime_error(std::string("IMG_Init failed: ") + IMG_GetError());
-	}
-
-	const std::string config_path =
-			"client_config.toml";
-	ClientConfig config = load_client_config(config_path);
+	client_app::init_image();
+	ClientConfig config = client_app::load_config();
 
 	Socket skt("127.0.0.1", "1234");
 	ClientProtocol proto(std::move(skt));
 	ClientEngine client(config, proto);
 
+	client_app::GameState state = client_app::GameState::Menu;
 	bool running = true;
-	SDL_Event event{};
 	const uint32_t tick_ms = config.tick_ms;
 	uint32_t last_tick = SDL_GetTicks();
 
 	while (running) {
-		while (SDL_PollEvent(&event)) {
-			running = client.handle_event(event);
-			if (!running) {
-				break;
-			}
-		}
+		running = client_app::pump_events(client, state);
 		if (!running) {
 			break;
 		}
@@ -44,8 +30,11 @@ int main() try {
 		const uint32_t elapsed = now - last_tick;
 		if (elapsed >= tick_ms) {
 			last_tick = now;
-			client.tick();
-			client.show_sprite();
+			if (state == client_app::GameState::Menu) {
+				client_app::render_menu(client);
+			} else {
+				client_app::render_playing(client);
+			}
 		}
 
 		const uint32_t sleep_ms = (elapsed < tick_ms) ? (tick_ms - elapsed) : 0;
@@ -54,7 +43,7 @@ int main() try {
 		}
 	}
 
-	IMG_Quit();
+	client_app::shutdown_image();
 	return 0;
 } catch (std::exception& e) {
 	std::cerr << e.what() << std::endl;

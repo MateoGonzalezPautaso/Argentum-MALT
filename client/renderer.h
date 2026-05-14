@@ -11,11 +11,15 @@
 
 class ClientRenderer {
 private:
-    SDL2pp::Window& window;
     SDL2pp::Renderer renderer;
-    SDL2pp::Surface background_surface;
     SDL2pp::Texture background_texture;
     SDL2pp::Rect background_rect;
+    SDL2pp::Texture menu_background_texture;
+    SDL2pp::Texture menu_logo_texture;
+    SDL2pp::Texture menu_button_texture;
+    SDL2pp::Rect menu_background_rect;
+    SDL2pp::Rect menu_logo_rect;
+    SDL2pp::Rect menu_button_rect;
     struct SpriteRender {
         std::vector<SDL2pp::Texture> frames;
         SDL2pp::Rect src;
@@ -43,6 +47,8 @@ public:
                    int window_h);
 
     void render_frame();
+    void render_menu();
+    bool is_menu_button_hit(int x, int y) const;
     void move_sprite(int dx, int dy);
     bool get_movable_position(int& x, int& y) const;
     void set_movable_src_y(int y);
@@ -51,6 +57,9 @@ public:
 
 private:
     static SDL2pp::Surface load_surface(const std::string& path);
+    void init_menu_layout();
+    void init_sprites(const std::vector<SpriteConfig>& sprites_config);
+    SpriteRender build_sprite_render(const SpriteConfig& sprite_config);
     void update_animation();
     void update_anchor_positions();
     SpriteRender* find_movable_sprite();

@@ -34,6 +34,10 @@ void ClientEngine::show_sprite() {
     renderer.render_frame();
 }
 
+void ClientEngine::show_menu() {
+    renderer.render_menu();
+}
+
 void ClientEngine::tick() {
     if (!has_target) {
         return;
@@ -202,6 +206,10 @@ bool ClientEngine::handle_event(const SDL_Event& event) {
     }
 
     return true;
+}
+
+bool ClientEngine::is_menu_click(int x, int y) const {
+    return renderer.is_menu_button_hit(x, y);
 }
 
 bool ClientEngine::handle_mouse_button(const SDL_Event& event) {

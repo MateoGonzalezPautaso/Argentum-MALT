@@ -11,52 +11,82 @@ ClientRenderer::ClientRenderer(SDL2pp::Window& window,
                                const std::vector<SpriteConfig>& sprites_config,
                                int window_w,
                                int window_h)
-    : window(window),
-      renderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
-      background_surface(load_surface(background.path)),
-      background_texture(renderer, background_surface),
+        : renderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
+            background_texture(renderer, load_surface(background.path)),
       background_rect(background.x, background.y, background.width, background.height),
-      window_w(window_w),
-    window_h(window_h) {
-    sprites.reserve(sprites_config.size());
-    for (const auto& sprite_config : sprites_config) {
-        SpriteRender sprite;
-        sprite.frames.reserve(sprite_config.paths.size());
-        for (const auto& path : sprite_config.paths) {
-            SDL2pp::Surface surface = load_surface(path);
-            sprite.frames.emplace_back(renderer, surface);
-        }
-
-        if (sprite.frames.empty()) {
-            continue;
-        }
-
-        sprite.dst = SDL2pp::Rect(sprite_config.x,
-                                  sprite_config.y,
-                                  sprite_config.width,
-                                  sprite_config.height);
-        if (sprite_config.src_width > 0 && sprite_config.src_height > 0) {
-            sprite.src = SDL2pp::Rect(sprite_config.src_x,
-                                      sprite_config.src_y,
-                                      sprite_config.src_width,
-                                      sprite_config.src_height);
-            sprite.use_src = true;
-        }
-        sprite.animated = sprite.frames.size() > 1;
-        sprite.frame_ms = sprite_config.frame_ms;
-        sprite.current_frame = 0;
-        sprite.last_ticks = SDL_GetTicks();
-        sprite.movable = sprite_config.movable;
-        sprite.anchor_to_movable = sprite_config.anchor_to_movable;
-        sprite.anchor_offset_x = sprite_config.anchor_offset_x;
-        sprite.anchor_offset_y = sprite_config.anchor_offset_y;
-        sprite.visible = sprite_config.visible;
-        sprites.push_back(std::move(sprite));
-    }
+            menu_background_texture(renderer, load_surface("assets/BabelUI/static/media/leather_black..png")),
+            menu_logo_texture(renderer, load_surface("assets/BabelUI/static/media/ao20_logo_med..png")),
+            menu_button_texture(renderer, load_surface("assets/interface/en_boton-comenzar-default.bmp")),
+            menu_background_rect(0, 0, window_w, window_h),
+            menu_logo_rect(0, 0, 0, 0),
+            menu_button_rect(0, 0, 0, 0),
+            window_w(window_w),
+        window_h(window_h) {
+    init_menu_layout();
+    init_sprites(sprites_config);
 
     if (sprites.empty()) {
         throw std::runtime_error("No sprites to render");
     }
+}
+
+void ClientRenderer::init_menu_layout() {
+    const int logo_w = menu_logo_texture.GetWidth();
+    const int logo_h = menu_logo_texture.GetHeight();
+    const int button_w = menu_button_texture.GetWidth();
+    const int button_h = menu_button_texture.GetHeight();
+    const int logo_x = std::max(0, (window_w - logo_w) / 2);
+    const int logo_y = std::max(0, (window_h - logo_h) / 2 - 40);
+    const int button_x = std::max(0, (window_w - button_w) / 2);
+    const int button_y = std::min(window_h - button_h, logo_y + logo_h + 20);
+    menu_logo_rect = SDL2pp::Rect(logo_x, logo_y, logo_w, logo_h);
+    menu_button_rect = SDL2pp::Rect(button_x, button_y, button_w, button_h);
+}
+
+void ClientRenderer::init_sprites(const std::vector<SpriteConfig>& sprites_config) {
+    sprites.reserve(sprites_config.size());
+    for (const auto& sprite_config : sprites_config) {
+        SpriteRender sprite = build_sprite_render(sprite_config);
+        if (sprite.frames.empty()) {
+            continue;
+        }
+        sprites.push_back(std::move(sprite));
+    }
+}
+
+ClientRenderer::SpriteRender ClientRenderer::build_sprite_render(const SpriteConfig& sprite_config) {
+    SpriteRender sprite;
+    sprite.frames.reserve(sprite_config.paths.size());
+    for (const auto& path : sprite_config.paths) {
+        SDL2pp::Surface surface = load_surface(path);
+        sprite.frames.emplace_back(renderer, surface);
+    }
+
+    if (sprite.frames.empty()) {
+        return sprite;
+    }
+
+    sprite.dst = SDL2pp::Rect(sprite_config.x,
+                              sprite_config.y,
+                              sprite_config.width,
+                              sprite_config.height);
+    if (sprite_config.src_width > 0 && sprite_config.src_height > 0) {
+        sprite.src = SDL2pp::Rect(sprite_config.src_x,
+                                  sprite_config.src_y,
+                                  sprite_config.src_width,
+                                  sprite_config.src_height);
+        sprite.use_src = true;
+    }
+    sprite.animated = sprite.frames.size() > 1;
+    sprite.frame_ms = sprite_config.frame_ms;
+    sprite.current_frame = 0;
+    sprite.last_ticks = SDL_GetTicks();
+    sprite.movable = sprite_config.movable;
+    sprite.anchor_to_movable = sprite_config.anchor_to_movable;
+    sprite.anchor_offset_x = sprite_config.anchor_offset_x;
+    sprite.anchor_offset_y = sprite_config.anchor_offset_y;
+    sprite.visible = sprite_config.visible;
+    return sprite;
 }
 
 void ClientRenderer::render_frame() {
@@ -78,6 +108,23 @@ void ClientRenderer::render_frame() {
     }
 
     renderer.Present();
+}
+
+void ClientRenderer::render_menu() {
+    renderer.SetDrawColor(0, 0, 0, 255);
+    renderer.Clear();
+    renderer.Copy(menu_background_texture, SDL2pp::NullOpt, menu_background_rect);
+    renderer.Copy(menu_logo_texture, SDL2pp::NullOpt, menu_logo_rect);
+    renderer.Copy(menu_button_texture, SDL2pp::NullOpt, menu_button_rect);
+    renderer.Present();
+}
+
+bool ClientRenderer::is_menu_button_hit(int x, int y) const {
+    const int left = menu_button_rect.GetX();
+    const int top = menu_button_rect.GetY();
+    const int right = left + menu_button_rect.GetW();
+    const int bottom = top + menu_button_rect.GetH();
+    return x >= left && x <= right && y >= top && y <= bottom;
 }
 
 void ClientRenderer::move_sprite(int dx, int dy) {

@@ -1,0 +1,29 @@
+#ifndef CLIENT_APP_H
+#define CLIENT_APP_H
+
+#include <cstdint>
+
+#include <SDL2/SDL.h>
+
+#include "config.h"
+#include "engine.h"
+
+namespace client_app {
+
+enum class GameState {
+    Menu,
+    Playing
+};
+
+void init_image();
+void shutdown_image();
+ClientConfig load_config();
+bool handle_menu_event(const SDL_Event& event, ClientEngine& client, GameState& state);
+bool handle_playing_event(const SDL_Event& event, ClientEngine& client);
+void render_menu(ClientEngine& client);
+void render_playing(ClientEngine& client);
+bool pump_events(ClientEngine& client, GameState& state);
+
+}
+
+#endif
