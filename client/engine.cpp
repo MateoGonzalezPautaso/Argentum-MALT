@@ -83,6 +83,7 @@ void ClientEngine::set_move_target(int x, int y) {
 }
 
 void ClientEngine::apply_movement(Direction dir, int dx, int dy, uint32_t now, bool cancel_target) {
+    // mapea direccion a filas del sprite de jugador y avanza animacion de caminata.
     if (cancel_target) {
         has_target = false;
     }
@@ -163,6 +164,7 @@ void ClientEngine::compute_step_to_target(int current_x, int current_y,
 }
 
 void ClientEngine::move_toward_target(uint32_t now) {
+    // avanza al objetivo por el eje en cada tick
     int current_x = 0;
     int current_y = 0;
     if (!get_movable_position(current_x, current_y)) {

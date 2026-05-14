@@ -11,6 +11,7 @@
 
 class ClientRenderer {
 private:
+    // texturas necesarias para gameplay y menu.
     SDL2pp::Renderer renderer;
     SDL2pp::Texture background_texture;
     SDL2pp::Rect background_rect;

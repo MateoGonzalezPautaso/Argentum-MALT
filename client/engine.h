@@ -10,6 +10,7 @@
 
 class ClientEngine {
 private:
+    // objetos de SDL que viven durante toda la vida del engine.
     SDL2pp::SDL sdl;
     SDL2pp::Window window;
     ClientRenderer renderer;

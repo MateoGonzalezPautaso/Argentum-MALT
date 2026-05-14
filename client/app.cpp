@@ -8,6 +8,7 @@
 namespace client_app {
 
 void init_image() {
+    // Asegura codecs de imagen antes de cargar texturas.
     const int img_flags = IMG_INIT_PNG;
     if ((IMG_Init(img_flags) & img_flags) != img_flags) {
         throw std::runtime_error(std::string("IMG_Init failed: ") + IMG_GetError());
@@ -49,6 +50,7 @@ void render_playing(ClientEngine& client) {
 }
 
 bool pump_events(ClientEngine& client, GameState& state) {
+    // input segun el estado: menuo juego
     SDL_Event event{};
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {

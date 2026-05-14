@@ -91,12 +91,13 @@ ClientRenderer::SpriteRender ClientRenderer::build_sprite_render(const SpriteCon
 
 void ClientRenderer::render_frame() {
     renderer.SetDrawColor(0, 0, 0, 255);
-    renderer.Clear(); // limpa buffer de renderizacion
+    renderer.Clear(); // limpia el backbuffer
     renderer.Copy(background_texture, SDL2pp::NullOpt, background_rect);
-    update_animation(); // mueve jugador
-    update_anchor_positions(); //mueve la cabeza
+    update_animation(); // avanza sprites animados
+    update_anchor_positions(); // sincroniza sprites anclados
 
-    for (auto& sprite : sprites) { //for de dibujado
+    // Dibuja sprites visibles en el orden configurado.
+    for (auto& sprite : sprites) {
         if (!sprite.visible || sprite.frames.empty()) {
             continue;
         }
@@ -139,6 +140,7 @@ void ClientRenderer::move_sprite(int dx, int dy) {
 }
 
 bool ClientRenderer::get_movable_position(int& x, int& y) const {
+    // sirve para obtener la posicion actual del sprite movible, para el movimiento por click
     const SpriteRender* sprite = find_movable_sprite();
     if (!sprite) {
         return false;
@@ -149,6 +151,7 @@ bool ClientRenderer::get_movable_position(int& x, int& y) const {
 }
 
 void ClientRenderer::set_movable_src_y(int y) {
+    // sirve para cambiar la fila en la imagen del sprite movible
     SpriteRender* sprite = find_movable_sprite();
     if (!sprite || !sprite->use_src) {
         return;
@@ -157,6 +160,7 @@ void ClientRenderer::set_movable_src_y(int y) {
 }
 
 void ClientRenderer::step_movable_src_x(int step, int frame_count) {
+    // sirve para avanzar la animacion de caminata en la imagen del sprite movible
     SpriteRender* sprite = find_movable_sprite();
     if (!sprite || !sprite->use_src) {
         return;
@@ -170,6 +174,7 @@ void ClientRenderer::step_movable_src_x(int step, int frame_count) {
 }
 
 void ClientRenderer::set_anchor_src_y(int y) {
+    // junta dos sprites usando la misma fila (para agregar la cabeza del personaje)
     for (auto& sprite : sprites) {
         if (!sprite.anchor_to_movable || !sprite.use_src) {
             continue;
@@ -187,6 +192,7 @@ SDL2pp::Surface ClientRenderer::load_surface(const std::string& path) {
 }
 
 void ClientRenderer::update_animation() {
+    // avanza la animacion de los sprites segun su configuracion de frame_ms.
     const uint32_t now = SDL_GetTicks();
     for (auto& sprite : sprites) {
         if (!sprite.animated || sprite.frame_ms == 0) {
@@ -201,6 +207,7 @@ void ClientRenderer::update_animation() {
 }
 
 void ClientRenderer::update_anchor_positions() {
+    // refresh de posiciones de sprites anclados al sprite movible, para que lo sigan en cada movimiento.
     SpriteRender* movable = find_movable_sprite();
     if (!movable) {
         return;
