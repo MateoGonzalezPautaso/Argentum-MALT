@@ -26,12 +26,14 @@ private:
         std::size_t current_frame = 0;
         uint32_t last_ticks = 0;
         bool movable = false;
+        bool anchor_to_movable = false;
+        int anchor_offset_x = 0;
+        int anchor_offset_y = 0;
         bool visible = true;
     };
     std::vector<SpriteRender> sprites;
     int window_w;
     int window_h;
-    bool show_extra_sprite;
 
 public:
     ClientRenderer(SDL2pp::Window& window,
@@ -42,15 +44,17 @@ public:
 
     void render_frame();
     void move_sprite(int dx, int dy);
-    void toggle_extra_sprite();
+    bool get_movable_position(int& x, int& y) const;
     void set_movable_src_y(int y);
-    void step_movable_src_x(int step, int max_x);
+    void step_movable_src_x(int step, int frame_count);
+    void set_anchor_src_y(int y);
 
 private:
     static SDL2pp::Surface load_surface(const std::string& path);
-    SDL2pp::Rect extra_sprite_dst(const SpriteRender& sprite) const;
     void update_animation();
+    void update_anchor_positions();
     SpriteRender* find_movable_sprite();
+    const SpriteRender* find_movable_sprite() const;
 };
 
 #endif

@@ -1,6 +1,8 @@
 #include "engine.h"
 
 #include <SDL2/SDL.h>
+#include <algorithm>
+#include <cmath>
 
 ClientEngine::ClientEngine(const ClientConfig& config, ClientProtocol& protocol)
         : sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO),
@@ -14,30 +16,176 @@ ClientEngine::ClientEngine(const ClientConfig& config, ClientProtocol& protocol)
         walk_frame_ms(config.walk_frame_ms),
         move_step(config.move_step),
         walk_src_step(config.walk_src_step),
-    walk_src_max(config.walk_src_max),
+    walk_src_frames(config.walk_src_frames),
+    walk_src_frames_down(config.walk_src_frames_down),
+    walk_src_frames_up(config.walk_src_frames_up),
+    walk_src_frames_left(config.walk_src_frames_left),
+    walk_src_frames_right(config.walk_src_frames_right),
     dir_src_y_down(config.dir_src_y_down),
     dir_src_y_up(config.dir_src_y_up),
     dir_src_y_left(config.dir_src_y_left),
-    dir_src_y_right(config.dir_src_y_right) {}
+    dir_src_y_right(config.dir_src_y_right),
+    head_dir_src_y_down(config.head_dir_src_y_down),
+    head_dir_src_y_up(config.head_dir_src_y_up),
+    head_dir_src_y_left(config.head_dir_src_y_left),
+    head_dir_src_y_right(config.head_dir_src_y_right) {}
 
 void ClientEngine::show_sprite() {
     renderer.render_frame();
+}
+
+void ClientEngine::tick() {
+    if (!has_target) {
+        return;
+    }
+    move_toward_target(SDL_GetTicks());
 }
 
 void ClientEngine::move_sprite(int dx, int dy) {
     renderer.move_sprite(dx, dy);
 }
 
-void ClientEngine::toggle_extra_sprite() {
-    renderer.toggle_extra_sprite();
-}
-
 void ClientEngine::set_movable_src_y(int y) {
     renderer.set_movable_src_y(y);
 }
 
-void ClientEngine::step_movable_src_x(int step, int max_x) {
-    renderer.step_movable_src_x(step, max_x);
+void ClientEngine::step_movable_src_x(int step, int frame_count) {
+    renderer.step_movable_src_x(step, frame_count);
+}
+
+void ClientEngine::set_anchor_src_y(int y) {
+    renderer.set_anchor_src_y(y);
+}
+
+int ClientEngine::walk_src_frames_for(Direction dir) const {
+    switch (dir) {
+    case Direction::NORTH:
+        return walk_src_frames_up;
+    case Direction::SOUTH:
+        return walk_src_frames_down;
+    case Direction::WEST:
+        return walk_src_frames_left;
+    case Direction::EAST:
+        return walk_src_frames_right;
+    default:
+        return walk_src_frames;
+    }
+}
+
+void ClientEngine::set_move_target(int x, int y) {
+    target_x = x;
+    target_y = y;
+    has_target = true;
+}
+
+void ClientEngine::apply_movement(Direction dir, int dx, int dy, uint32_t now, bool cancel_target) {
+    if (cancel_target) {
+        has_target = false;
+    }
+    switch (dir) {
+    case Direction::NORTH:
+        set_movable_src_y(dir_src_y_up);
+        set_anchor_src_y(head_dir_src_y_up);
+        break;
+    case Direction::SOUTH:
+        set_movable_src_y(dir_src_y_down);
+        set_anchor_src_y(head_dir_src_y_down);
+        break;
+    case Direction::WEST:
+        set_movable_src_y(dir_src_y_left);
+        set_anchor_src_y(head_dir_src_y_left);
+        break;
+    case Direction::EAST:
+        set_movable_src_y(dir_src_y_right);
+        set_anchor_src_y(head_dir_src_y_right);
+        break;
+    default:
+        break;
+    }
+
+    if (now - last_walk_tick >= walk_frame_ms) {
+        step_movable_src_x(walk_src_step, walk_src_frames_for(dir));
+        last_walk_tick = now;
+    }
+
+    move_sprite(dx, dy);
+    protocol.send_command(MoveCmd{dir});
+}
+
+bool ClientEngine::get_movable_position(int& x, int& y) {
+    if (!renderer.get_movable_position(x, y)) {
+        has_target = false;
+        return false;
+    }
+    return true;
+}
+
+bool ClientEngine::should_stop_at_target(int current_x, int current_y, int new_x, int new_y) {
+    if (new_x == target_x && new_y == target_y) {
+        return true;
+    }
+    if (new_x == current_x && new_y == current_y) {
+        return true;
+    }
+    return false;
+}
+
+void ClientEngine::compute_step_to_target(int current_x, int current_y,
+                                          int& move_dx, int& move_dy,
+                                          Direction& dir) const {
+    const int dx = target_x - current_x;
+    const int dy = target_y - current_y;
+    move_dx = 0;
+    move_dy = 0;
+    dir = Direction::SOUTH;
+
+    if (std::abs(dx) >= std::abs(dy)) {
+        if (dx > 0) {
+            move_dx = std::min(move_step, dx);
+            dir = Direction::EAST;
+        } else {
+            move_dx = std::max(-move_step, dx);
+            dir = Direction::WEST;
+        }
+    } else {
+        if (dy > 0) {
+            move_dy = std::min(move_step, dy);
+            dir = Direction::SOUTH;
+        } else {
+            move_dy = std::max(-move_step, dy);
+            dir = Direction::NORTH;
+        }
+    }
+}
+
+void ClientEngine::move_toward_target(uint32_t now) {
+    int current_x = 0;
+    int current_y = 0;
+    if (!get_movable_position(current_x, current_y)) {
+        return;
+    }
+
+    if (target_x == current_x && target_y == current_y) {
+        has_target = false;
+        return;
+    }
+
+    int move_dx = 0;
+    int move_dy = 0;
+    Direction dir = Direction::SOUTH;
+    compute_step_to_target(current_x, current_y, move_dx, move_dy, dir);
+
+    apply_movement(dir, move_dx, move_dy, now, false);
+
+    int new_x = 0;
+    int new_y = 0;
+    if (!get_movable_position(new_x, new_y)) {
+        return;
+    }
+
+    if (should_stop_at_target(current_x, current_y, new_x, new_y)) {
+        has_target = false;
+    }
 }
 
 bool ClientEngine::handle_event(const SDL_Event& event) {
@@ -45,53 +193,43 @@ bool ClientEngine::handle_event(const SDL_Event& event) {
         return false;
     }
 
-    if (event.type != SDL_KEYDOWN) {
+    if (event.type == SDL_MOUSEBUTTONDOWN) {
+        return handle_mouse_button(event);
+    }
+
+    if (event.type == SDL_KEYDOWN) {
+        return handle_keydown(event);
+    }
+
+    return true;
+}
+
+bool ClientEngine::handle_mouse_button(const SDL_Event& event) {
+    if (event.button.button != SDL_BUTTON_LEFT) {
         return true;
     }
 
+    set_move_target(event.button.x, event.button.y);
+    return true;
+}
+
+bool ClientEngine::handle_keydown(const SDL_Event& event) {
     const uint32_t now = SDL_GetTicks();
 
     switch (event.key.keysym.sym) {
     case SDLK_ESCAPE:
         return false;
     case SDLK_LEFT:
-        set_movable_src_y(dir_src_y_left);
-        if (now - last_walk_tick >= walk_frame_ms) {
-            step_movable_src_x(walk_src_step, walk_src_max);
-            last_walk_tick = now;
-        }
-        move_sprite(-move_step, 0);
-        protocol.send_command(MoveCmd{Direction::WEST});
+        apply_movement(Direction::WEST, -move_step, 0, now, true);
         break;
     case SDLK_RIGHT:
-        set_movable_src_y(dir_src_y_right);
-        if (now - last_walk_tick >= walk_frame_ms) {
-            step_movable_src_x(walk_src_step, walk_src_max);
-            last_walk_tick = now;
-        }
-        move_sprite(move_step, 0);
-        protocol.send_command(MoveCmd{Direction::EAST});
+        apply_movement(Direction::EAST, move_step, 0, now, true);
         break;
     case SDLK_UP:
-        set_movable_src_y(dir_src_y_up);
-        if (now - last_walk_tick >= walk_frame_ms) {
-            step_movable_src_x(walk_src_step, walk_src_max);
-            last_walk_tick = now;
-        }
-        move_sprite(0, -move_step);
-        protocol.send_command(MoveCmd{Direction::NORTH});
+        apply_movement(Direction::NORTH, 0, -move_step, now, true);
         break;
     case SDLK_DOWN:
-        set_movable_src_y(dir_src_y_down);
-        if (now - last_walk_tick >= walk_frame_ms) {
-            step_movable_src_x(walk_src_step, walk_src_max);
-            last_walk_tick = now;
-        }
-        move_sprite(0, move_step);
-        protocol.send_command(MoveCmd{Direction::SOUTH});
-        break;
-    case SDLK_p:
-        toggle_extra_sprite();
+        apply_movement(Direction::SOUTH, 0, move_step, now, true);
         break;
     default:
         break;

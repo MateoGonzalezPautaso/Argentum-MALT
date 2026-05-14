@@ -28,26 +28,51 @@ movable = false
 visible = true
 
 [[sprites]]
-path = "assets/Graficos/4350.png"
+path = "assets/Graficos/1071.png"
 x = 400
 y = 300
-width = 30
-height = 80
-src_x = 4
-src_y = 17
-src_width = 26
+width = 27
+height = 48
+src_x = 0
+src_y = 0
+src_width = 27
 src_height = 48
 frame_ms = 0
 movable = true
 visible = true
 
+[[sprites]]
+path = "assets/Graficos/422.png"
+x = 400
+y = 300
+width = 27
+height = 64
+src_x = 0
+src_y = 0
+src_width = 27
+src_height = 64
+frame_ms = 0
+movable = false
+anchor_to_movable = true
+anchor_offset_x = 0
+anchor_offset_y = -20
+visible = true
+
 [movement]
 move_step = 4
-walk_src_step = 38
-walk_src_max = 60
+walk_src_step = 27
+walk_src_frames = 6
+walk_src_frames_down = 6
+walk_src_frames_up = 6
+walk_src_frames_left = 5
+walk_src_frames_right = 5
 walk_frame_ms = 120
 tick_ms = 33
 dir_src_y_down = 0
-dir_src_y_up = 40
-dir_src_y_left = 80
-dir_src_y_right = 120
+dir_src_y_up = 48
+dir_src_y_left = 96
+dir_src_y_right = 144
+head_dir_src_y_down = 0
+head_dir_src_y_up = 64
+head_dir_src_y_left = 128
+head_dir_src_y_right = 192

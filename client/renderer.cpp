@@ -17,8 +17,7 @@ ClientRenderer::ClientRenderer(SDL2pp::Window& window,
       background_texture(renderer, background_surface),
       background_rect(background.x, background.y, background.width, background.height),
       window_w(window_w),
-      window_h(window_h),
-      show_extra_sprite(false) {
+    window_h(window_h) {
     sprites.reserve(sprites_config.size());
     for (const auto& sprite_config : sprites_config) {
         SpriteRender sprite;
@@ -48,6 +47,9 @@ ClientRenderer::ClientRenderer(SDL2pp::Window& window,
         sprite.current_frame = 0;
         sprite.last_ticks = SDL_GetTicks();
         sprite.movable = sprite_config.movable;
+        sprite.anchor_to_movable = sprite_config.anchor_to_movable;
+        sprite.anchor_offset_x = sprite_config.anchor_offset_x;
+        sprite.anchor_offset_y = sprite_config.anchor_offset_y;
         sprite.visible = sprite_config.visible;
         sprites.push_back(std::move(sprite));
     }
@@ -59,11 +61,12 @@ ClientRenderer::ClientRenderer(SDL2pp::Window& window,
 
 void ClientRenderer::render_frame() {
     renderer.SetDrawColor(0, 0, 0, 255);
-    renderer.Clear();
+    renderer.Clear(); // limpa buffer de renderizacion
     renderer.Copy(background_texture, SDL2pp::NullOpt, background_rect);
-    update_animation();
+    update_animation(); // mueve jugador
+    update_anchor_positions(); //mueve la cabeza
 
-    for (auto& sprite : sprites) {
+    for (auto& sprite : sprites) { //for de dibujado
         if (!sprite.visible || sprite.frames.empty()) {
             continue;
         }
@@ -71,15 +74,6 @@ void ClientRenderer::render_frame() {
             renderer.Copy(sprite.frames[sprite.current_frame], sprite.src, sprite.dst);
         } else {
             renderer.Copy(sprite.frames[sprite.current_frame], SDL2pp::NullOpt, sprite.dst);
-        }
-    }
-
-    if (show_extra_sprite && !sprites.empty()) {
-        auto& sprite = sprites.front();
-        if (sprite.use_src) {
-            renderer.Copy(sprite.frames[sprite.current_frame], sprite.src, extra_sprite_dst(sprite));
-        } else {
-            renderer.Copy(sprite.frames[sprite.current_frame], SDL2pp::NullOpt, extra_sprite_dst(sprite));
         }
     }
 
@@ -97,8 +91,14 @@ void ClientRenderer::move_sprite(int dx, int dy) {
     sprite->dst.SetY(new_y);
 }
 
-void ClientRenderer::toggle_extra_sprite() {
-    show_extra_sprite = !show_extra_sprite;
+bool ClientRenderer::get_movable_position(int& x, int& y) const {
+    const SpriteRender* sprite = find_movable_sprite();
+    if (!sprite) {
+        return false;
+    }
+    x = sprite->dst.GetX();
+    y = sprite->dst.GetY();
+    return true;
 }
 
 void ClientRenderer::set_movable_src_y(int y) {
@@ -109,16 +109,26 @@ void ClientRenderer::set_movable_src_y(int y) {
     sprite->src.SetY(y);
 }
 
-void ClientRenderer::step_movable_src_x(int step, int max_x) {
+void ClientRenderer::step_movable_src_x(int step, int frame_count) {
     SpriteRender* sprite = find_movable_sprite();
     if (!sprite || !sprite->use_src) {
         return;
     }
-    int next = sprite->src.GetX() + step;
-    if (next > max_x) {
-        next = 0;
+    if (frame_count <= 0 || step <= 0) {
+        return;
     }
-    sprite->src.SetX(next);
+    const int current_index = sprite->src.GetX() / step;
+    const int next_index = (current_index + 1) % frame_count;
+    sprite->src.SetX(next_index * step);
+}
+
+void ClientRenderer::set_anchor_src_y(int y) {
+    for (auto& sprite : sprites) {
+        if (!sprite.anchor_to_movable || !sprite.use_src) {
+            continue;
+        }
+        sprite.src.SetY(y);
+    }
 }
 
 SDL2pp::Surface ClientRenderer::load_surface(const std::string& path) {
@@ -127,12 +137,6 @@ SDL2pp::Surface ClientRenderer::load_surface(const std::string& path) {
         throw std::runtime_error(std::string("IMG_Load failed: ") + IMG_GetError());
     }
     return SDL2pp::Surface(raw_surface);
-}
-
-SDL2pp::Rect ClientRenderer::extra_sprite_dst(const SpriteRender& sprite) const {
-    const int offset = sprite.dst.GetW() + 10;
-    const int new_x = std::min(sprite.dst.GetX() + offset, window_w - sprite.dst.GetW());
-    return SDL2pp::Rect(new_x, sprite.dst.GetY(), sprite.dst.GetW(), sprite.dst.GetH());
 }
 
 void ClientRenderer::update_animation() {
@@ -149,8 +153,36 @@ void ClientRenderer::update_animation() {
     }
 }
 
+void ClientRenderer::update_anchor_positions() {
+    SpriteRender* movable = find_movable_sprite();
+    if (!movable) {
+        return;
+    }
+
+    for (auto& sprite : sprites) {
+        if (!sprite.anchor_to_movable) {
+            continue;
+        }
+        const int desired_x = movable->dst.GetX() + sprite.anchor_offset_x;
+        const int desired_y = movable->dst.GetY() + sprite.anchor_offset_y;
+        const int clamped_x = std::clamp(desired_x, 0, window_w - sprite.dst.GetW());
+        const int clamped_y = std::clamp(desired_y, 0, window_h - sprite.dst.GetH());
+        sprite.dst.SetX(clamped_x);
+        sprite.dst.SetY(clamped_y);
+    }
+}
+
 ClientRenderer::SpriteRender* ClientRenderer::find_movable_sprite() {
     for (auto& sprite : sprites) {
+        if (sprite.movable) {
+            return &sprite;
+        }
+    }
+    return nullptr;
+}
+
+const ClientRenderer::SpriteRender* ClientRenderer::find_movable_sprite() const {
+    for (const auto& sprite : sprites) {
         if (sprite.movable) {
             return &sprite;
         }

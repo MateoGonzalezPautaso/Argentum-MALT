@@ -44,6 +44,7 @@ int main() try {
 		const uint32_t elapsed = now - last_tick;
 		if (elapsed >= tick_ms) {
 			last_tick = now;
+			client.tick();
 			client.show_sprite();
 		}
 

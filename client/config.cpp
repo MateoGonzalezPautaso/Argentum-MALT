@@ -102,6 +102,9 @@ ClientConfig load_client_config(const std::string& path) {
             sprite.src_height = get_int(sprite_tbl, "src_height", sprite.src_height);
             sprite.frame_ms = get_uint32(sprite_tbl, "frame_ms", sprite.frame_ms);
             sprite.movable = get_bool(sprite_tbl, "movable", sprite.movable);
+            sprite.anchor_to_movable = get_bool(sprite_tbl, "anchor_to_movable", sprite.anchor_to_movable);
+            sprite.anchor_offset_x = get_int(sprite_tbl, "anchor_offset_x", sprite.anchor_offset_x);
+            sprite.anchor_offset_y = get_int(sprite_tbl, "anchor_offset_y", sprite.anchor_offset_y);
             sprite.visible = get_bool(sprite_tbl, "visible", sprite.visible);
 
             if (!sprite.paths.empty() && sprite.frame_ms == 0 && sprite.paths.size() > 1) {
@@ -117,13 +120,21 @@ ClientConfig load_client_config(const std::string& path) {
     if (auto movement = root["movement"].as_table()) {
         config.move_step = get_int(*movement, "move_step", config.move_step);
         config.walk_src_step = get_int(*movement, "walk_src_step", config.walk_src_step);
-        config.walk_src_max = get_int(*movement, "walk_src_max", config.walk_src_max);
+        config.walk_src_frames = get_int(*movement, "walk_src_frames", config.walk_src_frames);
+        config.walk_src_frames_down = get_int(*movement, "walk_src_frames_down", config.walk_src_frames);
+        config.walk_src_frames_up = get_int(*movement, "walk_src_frames_up", config.walk_src_frames);
+        config.walk_src_frames_left = get_int(*movement, "walk_src_frames_left", config.walk_src_frames);
+        config.walk_src_frames_right = get_int(*movement, "walk_src_frames_right", config.walk_src_frames);
         config.walk_frame_ms = get_uint32(*movement, "walk_frame_ms", config.walk_frame_ms);
         config.tick_ms = get_uint32(*movement, "tick_ms", config.tick_ms);
         config.dir_src_y_down = get_int(*movement, "dir_src_y_down", config.dir_src_y_down);
         config.dir_src_y_up = get_int(*movement, "dir_src_y_up", config.dir_src_y_up);
         config.dir_src_y_left = get_int(*movement, "dir_src_y_left", config.dir_src_y_left);
         config.dir_src_y_right = get_int(*movement, "dir_src_y_right", config.dir_src_y_right);
+        config.head_dir_src_y_down = get_int(*movement, "head_dir_src_y_down", config.head_dir_src_y_down);
+        config.head_dir_src_y_up = get_int(*movement, "head_dir_src_y_up", config.head_dir_src_y_up);
+        config.head_dir_src_y_left = get_int(*movement, "head_dir_src_y_left", config.head_dir_src_y_left);
+        config.head_dir_src_y_right = get_int(*movement, "head_dir_src_y_right", config.head_dir_src_y_right);
     }
 
     if (config.sprites.empty()) {
