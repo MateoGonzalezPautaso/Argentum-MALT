@@ -53,6 +53,18 @@ bool ClientRenderer::screen_to_world(int screen_x, int screen_y, int& world_x, i
     return world_renderer->screen_to_world(screen_x, screen_y, world_x, world_y);
 }
 
+void ClientRenderer::set_chat_input_text(const std::string& text) {
+    world_renderer->set_chat_input_text(text);
+}
+
+void ClientRenderer::set_chat_input_focus(bool focused) {
+    world_renderer->set_chat_input_focus(focused);
+}
+
+bool ClientRenderer::is_chat_input_hit(int x, int y) const {
+    return world_renderer->is_chat_input_hit(x, y);
+}
+
 void ClientRenderer::set_movable_src_y(int y) {
     world_renderer->set_movable_src_y(y);
 }

@@ -4,6 +4,7 @@
 #include <string>
 
 #include <SDL2/SDL_image.h>
+#include <SDL_ttf.h>
 
 namespace client_app {
 
@@ -17,6 +18,17 @@ void init_image() {
 
 void shutdown_image() {
     IMG_Quit();
+}
+
+void init_ttf() {
+    // ttf para render de texto
+    if (TTF_Init() != 0) {
+        throw std::runtime_error(std::string("TTF_Init failed: ") + TTF_GetError());
+    }
+}
+
+void shutdown_ttf() {
+    TTF_Quit();
 }
 
 ClientConfig load_config() {

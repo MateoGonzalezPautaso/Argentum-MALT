@@ -17,6 +17,8 @@ enum class GameState {
 
 void init_image();
 void shutdown_image();
+void init_ttf();
+void shutdown_ttf();
 ClientConfig load_config();
 bool handle_menu_event(const SDL_Event& event, ClientEngine& client, GameState& state);
 bool handle_playing_event(const SDL_Event& event, ClientEngine& client);

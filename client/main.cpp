@@ -9,6 +9,7 @@
 
 int main() try {
 	client_app::init_image();
+	client_app::init_ttf();
 	ClientConfig config = client_app::load_config();
 
 	Socket skt("127.0.0.1", "1234");
@@ -44,6 +45,7 @@ int main() try {
 	}
 
 	client_app::shutdown_image();
+	client_app::shutdown_ttf();
 	return 0;
 } catch (std::exception& e) {
 	std::cerr << e.what() << std::endl;

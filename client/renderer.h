@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 
 #include <SDL2pp/SDL2pp.hh>
 
@@ -33,6 +34,9 @@ public:
     bool get_movable_position(int& x, int& y) const;
     void get_camera_offset(int& x, int& y) const;
     bool screen_to_world(int screen_x, int screen_y, int& world_x, int& world_y) const;
+    void set_chat_input_text(const std::string& text);
+    void set_chat_input_focus(bool focused);
+    bool is_chat_input_hit(int x, int y) const;
     void set_movable_src_y(int y);
     void step_movable_src_x(int step, int frame_count);
     void set_anchor_src_y(int y);

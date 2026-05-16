@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
+#include <string>
 
 #include "config.h"
 #include "client_protocol.h"
@@ -38,6 +39,7 @@ private:
 
 public:
     explicit ClientEngine(const ClientConfig& config, ClientProtocol& protocol);
+    ~ClientEngine();
 
     void tick();
     void show_menu();
@@ -52,6 +54,9 @@ public:
 private:
     bool handle_mouse_button(const SDL_Event& event);
     bool handle_keydown(const SDL_Event& event);
+    bool handle_text_input(const SDL_Event& event);
+    bool handle_chat_keydown(const SDL_Event& event);
+    void set_chat_focus(bool focused);
     void set_direction_rows(Direction dir);
     void advance_walk_frame(Direction dir, uint32_t now);
     void apply_movement(Direction dir, int dx, int dy, uint32_t now, bool cancel_target);
@@ -63,6 +68,8 @@ private:
     void set_move_target(int x, int y);
     void move_toward_target(uint32_t now);
     int walk_src_frames_for(Direction dir) const;
+    std::string chat_input_text;
+    bool chat_input_focused = false;
 };
 
 #endif

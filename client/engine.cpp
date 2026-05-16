@@ -28,7 +28,15 @@ ClientEngine::ClientEngine(const ClientConfig& config, ClientProtocol& protocol)
     head_dir_src_y_down(config.head_dir_src_y_down),
     head_dir_src_y_up(config.head_dir_src_y_up),
     head_dir_src_y_left(config.head_dir_src_y_left),
-    head_dir_src_y_right(config.head_dir_src_y_right) {}
+    head_dir_src_y_right(config.head_dir_src_y_right) {
+    SDL_StartTextInput();
+    renderer.set_chat_input_text(chat_input_text);
+    set_chat_focus(chat_input_focused);
+}
+
+ClientEngine::~ClientEngine() {
+    SDL_StopTextInput();
+}
 
 void ClientEngine::show_sprite() {
     renderer.render_frame();
@@ -204,6 +212,10 @@ bool ClientEngine::handle_event(const SDL_Event& event) {
         return handle_mouse_button(event);
     }
 
+    if (event.type == SDL_TEXTINPUT) {
+        return handle_text_input(event);
+    }
+
     if (event.type == SDL_KEYDOWN) {
         return handle_keydown(event);
     }
@@ -220,6 +232,11 @@ bool ClientEngine::handle_mouse_button(const SDL_Event& event) {
         return true;
     }
 
+    set_chat_focus(renderer.is_chat_input_hit(event.button.x, event.button.y));
+    if (chat_input_focused) {
+        return true;
+    }
+
     int world_x = 0;
     int world_y = 0;
     if (!renderer.screen_to_world(event.button.x, event.button.y, world_x, world_y)) {
@@ -230,6 +247,11 @@ bool ClientEngine::handle_mouse_button(const SDL_Event& event) {
 }
 
 bool ClientEngine::handle_keydown(const SDL_Event& event) {
+    // si el chat tiene foco, consume teclas para edicion y evita mover al personaje.
+    if (chat_input_focused) {
+        return handle_chat_keydown(event);
+    }
+
     const uint32_t now = SDL_GetTicks();
 
     switch (event.key.keysym.sym) {
@@ -252,4 +274,42 @@ bool ClientEngine::handle_keydown(const SDL_Event& event) {
     }
 
     return true;
+}
+
+bool ClientEngine::handle_text_input(const SDL_Event& event) {
+    // SDL entrega texto ya procesado por teclado/locale (no keycodes crudos).
+    if (!chat_input_focused) {
+        return true;
+    }
+    chat_input_text += event.text.text;
+    renderer.set_chat_input_text(chat_input_text);
+    return true;
+}
+
+bool ClientEngine::handle_chat_keydown(const SDL_Event& event) {
+    switch (event.key.keysym.sym) {
+    case SDLK_RETURN:
+    case SDLK_KP_ENTER:
+        // todo aca habria que enviar el mensaje al servidor antes de limpiar el input
+        chat_input_text.clear();
+        renderer.set_chat_input_text(chat_input_text);
+        return true;
+    case SDLK_BACKSPACE:
+        if (!chat_input_text.empty()) {
+            chat_input_text.pop_back();
+            renderer.set_chat_input_text(chat_input_text);
+        }
+        return true;
+    case SDLK_ESCAPE:
+        set_chat_focus(false);
+        return true;
+    default:
+        // mientras el chat esta activo, bloquea acciones de gameplay.
+        return true;
+    }
+}
+
+void ClientEngine::set_chat_focus(bool focused) {
+    chat_input_focused = focused;
+    renderer.set_chat_input_focus(chat_input_focused);
 }

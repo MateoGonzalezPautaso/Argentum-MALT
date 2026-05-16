@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <SDL2pp/SDL2pp.hh>
+#include <SDL_ttf.h>
 
 #include "config.h"
 
@@ -41,6 +42,11 @@ private:
     int map_px_w = 0;
     int map_px_h = 0;
     std::vector<SpriteRender> sprites;
+    SDL2pp::Rect chat_input_rect;
+    std::string chat_input_text;
+    bool chat_input_focused = false;
+    TTF_Font* chat_font = nullptr;
+    SDL_Color chat_color{255, 255, 255, 255};
     int window_w;
     int window_h;
 
@@ -51,12 +57,16 @@ public:
                   const std::vector<SpriteConfig>& sprites_config,
                   int window_w,
                   int window_h);
+    ~WorldRenderer();
 
     void render();
     void move_sprite(int dx, int dy);
     bool get_movable_position(int& x, int& y) const;
     void get_camera_offset(int& x, int& y) const;
     bool screen_to_world(int screen_x, int screen_y, int& world_x, int& world_y) const;
+    void set_chat_input_text(const std::string& text);
+    void set_chat_input_focus(bool focused);
+    bool is_chat_input_hit(int x, int y) const;
     void set_movable_src_y(int y);
     void step_movable_src_x(int step, int frame_count);
     void set_anchor_src_y(int y);
@@ -69,6 +79,8 @@ private:
     SDL2pp::Rect camera_rect() const;
     void render_tilemap_or_background(const SDL2pp::Rect& cam);
     void render_sprites(const SDL2pp::Rect& cam);
+    void render_chat_input();
+    SDL2pp::Texture make_text_texture(const std::string& text, int& text_w, int& text_h) const;
     void update_animation();
     void update_anchor_positions();
     bool is_walkable_for_sprite(int x, int y, const SpriteRender& sprite) const;
