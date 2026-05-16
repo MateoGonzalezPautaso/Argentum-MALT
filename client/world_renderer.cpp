@@ -361,45 +361,38 @@ void WorldRenderer::render_chat_input() {
     // cursor visible solo cuando la caja esta enfocada
     const bool show_cursor = chat_input_focused && ((SDL_GetTicks() / 500U) % 2U == 0U);
 
-    if (chat_input_text.empty()) {
-        if (!show_cursor) {
-            return;
-        }
-
-        try {
-            int cursor_w = 0;
-            int cursor_h = 0;
-            SDL2pp::Texture cursor_texture = make_text_texture("|", cursor_w, cursor_h);
-            SDL2pp::Rect dst_rect(chat_input_rect.GetX(),
-                                  chat_input_rect.GetY(),
-                                  std::min(cursor_w, chat_input_rect.GetW()),
-                                  std::min(cursor_h, chat_input_rect.GetH()));
-            renderer.Copy(cursor_texture, SDL2pp::NullOpt, dst_rect);
-        } catch (const std::runtime_error&) {
-            return;
-        }
-        return;
+    int clipped_w = 0;
+    if (!chat_input_text.empty()) {
+        render_chat_text_line(clipped_w);
     }
 
+    if (show_cursor) {
+        render_chat_cursor(clipped_w);
+    }
+}
+
+void WorldRenderer::render_chat_text_line(int& clipped_w) const {
     try {
         int text_w = 0;
         int text_h = 0;
         SDL2pp::Texture text_texture = make_text_texture(chat_input_text, text_w, text_h);
 
-        const int clipped_w = std::min(text_w, chat_input_rect.GetW());
+        clipped_w = std::min(text_w, chat_input_rect.GetW());
         const int clipped_h = std::min(text_h, chat_input_rect.GetH());
         SDL2pp::Rect src_rect(0, 0, clipped_w, clipped_h);
         SDL2pp::Rect dst_rect(chat_input_rect.GetX(), chat_input_rect.GetY(), clipped_w, clipped_h);
         renderer.Copy(text_texture, src_rect, dst_rect);
+    } catch (const std::runtime_error&) {
+        clipped_w = 0;
+    }
+}
 
-        if (!show_cursor) {
-            return;
-        }
-
+void WorldRenderer::render_chat_cursor(int x_offset) const {
+    try {
         int cursor_w = 0;
         int cursor_h = 0;
         SDL2pp::Texture cursor_texture = make_text_texture("|", cursor_w, cursor_h);
-        const int cursor_x = std::min(chat_input_rect.GetX() + clipped_w,
+        const int cursor_x = std::min(chat_input_rect.GetX() + x_offset,
                                       chat_input_rect.GetX() + chat_input_rect.GetW() - cursor_w);
         SDL2pp::Rect cursor_dst(cursor_x,
                                 chat_input_rect.GetY(),

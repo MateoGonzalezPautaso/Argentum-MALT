@@ -81,6 +81,8 @@ private:
     void render_sprites(const SDL2pp::Rect& cam);
     void render_chat_input();
     SDL2pp::Texture make_text_texture(const std::string& text, int& text_w, int& text_h) const;
+    void render_chat_cursor(int x_offset) const;
+    void render_chat_text_line(int& clipped_w) const;
     void update_animation();
     void update_anchor_positions();
     bool is_walkable_for_sprite(int x, int y, const SpriteRender& sprite) const;
