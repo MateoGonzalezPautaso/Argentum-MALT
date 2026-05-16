@@ -87,7 +87,7 @@ public:
     uint16_t recv_uint16();
 
     void send_str(const std::string& message);
-    std::string recv_str(uint16_t length);
+    std::string recv_str();
 
     void send_opcode(OpCode opcode);
     OpCode recv_opcode();

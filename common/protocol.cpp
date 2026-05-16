@@ -35,10 +35,13 @@ uint16_t Protocol::recv_uint16() {
 }
 
 void Protocol::send_str(const std::string& message) {
+    uint16_t len_str = static_cast<uint16_t>(message.length());
+    send_uint16(len_str);
     this->skt.sendall(message.c_str(), message.length());
 }
 
-std::string Protocol::recv_str(uint16_t length) {
+std::string Protocol::recv_str() {
+    uint16_t length = recv_uint16();
     if (length == 0)
         return "";
 
