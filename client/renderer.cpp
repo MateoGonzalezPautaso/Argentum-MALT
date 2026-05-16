@@ -34,16 +34,35 @@ ClientRenderer::ClientRenderer(SDL2pp::Window& window,
 }
 
 void ClientRenderer::init_menu_layout() {
+    update_menu_layout_for_size(window_w, window_h);
+}
+
+void ClientRenderer::update_menu_layout_for_size(int width, int height) {
+    const int safe_w = std::max(1, width);
+    const int safe_h = std::max(1, height);
+
+    menu_background_rect = SDL2pp::Rect(0, 0, safe_w, safe_h);
+
+    const float scale_x = static_cast<float>(safe_w) / static_cast<float>(std::max(1, window_w));
+    const float scale_y = static_cast<float>(safe_h) / static_cast<float>(std::max(1, window_h));
+    const float scale = std::max(0.5F, std::min(scale_x, scale_y));
+
     const int logo_w = menu_logo_texture.GetWidth();
     const int logo_h = menu_logo_texture.GetHeight();
     const int button_w = menu_button_texture.GetWidth();
     const int button_h = menu_button_texture.GetHeight();
-    const int logo_x = std::max(0, (window_w - logo_w) / 2);
-    const int logo_y = std::max(0, (window_h - logo_h) / 2 - 40);
-    const int button_x = std::max(0, (window_w - button_w) / 2);
-    const int button_y = std::min(window_h - button_h, logo_y + logo_h + 20);
-    menu_logo_rect = SDL2pp::Rect(logo_x, logo_y, logo_w, logo_h);
-    menu_button_rect = SDL2pp::Rect(button_x, button_y, button_w, button_h);
+
+    const int scaled_logo_w = std::max(1, static_cast<int>(logo_w * scale));
+    const int scaled_logo_h = std::max(1, static_cast<int>(logo_h * scale));
+    const int scaled_button_w = std::max(1, static_cast<int>(button_w * scale));
+    const int scaled_button_h = std::max(1, static_cast<int>(button_h * scale));
+
+    const int logo_x = std::max(0, (safe_w - scaled_logo_w) / 2);
+    const int logo_y = std::max(0, (safe_h - scaled_logo_h) / 2 - static_cast<int>(40 * scale));
+    const int button_x = std::max(0, (safe_w - scaled_button_w) / 2);
+    const int button_y = std::min(safe_h - scaled_button_h, logo_y + scaled_logo_h + static_cast<int>(20 * scale));
+    menu_logo_rect = SDL2pp::Rect(logo_x, logo_y, scaled_logo_w, scaled_logo_h);
+    menu_button_rect = SDL2pp::Rect(button_x, button_y, scaled_button_w, scaled_button_h);
 }
 
 void ClientRenderer::init_tilemap(const TilemapConfig& tilemap) {
@@ -203,6 +222,11 @@ SDL2pp::Rect ClientRenderer::camera_rect() const {
 }
 
 void ClientRenderer::render_menu() {
+    int output_w = 0;
+    int output_h = 0;
+    SDL_GetRendererOutputSize(renderer.Get(), &output_w, &output_h);
+    update_menu_layout_for_size(output_w, output_h);
+
     renderer.SetDrawColor(0, 0, 0, 255);
     renderer.Clear();
     renderer.Copy(menu_background_texture, SDL2pp::NullOpt, menu_background_rect);

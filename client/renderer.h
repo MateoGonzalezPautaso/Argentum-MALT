@@ -68,6 +68,7 @@ public:
 private:
     static SDL2pp::Surface load_surface(const std::string& path);
     void init_menu_layout();
+    void update_menu_layout_for_size(int width, int height);
     void init_tilemap(const TilemapConfig& tilemap);
     void init_sprites(const std::vector<SpriteConfig>& sprites_config);
     SpriteRender build_sprite_render(const SpriteConfig& sprite_config);

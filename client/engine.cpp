@@ -9,7 +9,7 @@ ClientEngine::ClientEngine(const ClientConfig& config, ClientProtocol& protocol)
             window(config.window.title,
                     SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                     config.window.width, config.window.height,
-                    SDL_WINDOW_RESIZABLE),
+                    SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED),
         renderer(window, config.background, config.tilemap, config.sprites, config.window.width, config.window.height),
         protocol(protocol),
         last_walk_tick(SDL_GetTicks()),
