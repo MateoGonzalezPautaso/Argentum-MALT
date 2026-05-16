@@ -8,9 +8,9 @@ ClientEngine::ClientEngine(const ClientConfig& config, ClientProtocol& protocol)
         : sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO),
             window(config.window.title,
                     SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                    config.window.width, config.window.height,
-                    SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED),
-        renderer(window, config.background, config.tilemap, config.sprites, config.window.width, config.window.height),
+                    1024, 768,
+                    0),
+        renderer(window, config.background, config.tilemap, config.sprites, 1024, 768),
         protocol(protocol),
         last_walk_tick(SDL_GetTicks()),
         walk_frame_ms(config.walk_frame_ms),
@@ -220,10 +220,12 @@ bool ClientEngine::handle_mouse_button(const SDL_Event& event) {
         return true;
     }
 
-    int cam_x = 0;
-    int cam_y = 0;
-    renderer.get_camera_offset(cam_x, cam_y);
-    set_move_target(event.button.x + cam_x, event.button.y + cam_y);
+    int world_x = 0;
+    int world_y = 0;
+    if (!renderer.screen_to_world(event.button.x, event.button.y, world_x, world_y)) {
+        return true;
+    }
+    set_move_target(world_x, world_y);
     return true;
 }
 

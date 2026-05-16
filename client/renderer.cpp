@@ -14,7 +14,10 @@ ClientRenderer::ClientRenderer(SDL2pp::Window& window,
                                int window_h)
         : renderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
             background_texture(renderer, load_surface(background.path)),
-      background_rect(background.x, background.y, background.width, background.height),
+            background_rect(background.x, background.y, background.width, background.height),
+            ui_frame_texture(renderer, load_surface("assets/interface/en_ventanaprincipal.bmp")),
+            ui_frame_rect(0, 0, window_w, window_h),
+            game_viewport(11, 149, 734, 608),
             tilemap_texture(renderer, load_surface(tilemap.path.empty() ? background.path : tilemap.path)),
             menu_background_texture(renderer, load_surface("assets/BabelUI/static/media/leather_black..png")),
             menu_logo_texture(renderer, load_surface("assets/BabelUI/static/media/ao20_logo_med..png")),
@@ -34,35 +37,19 @@ ClientRenderer::ClientRenderer(SDL2pp::Window& window,
 }
 
 void ClientRenderer::init_menu_layout() {
-    update_menu_layout_for_size(window_w, window_h);
-}
-
-void ClientRenderer::update_menu_layout_for_size(int width, int height) {
-    const int safe_w = std::max(1, width);
-    const int safe_h = std::max(1, height);
-
-    menu_background_rect = SDL2pp::Rect(0, 0, safe_w, safe_h);
-
-    const float scale_x = static_cast<float>(safe_w) / static_cast<float>(std::max(1, window_w));
-    const float scale_y = static_cast<float>(safe_h) / static_cast<float>(std::max(1, window_h));
-    const float scale = std::max(0.5F, std::min(scale_x, scale_y));
+    menu_background_rect = SDL2pp::Rect(0, 0, window_w, window_h);
 
     const int logo_w = menu_logo_texture.GetWidth();
     const int logo_h = menu_logo_texture.GetHeight();
     const int button_w = menu_button_texture.GetWidth();
     const int button_h = menu_button_texture.GetHeight();
 
-    const int scaled_logo_w = std::max(1, static_cast<int>(logo_w * scale));
-    const int scaled_logo_h = std::max(1, static_cast<int>(logo_h * scale));
-    const int scaled_button_w = std::max(1, static_cast<int>(button_w * scale));
-    const int scaled_button_h = std::max(1, static_cast<int>(button_h * scale));
-
-    const int logo_x = std::max(0, (safe_w - scaled_logo_w) / 2);
-    const int logo_y = std::max(0, (safe_h - scaled_logo_h) / 2 - static_cast<int>(40 * scale));
-    const int button_x = std::max(0, (safe_w - scaled_button_w) / 2);
-    const int button_y = std::min(safe_h - scaled_button_h, logo_y + scaled_logo_h + static_cast<int>(20 * scale));
-    menu_logo_rect = SDL2pp::Rect(logo_x, logo_y, scaled_logo_w, scaled_logo_h);
-    menu_button_rect = SDL2pp::Rect(button_x, button_y, scaled_button_w, scaled_button_h);
+    const int logo_x = std::max(0, (window_w - logo_w) / 2);
+    const int logo_y = std::max(0, (window_h - logo_h) / 2 - 40);
+    const int button_x = std::max(0, (window_w - button_w) / 2);
+    const int button_y = std::min(window_h - button_h, logo_y + logo_h + 20);
+    menu_logo_rect = SDL2pp::Rect(logo_x, logo_y, logo_w, logo_h);
+    menu_button_rect = SDL2pp::Rect(button_x, button_y, button_w, button_h);
 }
 
 void ClientRenderer::init_tilemap(const TilemapConfig& tilemap) {
@@ -153,12 +140,17 @@ ClientRenderer::SpriteRender ClientRenderer::build_sprite_render(const SpriteCon
 void ClientRenderer::render_frame() {
     renderer.SetDrawColor(0, 0, 0, 255);
     renderer.Clear(); // limpia el backbuffer
+
+    renderer.Copy(ui_frame_texture, SDL2pp::NullOpt, ui_frame_rect);
+    renderer.SetViewport(game_viewport);
+
     const SDL2pp::Rect cam = camera_rect();
     render_tilemap_or_background(cam);
     update_animation(); // avanza sprites animados
     update_anchor_positions(); // sincroniza sprites anclados
 
     render_sprites(cam);
+    renderer.SetViewport(SDL2pp::NullOpt);
 
     renderer.Present();
 }
@@ -178,7 +170,8 @@ void ClientRenderer::render_tilemap_or_background(const SDL2pp::Rect& cam) {
         return;
     }
 
-    renderer.Copy(background_texture, SDL2pp::NullOpt, background_rect);
+    const SDL2pp::Rect gameplay_bg(0, 0, game_viewport.GetW(), game_viewport.GetH());
+    renderer.Copy(background_texture, SDL2pp::NullOpt, gameplay_bg);
 }
 
 void ClientRenderer::render_sprites(const SDL2pp::Rect& cam) {
@@ -204,13 +197,13 @@ SDL2pp::Rect ClientRenderer::camera_rect() const {
     int cam_x = 0;
     int cam_y = 0;
     if (sprite) {
-        cam_x = sprite->dst.GetX() + sprite->dst.GetW() / 2 - window_w / 2;
-        cam_y = sprite->dst.GetY() + sprite->dst.GetH() / 2 - window_h / 2;
+        cam_x = sprite->dst.GetX() + sprite->dst.GetW() / 2 - game_viewport.GetW() / 2;
+        cam_y = sprite->dst.GetY() + sprite->dst.GetH() / 2 - game_viewport.GetH() / 2;
     }
 
     if (has_tilemap) {
-        const int max_x = std::max(0, map_px_w - window_w);
-        const int max_y = std::max(0, map_px_h - window_h);
+        const int max_x = std::max(0, map_px_w - game_viewport.GetW());
+        const int max_y = std::max(0, map_px_h - game_viewport.GetH());
         cam_x = std::clamp(cam_x, 0, max_x);
         cam_y = std::clamp(cam_y, 0, max_y);
     } else {
@@ -218,15 +211,10 @@ SDL2pp::Rect ClientRenderer::camera_rect() const {
         cam_y = std::max(0, cam_y);
     }
 
-    return SDL2pp::Rect(cam_x, cam_y, window_w, window_h);
+    return SDL2pp::Rect(cam_x, cam_y, game_viewport.GetW(), game_viewport.GetH());
 }
 
 void ClientRenderer::render_menu() {
-    int output_w = 0;
-    int output_h = 0;
-    SDL_GetRendererOutputSize(renderer.Get(), &output_w, &output_h);
-    update_menu_layout_for_size(output_w, output_h);
-
     renderer.SetDrawColor(0, 0, 0, 255);
     renderer.Clear();
     renderer.Copy(menu_background_texture, SDL2pp::NullOpt, menu_background_rect);
@@ -304,6 +292,21 @@ void ClientRenderer::get_camera_offset(int& x, int& y) const {
     const SDL2pp::Rect cam = camera_rect();
     x = cam.GetX();
     y = cam.GetY();
+}
+
+bool ClientRenderer::screen_to_world(int screen_x, int screen_y, int& world_x, int& world_y) const {
+    const int local_x = screen_x - game_viewport.GetX();
+    const int local_y = screen_y - game_viewport.GetY();
+    if (local_x < 0 || local_y < 0 || local_x >= game_viewport.GetW() || local_y >= game_viewport.GetH()) {
+        return false;
+    }
+
+    int cam_x = 0;
+    int cam_y = 0;
+    get_camera_offset(cam_x, cam_y);
+    world_x = local_x + cam_x;
+    world_y = local_y + cam_y;
+    return true;
 }
 
 void ClientRenderer::set_movable_src_y(int y) {

@@ -15,6 +15,9 @@ private:
     SDL2pp::Renderer renderer;
     SDL2pp::Texture background_texture;
     SDL2pp::Rect background_rect;
+    SDL2pp::Texture ui_frame_texture;
+    SDL2pp::Rect ui_frame_rect;
+    SDL2pp::Rect game_viewport;
     SDL2pp::Texture tilemap_texture;
     bool has_tilemap = false;
     int tile_size = 128;
@@ -61,6 +64,7 @@ public:
     void move_sprite(int dx, int dy);
     bool get_movable_position(int& x, int& y) const;
     void get_camera_offset(int& x, int& y) const;
+    bool screen_to_world(int screen_x, int screen_y, int& world_x, int& world_y) const;
     void set_movable_src_y(int y);
     void step_movable_src_x(int step, int frame_count);
     void set_anchor_src_y(int y);
@@ -68,7 +72,6 @@ public:
 private:
     static SDL2pp::Surface load_surface(const std::string& path);
     void init_menu_layout();
-    void update_menu_layout_for_size(int width, int height);
     void init_tilemap(const TilemapConfig& tilemap);
     void init_sprites(const std::vector<SpriteConfig>& sprites_config);
     SpriteRender build_sprite_render(const SpriteConfig& sprite_config);
