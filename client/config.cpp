@@ -60,18 +60,43 @@ std::vector<std::string> parse_paths(const toml::table& tbl) {
 
     return paths;
 }
+
+std::vector<std::vector<std::string>> parse_map_grid(const toml::table& tbl) {
+    std::vector<std::vector<std::string>> grid;
+    const toml::array* rows = tbl["mapa"].as_array();
+    if (!rows) {
+        rows = tbl["map"].as_array();
+    }
+    if (!rows) {
+        return grid;
+    }
+    for (const auto& row_node : *rows) {
+        const auto* row_array = row_node.as_array();
+        if (!row_array) {
+            continue;
+        }
+        std::vector<std::string> row;
+        for (const auto& cell : *row_array) {
+            if (auto value = cell.value<std::string>()) {
+                row.push_back(*value);
+            }
+        }
+        if (!row.empty()) {
+            grid.push_back(std::move(row));
+        }
+    }
+    return grid;
 }
 
-ClientConfig load_client_config(const std::string& path) {
-    toml::table root = toml::parse_file(path);
-    ClientConfig config;
-
+void parse_window_config(const toml::table& root, ClientConfig& config) {
     if (auto window = root["window"].as_table()) {
         config.window.width = get_int(*window, "width", config.window.width);
         config.window.height = get_int(*window, "height", config.window.height);
         config.window.title = get_string(*window, "title", config.window.title);
     }
+}
 
+void parse_background_config(const toml::table& root, ClientConfig& config) {
     if (auto background = root["background"].as_table()) {
         config.background.path = get_string(*background, "path", std::string());
         config.background.x = get_int(*background, "x", config.background.x);
@@ -83,7 +108,31 @@ ClientConfig load_client_config(const std::string& path) {
     if (config.background.path.empty()) {
         throw std::runtime_error("background.path is required in config");
     }
+}
 
+void parse_tilemap_config(const toml::table& root, ClientConfig& config) {
+    if (auto tilemap = root["tilemap"].as_table()) {
+        config.tilemap.path = get_string(*tilemap, "path", std::string());
+        config.tilemap.tile_size = get_int(*tilemap, "tile_size", config.tilemap.tile_size);
+
+        if (auto tiles = (*tilemap)["tiles"].as_table()) {
+            for (const auto& [key, value] : *tiles) {
+                const auto* tile_tbl = value.as_table();
+                if (!tile_tbl) {
+                    continue;
+                }
+                TileDef def;
+                def.x = get_int(*tile_tbl, "x", def.x);
+                def.y = get_int(*tile_tbl, "y", def.y);
+                config.tilemap.tiles.emplace(key, def);
+            }
+        }
+
+        config.tilemap.mapa = parse_map_grid(*tilemap);
+    }
+}
+
+void parse_sprite_configs(const toml::table& root, ClientConfig& config) {
     if (auto sprites = root["sprites"].as_array()) {
         for (const auto& entry : *sprites) {
             if (!entry.is_table()) {
@@ -117,6 +166,12 @@ ClientConfig load_client_config(const std::string& path) {
         }
     }
 
+    if (config.sprites.empty()) {
+        throw std::runtime_error("config needs at least one sprite entry");
+    }
+}
+
+void parse_movement_config(const toml::table& root, ClientConfig& config) {
     if (auto movement = root["movement"].as_table()) {
         config.move_step = get_int(*movement, "move_step", config.move_step);
         config.walk_src_step = get_int(*movement, "walk_src_step", config.walk_src_step);
@@ -136,10 +191,18 @@ ClientConfig load_client_config(const std::string& path) {
         config.head_dir_src_y_left = get_int(*movement, "head_dir_src_y_left", config.head_dir_src_y_left);
         config.head_dir_src_y_right = get_int(*movement, "head_dir_src_y_right", config.head_dir_src_y_right);
     }
+}
+}
 
-    if (config.sprites.empty()) {
-        throw std::runtime_error("config needs at least one sprite entry");
-    }
+ClientConfig load_client_config(const std::string& path) {
+    toml::table root = toml::parse_file(path);
+    ClientConfig config;
+
+    parse_window_config(root, config);
+    parse_background_config(root, config);
+    parse_tilemap_config(root, config);
+    parse_sprite_configs(root, config);
+    parse_movement_config(root, config);
 
     return config;
 }

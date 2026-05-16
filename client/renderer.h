@@ -15,6 +15,12 @@ private:
     SDL2pp::Renderer renderer;
     SDL2pp::Texture background_texture;
     SDL2pp::Rect background_rect;
+    SDL2pp::Texture tilemap_texture;
+    bool has_tilemap = false;
+    int tile_size = 128;
+    std::vector<std::vector<SDL2pp::Rect>> tilemap_src;
+    int map_px_w = 0;
+    int map_px_h = 0;
     SDL2pp::Texture menu_background_texture;
     SDL2pp::Texture menu_logo_texture;
     SDL2pp::Texture menu_button_texture;
@@ -43,6 +49,7 @@ private:
 public:
     ClientRenderer(SDL2pp::Window& window,
                    const BackgroundConfig& background,
+                   const TilemapConfig& tilemap,
                    const std::vector<SpriteConfig>& sprites_config,
                    int window_w,
                    int window_h);
@@ -52,6 +59,7 @@ public:
     bool is_menu_button_hit(int x, int y) const;
     void move_sprite(int dx, int dy);
     bool get_movable_position(int& x, int& y) const;
+    void get_camera_offset(int& x, int& y) const;
     void set_movable_src_y(int y);
     void step_movable_src_x(int step, int frame_count);
     void set_anchor_src_y(int y);
@@ -59,8 +67,12 @@ public:
 private:
     static SDL2pp::Surface load_surface(const std::string& path);
     void init_menu_layout();
+    void init_tilemap(const TilemapConfig& tilemap);
     void init_sprites(const std::vector<SpriteConfig>& sprites_config);
     SpriteRender build_sprite_render(const SpriteConfig& sprite_config);
+    SDL2pp::Rect camera_rect() const;
+    void render_tilemap_or_background(const SDL2pp::Rect& cam);
+    void render_sprites(const SDL2pp::Rect& cam);
     void update_animation();
     void update_anchor_positions();
     SpriteRender* find_movable_sprite();

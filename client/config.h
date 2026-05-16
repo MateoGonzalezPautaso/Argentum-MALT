@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 struct WindowConfig {
@@ -37,9 +38,22 @@ struct SpriteConfig {
     bool visible = true;
 };
 
+struct TileDef {
+    int x = 0;
+    int y = 0;
+};
+
+struct TilemapConfig {
+    std::string path;
+    int tile_size = 128;
+    std::unordered_map<std::string, TileDef> tiles;
+    std::vector<std::vector<std::string>> mapa;
+};
+
 struct ClientConfig {
     WindowConfig window;
     BackgroundConfig background;
+    TilemapConfig tilemap;
     std::vector<SpriteConfig> sprites;
     int move_step = 4;
     int walk_src_step = 30;

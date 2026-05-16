@@ -10,7 +10,7 @@ ClientEngine::ClientEngine(const ClientConfig& config, ClientProtocol& protocol)
                     SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                     config.window.width, config.window.height,
                     SDL_WINDOW_RESIZABLE),
-        renderer(window, config.background, config.sprites, config.window.width, config.window.height),
+        renderer(window, config.background, config.tilemap, config.sprites, config.window.width, config.window.height),
         protocol(protocol),
         last_walk_tick(SDL_GetTicks()),
         walk_frame_ms(config.walk_frame_ms),
@@ -87,34 +87,36 @@ void ClientEngine::apply_movement(Direction dir, int dx, int dy, uint32_t now, b
     if (cancel_target) {
         has_target = false;
     }
-    switch (dir) {
-    case Direction::NORTH:
-        set_movable_src_y(dir_src_y_up);
-        set_anchor_src_y(head_dir_src_y_up);
-        break;
-    case Direction::SOUTH:
-        set_movable_src_y(dir_src_y_down);
-        set_anchor_src_y(head_dir_src_y_down);
-        break;
-    case Direction::WEST:
-        set_movable_src_y(dir_src_y_left);
-        set_anchor_src_y(head_dir_src_y_left);
-        break;
-    case Direction::EAST:
-        set_movable_src_y(dir_src_y_right);
-        set_anchor_src_y(head_dir_src_y_right);
-        break;
-    default:
-        break;
-    }
 
-    if (now - last_walk_tick >= walk_frame_ms) {
-        step_movable_src_x(walk_src_step, walk_src_frames_for(dir));
-        last_walk_tick = now;
-    }
+    set_direction_rows(dir);
+    advance_walk_frame(dir, now);
 
     move_sprite(dx, dy);
     protocol.send_command(MoveCmd{dir});
+}
+
+void ClientEngine::set_direction_rows(Direction dir) {
+    if (dir == Direction::NORTH) {
+        set_movable_src_y(dir_src_y_up);
+        set_anchor_src_y(head_dir_src_y_up);
+    } else if (dir == Direction::SOUTH) {
+        set_movable_src_y(dir_src_y_down);
+        set_anchor_src_y(head_dir_src_y_down);
+    } else if (dir == Direction::WEST) {
+        set_movable_src_y(dir_src_y_left);
+        set_anchor_src_y(head_dir_src_y_left);
+    } else if (dir == Direction::EAST) {
+        set_movable_src_y(dir_src_y_right);
+        set_anchor_src_y(head_dir_src_y_right);
+    }
+}
+
+void ClientEngine::advance_walk_frame(Direction dir, uint32_t now) {
+    if (now - last_walk_tick < walk_frame_ms) {
+        return;
+    }
+    step_movable_src_x(walk_src_step, walk_src_frames_for(dir));
+    last_walk_tick = now;
 }
 
 bool ClientEngine::get_movable_position(int& x, int& y) {
@@ -180,7 +182,6 @@ void ClientEngine::move_toward_target(uint32_t now) {
     int move_dy = 0;
     Direction dir = Direction::SOUTH;
     compute_step_to_target(current_x, current_y, move_dx, move_dy, dir);
-
     apply_movement(dir, move_dx, move_dy, now, false);
 
     int new_x = 0;
@@ -219,7 +220,10 @@ bool ClientEngine::handle_mouse_button(const SDL_Event& event) {
         return true;
     }
 
-    set_move_target(event.button.x, event.button.y);
+    int cam_x = 0;
+    int cam_y = 0;
+    renderer.get_camera_offset(cam_x, cam_y);
+    set_move_target(event.button.x + cam_x, event.button.y + cam_y);
     return true;
 }
 

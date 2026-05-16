@@ -52,6 +52,8 @@ public:
 private:
     bool handle_mouse_button(const SDL_Event& event);
     bool handle_keydown(const SDL_Event& event);
+    void set_direction_rows(Direction dir);
+    void advance_walk_frame(Direction dir, uint32_t now);
     void apply_movement(Direction dir, int dx, int dy, uint32_t now, bool cancel_target);
     bool get_movable_position(int& x, int& y);
     bool should_stop_at_target(int current_x, int current_y, int new_x, int new_y);
