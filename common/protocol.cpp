@@ -61,8 +61,8 @@ OpCode Protocol::recv_opcode() {
 }
 
 void Protocol::send_uint32(uint32_t value) {
-    uint32_t net_value = htons(value);
-    this->skt.recvall(&net_value, sizeof(net_value));
+    uint32_t net_value = htonl(value);
+    this->skt.sendall(&net_value, sizeof(net_value));
 }
 
 uint32_t Protocol::recv_uint32() {
@@ -72,17 +72,17 @@ uint32_t Protocol::recv_uint32() {
     if (bytes <= 0)
         throw std::runtime_error("Closed socket or error while receiving uint32_t");
 
-    return ntohs(net_value);  // Network to host
+    return ntohl(net_value);  // Network to host
 }
 
-void Protocol::send_bool(bool value) { this->skt.recvall(&value, sizeof(value)); }
+void Protocol::send_bool(bool value) { this->skt.sendall(&value, sizeof(value)); }
 
 bool Protocol::recv_bool() {
     bool value;
     int bytes = this->skt.recvall(&value, sizeof(value));
 
     if (bytes <= 0)
-        throw std::runtime_error("Closed socket or error while receiving uint8_t");
+        throw std::runtime_error("Closed socket or error while receiving bool");
 
     return value;
 }
