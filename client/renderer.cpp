@@ -5,11 +5,14 @@
 #include <SDL2/SDL.h>
 
 #include "menu_renderer.h"
+#include "ui_renderer.h"
 #include "world_renderer.h"
 
-// Fachada del sistema de render:
-// - MenuRenderer: menu principal y elementos clickeables del menu.
-// - WorldRenderer: juego in-game (UI marco, tilemap, sprites, camara).
+#include "ui_renderer.cpp"
+
+// - MenuRenderer: menu principal
+// - WorldRenderer: tilemap, sprites, camara, animaciones
+// - UIRenderer: overlays/UI del juego
 ClientRenderer::ClientRenderer(SDL2pp::Window& window,
                                const BackgroundConfig& background,
                                const TilemapConfig& tilemap,
@@ -19,13 +22,18 @@ ClientRenderer::ClientRenderer(SDL2pp::Window& window,
         : renderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
           menu_renderer(std::make_unique<MenuRenderer>(renderer, window_w, window_h)),
           world_renderer(std::make_unique<WorldRenderer>(
-                  renderer, background, tilemap, sprites_config, window_w, window_h)) {}
+                  renderer, background, tilemap, sprites_config, window_w, window_h)),
+          ui_renderer(std::make_unique<UIRenderer>(renderer, window_w, window_h)) {}
 
 ClientRenderer::~ClientRenderer() = default;
 
 void ClientRenderer::render_frame() {
-    // Render de gameplay (no menu).
+    renderer.SetDrawColor(0, 0, 0, 255);
+    renderer.Clear();
+    ui_renderer->render_frame_background();
     world_renderer->render();
+    ui_renderer->render_chat_input();
+    renderer.Present();
 }
 
 void ClientRenderer::render_menu() {
@@ -54,15 +62,15 @@ bool ClientRenderer::screen_to_world(int screen_x, int screen_y, int& world_x, i
 }
 
 void ClientRenderer::set_chat_input_text(const std::string& text) {
-    world_renderer->set_chat_input_text(text);
+    ui_renderer->set_chat_input_text(text);
 }
 
 void ClientRenderer::set_chat_input_focus(bool focused) {
-    world_renderer->set_chat_input_focus(focused);
+    ui_renderer->set_chat_input_focus(focused);
 }
 
 bool ClientRenderer::is_chat_input_hit(int x, int y) const {
-    return world_renderer->is_chat_input_hit(x, y);
+    return ui_renderer->is_chat_input_hit(x, y);
 }
 
 void ClientRenderer::set_movable_src_y(int y) {

@@ -11,12 +11,14 @@
 
 class MenuRenderer;
 class WorldRenderer;
+class UIRenderer;
 
 class ClientRenderer {
 private:
     SDL2pp::Renderer renderer;
     std::unique_ptr<MenuRenderer> menu_renderer;
     std::unique_ptr<WorldRenderer> world_renderer;
+    std::unique_ptr<UIRenderer> ui_renderer;
 
 public:
     ClientRenderer(SDL2pp::Window& window,

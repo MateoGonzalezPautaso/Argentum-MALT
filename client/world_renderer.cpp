@@ -5,23 +5,6 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include <SDL_ttf.h>
-
-SDL2pp::Texture WorldRenderer::make_text_texture(const std::string& text,
-                                                 int& text_w,
-                                                 int& text_h) const {
-    SDL_Surface* text_surface = TTF_RenderUTF8_Blended(chat_font, text.c_str(), chat_color);
-    if (!text_surface) {
-        throw std::runtime_error(std::string("TTF_RenderUTF8_Blended failed: ") + TTF_GetError());
-    }
-
-    SDL2pp::Surface wrapped_surface(text_surface);
-    if (TTF_SizeUTF8(chat_font, text.c_str(), &text_w, &text_h) != 0) {
-        throw std::runtime_error(std::string("TTF_SizeUTF8 failed: ") + TTF_GetError());
-    }
-
-    return SDL2pp::Texture(renderer, wrapped_surface);
-}
 
 WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer,
                              const BackgroundConfig& background,
@@ -32,11 +15,8 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer,
         : renderer(renderer),
           background_texture(renderer, load_surface(background.path)),
           background_rect(background.x, background.y, background.width, background.height),
-          ui_frame_texture(renderer, load_surface("assets/interface/en_ventanaprincipal.bmp")),
-          ui_frame_rect(0, 0, window_w, window_h),
           game_viewport(11, 149, 734, 608),
           tilemap_texture(renderer, load_surface(tilemap.path.empty() ? background.path : tilemap.path)),
-          chat_input_rect(41, 122, 565, 20),
           window_w(window_w),
           window_h(window_h) {
     init_tilemap(tilemap);
@@ -45,28 +25,10 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer,
     if (sprites.empty()) {
         throw std::runtime_error("No sprites to render");
     }
-
-    chat_font = TTF_OpenFont("assets/OUTPUT/Cardo.ttf", 16);
-    if (!chat_font) {
-        throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
-    }
-}
-
-WorldRenderer::~WorldRenderer() {
-    if (chat_font) {
-        TTF_CloseFont(chat_font);
-        chat_font = nullptr;
-    }
 }
 
 void WorldRenderer::render() {
-    // 1) UI marco completa
-    // 2) viewport de juego
-    // 3) mapa + sprites
-    renderer.SetDrawColor(0, 0, 0, 255);
-    renderer.Clear();
-
-    renderer.Copy(ui_frame_texture, SDL2pp::NullOpt, ui_frame_rect);
+    // Renderiza solo el mundo (mapa + sprites) dentro del viewport de juego.
     renderer.SetViewport(game_viewport);
 
     const SDL2pp::Rect cam = camera_rect();
@@ -76,24 +38,6 @@ void WorldRenderer::render() {
     render_sprites(cam);
 
     renderer.SetViewport(SDL2pp::NullOpt);
-    render_chat_input();
-    renderer.Present();
-}
-
-void WorldRenderer::set_chat_input_text(const std::string& text) {
-    chat_input_text = text;
-}
-
-void WorldRenderer::set_chat_input_focus(bool focused) {
-    chat_input_focused = focused;
-}
-
-bool WorldRenderer::is_chat_input_hit(int x, int y) const {
-    const int left = chat_input_rect.GetX();
-    const int top = chat_input_rect.GetY();
-    const int right = left + chat_input_rect.GetW();
-    const int bottom = top + chat_input_rect.GetH();
-    return x >= left && x <= right && y >= top && y <= bottom;
 }
 
 void WorldRenderer::move_sprite(int dx, int dy) {
@@ -350,57 +294,6 @@ void WorldRenderer::render_sprites(const SDL2pp::Rect& cam) {
         } else {
             renderer.Copy(sprite.frames[sprite.current_frame], SDL2pp::NullOpt, dst);
         }
-    }
-}
-
-void WorldRenderer::render_chat_input() {
-    if (!chat_font) {
-        return;
-    }
-
-    // cursor visible solo cuando la caja esta enfocada
-    const bool show_cursor = chat_input_focused && ((SDL_GetTicks() / 500U) % 2U == 0U);
-
-    int clipped_w = 0;
-    if (!chat_input_text.empty()) {
-        render_chat_text_line(clipped_w);
-    }
-
-    if (show_cursor) {
-        render_chat_cursor(clipped_w);
-    }
-}
-
-void WorldRenderer::render_chat_text_line(int& clipped_w) const {
-    try {
-        int text_w = 0;
-        int text_h = 0;
-        SDL2pp::Texture text_texture = make_text_texture(chat_input_text, text_w, text_h);
-
-        clipped_w = std::min(text_w, chat_input_rect.GetW());
-        const int clipped_h = std::min(text_h, chat_input_rect.GetH());
-        SDL2pp::Rect src_rect(0, 0, clipped_w, clipped_h);
-        SDL2pp::Rect dst_rect(chat_input_rect.GetX(), chat_input_rect.GetY(), clipped_w, clipped_h);
-        renderer.Copy(text_texture, src_rect, dst_rect);
-    } catch (const std::runtime_error&) {
-        clipped_w = 0;
-    }
-}
-
-void WorldRenderer::render_chat_cursor(int x_offset) const {
-    try {
-        int cursor_w = 0;
-        int cursor_h = 0;
-        SDL2pp::Texture cursor_texture = make_text_texture("|", cursor_w, cursor_h);
-        const int cursor_x = std::min(chat_input_rect.GetX() + x_offset,
-                                      chat_input_rect.GetX() + chat_input_rect.GetW() - cursor_w);
-        SDL2pp::Rect cursor_dst(cursor_x,
-                                chat_input_rect.GetY(),
-                                std::min(cursor_w, chat_input_rect.GetW()),
-                                std::min(cursor_h, chat_input_rect.GetH()));
-        renderer.Copy(cursor_texture, SDL2pp::NullOpt, cursor_dst);
-    } catch (const std::runtime_error&) {
-        return;
     }
 }
 
