@@ -70,6 +70,13 @@ public:
     explicit Socket(const char* servname);
 
     /*
+     * Construye un Socket a partir de un file descriptor existente.
+     * El Socket toma ownership del fd (lo cierra en el destructor).
+     * Util para tests con socketpair.
+     * */
+    static Socket from_fd(int fd);
+
+    /*
      * Deshabilitamos el constructor por copia y operador asignación por copia
      * ya que no queremos que se puedan copiar objetos `Socket`.
      *
