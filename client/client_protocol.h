@@ -57,6 +57,7 @@ private:
     Protocol protocol;
 
     // Deserializadores privados por tipo de evento
+    LoginOkEvent recv_login_payload();
     ServerEvent recv_login_ok();
     ServerEvent recv_login_error();
     ServerEvent recv_character_created();
