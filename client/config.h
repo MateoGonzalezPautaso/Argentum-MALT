@@ -41,6 +41,7 @@ struct SpriteConfig {
 struct TileDef {
     int x = 0;
     int y = 0;
+    bool walkable = true;
 };
 
 struct TilemapConfig {

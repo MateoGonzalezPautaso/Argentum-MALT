@@ -124,6 +124,7 @@ void parse_tilemap_config(const toml::table& root, ClientConfig& config) {
                 TileDef def;
                 def.x = get_int(*tile_tbl, "x", def.x);
                 def.y = get_int(*tile_tbl, "y", def.y);
+                def.walkable = get_bool(*tile_tbl, "walkable", def.walkable);
                 config.tilemap.tiles.emplace(key, def);
             }
         }

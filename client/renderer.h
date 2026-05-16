@@ -19,6 +19,7 @@ private:
     bool has_tilemap = false;
     int tile_size = 128;
     std::vector<std::vector<SDL2pp::Rect>> tilemap_src;
+    std::vector<std::vector<bool>> tilemap_walkable;
     int map_px_w = 0;
     int map_px_h = 0;
     SDL2pp::Texture menu_background_texture;
@@ -75,6 +76,7 @@ private:
     void render_sprites(const SDL2pp::Rect& cam);
     void update_animation();
     void update_anchor_positions();
+    bool is_walkable_for_sprite(int x, int y, const SpriteRender& sprite) const;
     SpriteRender* find_movable_sprite();
     const SpriteRender* find_movable_sprite() const;
 };
