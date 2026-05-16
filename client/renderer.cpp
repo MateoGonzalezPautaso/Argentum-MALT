@@ -7,6 +7,9 @@
 #include "menu_renderer.h"
 #include "world_renderer.h"
 
+// Fachada del sistema de render:
+// - MenuRenderer: menu principal y elementos clickeables del menu.
+// - WorldRenderer: juego in-game (UI marco, tilemap, sprites, camara).
 ClientRenderer::ClientRenderer(SDL2pp::Window& window,
                                const BackgroundConfig& background,
                                const TilemapConfig& tilemap,
@@ -21,10 +24,12 @@ ClientRenderer::ClientRenderer(SDL2pp::Window& window,
 ClientRenderer::~ClientRenderer() = default;
 
 void ClientRenderer::render_frame() {
+    // Render de gameplay (no menu).
     world_renderer->render();
 }
 
 void ClientRenderer::render_menu() {
+    // Render de pantalla de menu principal.
     menu_renderer->render();
 }
 

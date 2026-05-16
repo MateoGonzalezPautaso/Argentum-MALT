@@ -30,6 +30,9 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer,
 }
 
 void WorldRenderer::render() {
+    // 1) UI marco completa
+    // 2) viewport de juego
+    // 3) mapa + sprites
     renderer.SetDrawColor(0, 0, 0, 255);
     renderer.Clear();
 
@@ -58,6 +61,7 @@ void WorldRenderer::move_sprite(int dx, int dy) {
     const int new_x = std::clamp(sprite->dst.GetX() + dx, 0, max_x);
     const int new_y = std::clamp(sprite->dst.GetY() + dy, 0, max_y);
 
+    // no avanza si el tile destino no es caminable.
     if (!is_walkable_for_sprite(new_x, new_y, *sprite)) {
         return;
     }
@@ -83,6 +87,7 @@ void WorldRenderer::get_camera_offset(int& x, int& y) const {
 }
 
 bool WorldRenderer::screen_to_world(int screen_x, int screen_y, int& world_x, int& world_y) const {
+    // convierte click en coordenadas de mundo teniendo en cuenta viewport + camara.
     const int local_x = screen_x - game_viewport.GetX();
     const int local_y = screen_y - game_viewport.GetY();
     if (local_x < 0 || local_y < 0 || local_x >= game_viewport.GetW() || local_y >= game_viewport.GetH()) {
@@ -210,6 +215,7 @@ WorldRenderer::SpriteRender WorldRenderer::build_sprite_render(const SpriteConfi
 }
 
 SDL2pp::Rect WorldRenderer::camera_rect() const {
+    // camara centrada en el jugador movible y acotada al mapa
     const SpriteRender* sprite = find_movable_sprite();
     int cam_x = 0;
     int cam_y = 0;
@@ -233,14 +239,30 @@ SDL2pp::Rect WorldRenderer::camera_rect() const {
 
 void WorldRenderer::render_tilemap_or_background(const SDL2pp::Rect& cam) {
     if (has_tilemap) {
-        for (std::size_t row = 0; row < tilemap_src.size(); ++row) {
-            const auto& src_row = tilemap_src[row];
-            for (std::size_t col = 0; col < src_row.size(); ++col) {
-                SDL2pp::Rect dst(static_cast<int>(col) * tile_size - cam.GetX(),
-                                 static_cast<int>(row) * tile_size - cam.GetY(),
+        // calcula el bloque minimo de tiles visibles.
+        // evita recorrer todo el mapa en cada frame.
+        const int first_col = std::max(0, cam.GetX() / tile_size);
+        const int first_row = std::max(0, cam.GetY() / tile_size);
+        const int last_col = std::max(0, (cam.GetX() + cam.GetW() - 1) / tile_size);
+        const int last_row = std::max(0, (cam.GetY() + cam.GetH() - 1) / tile_size);
+
+        for (int row = first_row; row <= last_row; ++row) {
+            if (row < 0 || row >= static_cast<int>(tilemap_src.size())) {
+                continue;
+            }
+
+            const auto& src_row = tilemap_src[static_cast<std::size_t>(row)];
+            const int row_last_col = std::min(last_col, static_cast<int>(src_row.size()) - 1);
+            for (int col = first_col; col <= row_last_col; ++col) {
+                if (col < 0) {
+                    continue;
+                }
+
+                SDL2pp::Rect dst(col * tile_size - cam.GetX(),
+                                 row * tile_size - cam.GetY(),
                                  tile_size,
                                  tile_size);
-                renderer.Copy(tilemap_texture, src_row[col], dst);
+                renderer.Copy(tilemap_texture, src_row[static_cast<std::size_t>(col)], dst);
             }
         }
         return;
@@ -251,10 +273,27 @@ void WorldRenderer::render_tilemap_or_background(const SDL2pp::Rect& cam) {
 }
 
 void WorldRenderer::render_sprites(const SDL2pp::Rect& cam) {
+    // dibuja sprites en coordenadas de camara.
+    // primero descarta los que no intersectan el viewport para optimizar
     for (auto& sprite : sprites) {
         if (!sprite.visible || sprite.frames.empty()) {
             continue;
         }
+
+        const int sprite_left = sprite.dst.GetX();
+        const int sprite_top = sprite.dst.GetY();
+        const int sprite_right = sprite_left + sprite.dst.GetW();
+        const int sprite_bottom = sprite_top + sprite.dst.GetH();
+        const int cam_left = cam.GetX();
+        const int cam_top = cam.GetY();
+        const int cam_right = cam_left + cam.GetW();
+        const int cam_bottom = cam_top + cam.GetH();
+
+        if (sprite_right <= cam_left || sprite_left >= cam_right ||
+            sprite_bottom <= cam_top || sprite_top >= cam_bottom) {
+            continue;
+        }
+
         SDL2pp::Rect dst(sprite.dst.GetX() - cam.GetX(),
                          sprite.dst.GetY() - cam.GetY(),
                          sprite.dst.GetW(),
@@ -318,7 +357,6 @@ bool WorldRenderer::is_walkable_for_sprite(int x, int y, const SpriteRender& spr
     if (tile_size <= 0 || tilemap_walkable.empty()) {
         return true;
     }
-
     const int foot_x = x + sprite.dst.GetW() / 2;
     const int foot_y = y + sprite.dst.GetH() - 1;
     if (foot_x < 0 || foot_y < 0) {

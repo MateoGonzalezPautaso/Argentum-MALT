@@ -28,6 +28,7 @@ void MenuRenderer::render() {
 }
 
 bool MenuRenderer::is_button_hit(int x, int y) const {
+    // hitbox rectangular para boton start
     const int left = menu_button_rect.GetX();
     const int top = menu_button_rect.GetY();
     const int right = left + menu_button_rect.GetW();
@@ -36,6 +37,7 @@ bool MenuRenderer::is_button_hit(int x, int y) const {
 }
 
 void MenuRenderer::init_layout() {
+    // centra logo y boton verticalmente 
     const int logo_w = menu_logo_texture.GetWidth();
     const int logo_h = menu_logo_texture.GetHeight();
     const int button_w = menu_button_texture.GetWidth();
