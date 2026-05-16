@@ -392,7 +392,7 @@ Inmediatamente después el servidor envía `MAP_INFO` e `INVENTORY_UPDATE`.
 ### `0x81` LOGIN_ERROR
 
 ```
-0x81 <error_code> <message>
+0x81 <error_code> <len_message> <message>
 ```
 
 ---
@@ -410,7 +410,7 @@ Misma estructura que `LOGIN_OK`: el personaje fue creado y la sesión queda abie
 ### `0x83` CHARACTER_ERROR  
 
 ```
-0x83 <error_code> <message>
+0x83 <error_code> <len_message> <message>
 ```
 
 ---
