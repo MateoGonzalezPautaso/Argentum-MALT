@@ -95,6 +95,12 @@ public:
     Protocol(const Protocol&) = delete;
     Protocol& operator=(const Protocol&) = delete;
 
+    void send_uint32(uint32_t value);
+    uint32_t recv_uint32();
+
+    void send_bool(bool value);
+    bool recv_bool();
+
 private:
     Socket& skt;
 };
