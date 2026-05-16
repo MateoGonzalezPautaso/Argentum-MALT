@@ -13,6 +13,10 @@ ClientCommand ServerProtocol::recv_command() {
     switch (opcode) {
         case OpCode::MOVE:
             return recv_move();
+        case OpCode::LOGIN:
+            return recv_login();
+        case OpCode::CREATE_CHARACTER:
+            return recv_create_character();
         default:
             throw std::runtime_error("Unknown command opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
@@ -22,6 +26,60 @@ ClientCommand ServerProtocol::recv_command() {
 ClientCommand ServerProtocol::recv_move() {
     Direction dir = static_cast<Direction>(protocol.recv_uint8());
     return MoveCmd{dir};
+}
+
+ClientCommand ServerProtocol::recv_login() {
+    LoginCmd cmd;
+    cmd.username = protocol.recv_str();
+    cmd.password = protocol.recv_str();
+    return cmd;
+}
+
+ClientCommand ServerProtocol::recv_create_character() {
+    CreateCharacterCmd cmd;
+    cmd.username = protocol.recv_str();
+    cmd.password = protocol.recv_str();
+    cmd.race = static_cast<Race>(protocol.recv_uint8());
+    cmd.class_ = static_cast<Class>(protocol.recv_uint8());
+    return cmd;
+}
+
+void ServerProtocol::send_login_payload(const LoginOkEvent& ev) {
+    protocol.send_uint16(ev.player_id);
+    protocol.send_str(ev.username);
+    protocol.send_uint8(static_cast<uint8_t>(ev.race));
+    protocol.send_uint8(static_cast<uint8_t>(ev.class_));
+    protocol.send_uint8(ev.level);
+    protocol.send_uint32(ev.experience);
+    protocol.send_uint16(ev.hp_current);
+    protocol.send_uint16(ev.hp_max);
+    protocol.send_uint16(ev.mana_current);
+    protocol.send_uint16(ev.mana_max);
+    protocol.send_uint32(ev.gold);
+    protocol.send_uint16(ev.pos.x);
+    protocol.send_uint16(ev.pos.y);
+}
+
+void ServerProtocol::send_login_ok(const LoginOkEvent& ev) {
+    protocol.send_opcode(OpCode::LOGIN_OK);
+    send_login_payload(ev);
+}
+
+void ServerProtocol::send_login_error(const LoginErrorEvent& ev) {
+    protocol.send_opcode(OpCode::LOGIN_ERROR);
+    protocol.send_uint8(static_cast<uint8_t>(ev.error_code));
+    protocol.send_str(ev.message);
+}
+
+void ServerProtocol::send_character_created(const CharacterCreatedEvent& ev) {
+    protocol.send_opcode(OpCode::CHARACTER_CREATED);
+    send_login_payload(ev.data);
+}
+
+void ServerProtocol::send_character_error(const CharacterErrorEvent& ev) {
+    protocol.send_opcode(OpCode::CHARACTER_ERROR);
+    protocol.send_uint8(static_cast<uint8_t>(ev.error_code));
+    protocol.send_str(ev.message);
 }
 
 /**
@@ -47,30 +105,9 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [this](const LoginErrorEvent& msg) { send_login_error(msg); },
                        [this](const CharacterCreatedEvent& msg) { send_character_created(msg); },
                        [this](const CharacterErrorEvent& msg) { send_character_error(msg); },
-                       [this](const MapInfoEvent& msg) { send_map_info(msg); },
-                       [this](const PlayerStatsEvent& msg) { send_player_stats(msg); },
-                       [this](const EntitySpawnEvent& msg) { send_entity_spawn(msg); },
-                       [this](const EntityDespawnEvent& msg) { send_entity_despawn(msg); },
-                       [this](const EntityMoveEvent& msg) { send_entity_move(msg); },
-                       [this](const DamageDealtEvent& msg) { send_damage_dealt(msg); },
-                       [this](const DamageReceivedEvent& msg) { send_damage_received(msg); },
-                       [this](const AttackDodgedEvent& msg) { send_attack_dodged(msg); },
-                       [this](const EntityDiedEvent& msg) { send_entity_died(msg); },
-                       [this](const PlayerRespawnedEvent& msg) { send_player_respawned(msg); },
-                       [this](const MeditationStartEvent&) { send_meditation_start(); },
-                       [this](const MeditationStopEvent&) { send_meditation_stop(); },
-                       [this](const InventoryUpdateEvent& msg) { send_inventory_update(msg); },
-                       [this](const EquipUpdateEvent& msg) { send_equip_update(msg); },
-                       [this](const GoldUpdateEvent& msg) { send_gold_update(msg); },
-                       [this](const ItemDroppedEvent& msg) { send_item_dropped(msg); },
-                       [this](const ItemPickedEvent& msg) { send_item_picked(msg); },
-                       [this](const NpcItemListEvent& msg) { send_npc_item_list(msg); },
-                       [this](const TransactionOkEvent& msg) { send_transaction_ok(msg); },
-                       [this](const TransactionErrorEvent& msg) { send_transaction_error(msg); },
-                       [this](const ChatMsgEvent& msg) { send_chat_msg(msg); },
-                       [this](const ClanNotificationEvent& msg) { send_clan_notification(msg); },
-                       [this](const ClanUpdateEvent& msg) { send_clan_update(msg); },
-                       [this](const ServerMsgEvent& msg) { send_server_msg(msg); },
+                       [](const auto&) {
+                           throw std::runtime_error("Event type not implemented");
+                       },
                },
                ev);
 }

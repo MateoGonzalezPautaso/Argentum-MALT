@@ -51,6 +51,9 @@ private:
     Socket skt;
     Protocol protocol;
 
+    // Envío de eventos (Servidor -> Cliente)
+    void send_login_payload(const LoginOkEvent& ev);
+
     // Deserializadores privados por tipo de comando
     ClientCommand recv_login();
     ClientCommand recv_create_character();
