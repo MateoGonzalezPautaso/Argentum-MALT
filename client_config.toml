@@ -15,16 +15,45 @@ path = "assets/Graficos/5144.png"
 tile_size = 128
 
 mapa = [
-  ["pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto"],
-  ["pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto"],
-  ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto"],
-  ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto"],
-  ["pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto"],
-  ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto"],
-  ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto"],
-  ["pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto"],
-  ["pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto"],
-  ["pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto"]
+    ["pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto"],
+
+    ["pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","pasto"],
+
+    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto"],
+
+    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto"],
+
+    ["pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","pasto"],
+
+    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto"],
+
+    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto"],
+
+    ["pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","pasillo_y","pasto","pasto","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","pasto"],
+
+    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto"],
+
+    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto"],
+
+    ["pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","rotonda","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","pasto"],
+
+    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto"],
+
+    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto"],
+
+    ["pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","pasto"],
+
+    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto"],
+
+    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto"],
+
+    ["pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","pasto"],
+
+    ["pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto"],
+
+    ["pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto"],
+
+    ["pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto"]
 ]
 
 [tilemap.tiles]
