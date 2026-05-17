@@ -1,10 +1,15 @@
 #include <iostream>
 
 #include "../common/socket.h"
+
 #include "server_protocol.h"
 
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+template <class... Ts>
+struct overloaded: Ts... {
+    using Ts::operator()...;
+};
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
 int main() try {
     Socket listener("1234");
@@ -16,15 +21,15 @@ int main() try {
     while (true) {
         ClientCommand cmd = srv_prot.recv_command();
 
-        std::visit(overloaded{
-            [](const MoveCmd& msg) {
-                std::cout << "MOVE received! Direction: "
-                          << static_cast<int>(msg.direction) << std::endl;
-            },
-            [](const auto&) {
-                std::cout << "Unknown command received" << std::endl;
-            },
-        }, cmd);
+        std::visit(
+                overloaded{
+                        [](const MoveCmd& msg) {
+                            std::cout << "MOVE received! Direction: "
+                                      << static_cast<int>(msg.direction) << std::endl;
+                        },
+                        [](const auto&) { std::cout << "Unknown command received" << std::endl; },
+                },
+                cmd);
     }
 
     return 0;

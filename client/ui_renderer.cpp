@@ -5,11 +5,11 @@
 
 #include <SDL2/SDL_image.h>
 
-UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h)
-        : renderer(renderer),
-          ui_frame_texture(renderer, load_surface("assets/interface/en_ventanaprincipal.bmp")),
-          ui_frame_rect(0, 0, window_w, window_h),
-          chat_input_rect(41, 122, 565, 20) {
+UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h):
+        renderer(renderer),
+        ui_frame_texture(renderer, load_surface("assets/interface/en_ventanaprincipal.bmp")),
+        ui_frame_rect(0, 0, window_w, window_h),
+        chat_input_rect(41, 122, 565, 20) {
     chat_font = TTF_OpenFont("assets/OUTPUT/Cardo.ttf", 16);
     if (!chat_font) {
         throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
@@ -44,13 +44,9 @@ void UIRenderer::render_chat_input() {
     }
 }
 
-void UIRenderer::set_chat_input_text(const std::string& text) {
-    chat_input_text = text;
-}
+void UIRenderer::set_chat_input_text(const std::string& text) { chat_input_text = text; }
 
-void UIRenderer::set_chat_input_focus(bool focused) {
-    chat_input_focused = focused;
-}
+void UIRenderer::set_chat_input_focus(bool focused) { chat_input_focused = focused; }
 
 bool UIRenderer::is_chat_input_hit(int x, int y) const {
     const int left = chat_input_rect.GetX();
@@ -60,7 +56,8 @@ bool UIRenderer::is_chat_input_hit(int x, int y) const {
     return x >= left && x <= right && y >= top && y <= bottom;
 }
 
-SDL2pp::Texture UIRenderer::make_text_texture(const std::string& text, int& text_w, int& text_h) const {
+SDL2pp::Texture UIRenderer::make_text_texture(const std::string& text, int& text_w,
+                                              int& text_h) const {
     SDL_Surface* text_surface = TTF_RenderUTF8_Blended(chat_font, text.c_str(), chat_color);
     if (!text_surface) {
         throw std::runtime_error(std::string("TTF_RenderUTF8_Blended failed: ") + TTF_GetError());
@@ -97,8 +94,7 @@ void UIRenderer::render_chat_cursor(int x_offset) const {
         SDL2pp::Texture cursor_texture = make_text_texture("|", cursor_w, cursor_h);
         const int cursor_x = std::min(chat_input_rect.GetX() + x_offset,
                                       chat_input_rect.GetX() + chat_input_rect.GetW() - cursor_w);
-        SDL2pp::Rect cursor_dst(cursor_x,
-                                chat_input_rect.GetY(),
+        SDL2pp::Rect cursor_dst(cursor_x, chat_input_rect.GetY(),
                                 std::min(cursor_w, chat_input_rect.GetW()),
                                 std::min(cursor_h, chat_input_rect.GetH()));
         renderer.Copy(cursor_texture, SDL2pp::NullOpt, cursor_dst);

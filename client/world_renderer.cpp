@@ -2,23 +2,23 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <utility>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer,
-                             const BackgroundConfig& background,
+WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig& background,
                              const TilemapConfig& tilemap,
-                             const std::vector<SpriteConfig>& sprites_config,
-                             int window_w,
-                             int window_h)
-        : renderer(renderer),
-          background_texture(renderer, load_surface(background.path)),
-          background_rect(background.x, background.y, background.width, background.height),
-          game_viewport(11, 149, 734, 608),
-          tilemap_texture(renderer, load_surface(tilemap.path.empty() ? background.path : tilemap.path)),
-          window_w(window_w),
-          window_h(window_h) {
+                             const std::vector<SpriteConfig>& sprites_config, int window_w,
+                             int window_h):
+        renderer(renderer),
+        background_texture(renderer, load_surface(background.path)),
+        background_rect(background.x, background.y, background.width, background.height),
+        game_viewport(11, 149, 734, 608),
+        tilemap_texture(renderer,
+                        load_surface(tilemap.path.empty() ? background.path : tilemap.path)),
+        window_w(window_w),
+        window_h(window_h) {
     init_tilemap(tilemap);
     init_sprites(sprites_config);
 
@@ -45,10 +45,10 @@ void WorldRenderer::move_sprite(int dx, int dy) {
     if (!sprite) {
         return;
     }
-    const int max_x = has_tilemap ? std::max(0, map_px_w - sprite->dst.GetW())
-                                  : std::max(0, window_w - sprite->dst.GetW());
-    const int max_y = has_tilemap ? std::max(0, map_px_h - sprite->dst.GetH())
-                                  : std::max(0, window_h - sprite->dst.GetH());
+    const int max_x = has_tilemap ? std::max(0, map_px_w - sprite->dst.GetW()) :
+                                    std::max(0, window_w - sprite->dst.GetW());
+    const int max_y = has_tilemap ? std::max(0, map_px_h - sprite->dst.GetH()) :
+                                    std::max(0, window_h - sprite->dst.GetH());
     const int new_x = std::clamp(sprite->dst.GetX() + dx, 0, max_x);
     const int new_y = std::clamp(sprite->dst.GetY() + dy, 0, max_y);
 
@@ -81,7 +81,8 @@ bool WorldRenderer::screen_to_world(int screen_x, int screen_y, int& world_x, in
     // convierte click en coordenadas de mundo teniendo en cuenta viewport + camara.
     const int local_x = screen_x - game_viewport.GetX();
     const int local_y = screen_y - game_viewport.GetY();
-    if (local_x < 0 || local_y < 0 || local_x >= game_viewport.GetW() || local_y >= game_viewport.GetH()) {
+    if (local_x < 0 || local_y < 0 || local_x >= game_viewport.GetW() ||
+        local_y >= game_viewport.GetH()) {
         return false;
     }
 
@@ -115,7 +116,7 @@ void WorldRenderer::step_movable_src_x(int step, int frame_count) {
 }
 
 void WorldRenderer::set_anchor_src_y(int y) {
-    for (auto& sprite : sprites) {
+    for (auto& sprite: sprites) {
         if (!sprite.anchor_to_movable || !sprite.use_src) {
             continue;
         }
@@ -138,13 +139,13 @@ void WorldRenderer::init_tilemap(const TilemapConfig& tilemap) {
     map_px_w = 0;
     map_px_h = 0;
 
-    for (const auto& row : tilemap.mapa) {
+    for (const auto& row: tilemap.mapa) {
         std::vector<SDL2pp::Rect> src_row;
         std::vector<bool> walkable_row;
         src_row.reserve(row.size());
         walkable_row.reserve(row.size());
         map_px_w = std::max(map_px_w, static_cast<int>(row.size()) * tile_size);
-        for (const auto& name : row) {
+        for (const auto& name: row) {
             auto it = tilemap.tiles.find(name);
             if (it == tilemap.tiles.end()) {
                 src_row.emplace_back(0, 0, tile_size, tile_size);
@@ -164,7 +165,7 @@ void WorldRenderer::init_tilemap(const TilemapConfig& tilemap) {
 
 void WorldRenderer::init_sprites(const std::vector<SpriteConfig>& sprites_config) {
     sprites.reserve(sprites_config.size());
-    for (const auto& sprite_config : sprites_config) {
+    for (const auto& sprite_config: sprites_config) {
         SpriteRender sprite = build_sprite_render(sprite_config);
         if (sprite.frames.empty()) {
             continue;
@@ -176,7 +177,7 @@ void WorldRenderer::init_sprites(const std::vector<SpriteConfig>& sprites_config
 WorldRenderer::SpriteRender WorldRenderer::build_sprite_render(const SpriteConfig& sprite_config) {
     SpriteRender sprite;
     sprite.frames.reserve(sprite_config.paths.size());
-    for (const auto& path : sprite_config.paths) {
+    for (const auto& path: sprite_config.paths) {
         SDL2pp::Surface surface = load_surface(path);
         sprite.frames.emplace_back(renderer, surface);
     }
@@ -185,11 +186,10 @@ WorldRenderer::SpriteRender WorldRenderer::build_sprite_render(const SpriteConfi
         return sprite;
     }
 
-    sprite.dst = SDL2pp::Rect(sprite_config.x, sprite_config.y, sprite_config.width, sprite_config.height);
+    sprite.dst = SDL2pp::Rect(sprite_config.x, sprite_config.y, sprite_config.width,
+                              sprite_config.height);
     if (sprite_config.src_width > 0 && sprite_config.src_height > 0) {
-        sprite.src = SDL2pp::Rect(sprite_config.src_x,
-                                  sprite_config.src_y,
-                                  sprite_config.src_width,
+        sprite.src = SDL2pp::Rect(sprite_config.src_x, sprite_config.src_y, sprite_config.src_width,
                                   sprite_config.src_height);
         sprite.use_src = true;
     }
@@ -249,10 +249,8 @@ void WorldRenderer::render_tilemap_or_background(const SDL2pp::Rect& cam) {
                     continue;
                 }
 
-                SDL2pp::Rect dst(col * tile_size - cam.GetX(),
-                                 row * tile_size - cam.GetY(),
-                                 tile_size,
-                                 tile_size);
+                SDL2pp::Rect dst(col * tile_size - cam.GetX(), row * tile_size - cam.GetY(),
+                                 tile_size, tile_size);
                 renderer.Copy(tilemap_texture, src_row[static_cast<std::size_t>(col)], dst);
             }
         }
@@ -266,7 +264,7 @@ void WorldRenderer::render_tilemap_or_background(const SDL2pp::Rect& cam) {
 void WorldRenderer::render_sprites(const SDL2pp::Rect& cam) {
     // dibuja sprites en coordenadas de camara.
     // primero descarta los que no intersectan el viewport para optimizar
-    for (auto& sprite : sprites) {
+    for (auto& sprite: sprites) {
         if (!sprite.visible || sprite.frames.empty()) {
             continue;
         }
@@ -280,15 +278,13 @@ void WorldRenderer::render_sprites(const SDL2pp::Rect& cam) {
         const int cam_right = cam_left + cam.GetW();
         const int cam_bottom = cam_top + cam.GetH();
 
-        if (sprite_right <= cam_left || sprite_left >= cam_right ||
-            sprite_bottom <= cam_top || sprite_top >= cam_bottom) {
+        if (sprite_right <= cam_left || sprite_left >= cam_right || sprite_bottom <= cam_top ||
+            sprite_top >= cam_bottom) {
             continue;
         }
 
-        SDL2pp::Rect dst(sprite.dst.GetX() - cam.GetX(),
-                         sprite.dst.GetY() - cam.GetY(),
-                         sprite.dst.GetW(),
-                         sprite.dst.GetH());
+        SDL2pp::Rect dst(sprite.dst.GetX() - cam.GetX(), sprite.dst.GetY() - cam.GetY(),
+                         sprite.dst.GetW(), sprite.dst.GetH());
         if (sprite.use_src) {
             renderer.Copy(sprite.frames[sprite.current_frame], sprite.src, dst);
         } else {
@@ -299,7 +295,7 @@ void WorldRenderer::render_sprites(const SDL2pp::Rect& cam) {
 
 void WorldRenderer::update_animation() {
     const uint32_t now = SDL_GetTicks();
-    for (auto& sprite : sprites) {
+    for (auto& sprite: sprites) {
         if (!sprite.animated || sprite.frame_ms == 0) {
             continue;
         }
@@ -317,23 +313,23 @@ void WorldRenderer::update_anchor_positions() {
         return;
     }
 
-    const int max_x = has_tilemap ? std::max(0, map_px_w - movable->dst.GetW())
-                                  : std::max(0, window_w - movable->dst.GetW());
-    const int max_y = has_tilemap ? std::max(0, map_px_h - movable->dst.GetH())
-                                  : std::max(0, window_h - movable->dst.GetH());
+    const int max_x = has_tilemap ? std::max(0, map_px_w - movable->dst.GetW()) :
+                                    std::max(0, window_w - movable->dst.GetW());
+    const int max_y = has_tilemap ? std::max(0, map_px_h - movable->dst.GetH()) :
+                                    std::max(0, window_h - movable->dst.GetH());
     const int base_x = std::clamp(movable->dst.GetX(), 0, max_x);
     const int base_y = std::clamp(movable->dst.GetY(), 0, max_y);
 
-    for (auto& sprite : sprites) {
+    for (auto& sprite: sprites) {
         if (!sprite.anchor_to_movable) {
             continue;
         }
         const int desired_x = base_x + sprite.anchor_offset_x;
         const int desired_y = base_y + sprite.anchor_offset_y;
-        const int clamp_x_max = has_tilemap ? std::max(0, map_px_w - sprite.dst.GetW())
-                                            : std::max(0, window_w - sprite.dst.GetW());
-        const int clamp_y_max = has_tilemap ? std::max(0, map_px_h - sprite.dst.GetH())
-                                            : std::max(0, window_h - sprite.dst.GetH());
+        const int clamp_x_max = has_tilemap ? std::max(0, map_px_w - sprite.dst.GetW()) :
+                                              std::max(0, window_w - sprite.dst.GetW());
+        const int clamp_y_max = has_tilemap ? std::max(0, map_px_h - sprite.dst.GetH()) :
+                                              std::max(0, window_h - sprite.dst.GetH());
         const int clamped_x = std::clamp(desired_x, 0, clamp_x_max);
         const int clamped_y = std::clamp(desired_y, 0, clamp_y_max);
         sprite.dst.SetX(clamped_x);
@@ -367,7 +363,7 @@ bool WorldRenderer::is_walkable_for_sprite(int x, int y, const SpriteRender& spr
 }
 
 WorldRenderer::SpriteRender* WorldRenderer::find_movable_sprite() {
-    for (auto& sprite : sprites) {
+    for (auto& sprite: sprites) {
         if (sprite.movable) {
             return &sprite;
         }
@@ -376,7 +372,7 @@ WorldRenderer::SpriteRender* WorldRenderer::find_movable_sprite() {
 }
 
 const WorldRenderer::SpriteRender* WorldRenderer::find_movable_sprite() const {
-    for (const auto& sprite : sprites) {
+    for (const auto& sprite: sprites) {
         if (sprite.movable) {
             return &sprite;
         }

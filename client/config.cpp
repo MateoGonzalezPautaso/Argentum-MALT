@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <stdexcept>
+#include <utility>
 
 #include <toml++/toml.h>
 
@@ -51,7 +52,7 @@ std::vector<std::string> parse_paths(const toml::table& tbl) {
     }
 
     if (auto paths_array = tbl["paths"].as_array()) {
-        for (const auto& item : *paths_array) {
+        for (const auto& item: *paths_array) {
             if (auto value = item.value<std::string>()) {
                 paths.push_back(*value);
             }
@@ -70,13 +71,13 @@ std::vector<std::vector<std::string>> parse_map_grid(const toml::table& tbl) {
     if (!rows) {
         return grid;
     }
-    for (const auto& row_node : *rows) {
+    for (const auto& row_node: *rows) {
         const auto* row_array = row_node.as_array();
         if (!row_array) {
             continue;
         }
         std::vector<std::string> row;
-        for (const auto& cell : *row_array) {
+        for (const auto& cell: *row_array) {
             if (auto value = cell.value<std::string>()) {
                 row.push_back(*value);
             }
@@ -116,7 +117,7 @@ void parse_tilemap_config(const toml::table& root, ClientConfig& config) {
         config.tilemap.tile_size = get_int(*tilemap, "tile_size", config.tilemap.tile_size);
 
         if (auto tiles = (*tilemap)["tiles"].as_table()) {
-            for (const auto& [key, value] : *tiles) {
+            for (const auto& [key, value]: *tiles) {
                 const auto* tile_tbl = value.as_table();
                 if (!tile_tbl) {
                     continue;
@@ -135,7 +136,7 @@ void parse_tilemap_config(const toml::table& root, ClientConfig& config) {
 
 void parse_sprite_configs(const toml::table& root, ClientConfig& config) {
     if (auto sprites = root["sprites"].as_array()) {
-        for (const auto& entry : *sprites) {
+        for (const auto& entry: *sprites) {
             if (!entry.is_table()) {
                 continue;
             }
@@ -152,7 +153,8 @@ void parse_sprite_configs(const toml::table& root, ClientConfig& config) {
             sprite.src_height = get_int(sprite_tbl, "src_height", sprite.src_height);
             sprite.frame_ms = get_uint32(sprite_tbl, "frame_ms", sprite.frame_ms);
             sprite.movable = get_bool(sprite_tbl, "movable", sprite.movable);
-            sprite.anchor_to_movable = get_bool(sprite_tbl, "anchor_to_movable", sprite.anchor_to_movable);
+            sprite.anchor_to_movable =
+                    get_bool(sprite_tbl, "anchor_to_movable", sprite.anchor_to_movable);
             sprite.anchor_offset_x = get_int(sprite_tbl, "anchor_offset_x", sprite.anchor_offset_x);
             sprite.anchor_offset_y = get_int(sprite_tbl, "anchor_offset_y", sprite.anchor_offset_y);
             sprite.visible = get_bool(sprite_tbl, "visible", sprite.visible);
@@ -177,23 +179,31 @@ void parse_movement_config(const toml::table& root, ClientConfig& config) {
         config.move_step = get_int(*movement, "move_step", config.move_step);
         config.walk_src_step = get_int(*movement, "walk_src_step", config.walk_src_step);
         config.walk_src_frames = get_int(*movement, "walk_src_frames", config.walk_src_frames);
-        config.walk_src_frames_down = get_int(*movement, "walk_src_frames_down", config.walk_src_frames);
-        config.walk_src_frames_up = get_int(*movement, "walk_src_frames_up", config.walk_src_frames);
-        config.walk_src_frames_left = get_int(*movement, "walk_src_frames_left", config.walk_src_frames);
-        config.walk_src_frames_right = get_int(*movement, "walk_src_frames_right", config.walk_src_frames);
+        config.walk_src_frames_down =
+                get_int(*movement, "walk_src_frames_down", config.walk_src_frames);
+        config.walk_src_frames_up =
+                get_int(*movement, "walk_src_frames_up", config.walk_src_frames);
+        config.walk_src_frames_left =
+                get_int(*movement, "walk_src_frames_left", config.walk_src_frames);
+        config.walk_src_frames_right =
+                get_int(*movement, "walk_src_frames_right", config.walk_src_frames);
         config.walk_frame_ms = get_uint32(*movement, "walk_frame_ms", config.walk_frame_ms);
         config.tick_ms = get_uint32(*movement, "tick_ms", config.tick_ms);
         config.dir_src_y_down = get_int(*movement, "dir_src_y_down", config.dir_src_y_down);
         config.dir_src_y_up = get_int(*movement, "dir_src_y_up", config.dir_src_y_up);
         config.dir_src_y_left = get_int(*movement, "dir_src_y_left", config.dir_src_y_left);
         config.dir_src_y_right = get_int(*movement, "dir_src_y_right", config.dir_src_y_right);
-        config.head_dir_src_y_down = get_int(*movement, "head_dir_src_y_down", config.head_dir_src_y_down);
-        config.head_dir_src_y_up = get_int(*movement, "head_dir_src_y_up", config.head_dir_src_y_up);
-        config.head_dir_src_y_left = get_int(*movement, "head_dir_src_y_left", config.head_dir_src_y_left);
-        config.head_dir_src_y_right = get_int(*movement, "head_dir_src_y_right", config.head_dir_src_y_right);
+        config.head_dir_src_y_down =
+                get_int(*movement, "head_dir_src_y_down", config.head_dir_src_y_down);
+        config.head_dir_src_y_up =
+                get_int(*movement, "head_dir_src_y_up", config.head_dir_src_y_up);
+        config.head_dir_src_y_left =
+                get_int(*movement, "head_dir_src_y_left", config.head_dir_src_y_left);
+        config.head_dir_src_y_right =
+                get_int(*movement, "head_dir_src_y_right", config.head_dir_src_y_right);
     }
 }
-}
+}  // namespace
 
 ClientConfig load_client_config(const std::string& path) {
     toml::table root = toml::parse_file(path);

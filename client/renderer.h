@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <SDL2pp/SDL2pp.hh>
 
@@ -21,12 +22,9 @@ private:
     std::unique_ptr<UIRenderer> ui_renderer;
 
 public:
-    ClientRenderer(SDL2pp::Window& window,
-                   const BackgroundConfig& background,
-                   const TilemapConfig& tilemap,
-                   const std::vector<SpriteConfig>& sprites_config,
-                   int window_w,
-                   int window_h);
+    ClientRenderer(SDL2pp::Window& window, const BackgroundConfig& background,
+                   const TilemapConfig& tilemap, const std::vector<SpriteConfig>& sprites_config,
+                   int window_w, int window_h);
     ~ClientRenderer();
 
     void render_frame();

@@ -381,9 +381,7 @@ Socket::Socket(int skt) {
     this->stream_status = STREAM_BOTH_OPEN;
 }
 
-Socket Socket::from_fd(int fd) {
-    return Socket(fd);
-}
+Socket Socket::from_fd(int fd) { return Socket(fd); }
 
 Socket Socket::accept() {
     chk_skt_or_fail();

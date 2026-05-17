@@ -10,10 +10,7 @@
 
 namespace client_app {
 
-enum class GameState {
-    Menu,
-    Playing
-};
+enum class GameState { Menu, Playing };
 
 void init_image();
 void shutdown_image();
@@ -26,6 +23,6 @@ void render_menu(ClientEngine& client);
 void render_playing(ClientEngine& client);
 bool pump_events(ClientEngine& client, GameState& state);
 
-}
+}  // namespace client_app
 
 #endif

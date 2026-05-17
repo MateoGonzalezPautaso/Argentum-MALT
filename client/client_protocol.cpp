@@ -1,12 +1,11 @@
 #include "client_protocol.h"
 
 #include <stdexcept>
+#include <utility>
 
 #include "../common/socket.h"
 
-ClientProtocol::ClientProtocol(Socket&& skt):
-        skt(std::move(skt)),
-        protocol(this->skt) {}
+ClientProtocol::ClientProtocol(Socket&& skt): skt(std::move(skt)), protocol(this->skt) {}
 
 void ClientProtocol::send_login(const LoginCmd& cmd) {
     protocol.send_opcode(OpCode::LOGIN);
@@ -31,25 +30,30 @@ void ClientProtocol::send_move(const MoveCmd& cmd) {
 }
 
 /**
- * Creates a struct that inherits from all the lambdas passed to it. 
- * Each lambda has its own operator(), and using Ts::operator()...; 
- * brings all of them into scope. When std::visit calls operator() 
+ * Creates a struct that inherits from all the lambdas passed to it.
+ * Each lambda has its own operator(), and using Ts::operator()...;
+ * brings all of them into scope. When std::visit calls operator()
  * on the overloaded object, overload resolution picks the lambda whose parameter type matches.
  */
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template <class... Ts>
+struct overloaded: Ts... {
+    using Ts::operator()...;
+};
 /**
- * Tells the compiler: "when you write overloaded{lambda1, lambda2, ...}, 
+ * Tells the compiler: "when you write overloaded{lambda1, lambda2, ...},
  * deduce the template arguments from the lambdas' types"
  */
-template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
 void ClientProtocol::send_command(const ClientCommand& cmd) {
     std::visit(overloaded{
-        [this](const MoveCmd& msg) { send_move(msg); },
-        [this](const LoginCmd& msg) { send_login(msg); },
-        [this](const CreateCharacterCmd& msg) { send_create_character(msg); },
-        [](const auto&) { throw std::runtime_error("Command not implemented"); },
-    }, cmd);
+                       [this](const MoveCmd& msg) { send_move(msg); },
+                       [this](const LoginCmd& msg) { send_login(msg); },
+                       [this](const CreateCharacterCmd& msg) { send_create_character(msg); },
+                       [](const auto&) { throw std::runtime_error("Command not implemented"); },
+               },
+               cmd);
 }
 
 ServerEvent ClientProtocol::recv_event() {
@@ -88,9 +92,7 @@ LoginOkEvent ClientProtocol::recv_login_payload() {
     return ev;
 }
 
-ServerEvent ClientProtocol::recv_login_ok() {
-    return recv_login_payload();
-}
+ServerEvent ClientProtocol::recv_login_ok() { return recv_login_payload(); }
 
 ServerEvent ClientProtocol::recv_login_error() {
     LoginErrorEvent ev;

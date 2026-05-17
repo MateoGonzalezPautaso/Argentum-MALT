@@ -105,9 +105,7 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [this](const LoginErrorEvent& msg) { send_login_error(msg); },
                        [this](const CharacterCreatedEvent& msg) { send_character_created(msg); },
                        [this](const CharacterErrorEvent& msg) { send_character_error(msg); },
-                       [](const auto&) {
-                           throw std::runtime_error("Event type not implemented");
-                       },
+                       [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },
                ev);
 }

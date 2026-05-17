@@ -1,50 +1,42 @@
 #include "engine.h"
 
-#include <SDL2/SDL.h>
 #include <algorithm>
 #include <cmath>
 
-ClientEngine::ClientEngine(const ClientConfig& config, ClientProtocol& protocol)
-        : sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO),
-            window(config.window.title,
-                    SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                    1024, 768,
-                    0),
+#include <SDL2/SDL.h>
+
+ClientEngine::ClientEngine(const ClientConfig& config, ClientProtocol& protocol):
+        sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO),
+        window(config.window.title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1024, 768, 0),
         renderer(window, config.background, config.tilemap, config.sprites, 1024, 768),
         protocol(protocol),
         last_walk_tick(SDL_GetTicks()),
         walk_frame_ms(config.walk_frame_ms),
         move_step(config.move_step),
         walk_src_step(config.walk_src_step),
-    walk_src_frames(config.walk_src_frames),
-    walk_src_frames_down(config.walk_src_frames_down),
-    walk_src_frames_up(config.walk_src_frames_up),
-    walk_src_frames_left(config.walk_src_frames_left),
-    walk_src_frames_right(config.walk_src_frames_right),
-    dir_src_y_down(config.dir_src_y_down),
-    dir_src_y_up(config.dir_src_y_up),
-    dir_src_y_left(config.dir_src_y_left),
-    dir_src_y_right(config.dir_src_y_right),
-    head_dir_src_y_down(config.head_dir_src_y_down),
-    head_dir_src_y_up(config.head_dir_src_y_up),
-    head_dir_src_y_left(config.head_dir_src_y_left),
-    head_dir_src_y_right(config.head_dir_src_y_right) {
+        walk_src_frames(config.walk_src_frames),
+        walk_src_frames_down(config.walk_src_frames_down),
+        walk_src_frames_up(config.walk_src_frames_up),
+        walk_src_frames_left(config.walk_src_frames_left),
+        walk_src_frames_right(config.walk_src_frames_right),
+        dir_src_y_down(config.dir_src_y_down),
+        dir_src_y_up(config.dir_src_y_up),
+        dir_src_y_left(config.dir_src_y_left),
+        dir_src_y_right(config.dir_src_y_right),
+        head_dir_src_y_down(config.head_dir_src_y_down),
+        head_dir_src_y_up(config.head_dir_src_y_up),
+        head_dir_src_y_left(config.head_dir_src_y_left),
+        head_dir_src_y_right(config.head_dir_src_y_right) {
     SDL_StartTextInput();
     renderer.set_chat_input_text(chat_input_text);
     set_chat_focus(chat_input_focused);
 }
 
-ClientEngine::~ClientEngine() {
-    SDL_StopTextInput();
-}
+ClientEngine::~ClientEngine() { SDL_StopTextInput(); }
 
-void ClientEngine::show_sprite() {
-    renderer.render_frame();
-}
+void ClientEngine::show_sprite() { renderer.render_frame(); }
 
-void ClientEngine::show_menu() {
-    renderer.render_menu();
-}
+void ClientEngine::show_menu() { renderer.render_menu(); }
 
 void ClientEngine::tick() {
     if (!has_target) {
@@ -53,34 +45,28 @@ void ClientEngine::tick() {
     move_toward_target(SDL_GetTicks());
 }
 
-void ClientEngine::move_sprite(int dx, int dy) {
-    renderer.move_sprite(dx, dy);
-}
+void ClientEngine::move_sprite(int dx, int dy) { renderer.move_sprite(dx, dy); }
 
-void ClientEngine::set_movable_src_y(int y) {
-    renderer.set_movable_src_y(y);
-}
+void ClientEngine::set_movable_src_y(int y) { renderer.set_movable_src_y(y); }
 
 void ClientEngine::step_movable_src_x(int step, int frame_count) {
     renderer.step_movable_src_x(step, frame_count);
 }
 
-void ClientEngine::set_anchor_src_y(int y) {
-    renderer.set_anchor_src_y(y);
-}
+void ClientEngine::set_anchor_src_y(int y) { renderer.set_anchor_src_y(y); }
 
 int ClientEngine::walk_src_frames_for(Direction dir) const {
     switch (dir) {
-    case Direction::NORTH:
-        return walk_src_frames_up;
-    case Direction::SOUTH:
-        return walk_src_frames_down;
-    case Direction::WEST:
-        return walk_src_frames_left;
-    case Direction::EAST:
-        return walk_src_frames_right;
-    default:
-        return walk_src_frames;
+        case Direction::NORTH:
+            return walk_src_frames_up;
+        case Direction::SOUTH:
+            return walk_src_frames_down;
+        case Direction::WEST:
+            return walk_src_frames_left;
+        case Direction::EAST:
+            return walk_src_frames_right;
+        default:
+            return walk_src_frames;
     }
 }
 
@@ -145,8 +131,7 @@ bool ClientEngine::should_stop_at_target(int current_x, int current_y, int new_x
     return false;
 }
 
-void ClientEngine::compute_step_to_target(int current_x, int current_y,
-                                          int& move_dx, int& move_dy,
+void ClientEngine::compute_step_to_target(int current_x, int current_y, int& move_dx, int& move_dy,
                                           Direction& dir) const {
     const int dx = target_x - current_x;
     const int dy = target_y - current_y;
@@ -223,9 +208,7 @@ bool ClientEngine::handle_event(const SDL_Event& event) {
     return true;
 }
 
-bool ClientEngine::is_menu_click(int x, int y) const {
-    return renderer.is_menu_button_hit(x, y);
-}
+bool ClientEngine::is_menu_click(int x, int y) const { return renderer.is_menu_button_hit(x, y); }
 
 bool ClientEngine::handle_mouse_button(const SDL_Event& event) {
     if (event.button.button != SDL_BUTTON_LEFT) {
@@ -255,22 +238,22 @@ bool ClientEngine::handle_keydown(const SDL_Event& event) {
     const uint32_t now = SDL_GetTicks();
 
     switch (event.key.keysym.sym) {
-    case SDLK_ESCAPE:
-        return false;
-    case SDLK_LEFT:
-        apply_movement(Direction::WEST, -move_step, 0, now, true);
-        break;
-    case SDLK_RIGHT:
-        apply_movement(Direction::EAST, move_step, 0, now, true);
-        break;
-    case SDLK_UP:
-        apply_movement(Direction::NORTH, 0, -move_step, now, true);
-        break;
-    case SDLK_DOWN:
-        apply_movement(Direction::SOUTH, 0, move_step, now, true);
-        break;
-    default:
-        break;
+        case SDLK_ESCAPE:
+            return false;
+        case SDLK_LEFT:
+            apply_movement(Direction::WEST, -move_step, 0, now, true);
+            break;
+        case SDLK_RIGHT:
+            apply_movement(Direction::EAST, move_step, 0, now, true);
+            break;
+        case SDLK_UP:
+            apply_movement(Direction::NORTH, 0, -move_step, now, true);
+            break;
+        case SDLK_DOWN:
+            apply_movement(Direction::SOUTH, 0, move_step, now, true);
+            break;
+        default:
+            break;
     }
 
     return true;
@@ -288,24 +271,24 @@ bool ClientEngine::handle_text_input(const SDL_Event& event) {
 
 bool ClientEngine::handle_chat_keydown(const SDL_Event& event) {
     switch (event.key.keysym.sym) {
-    case SDLK_RETURN:
-    case SDLK_KP_ENTER:
-        // todo aca habria que enviar el mensaje al servidor antes de limpiar el input
-        chat_input_text.clear();
-        renderer.set_chat_input_text(chat_input_text);
-        return true;
-    case SDLK_BACKSPACE:
-        if (!chat_input_text.empty()) {
-            chat_input_text.pop_back();
+        case SDLK_RETURN:
+        case SDLK_KP_ENTER:
+            // todo aca habria que enviar el mensaje al servidor antes de limpiar el input
+            chat_input_text.clear();
             renderer.set_chat_input_text(chat_input_text);
-        }
-        return true;
-    case SDLK_ESCAPE:
-        set_chat_focus(false);
-        return true;
-    default:
-        // mientras el chat esta activo, bloquea acciones de gameplay.
-        return true;
+            return true;
+        case SDLK_BACKSPACE:
+            if (!chat_input_text.empty()) {
+                chat_input_text.pop_back();
+                renderer.set_chat_input_text(chat_input_text);
+            }
+            return true;
+        case SDLK_ESCAPE:
+            set_chat_focus(false);
+            return true;
+        default:
+            // mientras el chat esta activo, bloquea acciones de gameplay.
+            return true;
     }
 }
 

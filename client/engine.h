@@ -1,12 +1,13 @@
 #ifndef CLIENT_ENGINE_H
 #define CLIENT_ENGINE_H
 
-#include <SDL2/SDL.h>
-#include <SDL2pp/SDL2pp.hh>
 #include <string>
 
-#include "config.h"
+#include <SDL2/SDL.h>
+#include <SDL2pp/SDL2pp.hh>
+
 #include "client_protocol.h"
+#include "config.h"
 #include "renderer.h"
 
 class ClientEngine {
@@ -62,8 +63,7 @@ private:
     void apply_movement(Direction dir, int dx, int dy, uint32_t now, bool cancel_target);
     bool get_movable_position(int& x, int& y);
     bool should_stop_at_target(int current_x, int current_y, int new_x, int new_y);
-    void compute_step_to_target(int current_x, int current_y,
-                                int& move_dx, int& move_dy,
+    void compute_step_to_target(int current_x, int current_y, int& move_dx, int& move_dy,
                                 Direction& dir) const;
     void set_move_target(int x, int y);
     void move_toward_target(uint32_t now);

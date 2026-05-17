@@ -16,9 +16,7 @@ void init_image() {
     }
 }
 
-void shutdown_image() {
-    IMG_Quit();
-}
+void shutdown_image() { IMG_Quit(); }
 
 void init_ttf() {
     // ttf para render de texto
@@ -27,9 +25,7 @@ void init_ttf() {
     }
 }
 
-void shutdown_ttf() {
-    TTF_Quit();
-}
+void shutdown_ttf() { TTF_Quit(); }
 
 ClientConfig load_config() {
     const std::string config_path = "client_config.toml";
@@ -52,9 +48,7 @@ bool handle_playing_event(const SDL_Event& event, ClientEngine& client) {
     return client.handle_event(event);
 }
 
-void render_menu(ClientEngine& client) {
-    client.show_menu();
-}
+void render_menu(ClientEngine& client) { client.show_menu(); }
 
 void render_playing(ClientEngine& client) {
     client.tick();
@@ -81,4 +75,4 @@ bool pump_events(ClientEngine& client, GameState& state) {
     return true;
 }
 
-}
+}  // namespace client_app

@@ -43,12 +43,9 @@ private:
     int window_h;
 
 public:
-    WorldRenderer(SDL2pp::Renderer& renderer,
-                  const BackgroundConfig& background,
-                  const TilemapConfig& tilemap,
-                  const std::vector<SpriteConfig>& sprites_config,
-                  int window_w,
-                  int window_h);
+    WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig& background,
+                  const TilemapConfig& tilemap, const std::vector<SpriteConfig>& sprites_config,
+                  int window_w, int window_h);
 
     void render();
     void move_sprite(int dx, int dy);

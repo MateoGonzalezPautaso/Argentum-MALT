@@ -5,16 +5,18 @@
 
 #include <SDL2/SDL_image.h>
 
-MenuRenderer::MenuRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h)
-        : renderer(renderer),
-          menu_background_texture(renderer, load_surface("assets/BabelUI/static/media/leather_black..png")),
-          menu_logo_texture(renderer, load_surface("assets/BabelUI/static/media/ao20_logo_med..png")),
-          menu_button_texture(renderer, load_surface("assets/interface/en_boton-comenzar-default.bmp")),
-          menu_background_rect(0, 0, window_w, window_h),
-          menu_logo_rect(0, 0, 0, 0),
-          menu_button_rect(0, 0, 0, 0),
-          window_w(window_w),
-          window_h(window_h) {
+MenuRenderer::MenuRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h):
+        renderer(renderer),
+        menu_background_texture(renderer,
+                                load_surface("assets/BabelUI/static/media/leather_black..png")),
+        menu_logo_texture(renderer, load_surface("assets/BabelUI/static/media/ao20_logo_med..png")),
+        menu_button_texture(renderer,
+                            load_surface("assets/interface/en_boton-comenzar-default.bmp")),
+        menu_background_rect(0, 0, window_w, window_h),
+        menu_logo_rect(0, 0, 0, 0),
+        menu_button_rect(0, 0, 0, 0),
+        window_w(window_w),
+        window_h(window_h) {
     init_layout();
 }
 
@@ -37,7 +39,7 @@ bool MenuRenderer::is_button_hit(int x, int y) const {
 }
 
 void MenuRenderer::init_layout() {
-    // centra logo y boton verticalmente 
+    // centra logo y boton verticalmente
     const int logo_w = menu_logo_texture.GetWidth();
     const int logo_h = menu_logo_texture.GetHeight();
     const int button_w = menu_button_texture.GetWidth();
