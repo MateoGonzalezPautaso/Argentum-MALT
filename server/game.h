@@ -13,7 +13,7 @@ struct Player {
     Position pos;
     Direction dir;
     Race race;
-    Class class_type;
+    Class class_;
     uint8_t level;
     uint32_t experience;
     uint16_t hp_current;
@@ -35,7 +35,7 @@ public:
     explicit Game(uint16_t player_id);
 
     std::vector<ServerEvent> process_command(const ClientCommand& cmd);
-    std::vector<ServerEvent> tick(uint32_t delta_ms);
+    std::vector<ServerEvent> tick();
     std::vector<ServerEvent> get_initial_events();
 };
 

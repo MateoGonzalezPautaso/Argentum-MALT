@@ -28,7 +28,7 @@ std::vector<ServerEvent> Game::get_initial_events() {
             .player_id = player.id,
             .username = player.username,
             .race = player.race,
-            .class_ = player.class_type,
+            .class_ = player.class_,
             .level = player.level,
             .experience = player.experience,
             .hp_current = player.hp_current,
@@ -37,7 +37,7 @@ std::vector<ServerEvent> Game::get_initial_events() {
             .mana_max = player.mana_max,
             .gold = player.gold,
             .pos = player.pos,
-    });  // Doing this we avoid to use a move or a copy
+    });
 
     events.emplace_back(EntitySpawnEvent{
             .entity_id = player.id,
@@ -46,7 +46,7 @@ std::vector<ServerEvent> Game::get_initial_events() {
             .entity_dir = player.dir,
             .entity_name = player.username,
             .entity_race = player.race,
-            .entity_class = player.class_type,
+            .entity_class = player.class_,
     });
 
     return events;
@@ -59,7 +59,7 @@ std::vector<ServerEvent> Game::process_command(const ClientCommand& cmd) {
     return {};
 }
 
-std::vector<ServerEvent> Game::tick(uint32_t delta_ms) { return {}; }
+std::vector<ServerEvent> Game::tick() { return {}; }
 
 std::vector<ServerEvent> Game::handle_move(const MoveCmd& cmd) {
     player.dir = cmd.direction;

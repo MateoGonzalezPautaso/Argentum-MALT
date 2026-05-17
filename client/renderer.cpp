@@ -8,7 +8,6 @@
 #include "ui_renderer.h"
 #include "world_renderer.h"
 
-#include "ui_renderer.cpp"
 
 // - MenuRenderer: menu principal
 // - WorldRenderer: tilemap, sprites, camara, animaciones
