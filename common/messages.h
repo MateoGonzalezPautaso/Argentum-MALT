@@ -274,13 +274,25 @@ struct MapInfoEvent {};
 struct PlayerStatsEvent {};
 
 // 0x86
-struct EntitySpawnEvent {};
+struct EntitySpawnEvent {
+    uint16_t entity_id;
+    EntityType entity_type;
+    Position entity_pos;
+    Direction entity_dir;
+    std::string entity_name;
+    Race entity_race;
+    Class entity_class;
+};
 
 // 0x87
 struct EntityDespawnEvent {};
 
 // 0x88
-struct EntityMoveEvent {};
+struct EntityMoveEvent {
+    uint16_t entity_id;
+    Position entity_pos;
+    Direction entity_dir;
+};
 
 // 0x89
 struct DamageDealtEvent {};
