@@ -6,10 +6,10 @@ Game::Game(uint16_t player_id):
         player{
                 .id = player_id,
                 .username = "hero",
-                .pos = {400, 200},
+                .pos = {300, 160},
                 .dir = Direction::SOUTH,
                 .race = Race::HUMAN,
-                .class_type = Class::WARRIOR,
+                .class_ = Class::WARRIOR,
                 .level = 1,
                 .experience = 0,
                 .hp_current = 100,
@@ -18,8 +18,8 @@ Game::Game(uint16_t player_id):
                 .mana_max = 50,
                 .gold = 0,
         },
-        world_w(1280),
-        world_h(1280) {}
+        world_w(2560),
+        world_h(2560) {}
 
 std::vector<ServerEvent> Game::get_initial_events() {
     std::vector<ServerEvent> events;
@@ -84,8 +84,8 @@ std::vector<ServerEvent> Game::handle_move(const MoveCmd& cmd) {
     int16_t new_x = static_cast<int16_t>(player.pos.x) + dx;
     int16_t new_y = static_cast<int16_t>(player.pos.y) + dy;
 
-    new_x = std::max<int16_t>(0, std::min<int16_t>(new_x, static_cast<int16_t>(world_w - 60)));
-    new_y = std::max<int16_t>(0, std::min<int16_t>(new_y, static_cast<int16_t>(world_h - 160)));
+    new_x = std::max<int16_t>(0, std::min<int16_t>(new_x, static_cast<int16_t>(world_w - 27)));
+    new_y = std::max<int16_t>(0, std::min<int16_t>(new_y, static_cast<int16_t>(world_h - 48)));
 
     player.pos.x = static_cast<uint16_t>(new_x);
     player.pos.y = static_cast<uint16_t>(new_y);
