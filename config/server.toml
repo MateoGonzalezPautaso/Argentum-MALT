@@ -63,3 +63,16 @@ move_step = 4
 [sprite]
 width = 27
 height = 48
+
+[balance]
+starting_hp = 100
+starting_mana = 50
+starting_gold = 0
+max_level = 100
+hp_per_level = 10
+mana_per_level = 5
+gold_per_level = 100
+level_exp_base = 1000
+level_exp_exponent = 1.8
+gold_cap_base = 100
+gold_cap_exponent = 1.1

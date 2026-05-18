@@ -32,5 +32,32 @@ ServerConfig load_server_config(const std::string& path) {
         config.sprite_height = toml_get_int(*sprite, "height", config.sprite_height);
     }
 
+    if (auto balance = root["balance"].as_table()) {
+        config.balance.starting_hp =
+                toml_get_int(*balance, "starting_hp", config.balance.starting_hp);
+        config.balance.starting_mana =
+                toml_get_int(*balance, "starting_mana", config.balance.starting_mana);
+        config.balance.starting_gold =
+                toml_get_int(*balance, "starting_gold", config.balance.starting_gold);
+        config.balance.max_level =
+                toml_get_int(*balance, "max_level", config.balance.max_level);
+        config.balance.hp_per_level =
+                toml_get_int(*balance, "hp_per_level", config.balance.hp_per_level);
+        config.balance.mana_per_level =
+                toml_get_int(*balance, "mana_per_level", config.balance.mana_per_level);
+        config.balance.gold_per_level =
+                toml_get_int(*balance, "gold_per_level", config.balance.gold_per_level);
+        config.balance.level_exp_base =
+                toml_get_int(*balance, "level_exp_base", config.balance.level_exp_base);
+        config.balance.level_exp_exponent =
+                toml_get_double(*balance, "level_exp_exponent",
+                                config.balance.level_exp_exponent);
+        config.balance.gold_cap_base =
+                toml_get_int(*balance, "gold_cap_base", config.balance.gold_cap_base);
+        config.balance.gold_cap_exponent =
+                toml_get_double(*balance, "gold_cap_exponent",
+                                config.balance.gold_cap_exponent);
+    }
+
     return config;
 }
