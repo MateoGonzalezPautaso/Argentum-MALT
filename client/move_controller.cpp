@@ -52,8 +52,9 @@ void MoveController::apply_movement(Direction dir, int dx, int dy, uint32_t now,
     set_direction_rows(dir);
     advance_walk_frame(dir, now);
 
-    renderer.move_sprite(dx, dy);
-    protocol.send_command(MoveCmd{dir});
+    if (renderer.move_sprite(dx, dy)) {
+        protocol.send_command(MoveCmd{dir});
+    }
 }
 
 void MoveController::set_direction_rows(Direction dir) {
