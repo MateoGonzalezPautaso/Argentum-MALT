@@ -3,8 +3,9 @@
 
 #include <cstdint>
 #include <string>
-#include <unordered_map>
 #include <vector>
+
+#include "../common/config.h"
 
 struct WindowConfig {
     int width = 960;
@@ -36,19 +37,6 @@ struct SpriteConfig {
     int anchor_offset_x = 0;
     int anchor_offset_y = 0;
     bool visible = true;
-};
-
-struct TileDef {
-    int x = 0;
-    int y = 0;
-    bool walkable = true;
-};
-
-struct TilemapConfig {
-    std::string path;
-    int tile_size = 128;
-    std::unordered_map<std::string, TileDef> tiles;
-    std::vector<std::vector<std::string>> mapa;
 };
 
 struct ClientConfig {

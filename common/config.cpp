@@ -1,0 +1,95 @@
+#include "config.h"
+
+#include <string>
+#include <vector>
+
+#include <toml++/toml.h>
+
+int toml_get_int(const toml::table& tbl, const char* key, int fallback) {
+    if (auto node = tbl.get(key)) {
+        if (auto value = node->value<int>()) {
+            return *value;
+        }
+    }
+    return fallback;
+}
+
+uint32_t toml_get_uint32(const toml::table& tbl, const char* key, uint32_t fallback) {
+    if (auto node = tbl.get(key)) {
+        if (auto value = node->value<int64_t>()) {
+            if (*value >= 0) {
+                return static_cast<uint32_t>(*value);
+            }
+        }
+    }
+    return fallback;
+}
+
+bool toml_get_bool(const toml::table& tbl, const char* key, bool fallback) {
+    if (auto node = tbl.get(key)) {
+        if (auto value = node->value<bool>()) {
+            return *value;
+        }
+    }
+    return fallback;
+}
+
+std::string toml_get_string(const toml::table& tbl, const char* key,
+                            const std::string& fallback) {
+    if (auto node = tbl.get(key)) {
+        if (auto value = node->value<std::string>()) {
+            return *value;
+        }
+    }
+    return fallback;
+}
+
+std::vector<std::vector<std::string>> parse_map_grid(const toml::table& tbl) {
+    std::vector<std::vector<std::string>> grid;
+    const toml::array* rows = tbl["mapa"].as_array();
+    if (!rows) {
+        rows = tbl["map"].as_array();
+    }
+    if (!rows) {
+        return grid;
+    }
+    for (const auto& row_node: *rows) {
+        const auto* row_array = row_node.as_array();
+        if (!row_array) {
+            continue;
+        }
+        std::vector<std::string> row;
+        for (const auto& cell: *row_array) {
+            if (auto value = cell.value<std::string>()) {
+                row.push_back(*value);
+            }
+        }
+        if (!row.empty()) {
+            grid.push_back(std::move(row));
+        }
+    }
+    return grid;
+}
+
+void parse_tilemap_config(const toml::table& root, TilemapConfig& config) {
+    if (auto tilemap = root["tilemap"].as_table()) {
+        config.path = toml_get_string(*tilemap, "path", std::string());
+        config.tile_size = toml_get_int(*tilemap, "tile_size", config.tile_size);
+
+        if (auto tiles = (*tilemap)["tiles"].as_table()) {
+            for (const auto& [key, value]: *tiles) {
+                const auto* tile_tbl = value.as_table();
+                if (!tile_tbl) {
+                    continue;
+                }
+                TileDef def;
+                def.x = toml_get_int(*tile_tbl, "x", def.x);
+                def.y = toml_get_int(*tile_tbl, "y", def.y);
+                def.walkable = toml_get_bool(*tile_tbl, "walkable", def.walkable);
+                config.tiles.emplace(key, def);
+            }
+        }
+
+        config.mapa = parse_map_grid(*tilemap);
+    }
+}
