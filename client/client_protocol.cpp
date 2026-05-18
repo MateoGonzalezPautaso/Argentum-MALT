@@ -82,10 +82,10 @@ LoginOkEvent ClientProtocol::recv_login_payload() {
     ev.class_ = static_cast<Class>(protocol.recv_uint8());
     ev.level = protocol.recv_uint8();
     ev.experience = protocol.recv_uint32();
-    ev.hp_current = protocol.recv_uint16();
-    ev.hp_max = protocol.recv_uint16();
-    ev.mana_current = protocol.recv_uint16();
-    ev.mana_max = protocol.recv_uint16();
+    ev.hp_current = protocol.recv_uint32();
+    ev.hp_max = protocol.recv_uint32();
+    ev.mana_current = protocol.recv_uint32();
+    ev.mana_max = protocol.recv_uint32();
     ev.gold = protocol.recv_uint32();
     ev.pos.x = protocol.recv_uint16();
     ev.pos.y = protocol.recv_uint16();
