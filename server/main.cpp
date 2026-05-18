@@ -2,14 +2,8 @@
 
 #include "../common/socket.h"
 
+#include "game.h"
 #include "server_protocol.h"
-
-template <class... Ts>
-struct overloaded: Ts... {
-    using Ts::operator()...;
-};
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
 
 int main() try {
     Socket listener("1234");
@@ -18,18 +12,17 @@ int main() try {
     ServerProtocol srv_prot(listener.accept());
     std::cout << "Client connected!" << std::endl;
 
+    Game game(1);
+    for (const auto& ev: game.get_initial_events()) {
+        srv_prot.send_event(ev);
+    }
+
     while (true) {
         ClientCommand cmd = srv_prot.recv_command();
-
-        std::visit(
-                overloaded{
-                        [](const MoveCmd& msg) {
-                            std::cout << "MOVE received! Direction: "
-                                      << static_cast<int>(msg.direction) << std::endl;
-                        },
-                        [](const auto&) { std::cout << "Unknown command received" << std::endl; },
-                },
-                cmd);
+        const auto events = game.process_command(cmd);
+        for (const auto& ev: events) {
+            srv_prot.send_event(ev);
+        }
     }
 
     return 0;

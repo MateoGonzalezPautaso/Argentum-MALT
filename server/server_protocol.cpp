@@ -51,10 +51,10 @@ void ServerProtocol::send_login_payload(const LoginOkEvent& ev) {
     protocol.send_uint8(static_cast<uint8_t>(ev.class_));
     protocol.send_uint8(ev.level);
     protocol.send_uint32(ev.experience);
-    protocol.send_uint16(ev.hp_current);
-    protocol.send_uint16(ev.hp_max);
-    protocol.send_uint16(ev.mana_current);
-    protocol.send_uint16(ev.mana_max);
+    protocol.send_uint32(ev.hp_current);
+    protocol.send_uint32(ev.hp_max);
+    protocol.send_uint32(ev.mana_current);
+    protocol.send_uint32(ev.mana_max);
     protocol.send_uint32(ev.gold);
     protocol.send_uint16(ev.pos.x);
     protocol.send_uint16(ev.pos.y);
@@ -82,6 +82,26 @@ void ServerProtocol::send_character_error(const CharacterErrorEvent& ev) {
     protocol.send_str(ev.message);
 }
 
+void ServerProtocol::send_entity_spawn(const EntitySpawnEvent& ev) {
+    protocol.send_opcode(OpCode::ENTITY_SPAWN);
+    protocol.send_uint16(ev.entity_id);
+    protocol.send_uint8(static_cast<uint8_t>(ev.entity_type));
+    protocol.send_uint16(ev.entity_pos.x);
+    protocol.send_uint16(ev.entity_pos.y);
+    protocol.send_uint8(static_cast<uint8_t>(ev.entity_dir));
+    protocol.send_str(ev.entity_name);
+    protocol.send_uint8(static_cast<uint8_t>(ev.entity_race));
+    protocol.send_uint8(static_cast<uint8_t>(ev.entity_class));
+}
+
+void ServerProtocol::send_entity_move(const EntityMoveEvent& ev) {
+    protocol.send_opcode(OpCode::ENTITY_MOVE);
+    protocol.send_uint16(ev.entity_id);
+    protocol.send_uint16(ev.entity_pos.x);
+    protocol.send_uint16(ev.entity_pos.y);
+    protocol.send_uint8(static_cast<uint8_t>(ev.entity_dir));
+}
+
 /**
  * Creates a struct that inherits from all the lambdas passed to it.
  * Each lambda has its own operator(), and using Ts::operator()...;
@@ -101,11 +121,13 @@ overloaded(Ts...) -> overloaded<Ts...>;
 
 void ServerProtocol::send_event(const ServerEvent& ev) {
     std::visit(overloaded{
-                       [this](const LoginOkEvent& msg) { send_login_ok(msg); },
-                       [this](const LoginErrorEvent& msg) { send_login_error(msg); },
-                       [this](const CharacterCreatedEvent& msg) { send_character_created(msg); },
-                       [this](const CharacterErrorEvent& msg) { send_character_error(msg); },
-                       [](const auto&) { throw std::runtime_error("Event type not implemented"); },
-               },
-               ev);
+                        [this](const LoginOkEvent& msg) { send_login_ok(msg); },
+                        [this](const LoginErrorEvent& msg) { send_login_error(msg); },
+                        [this](const CharacterCreatedEvent& msg) { send_character_created(msg); },
+                        [this](const CharacterErrorEvent& msg) { send_character_error(msg); },
+                        [this](const EntitySpawnEvent& msg) { send_entity_spawn(msg); },
+                        [this](const EntityMoveEvent& msg) { send_entity_move(msg); },
+                        [](const auto&) { throw std::runtime_error("Event type not implemented"); },
+                },
+                ev);
 }
