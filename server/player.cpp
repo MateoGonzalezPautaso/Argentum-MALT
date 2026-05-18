@@ -4,7 +4,7 @@
 #include <cmath>
 
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
-               Class class_):
+               Class class_, const BalanceConfig& balance):
         id(id),
         username(username),
         pos(pos),
@@ -13,11 +13,12 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         class_(class_),
         level(1),
         experience(0),
-        hp_current(STARTING_HP),
-        hp_max(STARTING_HP),
-        mana_current(STARTING_MANA),
-        mana_max(STARTING_MANA),
-        gold(STARTING_GOLD) {}
+        hp_current(balance.starting_hp),
+        hp_max(balance.starting_hp),
+        mana_current(balance.starting_mana),
+        mana_max(balance.starting_mana),
+        gold(balance.starting_gold),
+        balance(balance) {}
 
 void Player::apply_move(Direction new_dir, int dx, int dy) {
     dir = new_dir;
@@ -27,19 +28,21 @@ void Player::apply_move(Direction new_dir, int dx, int dy) {
 
 void Player::gain_experience(uint32_t exp) {
     experience += exp;
-    uint32_t threshold = static_cast<uint32_t>(1000 * std::pow(level, 1.8));
-    while (experience >= threshold && level < UINT8_MAX) {
+    uint32_t threshold = static_cast<uint32_t>(balance.level_exp_base *
+                                               std::pow(level, balance.level_exp_exponent));
+    while (experience >= threshold && level < balance.max_level) {
         experience -= threshold;
         level_up();
-        threshold = static_cast<uint32_t>(1000 * std::pow(level, 1.8));
+        threshold = static_cast<uint32_t>(balance.level_exp_base *
+                                          std::pow(level, balance.level_exp_exponent));
     }
 }
 
 void Player::level_up() {
     ++level;
-    hp_max += HP_INCREASE_PER_LEVEL;
-    mana_max += MANA_INCREASE_PER_LEVEL;
-    gold += GOLD_INCREASE_PER_LEVEL * level;
+    hp_max += balance.hp_per_level;
+    mana_max += balance.mana_per_level;
+    gold += balance.gold_per_level * level;
     hp_current = hp_max;
     mana_current = mana_max;
 }
@@ -58,7 +61,8 @@ void Player::heal(uint32_t amount) {
 }
 
 void Player::gain_gold(uint32_t amount) {
-    uint64_t max_gold = static_cast<uint64_t>(100 * std::pow(level, 1.1));
+    uint64_t max_gold = static_cast<uint64_t>(balance.gold_cap_base *
+                                              std::pow(level, balance.gold_cap_exponent));
     uint64_t total = static_cast<uint64_t>(gold) + amount;
     gold = static_cast<uint32_t>(std::min<uint64_t>(total, max_gold));
 }

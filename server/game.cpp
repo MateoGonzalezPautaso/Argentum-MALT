@@ -10,7 +10,8 @@ int16_t clamp_coord(int16_t value, int16_t min_value, int16_t max_value) {
 }  // namespace
 
 Game::Game(uint16_t player_id, const ServerConfig& config):
-        player{player_id, "hero", {300, 160}, Direction::SOUTH, Race::HUMAN, Class::WARRIOR},
+        player{player_id, "hero", {300, 160}, Direction::SOUTH, Race::HUMAN, Class::WARRIOR,
+               config.balance},
         move_step(config.move_step),
         sprite_width(config.sprite_width),
         sprite_height(config.sprite_height),

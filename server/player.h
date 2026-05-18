@@ -6,14 +6,7 @@
 
 #include "../common/messages.h"
 
-#define MAX_LEVEL 100
-#define HP_INCREASE_PER_LEVEL 10
-#define MANA_INCREASE_PER_LEVEL 5
-#define GOLD_INCREASE_PER_LEVEL 100
-
-#define STARTING_HP 100
-#define STARTING_MANA 50
-#define STARTING_GOLD 0
+#include "config.h"
 
 class Player {
     friend class Game;
@@ -32,10 +25,11 @@ private:
     uint32_t mana_current;
     uint32_t mana_max;
     uint32_t gold;
+    BalanceConfig balance;
 
 public:
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
-           Class class_);
+           Class class_, const BalanceConfig& balance);
 
     void apply_move(Direction new_dir, int dx, int dy);
     void gain_experience(uint32_t exp);
