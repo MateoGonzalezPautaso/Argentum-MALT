@@ -43,7 +43,11 @@ bool ClientRenderer::is_menu_button_hit(int x, int y) const {
     return menu_renderer->is_button_hit(x, y);
 }
 
-void ClientRenderer::move_sprite(int dx, int dy) { world_renderer->move_sprite(dx, dy); }
+bool ClientRenderer::move_sprite(int dx, int dy) { return world_renderer->move_sprite(dx, dy); }
+
+void ClientRenderer::set_movable_position(int x, int y) {
+    world_renderer->set_movable_position(x, y);
+}
 
 bool ClientRenderer::get_movable_position(int& x, int& y) const {
     return world_renderer->get_movable_position(x, y);

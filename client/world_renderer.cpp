@@ -40,10 +40,10 @@ void WorldRenderer::render() {
     renderer.SetViewport(SDL2pp::NullOpt);
 }
 
-void WorldRenderer::move_sprite(int dx, int dy) {
+bool WorldRenderer::move_sprite(int dx, int dy) {
     SpriteRender* sprite = find_movable_sprite();
     if (!sprite) {
-        return;
+        return false;
     }
     const int max_x = has_tilemap ? std::max(0, map_px_w - sprite->dst.GetW()) :
                                     std::max(0, window_w - sprite->dst.GetW());
@@ -54,11 +54,28 @@ void WorldRenderer::move_sprite(int dx, int dy) {
 
     // no avanza si el tile destino no es caminable.
     if (!is_walkable_for_sprite(new_x, new_y, *sprite)) {
-        return;
+        return false;
     }
 
     sprite->dst.SetX(new_x);
     sprite->dst.SetY(new_y);
+    return true;
+}
+
+void WorldRenderer::set_movable_position(int x, int y) {
+    SpriteRender* sprite = find_movable_sprite();
+    if (!sprite) {
+        return;
+    }
+    const int max_x = has_tilemap ? std::max(0, map_px_w - sprite->dst.GetW()) :
+                                    std::max(0, window_w - sprite->dst.GetW());
+    const int max_y = has_tilemap ? std::max(0, map_px_h - sprite->dst.GetH()) :
+                                    std::max(0, window_h - sprite->dst.GetH());
+
+    // If server sets something in (x, y), we trust it
+    // Just use it in LoginOkEvent, EntitySpawnEvent and EntityMoveEvent
+    sprite->dst.SetX(std::clamp(x, 0, max_x));
+    sprite->dst.SetY(std::clamp(y, 0, max_y));
 }
 
 bool WorldRenderer::get_movable_position(int& x, int& y) const {

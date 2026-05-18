@@ -30,7 +30,8 @@ public:
     void render_frame();
     void render_menu();
     bool is_menu_button_hit(int x, int y) const;
-    void move_sprite(int dx, int dy);
+    bool move_sprite(int dx, int dy);
+    void set_movable_position(int x, int y);
     bool get_movable_position(int& x, int& y) const;
     void get_camera_offset(int& x, int& y) const;
     bool screen_to_world(int screen_x, int screen_y, int& world_x, int& world_y) const;

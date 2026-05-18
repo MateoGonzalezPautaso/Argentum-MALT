@@ -48,7 +48,8 @@ public:
                   int window_w, int window_h);
 
     void render();
-    void move_sprite(int dx, int dy);
+    bool move_sprite(int dx, int dy);
+    void set_movable_position(int x, int y);
     bool get_movable_position(int& x, int& y) const;
     void get_camera_offset(int& x, int& y) const;
     bool screen_to_world(int screen_x, int screen_y, int& world_x, int& world_y) const;
