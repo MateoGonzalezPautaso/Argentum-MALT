@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 
+#include "chat_input.h"
 #include "client_protocol.h"
 #include "config.h"
 #include "renderer.h"
@@ -37,6 +38,7 @@ private:
     bool has_target = false;
     int target_x = 0;
     int target_y = 0;
+    ChatInput chat_input;
 
 public:
     explicit ClientEngine(const ClientConfig& config, ClientProtocol& protocol);
@@ -68,8 +70,7 @@ private:
     void set_move_target(int x, int y);
     void move_toward_target(uint32_t now);
     int walk_src_frames_for(Direction dir) const;
-    std::string chat_input_text;
-    bool chat_input_focused = false;
+    void sync_chat_to_renderer();
 };
 
 #endif
