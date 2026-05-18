@@ -3,18 +3,21 @@
 #include <algorithm>
 
 namespace {
-constexpr int kSpriteWidth = 27;
-constexpr int kSpriteHeight = 48;
 
 int16_t clamp_coord(int16_t value, int16_t min_value, int16_t max_value) {
     return std::max<int16_t>(min_value, std::min<int16_t>(value, max_value));
 }
 }  // namespace
 
-Game::Game(uint16_t player_id):
+Game::Game(uint16_t player_id, const ServerConfig& config):
         player{player_id, "hero", {300, 160}, Direction::SOUTH, Race::HUMAN, Class::WARRIOR},
-        world_w(2560),
-        world_h(2560) {}
+        move_step(config.move_step),
+        sprite_width(config.sprite_width),
+        sprite_height(config.sprite_height),
+        world_w(static_cast<uint16_t>(config.tilemap.mapa.front().size() *
+                                      config.tilemap.tile_size)),
+        world_h(static_cast<uint16_t>(config.tilemap.mapa.size() *
+                                      config.tilemap.tile_size)) {}
 
 std::vector<ServerEvent> Game::get_initial_events() {
     std::vector<ServerEvent> events;
@@ -61,16 +64,16 @@ std::vector<ServerEvent> Game::handle_move(const MoveCmd& cmd) {
     int16_t dy = 0;
     switch (cmd.direction) {
         case Direction::NORTH:
-            dy = -4;
+            dy = -move_step;
             break;
         case Direction::SOUTH:
-            dy = 4;
+            dy = move_step;
             break;
         case Direction::WEST:
-            dx = -4;
+            dx = -move_step;
             break;
         case Direction::EAST:
-            dx = 4;
+            dx = move_step;
             break;
     }
 
@@ -79,8 +82,8 @@ std::vector<ServerEvent> Game::handle_move(const MoveCmd& cmd) {
     int16_t new_x = static_cast<int16_t>(current_x + dx);
     int16_t new_y = static_cast<int16_t>(current_y + dy);
 
-    const int16_t max_x = static_cast<int16_t>(world_w - kSpriteWidth);
-    const int16_t max_y = static_cast<int16_t>(world_h - kSpriteHeight);
+    const int16_t max_x = static_cast<int16_t>(world_w - sprite_width);
+    const int16_t max_y = static_cast<int16_t>(world_h - sprite_height);
     new_x = clamp_coord(new_x, 0, max_x);
     new_y = clamp_coord(new_y, 0, max_y);
 

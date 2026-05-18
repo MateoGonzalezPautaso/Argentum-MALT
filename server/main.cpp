@@ -1,18 +1,23 @@
 #include <iostream>
+#include <string>
 
 #include "../common/socket.h"
 
+#include "config.h"
 #include "game.h"
 #include "server_protocol.h"
 
 int main() try {
-    Socket listener("1234");
-    std::cout << "Server listening on port 1234..." << std::endl;
+    ServerConfig server_config = load_server_config("config/server.toml");
+
+    std::string port_str = std::to_string(server_config.port);
+    Socket listener(port_str.c_str());
+    std::cout << "Server listening on port " << server_config.port << "..." << std::endl;
 
     ServerProtocol srv_prot(listener.accept());
     std::cout << "Client connected!" << std::endl;
 
-    Game game(1);
+    Game game(1, server_config);
     for (const auto& ev: game.get_initial_events()) {
         srv_prot.send_event(ev);
     }

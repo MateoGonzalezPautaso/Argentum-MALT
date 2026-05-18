@@ -5,18 +5,22 @@
 
 #include "../common/messages.h"
 
+#include "config.h"
 #include "player.h"
 
 class Game {
 private:
     Player player;
+    int move_step;
+    int sprite_width;
+    int sprite_height;
     uint16_t world_w;
     uint16_t world_h;
 
     std::vector<ServerEvent> handle_move(const MoveCmd& cmd);
 
 public:
-    explicit Game(uint16_t player_id);
+    Game(uint16_t player_id, const ServerConfig& config);
 
     std::vector<ServerEvent> process_command(const ClientCommand& cmd);
     std::vector<ServerEvent> tick();
