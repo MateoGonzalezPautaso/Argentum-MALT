@@ -26,6 +26,7 @@ uint32_t toml_get_uint32(const toml::table& tbl, const char* key, uint32_t fallb
 bool toml_get_bool(const toml::table& tbl, const char* key, bool fallback);
 std::string toml_get_string(const toml::table& tbl, const char* key,
                             const std::string& fallback);
+double toml_get_double(const toml::table& tbl, const char* key, double fallback);
 
 std::vector<std::vector<std::string>> parse_map_grid(const toml::table& tbl);
 void parse_tilemap_config(const toml::table& root, TilemapConfig& config);

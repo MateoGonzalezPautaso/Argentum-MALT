@@ -44,6 +44,18 @@ std::string toml_get_string(const toml::table& tbl, const char* key,
     return fallback;
 }
 
+double toml_get_double(const toml::table& tbl, const char* key, double fallback) {
+    if (auto node = tbl.get(key)) {
+        if (auto value = node->value<double>()) {
+            return *value;
+        }
+        if (auto value = node->value<int64_t>()) {
+            return static_cast<double>(*value);
+        }
+    }
+    return fallback;
+}
+
 std::vector<std::vector<std::string>> parse_map_grid(const toml::table& tbl) {
     std::vector<std::vector<std::string>> grid;
     const toml::array* rows = tbl["mapa"].as_array();
