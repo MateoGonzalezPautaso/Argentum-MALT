@@ -17,7 +17,10 @@ ServerConfig load_server_config(const std::string& path) {
                                                    static_cast<int>(config.port)));
     }
 
-    parse_tilemap_config(root, config.tilemap);
+    {
+        toml::table tilemap_tbl = toml::parse_file("config/common_tilemap.toml");
+        parse_tilemap_config(tilemap_tbl, config.tilemap);
+    }
 
     if (config.tilemap.mapa.empty()) {
         throw std::runtime_error("server config requires a tilemap with 'mapa'");

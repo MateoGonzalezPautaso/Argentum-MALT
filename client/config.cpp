@@ -130,9 +130,13 @@ ClientConfig load_client_config(const std::string& path) {
 
     parse_window_config(root, config);
     parse_background_config(root, config);
-    parse_tilemap_config(root, config.tilemap);
     parse_sprite_configs(root, config);
     parse_movement_config(root, config);
+
+    {
+        toml::table tilemap_tbl = toml::parse_file("config/common_tilemap.toml");
+        parse_tilemap_config(tilemap_tbl, config.tilemap);
+    }
 
     return config;
 }

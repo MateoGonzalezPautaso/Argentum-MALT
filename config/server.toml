@@ -1,62 +1,6 @@
 [server]
 port = 1234
 
-[tilemap]
-path = "assets/Graficos/5144.png"
-tile_size = 128
-
-mapa = [
-    ["pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto"],
-
-    ["pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","pasto"],
-
-    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto"],
-
-    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto"],
-
-    ["pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","pasto"],
-
-    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto"],
-
-    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto"],
-
-    ["pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","pasillo_y","pasto","pasto","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","pasto"],
-
-    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto"],
-
-    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto"],
-
-    ["pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","rotonda","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","pasto"],
-
-    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto"],
-
-    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto"],
-
-    ["pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","pasto"],
-
-    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto"],
-
-    ["pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasillo_y","pasto","pasto","pasillo_y","pasto","pasto","pasto","pasto","pasto","pasto"],
-
-    ["pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","tope_a_x","pasillo_x","pasillo_x","rotonda","pasillo_x","pasillo_x","tope_b_x","pasto","pasto","pasto"],
-
-    ["pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto"],
-
-    ["pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto"],
-
-    ["pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto","pasto"]
-]
-
-[tilemap.tiles]
-pasillo_x = { x = 128, y = 128 }
-pasillo_y = { x = 128, y = 0 }
-tope_a_y = { x = 512, y = 0 }
-tope_b_y = { x = 384, y = 0 }
-tope_b_x = { x = 384, y = 128 }
-tope_a_x = { x = 512, y = 128 }
-pasto = { x = 895, y = 895, walkable = false }
-rotonda = { x = 256, y = 0 }
-
 [movement]
 move_step = 4
 
