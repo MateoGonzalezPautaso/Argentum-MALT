@@ -3,11 +3,14 @@
 
 #include <SDL2/SDL.h>
 
+#include "../common/messages.h"
+#include "../common/queue.h"
 #include "../common/socket.h"
 
 #include "app.h"
 #include "client_protocol.h"
 #include "engine.h"
+#include "receiver.h"
 
 int main() try {
     client_app::init_image();
@@ -18,6 +21,10 @@ int main() try {
     ClientProtocol proto(std::move(skt));
     ClientEngine client(config, proto);
 
+    Queue<ServerEvent> event_queue;
+    Receiver receiver(proto, event_queue);
+    receiver.start();
+
     client_app::GameState state = client_app::GameState::Menu;
     bool running = true;
     const uint32_t tick_ms = config.tick_ms;
@@ -27,6 +34,11 @@ int main() try {
         running = client_app::pump_events(client, state);
         if (!running) {
             break;
+        }
+
+        ServerEvent ev;
+        while (event_queue.try_pop(ev)) {
+            client.apply_server_event(ev);
         }
 
         const uint32_t now = SDL_GetTicks();
@@ -45,6 +57,9 @@ int main() try {
             SDL_Delay(sleep_ms);
         }
     }
+
+    proto.shutdown();
+    receiver.join();
 
     client_app::shutdown_image();
     client_app::shutdown_ttf();
