@@ -33,7 +33,23 @@ bool ChatInput::handle_keydown(const SDL_Event& event) {
     }
 }
 
-void ChatInput::set_focus(bool value) { focused = value; }
+bool ChatInput::consume_event(const SDL_Event& event) {
+    if (event.type == SDL_TEXTINPUT) {
+        return handle_text_input(event);
+    }
+    if (event.type == SDL_KEYDOWN) {
+        return handle_keydown(event);
+    }
+    return false;
+}
+
+bool ChatInput::set_focus(bool value) {
+    if (focused == value) {
+        return false;
+    }
+    focused = value;
+    return true;
+}
 
 bool ChatInput::is_focused() const { return focused; }
 

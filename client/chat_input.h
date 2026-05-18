@@ -13,7 +13,8 @@ private:
 public:
     bool handle_text_input(const SDL_Event& event);
     bool handle_keydown(const SDL_Event& event);
-    void set_focus(bool value);
+    bool consume_event(const SDL_Event& event);
+    bool set_focus(bool value);
     bool is_focused() const;
     const std::string& get_text() const;
 };

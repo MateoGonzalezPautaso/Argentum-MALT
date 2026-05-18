@@ -192,12 +192,13 @@ bool ClientEngine::handle_event(const SDL_Event& event) {
         return false;
     }
 
-    if (event.type == SDL_MOUSEBUTTONDOWN) {
-        return handle_mouse_button(event);
+    if (chat_input.consume_event(event)) {
+        sync_chat_to_renderer();
+        return true;
     }
 
-    if (event.type == SDL_TEXTINPUT) {
-        return handle_text_input(event);
+    if (event.type == SDL_MOUSEBUTTONDOWN) {
+        return handle_mouse_button(event);
     }
 
     if (event.type == SDL_KEYDOWN) {
@@ -214,7 +215,10 @@ bool ClientEngine::handle_mouse_button(const SDL_Event& event) {
         return true;
     }
 
-    set_chat_focus(renderer.is_chat_input_hit(event.button.x, event.button.y));
+    if (chat_input.set_focus(renderer.is_chat_input_hit(event.button.x, event.button.y))) {
+        sync_chat_to_renderer();
+    }
+
     if (chat_input.is_focused()) {
         return true;
     }
@@ -229,14 +233,6 @@ bool ClientEngine::handle_mouse_button(const SDL_Event& event) {
 }
 
 bool ClientEngine::handle_keydown(const SDL_Event& event) {
-    // si el chat tiene foco, consume teclas para edicion y evita mover al personaje.
-    if (chat_input.is_focused()) {
-        if (chat_input.handle_keydown(event)) {
-            sync_chat_to_renderer();
-        }
-        return true;
-    }
-
     const uint32_t now = SDL_GetTicks();
 
     switch (event.key.keysym.sym) {
@@ -259,19 +255,6 @@ bool ClientEngine::handle_keydown(const SDL_Event& event) {
     }
 
     return true;
-}
-
-bool ClientEngine::handle_text_input(const SDL_Event& event) {
-    // SDL entrega texto ya procesado por teclado/locale (no keycodes crudos).
-    if (chat_input.handle_text_input(event)) {
-        sync_chat_to_renderer();
-    }
-    return true;
-}
-
-void ClientEngine::set_chat_focus(bool focused) {
-    chat_input.set_focus(focused);
-    sync_chat_to_renderer();
 }
 
 void ClientEngine::sync_chat_to_renderer() {
