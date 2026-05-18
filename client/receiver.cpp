@@ -10,6 +10,5 @@ void Receiver::run() {
             queue.push(ev);
         }
     } catch (const ClosedQueue&) {
-    } catch (const std::exception&) {
-    }
+    } catch (const std::exception&) {}
 }

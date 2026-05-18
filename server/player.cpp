@@ -3,7 +3,8 @@
 #include <algorithm>
 #include <cmath>
 
-Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race, Class class_):
+Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
+               Class class_):
         id(id),
         username(username),
         pos(pos),

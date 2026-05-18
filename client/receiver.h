@@ -4,6 +4,7 @@
 #include "../common/messages.h"
 #include "../common/queue.h"
 #include "../common/thread.h"
+
 #include "client_protocol.h"
 
 class Receiver: public Thread {

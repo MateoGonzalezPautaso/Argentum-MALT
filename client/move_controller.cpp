@@ -8,10 +8,7 @@
 
 MoveController::MoveController(ClientRenderer& renderer, ClientProtocol& protocol,
                                const MoveConfig& config, uint32_t initial_ticks):
-        renderer(renderer),
-        protocol(protocol),
-        config(config),
-        last_walk_tick(initial_ticks) {}
+        renderer(renderer), protocol(protocol), config(config), last_walk_tick(initial_ticks) {}
 
 void MoveController::tick(uint32_t now) {
     if (!has_target) {
@@ -114,8 +111,8 @@ bool MoveController::should_stop_at_target(int current_x, int current_y, int new
     return false;
 }
 
-void MoveController::compute_step_to_target(int current_x, int current_y, int& move_dx, int& move_dy,
-                                            Direction& dir) const {
+void MoveController::compute_step_to_target(int current_x, int current_y, int& move_dx,
+                                            int& move_dy, Direction& dir) const {
     const int dx = target_x - current_x;
     const int dy = target_y - current_y;
     move_dx = 0;

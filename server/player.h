@@ -1,8 +1,9 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <string>
 #include <cstdint>
+#include <string>
+
 #include "../common/messages.h"
 
 #define MAX_LEVEL 100
@@ -33,7 +34,8 @@ private:
     uint32_t gold;
 
 public:
-    Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race, Class class_);
+    Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
+           Class class_);
 
     void apply_move(Direction new_dir, int dx, int dy);
     void gain_experience(uint32_t exp);
@@ -48,4 +50,4 @@ public:
     void increase_max_mana(uint32_t amount);
 };
 
-#endif // PLAYER_H
+#endif  // PLAYER_H

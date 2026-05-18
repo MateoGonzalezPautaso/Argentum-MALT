@@ -121,13 +121,13 @@ overloaded(Ts...) -> overloaded<Ts...>;
 
 void ServerProtocol::send_event(const ServerEvent& ev) {
     std::visit(overloaded{
-                        [this](const LoginOkEvent& msg) { send_login_ok(msg); },
-                        [this](const LoginErrorEvent& msg) { send_login_error(msg); },
-                        [this](const CharacterCreatedEvent& msg) { send_character_created(msg); },
-                        [this](const CharacterErrorEvent& msg) { send_character_error(msg); },
-                        [this](const EntitySpawnEvent& msg) { send_entity_spawn(msg); },
-                        [this](const EntityMoveEvent& msg) { send_entity_move(msg); },
-                        [](const auto&) { throw std::runtime_error("Event type not implemented"); },
-                },
-                ev);
+                       [this](const LoginOkEvent& msg) { send_login_ok(msg); },
+                       [this](const LoginErrorEvent& msg) { send_login_error(msg); },
+                       [this](const CharacterCreatedEvent& msg) { send_character_created(msg); },
+                       [this](const CharacterErrorEvent& msg) { send_character_error(msg); },
+                       [this](const EntitySpawnEvent& msg) { send_entity_spawn(msg); },
+                       [this](const EntityMoveEvent& msg) { send_entity_move(msg); },
+                       [](const auto&) { throw std::runtime_error("Event type not implemented"); },
+               },
+               ev);
 }

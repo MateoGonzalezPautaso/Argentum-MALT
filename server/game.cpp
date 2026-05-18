@@ -9,16 +9,10 @@ constexpr int kSpriteHeight = 48;
 int16_t clamp_coord(int16_t value, int16_t min_value, int16_t max_value) {
     return std::max<int16_t>(min_value, std::min<int16_t>(value, max_value));
 }
-}
+}  // namespace
 
 Game::Game(uint16_t player_id):
-        player{
-                player_id,
-                "hero",
-                {300, 160},
-                Direction::SOUTH,
-                Race::HUMAN,
-                Class::WARRIOR},
+        player{player_id, "hero", {300, 160}, Direction::SOUTH, Race::HUMAN, Class::WARRIOR},
         world_w(2560),
         world_h(2560) {}
 

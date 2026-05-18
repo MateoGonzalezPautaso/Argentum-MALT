@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "../common/messages.h"
+
 #include "player.h"
 
 class Game {
