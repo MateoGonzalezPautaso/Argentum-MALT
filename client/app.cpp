@@ -28,7 +28,7 @@ void init_ttf() {
 void shutdown_ttf() { TTF_Quit(); }
 
 ClientConfig load_config() {
-    const std::string config_path = "client_config.toml";
+    const std::string config_path = "config/client.toml";
     return load_client_config(config_path);
 }
 
