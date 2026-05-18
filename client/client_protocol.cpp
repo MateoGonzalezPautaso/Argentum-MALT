@@ -3,9 +3,13 @@
 #include <stdexcept>
 #include <utility>
 
+#include <sys/socket.h>
+
 #include "../common/socket.h"
 
 ClientProtocol::ClientProtocol(Socket&& skt): skt(std::move(skt)), protocol(this->skt) {}
+
+void ClientProtocol::shutdown() { skt.shutdown(SHUT_RDWR); }
 
 void ClientProtocol::send_login(const LoginCmd& cmd) {
     protocol.send_opcode(OpCode::LOGIN);
@@ -68,10 +72,36 @@ ServerEvent ClientProtocol::recv_event() {
             return recv_character_created();
         case OpCode::CHARACTER_ERROR:
             return recv_character_error();
+        case OpCode::ENTITY_SPAWN:
+            return recv_entity_spawn();
+        case OpCode::ENTITY_MOVE:
+            return recv_entity_move();
         default:
             throw std::runtime_error("Unknown event opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
     }
+}
+
+ServerEvent ClientProtocol::recv_entity_spawn() {
+    EntitySpawnEvent ev;
+    ev.entity_id = protocol.recv_uint16();
+    ev.entity_type = static_cast<EntityType>(protocol.recv_uint8());
+    ev.entity_pos.x = protocol.recv_uint16();
+    ev.entity_pos.y = protocol.recv_uint16();
+    ev.entity_dir = static_cast<Direction>(protocol.recv_uint8());
+    ev.entity_name = protocol.recv_str();
+    ev.entity_race = static_cast<Race>(protocol.recv_uint8());
+    ev.entity_class = static_cast<Class>(protocol.recv_uint8());
+    return ev;
+}
+
+ServerEvent ClientProtocol::recv_entity_move() {
+    EntityMoveEvent ev;
+    ev.entity_id = protocol.recv_uint16();
+    ev.entity_pos.x = protocol.recv_uint16();
+    ev.entity_pos.y = protocol.recv_uint16();
+    ev.entity_dir = static_cast<Direction>(protocol.recv_uint8());
+    return ev;
 }
 
 LoginOkEvent ClientProtocol::recv_login_payload() {

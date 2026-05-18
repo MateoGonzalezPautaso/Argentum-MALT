@@ -49,6 +49,8 @@ public:
     // Recibe y deserializa el próximo evento del servidor.
     ServerEvent recv_event();
 
+    void shutdown();
+
     ClientProtocol(const ClientProtocol&) = delete;
     ClientProtocol& operator=(const ClientProtocol&) = delete;
 
@@ -63,6 +65,8 @@ private:
     ServerEvent recv_character_created();
     ServerEvent recv_character_error();
     ServerEvent recv_map_info();
+    ServerEvent recv_entity_spawn();
+    ServerEvent recv_entity_move();
 
     // TODO ...
 };
