@@ -1,14 +1,22 @@
 #include "engine.h"
 
+#include <variant>
+
 #include <SDL2/SDL.h>
+
+template <class... Ts>
+struct overloaded: Ts... {
+    using Ts::operator()...;
+};
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
 ClientEngine::ClientEngine(const ClientConfig& config, ClientProtocol& protocol):
         sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO),
         window(config.window.title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1024, 768, 0),
         renderer(window, config.background, config.tilemap, config.sprites, 1024, 768),
         protocol(protocol),
-        move_controller(renderer,
-                        protocol,
+        move_controller(renderer, protocol,
                         MoveConfig{
                                 .move_step = config.move_step,
                                 .walk_src_step = config.walk_src_step,
@@ -38,8 +46,22 @@ void ClientEngine::show_sprite() { renderer.render_frame(); }
 
 void ClientEngine::show_menu() { renderer.render_menu(); }
 
-void ClientEngine::tick() {
-    move_controller.tick(SDL_GetTicks());
+void ClientEngine::tick() { move_controller.tick(SDL_GetTicks()); }
+
+void ClientEngine::apply_server_event(const ServerEvent& ev) {
+    std::visit(overloaded{
+                       [this](const EntityMoveEvent& e) {
+                           renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
+                       },
+                       [this](const EntitySpawnEvent& e) {
+                           renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
+                       },
+                       [this](const LoginOkEvent& e) {
+                           renderer.set_movable_position(e.pos.x, e.pos.y);
+                       },
+                       [](const auto&) {},
+               },
+               ev);
 }
 
 bool ClientEngine::handle_event(const SDL_Event& event) {
