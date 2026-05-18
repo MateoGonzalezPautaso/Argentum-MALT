@@ -1,27 +1,10 @@
 #ifndef GAME_H_
 #define GAME_H_
 
-#include <cstdint>
-#include <string>
 #include <vector>
 
 #include "../common/messages.h"
-
-struct Player {
-    uint16_t id;
-    std::string username;
-    Position pos;
-    Direction dir;
-    Race race;
-    Class class_;
-    uint8_t level;
-    uint32_t experience;
-    uint16_t hp_current;
-    uint16_t hp_max;
-    uint16_t mana_current;
-    uint16_t mana_max;
-    uint32_t gold;
-};
+#include "player.h"
 
 class Game {
 private:

@@ -2,22 +2,23 @@
 
 #include <algorithm>
 
+namespace {
+constexpr int kSpriteWidth = 27;
+constexpr int kSpriteHeight = 48;
+
+int16_t clamp_coord(int16_t value, int16_t min_value, int16_t max_value) {
+    return std::max<int16_t>(min_value, std::min<int16_t>(value, max_value));
+}
+}
+
 Game::Game(uint16_t player_id):
         player{
-                .id = player_id,
-                .username = "hero",
-                .pos = {300, 160},
-                .dir = Direction::SOUTH,
-                .race = Race::HUMAN,
-                .class_ = Class::WARRIOR,
-                .level = 1,
-                .experience = 0,
-                .hp_current = 100,
-                .hp_max = 100,
-                .mana_current = 50,
-                .mana_max = 50,
-                .gold = 0,
-        },
+                player_id,
+                "hero",
+                {300, 160},
+                Direction::SOUTH,
+                Race::HUMAN,
+                Class::WARRIOR},
         world_w(2560),
         world_h(2560) {}
 
@@ -62,8 +63,6 @@ std::vector<ServerEvent> Game::process_command(const ClientCommand& cmd) {
 std::vector<ServerEvent> Game::tick() { return {}; }
 
 std::vector<ServerEvent> Game::handle_move(const MoveCmd& cmd) {
-    player.dir = cmd.direction;
-
     int16_t dx = 0;
     int16_t dy = 0;
     switch (cmd.direction) {
@@ -81,14 +80,23 @@ std::vector<ServerEvent> Game::handle_move(const MoveCmd& cmd) {
             break;
     }
 
-    int16_t new_x = static_cast<int16_t>(player.pos.x) + dx;
-    int16_t new_y = static_cast<int16_t>(player.pos.y) + dy;
+    const int16_t current_x = static_cast<int16_t>(player.pos.x);
+    const int16_t current_y = static_cast<int16_t>(player.pos.y);
+    int16_t new_x = static_cast<int16_t>(current_x + dx);
+    int16_t new_y = static_cast<int16_t>(current_y + dy);
 
-    new_x = std::max<int16_t>(0, std::min<int16_t>(new_x, static_cast<int16_t>(world_w - 27)));
-    new_y = std::max<int16_t>(0, std::min<int16_t>(new_y, static_cast<int16_t>(world_h - 48)));
+    const int16_t max_x = static_cast<int16_t>(world_w - kSpriteWidth);
+    const int16_t max_y = static_cast<int16_t>(world_h - kSpriteHeight);
+    new_x = clamp_coord(new_x, 0, max_x);
+    new_y = clamp_coord(new_y, 0, max_y);
 
-    player.pos.x = static_cast<uint16_t>(new_x);
-    player.pos.y = static_cast<uint16_t>(new_y);
+    const int final_dx = static_cast<int>(new_x) - static_cast<int>(current_x);
+    const int final_dy = static_cast<int>(new_y) - static_cast<int>(current_y);
+    if (final_dx == 0 && final_dy == 0) {
+        return {};
+    }
+
+    player.apply_move(cmd.direction, final_dx, final_dy);
 
     std::vector<ServerEvent> events;
     events.emplace_back(EntityMoveEvent{

@@ -15,6 +15,8 @@
 #define STARTING_GOLD 0
 
 class Player {
+    friend class Game;
+
 private:
     uint16_t id;
     std::string username;
@@ -33,7 +35,7 @@ private:
 public:
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race, Class class_);
 
-    void move(Direction new_dir);
+    void apply_move(Direction new_dir, int dx, int dy);
     void gain_experience(uint32_t exp);
     void level_up();
     void take_damage(uint32_t damage);

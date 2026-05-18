@@ -18,7 +18,11 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         mana_max(STARTING_MANA),
         gold(STARTING_GOLD) {}
 
-void Player::move(Direction new_dir) { dir = new_dir; }
+void Player::apply_move(Direction new_dir, int dx, int dy) {
+    dir = new_dir;
+    pos.x = static_cast<uint16_t>(static_cast<int>(pos.x) + dx);
+    pos.y = static_cast<uint16_t>(static_cast<int>(pos.y) + dy);
+}
 
 void Player::gain_experience(uint32_t exp) {
     experience += exp;

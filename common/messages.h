@@ -242,10 +242,10 @@ struct LoginOkEvent {
     Class class_;
     uint8_t level;
     uint32_t experience;
-    uint16_t hp_current;
-    uint16_t hp_max;
-    uint16_t mana_current;
-    uint16_t mana_max;
+    uint32_t hp_current;
+    uint32_t hp_max;
+    uint32_t mana_current;
+    uint32_t mana_max;
     uint32_t gold;
     Position pos;
 };
