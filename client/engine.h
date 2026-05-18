@@ -58,7 +58,6 @@ private:
     bool handle_mouse_button(const SDL_Event& event);
     bool handle_keydown(const SDL_Event& event);
     bool handle_text_input(const SDL_Event& event);
-    bool handle_chat_keydown(const SDL_Event& event);
     void set_chat_focus(bool focused);
     void set_direction_rows(Direction dir);
     void advance_walk_frame(Direction dir, uint32_t now);
