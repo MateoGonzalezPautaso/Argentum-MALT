@@ -3,6 +3,21 @@
 #include <algorithm>
 #include <cmath>
 
+Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race, Class class_):
+        id(id),
+        username(username),
+        pos(pos),
+        dir(dir),
+        race(race),
+        class_(class_),
+        level(1),
+        experience(0),
+        hp_current(STARTING_HP),
+        hp_max(STARTING_HP),
+        mana_current(STARTING_MANA),
+        mana_max(STARTING_MANA),
+        gold(STARTING_GOLD) {}
+
 void Player::move(Direction new_dir) { dir = new_dir; }
 
 void Player::gain_experience(uint32_t exp) {

@@ -10,6 +10,10 @@
 #define MANA_INCREASE_PER_LEVEL 5
 #define GOLD_INCREASE_PER_LEVEL 100
 
+#define STARTING_HP 100
+#define STARTING_MANA 50
+#define STARTING_GOLD 0
+
 class Player {
 private:
     uint16_t id;
@@ -27,6 +31,8 @@ private:
     uint32_t gold;
 
 public:
+    Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race, Class class_);
+
     void move(Direction new_dir);
     void gain_experience(uint32_t exp);
     void level_up();
