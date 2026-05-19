@@ -102,35 +102,45 @@ void LoginRenderer::render_text_field(const SDL2pp::Rect& rect, const std::strin
         return;
     }
 
-    // field background
-    renderer.SetDrawColor(30, 30, 30, 220);
+    // field background — lighter when focused
+    if (focused) {
+        renderer.SetDrawColor(45, 45, 45, 220);
+    } else {
+        renderer.SetDrawColor(30, 30, 30, 220);
+    }
     renderer.FillRect(rect);
-    renderer.SetDrawColor(100, 100, 100, 255);
+
+    // border — gold when focused, gray when inactive
+    if (focused) {
+        renderer.SetDrawColor(200, 180, 80, 255);
+    } else {
+        renderer.SetDrawColor(100, 100, 100, 255);
+    }
     renderer.DrawRect(rect);
 
-    if (text.empty()) {
-        return;
-    }
+    int clipped_w = 0;
 
-    SDL_Surface* text_surface = TTF_RenderUTF8_Blended(field_font, text.c_str(), text_color);
-    if (!text_surface) {
-        return;
-    }
-    SDL2pp::Surface wrapped(text_surface);
+    if (!text.empty()) {
+        SDL_Surface* text_surface = TTF_RenderUTF8_Blended(field_font, text.c_str(), text_color);
+        if (!text_surface) {
+            return;
+        }
+        SDL2pp::Surface wrapped(text_surface);
 
-    int text_w = 0;
-    int text_h = 0;
-    if (TTF_SizeUTF8(field_font, text.c_str(), &text_w, &text_h) != 0) {
-        return;
-    }
+        int text_w = 0;
+        int text_h = 0;
+        if (TTF_SizeUTF8(field_font, text.c_str(), &text_w, &text_h) != 0) {
+            return;
+        }
 
-    SDL2pp::Texture text_texture(renderer, wrapped);
-    const int clipped_w = std::min(text_w, rect.GetW() - 8);
-    const int clipped_h = std::min(text_h, rect.GetH() - 4);
-    SDL2pp::Rect src_rect(0, 0, clipped_w, clipped_h);
-    SDL2pp::Rect dst_rect(rect.GetX() + 4, rect.GetY() + (rect.GetH() - clipped_h) / 2,
-                          clipped_w, clipped_h);
-    renderer.Copy(text_texture, src_rect, dst_rect);
+        SDL2pp::Texture text_texture(renderer, wrapped);
+        clipped_w = std::min(text_w, rect.GetW() - 8);
+        const int clipped_h = std::min(text_h, rect.GetH() - 4);
+        SDL2pp::Rect src_rect(0, 0, clipped_w, clipped_h);
+        SDL2pp::Rect dst_rect(rect.GetX() + 4, rect.GetY() + (rect.GetH() - clipped_h) / 2,
+                              clipped_w, clipped_h);
+        renderer.Copy(text_texture, src_rect, dst_rect);
+    }
 
     if (focused && (SDL_GetTicks() / 500U) % 2U == 0U) {
         const int cursor_x = rect.GetX() + 4 + clipped_w;
