@@ -2,6 +2,7 @@
 #include "main_window.h"
 
 int main(int argc, char* argv[]) {
+    qputenv("QT_QPA_PLATFORM", "xcb");
     QApplication app(argc, argv);
 
     std::string config_path = "config/common_tilemap.toml";
