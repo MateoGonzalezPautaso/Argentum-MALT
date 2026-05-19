@@ -29,3 +29,10 @@ const std::string& TilemapDocument::tile_name(int row, int col) const {
 void TilemapDocument::set_tile(int row, int col, const std::string& name) {
     config_.mapa[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = name;
 }
+
+void TilemapDocument::resize(int new_rows, int new_cols, const std::string& default_tile) {
+    config_.mapa.resize(static_cast<std::size_t>(new_rows));
+    for (auto& row : config_.mapa) {
+        row.resize(static_cast<std::size_t>(new_cols), default_tile);
+    }
+}

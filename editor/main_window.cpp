@@ -9,9 +9,12 @@
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPushButton>
 #include <QShowEvent>
+#include <QSpinBox>
 #include <QSplitter>
 #include <QStatusBar>
+#include <QToolBar>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -79,6 +82,32 @@ void MainWindow::setup_ui() {
     statusBar()->showMessage(
         QString("Map: %1 x %2 tiles  |  Tile size: %3 px")
             .arg(doc_.width()).arg(doc_.height()).arg(doc_.tile_size()));
+
+    // Toolbar: resize controls
+    auto* toolbar = addToolBar("Map");
+    toolbar->setMovable(false);
+
+    auto* width_label = new QLabel("Width:");
+    width_spin_ = new QSpinBox();
+    width_spin_->setRange(1, 256);
+    width_spin_->setValue(doc_.width());
+
+    auto* height_label = new QLabel("  Height:");
+    height_spin_ = new QSpinBox();
+    height_spin_->setRange(1, 256);
+    height_spin_->setValue(doc_.height());
+
+    auto* resize_btn = new QPushButton("Resize");
+
+    toolbar->addWidget(width_label);
+    toolbar->addWidget(width_spin_);
+    toolbar->addWidget(height_label);
+    toolbar->addWidget(height_spin_);
+    toolbar->addWidget(resize_btn);
+
+    connect(resize_btn, &QPushButton::clicked, this, [this]() {
+        resize_map(width_spin_->value(), height_spin_->value());
+    });
 }
 
 void MainWindow::draw_grid() {
@@ -187,6 +216,34 @@ void MainWindow::set_tile(int row, int col, const std::string& name) {
             tile_items_[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = item;
         }
     }
+}
+
+void MainWindow::resize_map(int new_width, int new_height) {
+    for (auto& row : tile_items_) {
+        for (auto* item : row) {
+            if (item) {
+                scene_->removeItem(item);
+                delete item;
+            }
+        }
+    }
+    tile_items_.clear();
+
+    scene_->clear();
+
+    doc_.resize(new_height, new_width, "");
+
+    render_tiles();
+    draw_grid();
+
+    width_spin_->setValue(doc_.width());
+    height_spin_->setValue(doc_.height());
+
+    view_->fitInView(scene_->sceneRect(), Qt::KeepAspectRatio);
+
+    statusBar()->showMessage(
+        QString("Map resized to %1 x %2 tiles")
+            .arg(doc_.width()).arg(doc_.height()));
 }
 
 void MainWindow::showEvent(QShowEvent* event) {

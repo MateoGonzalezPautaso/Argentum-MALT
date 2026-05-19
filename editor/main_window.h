@@ -9,6 +9,7 @@
 
 class QGraphicsScene;
 class QGraphicsView;
+class QSpinBox;
 class TilePalette;
 
 class MainWindow : public QMainWindow {
@@ -27,6 +28,7 @@ private:
     void draw_grid();
     void render_tiles();
     void set_tile(int row, int col, const std::string& name);
+    void resize_map(int new_width, int new_height);
 
     TilemapDocument doc_;
     QPixmap atlas_;
@@ -34,6 +36,8 @@ private:
     QGraphicsScene* scene_ = nullptr;
     QGraphicsView* view_ = nullptr;
     TilePalette* palette_ = nullptr;
+    QSpinBox* width_spin_ = nullptr;
+    QSpinBox* height_spin_ = nullptr;
     std::string selected_tile_;
     bool first_show_ = true;
 };
