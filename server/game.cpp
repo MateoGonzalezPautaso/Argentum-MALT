@@ -1,7 +1,8 @@
 #include "game.h"
 
-#include "../common/visit.h"
 #include <variant>
+
+#include "../common/visit.h"
 
 namespace {
 
@@ -27,8 +28,8 @@ Delta direction_to_delta(Direction dir, int step) {
 }  // namespace
 
 Game::Game(uint16_t player_id, const ServerConfig& config):
-        player{player_id, "hero", {300, 160}, Direction::SOUTH, Race::HUMAN, Class::WARRIOR,
-               config.balance},
+        player{player_id,   "hero",         {300, 160},    Direction::SOUTH,
+               Race::HUMAN, Class::WARRIOR, config.balance},
         map(config.tilemap),
         move_step(config.move_step),
         sprite_width(config.sprite_width),

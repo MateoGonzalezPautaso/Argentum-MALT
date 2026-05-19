@@ -34,8 +34,7 @@ bool toml_get_bool(const toml::table& tbl, const char* key, bool fallback) {
     return fallback;
 }
 
-std::string toml_get_string(const toml::table& tbl, const char* key,
-                            const std::string& fallback) {
+std::string toml_get_string(const toml::table& tbl, const char* key, const std::string& fallback) {
     if (auto node = tbl.get(key)) {
         if (auto value = node->value<std::string>()) {
             return *value;

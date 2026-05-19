@@ -102,16 +102,12 @@ void parse_movement_config(const toml::table& root, ClientConfig& config) {
                 toml_get_int(*movement, "walk_src_frames_left", config.walk_src_frames);
         config.walk_src_frames_right =
                 toml_get_int(*movement, "walk_src_frames_right", config.walk_src_frames);
-        config.walk_frame_ms =
-                toml_get_uint32(*movement, "walk_frame_ms", config.walk_frame_ms);
+        config.walk_frame_ms = toml_get_uint32(*movement, "walk_frame_ms", config.walk_frame_ms);
         config.tick_ms = toml_get_uint32(*movement, "tick_ms", config.tick_ms);
-        config.dir_src_y_down =
-                toml_get_int(*movement, "dir_src_y_down", config.dir_src_y_down);
+        config.dir_src_y_down = toml_get_int(*movement, "dir_src_y_down", config.dir_src_y_down);
         config.dir_src_y_up = toml_get_int(*movement, "dir_src_y_up", config.dir_src_y_up);
-        config.dir_src_y_left =
-                toml_get_int(*movement, "dir_src_y_left", config.dir_src_y_left);
-        config.dir_src_y_right =
-                toml_get_int(*movement, "dir_src_y_right", config.dir_src_y_right);
+        config.dir_src_y_left = toml_get_int(*movement, "dir_src_y_left", config.dir_src_y_left);
+        config.dir_src_y_right = toml_get_int(*movement, "dir_src_y_right", config.dir_src_y_right);
         config.head_dir_src_y_down =
                 toml_get_int(*movement, "head_dir_src_y_down", config.head_dir_src_y_down);
         config.head_dir_src_y_up =

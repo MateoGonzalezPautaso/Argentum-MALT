@@ -343,4 +343,3 @@ const WorldRenderer::SpriteRender* WorldRenderer::find_movable_sprite() const {
     }
     return nullptr;
 }
-

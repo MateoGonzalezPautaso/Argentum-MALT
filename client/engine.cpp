@@ -12,8 +12,8 @@ ClientEngine::ClientEngine(const ClientConfig& config, ClientProtocol& protocol)
                config.window.width, config.window.height, 0),
         sdl_renderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
         menu_renderer(sdl_renderer, LOGICAL_W, LOGICAL_H),
-        world_renderer(sdl_renderer, config.background, config.tilemap, config.sprites,
-                       LOGICAL_W, LOGICAL_H),
+        world_renderer(sdl_renderer, config.background, config.tilemap, config.sprites, LOGICAL_W,
+                       LOGICAL_H),
         ui_renderer(sdl_renderer, LOGICAL_W, LOGICAL_H, chat_input),
         protocol(protocol),
         move_controller(world_renderer, protocol, MoveConfig(config), SDL_GetTicks()) {
@@ -65,9 +65,7 @@ bool ClientEngine::handle_event(const SDL_Event& event) {
     return true;
 }
 
-bool ClientEngine::is_menu_click(int x, int y) const {
-    return menu_renderer.is_button_hit(x, y);
-}
+bool ClientEngine::is_menu_click(int x, int y) const { return menu_renderer.is_button_hit(x, y); }
 
 bool ClientEngine::handle_mouse_button(const SDL_Event& event) {
     if (event.button.button != SDL_BUTTON_LEFT) {

@@ -48,4 +48,3 @@ void MenuRenderer::init_layout() {
     menu_logo_rect = SDL2pp::Rect(logo_x, logo_y, logo_w, logo_h);
     menu_button_rect = SDL2pp::Rect(button_x, button_y, button_w, button_h);
 }
-

@@ -1,7 +1,8 @@
 #include "texture_loader.h"
 
-#include <SDL2/SDL_image.h>
 #include <stdexcept>
+
+#include <SDL2/SDL_image.h>
 
 SDL2pp::Surface load_surface(const std::string& path) {
     SDL_Surface* raw = IMG_Load(path.c_str());

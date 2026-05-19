@@ -26,7 +26,9 @@ MoveConfig::MoveConfig(const ClientConfig& config):
 
 MoveController::MoveController(WorldRenderer& world_renderer, ClientProtocol& protocol,
                                const MoveConfig& config, uint32_t initial_ticks):
-        world_renderer(world_renderer), protocol(protocol), config(config),
+        world_renderer(world_renderer),
+        protocol(protocol),
+        config(config),
         last_walk_tick(initial_ticks) {}
 
 void MoveController::tick(uint32_t now) {
@@ -42,9 +44,7 @@ void MoveController::set_move_target(int x, int y) {
     has_target = true;
 }
 
-void MoveController::move_direction(Direction dir, uint32_t now) {
-    apply_movement(dir, now, true);
-}
+void MoveController::move_direction(Direction dir, uint32_t now) { apply_movement(dir, now, true); }
 
 void MoveController::apply_movement(Direction dir, uint32_t now, bool cancel_target) {
     if (cancel_target) {

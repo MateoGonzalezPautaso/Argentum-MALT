@@ -19,8 +19,7 @@ private:
     SDL_Color chat_color{255, 255, 255, 255};
 
 public:
-    UIRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h,
-               const ChatInput& chat_model);
+    UIRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h, const ChatInput& chat_model);
     ~UIRenderer();
 
     void render_frame_background();
