@@ -29,6 +29,8 @@ private:
     void render_tiles();
     void set_tile(int row, int col, const std::string& name);
     void resize_map(int new_width, int new_height);
+    void save_map();
+    void save_map_as();
 
     TilemapDocument doc_;
     QPixmap atlas_;

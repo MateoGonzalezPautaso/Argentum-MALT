@@ -2,10 +2,12 @@
 #include "tile_palette.h"
 
 #include <QApplication>
+#include <QFileDialog>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QMenuBar>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
@@ -108,6 +110,17 @@ void MainWindow::setup_ui() {
     connect(resize_btn, &QPushButton::clicked, this, [this]() {
         resize_map(width_spin_->value(), height_spin_->value());
     });
+
+    // File menu
+    auto* file_menu = menuBar()->addMenu("&File");
+
+    auto* save_action = file_menu->addAction("&Save");
+    save_action->setShortcut(QKeySequence::Save);
+    connect(save_action, &QAction::triggered, this, &MainWindow::save_map);
+
+    auto* save_as_action = file_menu->addAction("Save &As...");
+    save_as_action->setShortcut(QKeySequence::SaveAs);
+    connect(save_as_action, &QAction::triggered, this, &MainWindow::save_map_as);
 }
 
 void MainWindow::draw_grid() {
@@ -244,6 +257,37 @@ void MainWindow::resize_map(int new_width, int new_height) {
     statusBar()->showMessage(
         QString("Map resized to %1 x %2 tiles")
             .arg(doc_.width()).arg(doc_.height()));
+}
+
+void MainWindow::save_map() {
+    if (doc_.path().empty()) {
+        save_map_as();
+        return;
+    }
+    try {
+        doc_.save(doc_.path());
+        statusBar()->showMessage(
+            QString("Saved to %1").arg(QString::fromStdString(doc_.path())), 3000);
+    } catch (const std::exception& e) {
+        QMessageBox::warning(this, "Save Error", e.what());
+    }
+}
+
+void MainWindow::save_map_as() {
+    QString path = QFileDialog::getSaveFileName(this, "Save Map As",
+        QString::fromStdString(doc_.path().empty()
+            ? "config/common_tilemap.toml" : doc_.path()),
+        "TOML files (*.toml)");
+    if (path.isEmpty()) return;
+
+    try {
+        doc_.save(path.toStdString());
+        doc_.set_path(path.toStdString());
+        setWindowTitle(QString::fromStdString("Map Editor - " + path.toStdString()));
+        statusBar()->showMessage(QString("Saved to %1").arg(path), 3000);
+    } catch (const std::exception& e) {
+        QMessageBox::warning(this, "Save Error", e.what());
+    }
 }
 
 void MainWindow::showEvent(QShowEvent* event) {

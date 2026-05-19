@@ -7,6 +7,7 @@
 class TilemapDocument {
 public:
     void load(const std::string& path);
+    void save(const std::string& path) const;
 
     int width() const;
     int height() const;
@@ -16,9 +17,12 @@ public:
     void resize(int new_rows, int new_cols, const std::string& default_tile = "");
 
     const TilemapConfig& config() const { return config_; }
+    const std::string& path() const { return path_; }
+    void set_path(const std::string& path) { path_ = path; }
 
 private:
     TilemapConfig config_;
+    std::string path_;
 };
 
 #endif

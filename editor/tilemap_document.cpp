@@ -1,4 +1,5 @@
 #include "tilemap_document.h"
+#include <fstream>
 #include <stdexcept>
 
 void TilemapDocument::load(const std::string& path) {
@@ -7,6 +8,7 @@ void TilemapDocument::load(const std::string& path) {
     if (config_.mapa.empty()) {
         throw std::runtime_error("Empty map grid in config file");
     }
+    path_ = path;
 }
 
 int TilemapDocument::width() const {
@@ -35,4 +37,39 @@ void TilemapDocument::resize(int new_rows, int new_cols, const std::string& defa
     for (auto& row : config_.mapa) {
         row.resize(static_cast<std::size_t>(new_cols), default_tile);
     }
+}
+
+void TilemapDocument::save(const std::string& path) const {
+    toml::table tilemap_tbl;
+
+    tilemap_tbl.emplace("path", config_.path);
+    tilemap_tbl.emplace("tile_size", config_.tile_size);
+
+    toml::array mapa_array;
+    for (const auto& row : config_.mapa) {
+        toml::array row_array;
+        for (const auto& cell : row) {
+            row_array.push_back(cell);
+        }
+        mapa_array.push_back(std::move(row_array));
+    }
+    tilemap_tbl.emplace("mapa", std::move(mapa_array));
+
+    toml::table tiles_tbl;
+    for (const auto& [name, def] : config_.tiles) {
+        toml::table tile_def;
+        tile_def.emplace("x", def.x);
+        tile_def.emplace("y", def.y);
+        if (!def.walkable) {
+            tile_def.emplace("walkable", false);
+        }
+        tiles_tbl.emplace(name, std::move(tile_def));
+    }
+    tilemap_tbl.emplace("tiles", std::move(tiles_tbl));
+
+    toml::table root;
+    root.emplace("tilemap", std::move(tilemap_tbl));
+
+    std::ofstream file(path);
+    file << root << std::endl;
 }
