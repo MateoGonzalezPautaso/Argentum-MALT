@@ -12,13 +12,16 @@ LoginRenderer::LoginRenderer(SDL2pp::Renderer& renderer, int window_w, int windo
         password_model(password_model),
         background_texture(renderer,
                            load_surface("assets/BabelUI/static/media/leather_brown..png")),
-        connect_button_texture(renderer,
-                               load_surface("assets/interface/en_boton-conectar-default.bmp")),
-        back_button_texture(renderer,
-                            load_surface("assets/interface/en_boton-volver-default.bmp")),
+        connect_button(
+                SDL2pp::Texture(renderer,
+                                load_surface("assets/interface/en_boton-conectar-default.bmp")),
+                SDL2pp::Texture(renderer,
+                                load_surface("assets/interface/en_boton-conectar-over.bmp"))),
+        back_button(SDL2pp::Texture(renderer,
+                                    load_surface("assets/interface/en_boton-volver-default.bmp")),
+                    SDL2pp::Texture(renderer,
+                                    load_surface("assets/interface/en_boton-volver-over.bmp"))),
         background_rect(0, 0, window_w, window_h),
-        connect_button_rect(0, 0, 0, 0),
-        back_button_rect(0, 0, 0, 0),
         window_w(window_w),
         window_h(window_h) {
     field_font = TTF_OpenFont("assets/OUTPUT/Cardo.ttf", 18);
@@ -43,36 +46,38 @@ void LoginRenderer::render() {
     render_text_field(password_field_rect, password_model.get_text(),
                       password_model.is_focused());
 
-    renderer.Copy(connect_button_texture, SDL2pp::NullOpt, connect_button_rect);
-    renderer.Copy(back_button_texture, SDL2pp::NullOpt, back_button_rect);
+    connect_button.render(renderer);
+    back_button.render(renderer);
 }
 
 bool LoginRenderer::is_username_hit(int x, int y) const {
-    const int left = username_field_rect.GetX();
-    const int top = username_field_rect.GetY();
-    return x >= left && x <= left + username_field_rect.GetW() &&
-           y >= top && y <= top + username_field_rect.GetH();
+    return x >= username_field_rect.GetX() &&
+           x <= username_field_rect.GetX() + username_field_rect.GetW() &&
+           y >= username_field_rect.GetY() &&
+           y <= username_field_rect.GetY() + username_field_rect.GetH();
 }
 
 bool LoginRenderer::is_password_hit(int x, int y) const {
-    const int left = password_field_rect.GetX();
-    const int top = password_field_rect.GetY();
-    return x >= left && x <= left + password_field_rect.GetW() &&
-           y >= top && y <= top + password_field_rect.GetH();
+    return x >= password_field_rect.GetX() &&
+           x <= password_field_rect.GetX() + password_field_rect.GetW() &&
+           y >= password_field_rect.GetY() &&
+           y <= password_field_rect.GetY() + password_field_rect.GetH();
 }
 
 bool LoginRenderer::is_connect_button_hit(int x, int y) const {
-    const int left = connect_button_rect.GetX();
-    const int top = connect_button_rect.GetY();
-    return x >= left && x <= left + connect_button_rect.GetW() &&
-           y >= top && y <= top + connect_button_rect.GetH();
+    return connect_button.is_hit(x, y);
 }
 
 bool LoginRenderer::is_back_button_hit(int x, int y) const {
-    const int left = back_button_rect.GetX();
-    const int top = back_button_rect.GetY();
-    return x >= left && x <= left + back_button_rect.GetW() &&
-           y >= top && y <= top + back_button_rect.GetH();
+    return back_button.is_hit(x, y);
+}
+
+void LoginRenderer::set_connect_button_hovered(int x, int y) {
+    connect_button.hovered = connect_button.is_hit(x, y);
+}
+
+void LoginRenderer::set_back_button_hovered(int x, int y) {
+    back_button.hovered = back_button.is_hit(x, y);
 }
 
 void LoginRenderer::init_layout() {
@@ -85,15 +90,15 @@ void LoginRenderer::init_layout() {
     username_field_rect = SDL2pp::Rect(field_x, username_y, field_w, field_h);
     password_field_rect = SDL2pp::Rect(field_x, password_y, field_w, field_h);
 
-    const int button_w = connect_button_texture.GetWidth();
-    const int button_h = connect_button_texture.GetHeight();
+    const int button_w = connect_button.default_tex.GetWidth();
+    const int button_h = connect_button.default_tex.GetHeight();
     const int button_x = std::max(0, (window_w - button_w) / 2);
     const int button_y = password_y + field_h + 30;
-    connect_button_rect = SDL2pp::Rect(button_x, button_y, button_w, button_h);
+    connect_button.set_position(button_x, button_y, button_w, button_h);
 
-    const int back_w = back_button_texture.GetWidth();
-    const int back_h = back_button_texture.GetHeight();
-    back_button_rect = SDL2pp::Rect(10, 10, back_w, back_h);
+    const int back_w = back_button.default_tex.GetWidth();
+    const int back_h = back_button.default_tex.GetHeight();
+    back_button.set_position(10, 10, back_w, back_h);
 }
 
 void LoginRenderer::render_text_field(const SDL2pp::Rect& rect, const std::string& text,

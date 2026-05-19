@@ -51,6 +51,9 @@ public:
     const std::string& login_username_text() const;
     const std::string& login_password_text() const;
 
+    void handle_menu_mouse_motion(int x, int y);
+    void handle_login_mouse_motion(int x, int y);
+
 private:
     void render_game_frame();
     void render_menu_frame();

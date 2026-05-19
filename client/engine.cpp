@@ -186,3 +186,12 @@ void ClientEngine::render_login_frame() {
     login_renderer.render();
     sdl_renderer.Present();
 }
+
+void ClientEngine::handle_menu_mouse_motion(int x, int y) {
+    menu_renderer.set_button_hovered(x, y);
+}
+
+void ClientEngine::handle_login_mouse_motion(int x, int y) {
+    login_renderer.set_connect_button_hovered(x, y);
+    login_renderer.set_back_button_hovered(x, y);
+}
