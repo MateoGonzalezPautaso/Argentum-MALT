@@ -19,6 +19,10 @@ class ClientProtocol;
 
 class ClientEngine {
 private:
+    // Logical dimensions of the game world. The actual window size may differ, but the game will be rendered as if it were this size.
+    static constexpr int LOGICAL_W = 1024;
+    static constexpr int LOGICAL_H = 768;
+
     SDL2pp::SDL sdl;
     SDL2pp::Window window;
     SDL2pp::Renderer sdl_renderer;

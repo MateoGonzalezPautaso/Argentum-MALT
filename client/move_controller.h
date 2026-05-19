@@ -5,6 +5,7 @@
 
 #include "../common/messages.h"
 
+struct ClientConfig;
 class ClientProtocol;
 class WorldRenderer;
 
@@ -25,6 +26,9 @@ struct MoveConfig {
     int head_dir_src_y_up = 64;
     int head_dir_src_y_left = 128;
     int head_dir_src_y_right = 192;
+
+    MoveConfig() = default;
+    explicit MoveConfig(const ClientConfig& config);
 };
 
 class MoveController {

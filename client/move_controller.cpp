@@ -3,7 +3,26 @@
 #include <cmath>
 
 #include "client_protocol.h"
+#include "config.h"
 #include "world_renderer.h"
+
+MoveConfig::MoveConfig(const ClientConfig& config):
+        move_step(config.move_step),
+        walk_src_step(config.walk_src_step),
+        walk_src_frames(config.walk_src_frames),
+        walk_src_frames_down(config.walk_src_frames_down),
+        walk_src_frames_up(config.walk_src_frames_up),
+        walk_src_frames_left(config.walk_src_frames_left),
+        walk_src_frames_right(config.walk_src_frames_right),
+        walk_frame_ms(config.walk_frame_ms),
+        dir_src_y_down(config.dir_src_y_down),
+        dir_src_y_up(config.dir_src_y_up),
+        dir_src_y_left(config.dir_src_y_left),
+        dir_src_y_right(config.dir_src_y_right),
+        head_dir_src_y_down(config.head_dir_src_y_down),
+        head_dir_src_y_up(config.head_dir_src_y_up),
+        head_dir_src_y_left(config.head_dir_src_y_left),
+        head_dir_src_y_right(config.head_dir_src_y_right) {}
 
 MoveController::MoveController(WorldRenderer& world_renderer, ClientProtocol& protocol,
                                const MoveConfig& config, uint32_t initial_ticks):

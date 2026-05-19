@@ -8,32 +8,16 @@
 
 ClientEngine::ClientEngine(const ClientConfig& config, ClientProtocol& protocol):
         sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO),
-        window(config.window.title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1024, 768, 0),
+        window(config.window.title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+               config.window.width, config.window.height, 0),
         sdl_renderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
-        menu_renderer(sdl_renderer, 1024, 768),
-        world_renderer(sdl_renderer, config.background, config.tilemap, config.sprites, 1024, 768),
-        ui_renderer(sdl_renderer, 1024, 768, chat_input),
+        menu_renderer(sdl_renderer, LOGICAL_W, LOGICAL_H),
+        world_renderer(sdl_renderer, config.background, config.tilemap, config.sprites,
+                       LOGICAL_W, LOGICAL_H),
+        ui_renderer(sdl_renderer, LOGICAL_W, LOGICAL_H, chat_input),
         protocol(protocol),
-        move_controller(world_renderer, protocol,
-                        MoveConfig{
-                                .move_step = config.move_step,
-                                .walk_src_step = config.walk_src_step,
-                                .walk_src_frames = config.walk_src_frames,
-                                .walk_src_frames_down = config.walk_src_frames_down,
-                                .walk_src_frames_up = config.walk_src_frames_up,
-                                .walk_src_frames_left = config.walk_src_frames_left,
-                                .walk_src_frames_right = config.walk_src_frames_right,
-                                .walk_frame_ms = config.walk_frame_ms,
-                                .dir_src_y_down = config.dir_src_y_down,
-                                .dir_src_y_up = config.dir_src_y_up,
-                                .dir_src_y_left = config.dir_src_y_left,
-                                .dir_src_y_right = config.dir_src_y_right,
-                                .head_dir_src_y_down = config.head_dir_src_y_down,
-                                .head_dir_src_y_up = config.head_dir_src_y_up,
-                                .head_dir_src_y_left = config.head_dir_src_y_left,
-                                .head_dir_src_y_right = config.head_dir_src_y_right,
-                        },
-                        SDL_GetTicks()) {
+        move_controller(world_renderer, protocol, MoveConfig(config), SDL_GetTicks()) {
+    SDL_RenderSetLogicalSize(sdl_renderer.Get(), LOGICAL_W, LOGICAL_H);
     SDL_StartTextInput();
 }
 
