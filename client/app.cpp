@@ -38,9 +38,18 @@ bool handle_menu_event(const SDL_Event& event, const ClientEngine& client, GameS
     }
     if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
         if (client.is_menu_click(event.button.x, event.button.y)) {
-            state = GameState::Playing;
+            state = GameState::Login;
         }
     }
+    return true;
+}
+
+bool handle_login_event(const SDL_Event& event, ClientEngine& client, GameState& state) {
+    if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
+        state = GameState::Menu;
+        return true;
+    }
+    client.handle_login_event(event);
     return true;
 }
 
@@ -49,6 +58,8 @@ bool handle_playing_event(const SDL_Event& event, ClientEngine& client) {
 }
 
 void render_menu(ClientEngine& client) { client.show_menu(); }
+
+void render_login(ClientEngine& client) { client.show_login(); }
 
 void render_playing(ClientEngine& client) {
     client.tick();
@@ -64,6 +75,10 @@ bool pump_events(ClientEngine& client, GameState& state) {
         }
         if (state == GameState::Menu) {
             if (!handle_menu_event(event, client, state)) {
+                return false;
+            }
+        } else if (state == GameState::Login) {
+            if (!handle_login_event(event, client, state)) {
                 return false;
             }
         } else {
