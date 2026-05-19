@@ -3,9 +3,13 @@
 #include <stdexcept>
 #include <utility>
 
+#include <sys/socket.h>
+
 #include "../common/socket.h"
 
 ServerProtocol::ServerProtocol(Socket&& skt): skt(std::move(skt)), protocol(this->skt) {}
+
+void ServerProtocol::shutdown() { skt.shutdown(SHUT_RDWR); }
 
 ClientCommand ServerProtocol::recv_command() {
     OpCode opcode = protocol.recv_opcode();

@@ -44,6 +44,8 @@ public:
     // Recibe y deserializa el próximo comando del cliente.
     ClientCommand recv_command();
 
+    void shutdown();
+
     ServerProtocol(const ServerProtocol&) = delete;
     ServerProtocol& operator=(const ServerProtocol&) = delete;
 
