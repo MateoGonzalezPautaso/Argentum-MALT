@@ -6,16 +6,16 @@
 #include "../common/messages.h"
 
 #include "config.h"
+#include "map.h"
 #include "player.h"
 
 class Game {
 private:
     Player player;
+    Map map;
     int move_step;
     int sprite_width;
     int sprite_height;
-    uint16_t world_w;
-    uint16_t world_h;
 
     std::vector<ServerEvent> handle_move(const MoveCmd& cmd);
 

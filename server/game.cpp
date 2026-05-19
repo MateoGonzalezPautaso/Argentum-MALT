@@ -1,24 +1,12 @@
 #include "game.h"
 
-#include <algorithm>
-
-namespace {
-
-int16_t clamp_coord(int16_t value, int16_t min_value, int16_t max_value) {
-    return std::max<int16_t>(min_value, std::min<int16_t>(value, max_value));
-}
-}  // namespace
-
 Game::Game(uint16_t player_id, const ServerConfig& config):
         player{player_id, "hero", {300, 160}, Direction::SOUTH, Race::HUMAN, Class::WARRIOR,
                config.balance},
+        map(config.tilemap),
         move_step(config.move_step),
         sprite_width(config.sprite_width),
-        sprite_height(config.sprite_height),
-        world_w(static_cast<uint16_t>(config.tilemap.mapa.front().size() *
-                                      config.tilemap.tile_size)),
-        world_h(static_cast<uint16_t>(config.tilemap.mapa.size() *
-                                      config.tilemap.tile_size)) {}
+        sprite_height(config.sprite_height) {}
 
 std::vector<ServerEvent> Game::get_initial_events() {
     std::vector<ServerEvent> events;
@@ -78,15 +66,14 @@ std::vector<ServerEvent> Game::handle_move(const MoveCmd& cmd) {
             break;
     }
 
-    const int16_t current_x = static_cast<int16_t>(player.pos.x);
-    const int16_t current_y = static_cast<int16_t>(player.pos.y);
-    int16_t new_x = static_cast<int16_t>(current_x + dx);
-    int16_t new_y = static_cast<int16_t>(current_y + dy);
+    const int current_x = static_cast<int>(player.pos.x);
+    const int current_y = static_cast<int>(player.pos.y);
+    const int new_x = map.clamp_x(current_x + dx, sprite_width);
+    const int new_y = map.clamp_y(current_y + dy, sprite_height);
 
-    const int16_t max_x = static_cast<int16_t>(world_w - sprite_width);
-    const int16_t max_y = static_cast<int16_t>(world_h - sprite_height);
-    new_x = clamp_coord(new_x, 0, max_x);
-    new_y = clamp_coord(new_y, 0, max_y);
+    if (!map.is_walkable(new_x + sprite_width / 2, new_y + sprite_height)) {
+        return {};
+    }
 
     const int final_dx = static_cast<int>(new_x) - static_cast<int>(current_x);
     const int final_dy = static_cast<int>(new_y) - static_cast<int>(current_y);
