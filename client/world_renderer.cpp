@@ -327,19 +327,13 @@ void WorldRenderer::update_anchor_positions() {
 }
 
 WorldRenderer::SpriteRender* WorldRenderer::find_movable_sprite() {
-    for (auto& sprite: sprites) {
-        if (sprite.movable) {
-            return &sprite;
-        }
-    }
-    return nullptr;
+    auto it = std::find_if(sprites.begin(), sprites.end(),
+                           [](const SpriteRender& s) { return s.movable; });
+    return it != sprites.end() ? &(*it) : nullptr;
 }
 
 const WorldRenderer::SpriteRender* WorldRenderer::find_movable_sprite() const {
-    for (const auto& sprite: sprites) {
-        if (sprite.movable) {
-            return &sprite;
-        }
-    }
-    return nullptr;
+    auto it = std::find_if(sprites.begin(), sprites.end(),
+                           [](const SpriteRender& s) { return s.movable; });
+    return it != sprites.end() ? &(*it) : nullptr;
 }

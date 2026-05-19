@@ -4,13 +4,13 @@
 #include <cmath>
 
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
-               Class class_, const BalanceConfig& balance):
+               PlayerClass player_class, const BalanceConfig& balance):
         id(id),
         username(username),
         pos(pos),
         dir(dir),
         race(race),
-        class_(class_),
+        player_class(player_class),
         level(1),
         experience(0),
         hp_current(balance.starting_hp),

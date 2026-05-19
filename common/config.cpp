@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <toml++/toml.h>

@@ -40,7 +40,7 @@ ClientCommand ServerProtocol::recv_create_character() {
     cmd.username = protocol.recv_str();
     cmd.password = protocol.recv_str();
     cmd.race = static_cast<Race>(protocol.recv_uint8());
-    cmd.class_ = static_cast<Class>(protocol.recv_uint8());
+    cmd.player_class = static_cast<PlayerClass>(protocol.recv_uint8());
     return cmd;
 }
 
@@ -48,7 +48,7 @@ void ServerProtocol::send_login_payload(const LoginOkEvent& ev) {
     protocol.send_uint16(ev.player_id);
     protocol.send_str(ev.username);
     protocol.send_uint8(static_cast<uint8_t>(ev.race));
-    protocol.send_uint8(static_cast<uint8_t>(ev.class_));
+    protocol.send_uint8(static_cast<uint8_t>(ev.player_class));
     protocol.send_uint8(ev.level);
     protocol.send_uint32(ev.experience);
     protocol.send_uint32(ev.hp_current);

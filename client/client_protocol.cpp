@@ -19,13 +19,13 @@ void ClientProtocol::send_login(const LoginCmd& cmd) {
 
 void ClientProtocol::send_create_character(const CreateCharacterCmd& cmd) {
     uint8_t race = static_cast<uint8_t>(cmd.race);
-    uint8_t class_ = static_cast<uint8_t>(cmd.class_);
+    uint8_t player_class = static_cast<uint8_t>(cmd.player_class);
 
     protocol.send_opcode(OpCode::CREATE_CHARACTER);
     protocol.send_str(cmd.username);
     protocol.send_str(cmd.password);
     protocol.send_uint8(race);
-    protocol.send_uint8(class_);
+    protocol.send_uint8(player_class);
 }
 
 void ClientProtocol::send_move(const MoveCmd& cmd) {
@@ -76,7 +76,7 @@ ServerEvent ClientProtocol::recv_entity_spawn() {
     ev.entity_dir = static_cast<Direction>(protocol.recv_uint8());
     ev.entity_name = protocol.recv_str();
     ev.entity_race = static_cast<Race>(protocol.recv_uint8());
-    ev.entity_class = static_cast<Class>(protocol.recv_uint8());
+    ev.entity_class = static_cast<PlayerClass>(protocol.recv_uint8());
     return ev;
 }
 
@@ -94,7 +94,7 @@ LoginOkEvent ClientProtocol::recv_login_payload() {
     ev.player_id = protocol.recv_uint16();
     ev.username = protocol.recv_str();
     ev.race = static_cast<Race>(protocol.recv_uint8());
-    ev.class_ = static_cast<Class>(protocol.recv_uint8());
+    ev.player_class = static_cast<PlayerClass>(protocol.recv_uint8());
     ev.level = protocol.recv_uint8();
     ev.experience = protocol.recv_uint32();
     ev.hp_current = protocol.recv_uint32();

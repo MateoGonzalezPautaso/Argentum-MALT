@@ -17,7 +17,7 @@ private:
     Position pos;
     Direction dir;
     Race race;
-    Class class_;
+    PlayerClass player_class;
     uint8_t level;
     uint32_t experience;
     uint32_t hp_current;
@@ -29,7 +29,7 @@ private:
 
 public:
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
-           Class class_, const BalanceConfig& balance);
+           PlayerClass player_class, const BalanceConfig& balance);
 
     void apply_move(Direction new_dir, int dx, int dy);
     void gain_experience(uint32_t exp);

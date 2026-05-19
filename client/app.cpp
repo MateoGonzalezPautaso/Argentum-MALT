@@ -32,7 +32,7 @@ ClientConfig load_config() {
     return load_client_config(config_path);
 }
 
-bool handle_menu_event(const SDL_Event& event, ClientEngine& client, GameState& state) {
+bool handle_menu_event(const SDL_Event& event, const ClientEngine& client, GameState& state) {
     if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
         return false;
     }

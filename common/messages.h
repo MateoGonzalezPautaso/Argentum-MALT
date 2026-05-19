@@ -26,7 +26,7 @@
 
 enum class Race : uint8_t { HUMAN = 0x01, ELF = 0x02, DWARF = 0x03, GNOME = 0x04 };
 
-enum class Class : uint8_t { MAGE = 0x01, CLERIC = 0x02, PALADIN = 0x03, WARRIOR = 0x04 };
+enum class PlayerClass : uint8_t { MAGE = 0x01, CLERIC = 0x02, PALADIN = 0x03, WARRIOR = 0x04 };
 
 enum class Direction : uint8_t { NORTH = 0x00, SOUTH = 0x01, EAST = 0x02, WEST = 0x03 };
 
@@ -150,7 +150,7 @@ struct CreateCharacterCmd {
     std::string username;
     std::string password;
     Race race;
-    Class class_;
+    PlayerClass player_class;
 };
 
 // 0x03
@@ -239,7 +239,7 @@ struct LoginOkEvent {
     uint16_t player_id;
     std::string username;
     Race race;
-    Class class_;
+    PlayerClass player_class;
     uint8_t level;
     uint32_t experience;
     uint32_t hp_current;
@@ -281,7 +281,7 @@ struct EntitySpawnEvent {
     Direction entity_dir;
     std::string entity_name;
     Race entity_race;
-    Class entity_class;
+    PlayerClass entity_class;
 };
 
 // 0x87

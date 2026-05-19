@@ -28,8 +28,9 @@ Delta direction_to_delta(Direction dir, int step) {
 }  // namespace
 
 Game::Game(uint16_t player_id, const ServerConfig& config):
-        player{player_id,   "hero",         {300, 160},    Direction::SOUTH,
-               Race::HUMAN, Class::WARRIOR, config.balance},
+        player{player_id,        "hero",      {300, 160},
+               Direction::SOUTH, Race::HUMAN, PlayerClass::WARRIOR,
+               config.balance},
         map(config.tilemap),
         move_step(config.move_step),
         sprite_width(config.sprite_width),
@@ -42,7 +43,7 @@ std::vector<ServerEvent> Game::get_initial_events() {
             .player_id = player.id,
             .username = player.username,
             .race = player.race,
-            .class_ = player.class_,
+            .player_class = player.player_class,
             .level = player.level,
             .experience = player.experience,
             .hp_current = player.hp_current,
@@ -60,7 +61,7 @@ std::vector<ServerEvent> Game::get_initial_events() {
             .entity_dir = player.dir,
             .entity_name = player.username,
             .entity_race = player.race,
-            .entity_class = player.class_,
+            .entity_class = player.player_class,
     });
 
     return events;

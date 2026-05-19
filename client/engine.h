@@ -1,8 +1,6 @@
 #ifndef CLIENT_ENGINE_H
 #define CLIENT_ENGINE_H
 
-#include <string>
-
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 
