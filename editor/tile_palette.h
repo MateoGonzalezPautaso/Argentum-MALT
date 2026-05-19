@@ -6,6 +6,7 @@
 #include <QToolButton>
 #include <string>
 #include <unordered_map>
+#include <vector>
 #include "../common/config.h"
 
 class QButtonGroup;
@@ -22,8 +23,20 @@ public:
 
 signals:
     void tile_selected(const std::string& tile_name);
+    void prop_selected(const std::string& prop_name);
 
 private:
+    struct SectionWidgets {
+        QToolButton* header;
+        QWidget* content;
+    };
+
+    SectionWidgets make_section(const std::string& title,
+                                const std::vector<std::string>& tile_names,
+                                int tsz, int preview_size);
+    SectionWidgets make_prop_section(const std::string& title,
+                                     const std::vector<std::string>& prop_names,
+                                     int tsz, int preview_size);
     void on_button_clicked(const std::string& name);
     void toggle_walkable(const std::string& name);
     void update_button_visual(QToolButton* btn, const std::string& name) const;
@@ -33,6 +46,7 @@ private:
     TilemapConfig& config_;
     std::unordered_map<std::string, QPixmap>& atlases_;
     std::unordered_map<std::string, QToolButton*> tile_buttons_;
+    std::vector<SectionWidgets> sections_;
 };
 
 #endif

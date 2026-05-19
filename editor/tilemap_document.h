@@ -14,6 +14,8 @@ public:
     int tile_size() const;
     const std::string& tile_name(int row, int col) const;
     void set_tile(int row, int col, const std::string& name);
+    const std::string& prop_name(int row, int col) const;
+    void set_prop(int row, int col, const std::string& name);
     void resize(int new_rows, int new_cols, const std::string& default_tile = "");
     void create_new(int rows, int cols, const TilemapConfig& tile_config);
 

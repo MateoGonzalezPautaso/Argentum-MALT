@@ -28,7 +28,9 @@ private:
     void load_atlas();
     void draw_grid();
     void render_tiles();
+    void render_props();
     void set_tile(int row, int col, const std::string& name);
+    void set_prop(int row, int col, const std::string& name);
     void resize_map(int new_width, int new_height);
     void save_map();
     void save_map_as();
@@ -39,6 +41,7 @@ private:
     TilemapDocument doc_;
     std::unordered_map<std::string, QPixmap> atlases_;
     std::vector<std::vector<QGraphicsPixmapItem*>> tile_items_;
+    std::vector<std::vector<QGraphicsPixmapItem*>> prop_items_;
     QGraphicsScene* scene_ = nullptr;
     QGraphicsView* view_ = nullptr;
     QSplitter* splitter_ = nullptr;

@@ -33,6 +33,16 @@ private:
         bool visible = true;
     };
 
+    struct PropRender {
+        std::vector<SDL2pp::Texture> frames;
+        SDL2pp::Rect src;
+        int display_w = 0;
+        int display_h = 0;
+        uint32_t frame_ms = 0;
+        std::size_t current_frame = 0;
+        uint32_t last_ticks = 0;
+    };
+
     SDL2pp::Renderer& renderer;
     SDL2pp::Texture background_texture;
     SDL2pp::Rect background_rect;
@@ -41,6 +51,7 @@ private:
     bool has_tilemap = false;
     int tile_size = 128;
     std::vector<std::vector<TileSrcInfo>> tilemap_tiles_;
+    std::vector<std::vector<PropRender>> prop_tiles_;
     int map_px_w = 0;
     int map_px_h = 0;
     std::vector<SpriteRender> sprites;
@@ -63,6 +74,7 @@ public:
 
 private:
     void init_tilemap(const TilemapConfig& tilemap);
+    void init_props(const TilemapConfig& tilemap);
     void init_sprites(const std::vector<SpriteConfig>& sprites_config);
     SpriteRender build_sprite_render(const SpriteConfig& sprite_config);
     SDL2pp::Rect camera_rect() const;

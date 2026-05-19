@@ -1,3 +1,33 @@
+[prop.prop_map]
+data = [
+    [ '', '', '', '', '', '', '', '', '', '', '', '' ],
+    [ '', '', '', '', '', '', '', '', '', '', '', '' ],
+    [ '', '', '', '', '', 'windmill', '', '', '', '', '', '' ],
+    [ '', '', '', '', '', '', '', '', '', '', '', '' ],
+    [ '', '', '', '', '', '', '', '', '', '', '', '' ],
+    [ '', '', '', '', '', '', '', '', '', '', '', '' ],
+    [ '', '', '', '', '', '', '', '', '', '', '', '' ]
+]
+
+[prop.tiles.windmill]
+frame_ms = 120
+height = 160
+paths = [
+    'assets/Graficos/4994.png',
+    'assets/Graficos/4995.png',
+    'assets/Graficos/4996.png',
+    'assets/Graficos/4997.png',
+    'assets/Graficos/4998.png',
+    'assets/Graficos/4999.png'
+]
+width = 160
+
+    [prop.tiles.windmill.src]
+    h = 722
+    w = 813
+    x = 0
+    y = 0
+
 [tilemap]
 mapa = [
     [

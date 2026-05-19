@@ -5,8 +5,14 @@
 void TilemapDocument::load(const std::string& path) {
     toml::table root = toml::parse_file(path);
     parse_tilemap_config(root, config_);
+    parse_prop_config(root, config_);
     if (config_.mapa.empty()) {
         throw std::runtime_error("Empty map grid in config file");
+    }
+    // Ensure prop_map matches mapa dimensions
+    if (config_.prop_map.empty()) {
+        config_.prop_map.resize(config_.mapa.size(),
+            std::vector<std::string>(config_.mapa[0].size(), ""));
     }
     path_ = path;
 }
@@ -32,10 +38,22 @@ void TilemapDocument::set_tile(int row, int col, const std::string& name) {
     config_.mapa[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = name;
 }
 
+const std::string& TilemapDocument::prop_name(int row, int col) const {
+    return config_.prop_map[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)];
+}
+
+void TilemapDocument::set_prop(int row, int col, const std::string& name) {
+    config_.prop_map[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = name;
+}
+
 void TilemapDocument::resize(int new_rows, int new_cols, const std::string& default_tile) {
     config_.mapa.resize(static_cast<std::size_t>(new_rows));
     for (auto& row : config_.mapa) {
         row.resize(static_cast<std::size_t>(new_cols), default_tile);
+    }
+    config_.prop_map.resize(static_cast<std::size_t>(new_rows));
+    for (auto& row : config_.prop_map) {
+        row.resize(static_cast<std::size_t>(new_cols), "");
     }
 }
 
@@ -45,6 +63,9 @@ void TilemapDocument::create_new(int rows, int cols, const TilemapConfig& tile_c
     config_.tiles = tile_config.tiles;
     config_.mapa.assign(static_cast<std::size_t>(rows),
                         std::vector<std::string>(static_cast<std::size_t>(cols), ""));
+    config_.props.clear();
+    config_.prop_map.assign(static_cast<std::size_t>(rows),
+                            std::vector<std::string>(static_cast<std::size_t>(cols), ""));
     path_.clear();
 }
 
@@ -81,6 +102,61 @@ void TilemapDocument::save(const std::string& path) const {
 
     toml::table root;
     root.emplace("tilemap", std::move(tilemap_tbl));
+
+    // Save props
+    if (!config_.props.empty()) {
+        toml::table prop_tbl;
+
+        toml::table prop_tiles_tbl;
+        for (const auto& [name, def] : config_.props) {
+            toml::table prop_def;
+            toml::array paths_arr;
+            for (const auto& p : def.paths) {
+                paths_arr.push_back(p);
+            }
+            prop_def.emplace("paths", std::move(paths_arr));
+
+            toml::table src;
+            src.emplace("x", def.src_x);
+            src.emplace("y", def.src_y);
+            src.emplace("w", def.src_w);
+            src.emplace("h", def.src_h);
+            prop_def.emplace("src", std::move(src));
+
+            prop_def.emplace("width", def.width);
+            prop_def.emplace("height", def.height);
+            if (def.frame_ms > 0) {
+                prop_def.emplace("frame_ms", static_cast<int64_t>(def.frame_ms));
+            }
+            prop_tiles_tbl.emplace(name, std::move(prop_def));
+        }
+        prop_tbl.emplace("tiles", std::move(prop_tiles_tbl));
+
+        // Only save prop_map if it has any non-empty entries
+        bool has_props = false;
+        for (const auto& row : config_.prop_map) {
+            for (const auto& cell : row) {
+                if (!cell.empty()) { has_props = true; break; }
+            }
+            if (has_props) break;
+        }
+
+        if (has_props) {
+            toml::array prop_grid;
+            for (const auto& row : config_.prop_map) {
+                toml::array row_array;
+                for (const auto& cell : row) {
+                    row_array.push_back(cell);
+                }
+                prop_grid.push_back(std::move(row_array));
+            }
+            toml::table pm;
+            pm.emplace("data", std::move(prop_grid));
+            prop_tbl.emplace("prop_map", std::move(pm));
+        }
+
+        root.emplace("prop", std::move(prop_tbl));
+    }
 
     std::ofstream file(path);
     file << root << std::endl;

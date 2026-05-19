@@ -2,6 +2,7 @@
 
 #include <QButtonGroup>
 #include <QGridLayout>
+#include <QIcon>
 #include <QLabel>
 #include <QScrollArea>
 #include <QToolButton>
@@ -25,17 +26,18 @@ TilePalette::TilePalette(TilemapConfig& config,
     scroll->setWidgetResizable(true);
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    auto* content = new QWidget();
-    auto* grid = new QGridLayout(content);
-    grid->setSpacing(4);
+    auto* scroll_content = new QWidget();
+    auto* scroll_layout = new QVBoxLayout(scroll_content);
+    scroll_layout->setContentsMargins(0, 0, 0, 0);
+    scroll_layout->setSpacing(0);
 
     button_group_ = new QButtonGroup(this);
     button_group_->setExclusive(true);
 
     int tsz = config_.tile_size;
     int preview_size = 64;
-    int col = 0, row = 0;
 
+    // Collect and sort tile names
     std::vector<std::string> sorted_names;
     sorted_names.reserve(config_.tiles.size());
     for (const auto& kv : config_.tiles) {
@@ -43,7 +45,74 @@ TilePalette::TilePalette(TilemapConfig& config,
     }
     std::sort(sorted_names.begin(), sorted_names.end());
 
-    for (const auto& name : sorted_names) {
+    // For now, all tiles go in a single section
+    auto section = make_section("Tiles", sorted_names, tsz, preview_size);
+    sections_.push_back(std::move(section));
+    scroll_layout->addWidget(sections_.back().header->parentWidget());
+
+    // Props section
+    std::vector<std::string> sorted_props;
+    sorted_props.reserve(config_.props.size());
+    for (const auto& kv : config_.props) {
+        sorted_props.push_back(kv.first);
+    }
+    std::sort(sorted_props.begin(), sorted_props.end());
+
+    if (!sorted_props.empty()) {
+        auto props_section = make_prop_section("Props", sorted_props, tsz, preview_size);
+        sections_.push_back(std::move(props_section));
+        scroll_layout->addWidget(sections_.back().header->parentWidget());
+    }
+
+    scroll_layout->addStretch();
+
+    scroll->setWidget(scroll_content);
+    layout->addWidget(scroll);
+}
+
+TilePalette::SectionWidgets TilePalette::make_section(
+    const std::string& title,
+    const std::vector<std::string>& tile_names,
+    int tsz, int preview_size) {
+
+    QString base = QString::fromStdString(title) +
+                   QString(" (%1)").arg(static_cast<int>(tile_names.size()));
+
+    auto* container = new QWidget();
+    auto* vlay = new QVBoxLayout(container);
+    vlay->setContentsMargins(0, 0, 0, 0);
+    vlay->setSpacing(0);
+
+    auto* header = new QToolButton();
+    header->setText("▼ " + base);
+    header->setCheckable(true);
+    header->setChecked(true);
+    header->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    header->setStyleSheet(
+        "QToolButton {"
+        "  background: #e0e0e0;"
+        "  border: 1px solid #ccc;"
+        "  border-radius: 4px;"
+        "  padding: 6px;"
+        "  font-weight: bold;"
+        "  text-align: left;"
+        "}"
+        "QToolButton:hover {"
+        "  background: #d0d0d0;"
+        "}"
+        "QToolButton:checked {"
+        "  border-bottom: 1px solid #aaa;"
+        "  border-radius: 4px 4px 0 0;"
+        "}"
+    );
+    header->setFixedHeight(32);
+
+    auto* content = new QWidget();
+    auto* grid = new QGridLayout(content);
+    grid->setSpacing(4);
+
+    int col = 0, row = 0;
+    for (const auto& name : tile_names) {
         const auto& def = config_.tiles.at(name);
         auto* btn = new QToolButton();
         btn->setText(QString::fromStdString(name));
@@ -90,8 +159,107 @@ TilePalette::TilePalette(TilemapConfig& config,
         }
     }
 
-    scroll->setWidget(content);
-    layout->addWidget(scroll);
+    vlay->addWidget(header);
+    vlay->addWidget(content);
+
+    connect(header, &QToolButton::toggled, this,
+            [header, content, base](bool checked) {
+                content->setVisible(checked);
+                header->setText(QString(checked ? "▼ " : "▶ ") + base);
+            });
+
+    return {header, content};
+}
+
+TilePalette::SectionWidgets TilePalette::make_prop_section(
+    const std::string& title,
+    const std::vector<std::string>& prop_names,
+    int /*tsz*/, int preview_size) {
+
+    QString base = QString::fromStdString(title) +
+                   QString(" (%1)").arg(static_cast<int>(prop_names.size()));
+
+    auto* container = new QWidget();
+    auto* vlay = new QVBoxLayout(container);
+    vlay->setContentsMargins(0, 0, 0, 0);
+    vlay->setSpacing(0);
+
+    auto* header = new QToolButton();
+    header->setText("▼ " + base);
+    header->setCheckable(true);
+    header->setChecked(true);
+    header->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    header->setStyleSheet(
+        "QToolButton {"
+        "  background: #e0e0e0;"
+        "  border: 1px solid #ccc;"
+        "  border-radius: 4px;"
+        "  padding: 6px;"
+        "  font-weight: bold;"
+        "  text-align: left;"
+        "}"
+        "QToolButton:hover {"
+        "  background: #d0d0d0;"
+        "}"
+        "QToolButton:checked {"
+        "  border-bottom: 1px solid #aaa;"
+        "  border-radius: 4px 4px 0 0;"
+        "}"
+    );
+    header->setFixedHeight(32);
+
+    auto* content = new QWidget();
+    auto* grid = new QGridLayout(content);
+    grid->setSpacing(4);
+
+    int col = 0, row = 0;
+    for (const auto& name : prop_names) {
+        const auto& def = config_.props.at(name);
+        auto* btn = new QToolButton();
+        btn->setText(QString::fromStdString(name));
+        btn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+        btn->setCheckable(true);
+        btn->setFixedSize(90, 90);
+
+        if (!def.paths.empty()) {
+            auto atlas_it = atlases_.find(def.paths[0]);
+            if (atlas_it != atlases_.end() && !atlas_it->second.isNull()) {
+                QPixmap frame = atlas_it->second.copy(
+                    QRect(def.src_x, def.src_y, def.src_w, def.src_h));
+                btn->setIcon(QIcon(frame.scaled(preview_size, preview_size,
+                                                Qt::KeepAspectRatio,
+                                                Qt::SmoothTransformation)));
+                btn->setIconSize(QSize(preview_size, preview_size));
+            }
+        }
+
+        button_group_->addButton(btn);
+
+        connect(btn, &QToolButton::clicked, this, [this, name]() {
+            selected_tile_ = name;
+            emit prop_selected(name);
+        });
+
+        tile_buttons_[name] = btn;
+
+        grid->addWidget(btn, row, col);
+        col++;
+        if (col >= 2) {
+            col = 0;
+            row++;
+        }
+    }
+
+    vlay->addWidget(header);
+    vlay->addWidget(content);
+
+    connect(header, &QToolButton::toggled, this,
+            [header, content, base](bool checked) {
+                content->setVisible(checked);
+                header->setText(QString(checked ? "▼ " : "▶ ") + base);
+            });
+
+    return {header, content};
 }
 
 void TilePalette::on_button_clicked(const std::string& name) {

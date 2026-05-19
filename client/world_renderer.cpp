@@ -19,6 +19,7 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig&
         window_w(window_w),
         window_h(window_h) {
     init_tilemap(tilemap);
+    init_props(tilemap);
     init_sprites(sprites_config);
 
     if (sprites.empty()) {
@@ -157,6 +158,42 @@ void WorldRenderer::init_tilemap(const TilemapConfig& tilemap) {
     map_px_h = static_cast<int>(tilemap_tiles_.size()) * tile_size;
 }
 
+void WorldRenderer::init_props(const TilemapConfig& tilemap) {
+    prop_tiles_.clear();
+    if (tilemap.props.empty()) return;
+
+    auto tsz = static_cast<std::size_t>(tile_size);
+    for (const auto& row: tilemap.prop_map) {
+        std::vector<PropRender> prop_row;
+        prop_row.reserve(row.size());
+        for (const auto& name: row) {
+            if (name.empty()) {
+                prop_row.push_back({});
+                continue;
+            }
+            auto it = tilemap.props.find(name);
+            if (it == tilemap.props.end()) {
+                prop_row.push_back({});
+                continue;
+            }
+            const PropDef& def = it->second;
+            PropRender pr;
+            pr.src = SDL2pp::Rect(def.src_x, def.src_y, def.src_w, def.src_h);
+            pr.display_w = def.width > 0 ? def.width : static_cast<int>(tsz);
+            pr.display_h = def.height > 0 ? def.height : static_cast<int>(tsz);
+            pr.frame_ms = def.frame_ms;
+            pr.current_frame = 0;
+            pr.last_ticks = SDL_GetTicks();
+
+            for (const auto& path: def.paths) {
+                pr.frames.emplace_back(renderer, load_surface(path));
+            }
+            prop_row.push_back(std::move(pr));
+        }
+        prop_tiles_.push_back(std::move(prop_row));
+    }
+}
+
 void WorldRenderer::init_sprites(const std::vector<SpriteConfig>& sprites_config) {
     sprites.reserve(sprites_config.size());
     for (const auto& sprite_config: sprites_config) {
@@ -252,6 +289,34 @@ void WorldRenderer::render_tilemap_or_background(const SDL2pp::Rect& cam) {
                 renderer.Copy(tex_it->second, tile.src, dst);
             }
         }
+
+        // Render props on top of tiles
+        if (!prop_tiles_.empty()) {
+            for (int row = first_row; row <= last_row; ++row) {
+                if (row < 0 || row >= static_cast<int>(prop_tiles_.size())) {
+                    continue;
+                }
+                auto& prop_row = prop_tiles_[static_cast<std::size_t>(row)];
+                if (prop_row.empty()) continue;
+
+                const int row_last_col2 = std::min(last_col,
+                    static_cast<int>(prop_row.size()) - 1);
+                for (int col = first_col; col <= row_last_col2; ++col) {
+                    if (col < 0) continue;
+                    auto& prop = prop_row[static_cast<std::size_t>(col)];
+                    if (prop.frames.empty()) continue;
+
+                    int offset_x = (prop.display_w - tile_size) / 2;
+                    int offset_y = (prop.display_h - tile_size) / 2;
+                    SDL2pp::Rect dst(
+                        col * tile_size - cam.GetX() - offset_x,
+                        row * tile_size - cam.GetY() - offset_y,
+                        prop.display_w, prop.display_h);
+                    renderer.Copy(prop.frames[prop.current_frame], prop.src, dst);
+                }
+            }
+        }
+
         return;
     }
 
@@ -302,6 +367,20 @@ void WorldRenderer::update_animation() {
         }
         sprite.last_ticks = now;
         sprite.current_frame = (sprite.current_frame + 1) % sprite.frames.size();
+    }
+
+    // Animate props
+    for (auto& row : prop_tiles_) {
+        for (auto& prop : row) {
+            if (prop.frames.size() <= 1 || prop.frame_ms == 0) {
+                continue;
+            }
+            if (now - prop.last_ticks < prop.frame_ms) {
+                continue;
+            }
+            prop.last_ticks = now;
+            prop.current_frame = (prop.current_frame + 1) % prop.frames.size();
+        }
     }
 }
 

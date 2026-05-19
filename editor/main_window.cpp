@@ -82,6 +82,14 @@ void MainWindow::setup_ui() {
                         .arg(QString::fromStdString(name))
                         .arg(doc_.width()).arg(doc_.height()));
             });
+    connect(palette_, &TilePalette::prop_selected, this,
+            [this](const std::string& name) {
+                selected_tile_ = name;
+                statusBar()->showMessage(
+                    QString("Selected prop: %1  |  Map: %2 x %3")
+                        .arg(QString::fromStdString(name))
+                        .arg(doc_.width()).arg(doc_.height()));
+            });
 
     splitter_->setStretchFactor(0, 3);
     splitter_->setStretchFactor(1, 1);
@@ -178,6 +186,11 @@ void MainWindow::load_atlas() {
     for (const auto& [name, def] : cfg.tiles) {
         ensure_loaded(def.path);
     }
+    for (const auto& [name, def] : cfg.props) {
+        if (!def.paths.empty()) {
+            ensure_loaded(def.paths[0]);
+        }
+    }
 }
 
 void MainWindow::render_tiles() {
@@ -220,6 +233,77 @@ void MainWindow::render_tiles() {
 
         tile_items_.push_back(std::move(row_items));
     }
+
+    render_props();
+}
+
+void MainWindow::render_props() {
+    const auto& cfg = doc_.config();
+    if (cfg.props.empty()) return;
+
+    // Clear old prop items
+    for (auto& row : prop_items_) {
+        for (auto* item : row) {
+            if (item) {
+                scene_->removeItem(item);
+                delete item;
+            }
+        }
+    }
+    prop_items_.clear();
+
+    auto tsz = doc_.tile_size();
+    prop_items_.reserve(doc_.height());
+
+    for (int r = 0; r < doc_.height(); ++r) {
+        std::vector<QGraphicsPixmapItem*> row_items;
+        row_items.reserve(doc_.width());
+
+        for (int c = 0; c < doc_.width(); ++c) {
+            const auto& name = doc_.prop_name(r, c);
+            if (name.empty()) {
+                row_items.push_back(nullptr);
+                continue;
+            }
+
+            auto prop_it = cfg.props.find(name);
+            if (prop_it == cfg.props.end()) {
+                row_items.push_back(nullptr);
+                continue;
+            }
+
+            const auto& def = prop_it->second;
+            if (def.paths.empty()) {
+                row_items.push_back(nullptr);
+                continue;
+            }
+
+            auto atlas_it = atlases_.find(def.paths[0]);
+            if (atlas_it == atlases_.end() || atlas_it->second.isNull()) {
+                row_items.push_back(nullptr);
+                continue;
+            }
+
+            QPixmap frame = atlas_it->second.copy(
+                QRect(def.src_x, def.src_y, def.src_w, def.src_h));
+
+            int display_w = def.width > 0 ? def.width : tsz;
+            int display_h = def.height > 0 ? def.height : tsz;
+            QPixmap scaled = frame.scaled(display_w, display_h,
+                                          Qt::IgnoreAspectRatio,
+                                          Qt::SmoothTransformation);
+
+            auto* item = scene_->addPixmap(scaled);
+            // Center the prop on the tile cell
+            int offset_x = (display_w - tsz) / 2;
+            int offset_y = (display_h - tsz) / 2;
+            item->setPos(c * tsz - offset_x, r * tsz - offset_y);
+            item->setZValue(0.5);  // above tiles (z=0), below grid (z=1)
+            row_items.push_back(item);
+        }
+
+        prop_items_.push_back(std::move(row_items));
+    }
 }
 
 bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
@@ -235,11 +319,17 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
             return false;
 
         if (me->button() == Qt::LeftButton && !selected_tile_.empty()) {
-            set_tile(row, col, selected_tile_);
+            // Check if it's a tile or prop
+            if (doc_.config().props.find(selected_tile_) != doc_.config().props.end()) {
+                set_prop(row, col, selected_tile_);
+            } else {
+                set_tile(row, col, selected_tile_);
+            }
             return true;
         }
         if (me->button() == Qt::RightButton) {
             set_tile(row, col, "");
+            set_prop(row, col, "");
             return true;
         }
     }
@@ -278,6 +368,43 @@ void MainWindow::set_tile(int row, int col, const std::string& name) {
     }
 }
 
+void MainWindow::set_prop(int row, int col, const std::string& name) {
+    doc_.set_prop(row, col, name);
+
+    auto& old_item = prop_items_[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)];
+    if (old_item) {
+        scene_->removeItem(old_item);
+        delete old_item;
+        old_item = nullptr;
+    }
+
+    if (!name.empty()) {
+        auto prop_it = doc_.config().props.find(name);
+        if (prop_it != doc_.config().props.end()) {
+            const auto& def = prop_it->second;
+            if (!def.paths.empty()) {
+                auto atlas_it = atlases_.find(def.paths[0]);
+                if (atlas_it != atlases_.end() && !atlas_it->second.isNull()) {
+                    auto tsz = doc_.tile_size();
+                    QPixmap frame = atlas_it->second.copy(
+                        QRect(def.src_x, def.src_y, def.src_w, def.src_h));
+                    int display_w = def.width > 0 ? def.width : tsz;
+                    int display_h = def.height > 0 ? def.height : tsz;
+                    QPixmap scaled = frame.scaled(display_w, display_h,
+                                                  Qt::IgnoreAspectRatio,
+                                                  Qt::SmoothTransformation);
+                    auto* item = scene_->addPixmap(scaled);
+                    int offset_x = (display_w - tsz) / 2;
+                    int offset_y = (display_h - tsz) / 2;
+                    item->setPos(col * tsz - offset_x, row * tsz - offset_y);
+                    item->setZValue(0.5);
+                    prop_items_[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = item;
+                }
+            }
+        }
+    }
+}
+
 void MainWindow::resize_map(int new_width, int new_height) {
     for (auto& row : tile_items_) {
         for (auto* item : row) {
@@ -288,6 +415,16 @@ void MainWindow::resize_map(int new_width, int new_height) {
         }
     }
     tile_items_.clear();
+
+    for (auto& row : prop_items_) {
+        for (auto* item : row) {
+            if (item) {
+                scene_->removeItem(item);
+                delete item;
+            }
+        }
+    }
+    prop_items_.clear();
 
     scene_->clear();
 
@@ -354,6 +491,17 @@ void MainWindow::open_map() {
             }
         }
         tile_items_.clear();
+
+        for (auto& row : prop_items_) {
+            for (auto* item : row) {
+                if (item) {
+                    scene_->removeItem(item);
+                    delete item;
+                }
+            }
+        }
+        prop_items_.clear();
+
         scene_->clear();
 
         doc_.load(path.toStdString());
@@ -369,6 +517,14 @@ void MainWindow::open_map() {
                     selected_tile_ = name;
                     statusBar()->showMessage(
                         QString("Selected tile: %1  |  Map: %2 x %3")
+                            .arg(QString::fromStdString(name))
+                            .arg(doc_.width()).arg(doc_.height()));
+                });
+        connect(palette_, &TilePalette::prop_selected, this,
+                [this](const std::string& name) {
+                    selected_tile_ = name;
+                    statusBar()->showMessage(
+                        QString("Selected prop: %1  |  Map: %2 x %3")
                             .arg(QString::fromStdString(name))
                             .arg(doc_.width()).arg(doc_.height()));
                 });
@@ -399,6 +555,17 @@ void MainWindow::toggle_walkable_overlay() {
         }
     }
     tile_items_.clear();
+
+    for (auto& row : prop_items_) {
+        for (auto* item : row) {
+            if (item) {
+                scene_->removeItem(item);
+                delete item;
+            }
+        }
+    }
+    prop_items_.clear();
+
     render_tiles();
 }
 
@@ -439,6 +606,17 @@ void MainWindow::new_map() {
         }
     }
     tile_items_.clear();
+
+    for (auto& row : prop_items_) {
+        for (auto* item : row) {
+            if (item) {
+                scene_->removeItem(item);
+                delete item;
+            }
+        }
+    }
+    prop_items_.clear();
+
     scene_->clear();
 
     doc_.create_new(new_h, new_w, doc_.config());
