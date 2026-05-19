@@ -9,7 +9,6 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsScene>
 #include <QGraphicsView>
-#include <QGraphicsRectItem>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMenuBar>
@@ -74,22 +73,7 @@ void MainWindow::setup_ui() {
     palette_ = new TilePalette(doc_.config(), atlases_, this);
     splitter_->addWidget(palette_);
 
-    connect(palette_, &TilePalette::tile_selected, this,
-            [this](const std::string& name) {
-                selected_tile_ = name;
-                statusBar()->showMessage(
-                    QString("Selected tile: %1  |  Map: %2 x %3")
-                        .arg(QString::fromStdString(name))
-                        .arg(doc_.width()).arg(doc_.height()));
-            });
-    connect(palette_, &TilePalette::prop_selected, this,
-            [this](const std::string& name) {
-                selected_tile_ = name;
-                statusBar()->showMessage(
-                    QString("Selected prop: %1  |  Map: %2 x %3")
-                        .arg(QString::fromStdString(name))
-                        .arg(doc_.width()).arg(doc_.height()));
-            });
+    connect_palette_signals();
 
     splitter_->setStretchFactor(0, 3);
     splitter_->setStretchFactor(1, 1);
@@ -405,30 +389,13 @@ void MainWindow::set_prop(int row, int col, const std::string& name) {
     }
 }
 
-void MainWindow::resize_map(int new_width, int new_height) {
-    for (auto& row : tile_items_) {
-        for (auto* item : row) {
-            if (item) {
-                scene_->removeItem(item);
-                delete item;
-            }
-        }
-    }
-    tile_items_.clear();
-
-    for (auto& row : prop_items_) {
-        for (auto* item : row) {
-            if (item) {
-                scene_->removeItem(item);
-                delete item;
-            }
-        }
-    }
-    prop_items_.clear();
+void MainWindow::resize_map(int cols, int rows) {
+    clear_grid(tile_items_);
+    clear_grid(prop_items_);
 
     scene_->clear();
 
-    doc_.resize(new_height, new_width, "");
+    doc_.resize(rows, cols, "");
 
     render_tiles();
     draw_grid();
@@ -482,25 +449,8 @@ void MainWindow::open_map() {
     if (path.isEmpty()) return;
 
     try {
-        for (auto& row : tile_items_) {
-            for (auto* item : row) {
-                if (item) {
-                    scene_->removeItem(item);
-                    delete item;
-                }
-            }
-        }
-        tile_items_.clear();
-
-        for (auto& row : prop_items_) {
-            for (auto* item : row) {
-                if (item) {
-                    scene_->removeItem(item);
-                    delete item;
-                }
-            }
-        }
-        prop_items_.clear();
+        clear_grid(tile_items_);
+        clear_grid(prop_items_);
 
         scene_->clear();
 
@@ -512,22 +462,7 @@ void MainWindow::open_map() {
         delete palette_;
         palette_ = new TilePalette(doc_.config(), atlases_, this);
         splitter_->addWidget(palette_);
-        connect(palette_, &TilePalette::tile_selected, this,
-                [this](const std::string& name) {
-                    selected_tile_ = name;
-                    statusBar()->showMessage(
-                        QString("Selected tile: %1  |  Map: %2 x %3")
-                            .arg(QString::fromStdString(name))
-                            .arg(doc_.width()).arg(doc_.height()));
-                });
-        connect(palette_, &TilePalette::prop_selected, this,
-                [this](const std::string& name) {
-                    selected_tile_ = name;
-                    statusBar()->showMessage(
-                        QString("Selected prop: %1  |  Map: %2 x %3")
-                            .arg(QString::fromStdString(name))
-                            .arg(doc_.width()).arg(doc_.height()));
-                });
+        connect_palette_signals();
 
         render_tiles();
         draw_grid();
@@ -546,25 +481,8 @@ void MainWindow::open_map() {
 
 void MainWindow::toggle_walkable_overlay() {
     show_walkable_overlay_ = !show_walkable_overlay_;
-    for (auto& row : tile_items_) {
-        for (auto* item : row) {
-            if (item) {
-                scene_->removeItem(item);
-                delete item;
-            }
-        }
-    }
-    tile_items_.clear();
-
-    for (auto& row : prop_items_) {
-        for (auto* item : row) {
-            if (item) {
-                scene_->removeItem(item);
-                delete item;
-            }
-        }
-    }
-    prop_items_.clear();
+    clear_grid(tile_items_);
+    clear_grid(prop_items_);
 
     render_tiles();
 }
@@ -597,25 +515,8 @@ void MainWindow::new_map() {
     int new_w = w_spin->value();
     int new_h = h_spin->value();
 
-    for (auto& row : tile_items_) {
-        for (auto* item : row) {
-            if (item) {
-                scene_->removeItem(item);
-                delete item;
-            }
-        }
-    }
-    tile_items_.clear();
-
-    for (auto& row : prop_items_) {
-        for (auto* item : row) {
-            if (item) {
-                scene_->removeItem(item);
-                delete item;
-            }
-        }
-    }
-    prop_items_.clear();
+    clear_grid(tile_items_);
+    clear_grid(prop_items_);
 
     scene_->clear();
 
@@ -633,6 +534,37 @@ void MainWindow::new_map() {
     setWindowTitle("Map Editor - Untitled");
     statusBar()->showMessage(
         QString("New map: %1 x %2 tiles").arg(new_w).arg(new_h));
+}
+
+void MainWindow::clear_grid(std::vector<std::vector<QGraphicsPixmapItem*>>& grid) {
+    for (auto& row : grid) {
+        for (auto* item : row) {
+            if (item) {
+                scene_->removeItem(item);
+                delete item;
+            }
+        }
+    }
+    grid.clear();
+}
+
+void MainWindow::connect_palette_signals() {
+    connect(palette_, &TilePalette::tile_selected, this,
+            [this](const std::string& name) {
+                selected_tile_ = name;
+                statusBar()->showMessage(
+                    QString("Selected tile: %1  |  Map: %2 x %3")
+                        .arg(QString::fromStdString(name))
+                        .arg(doc_.width()).arg(doc_.height()));
+            });
+    connect(palette_, &TilePalette::prop_selected, this,
+            [this](const std::string& name) {
+                selected_tile_ = name;
+                statusBar()->showMessage(
+                    QString("Selected prop: %1  |  Map: %2 x %3")
+                        .arg(QString::fromStdString(name))
+                        .arg(doc_.width()).arg(doc_.height()));
+            });
 }
 
 void MainWindow::showEvent(QShowEvent* event) {

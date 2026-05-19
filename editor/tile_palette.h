@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QPixmap>
 #include <QToolButton>
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -31,13 +32,13 @@ private:
         QWidget* content;
     };
 
-    SectionWidgets make_section(const std::string& title,
-                                const std::vector<std::string>& tile_names,
-                                int tsz, int preview_size);
-    SectionWidgets make_prop_section(const std::string& title,
-                                     const std::vector<std::string>& prop_names,
-                                     int tsz, int preview_size);
-    void on_button_clicked(const std::string& name);
+    SectionWidgets make_section(
+        const std::string& title,
+        const std::vector<std::string>& names,
+        int preview_size,
+        std::function<QPixmap(const std::string& name)> get_thumbnail,
+        std::function<void(const std::string& name)> on_click,
+        bool enable_walkable_menu);
     void toggle_walkable(const std::string& name);
     void update_button_visual(QToolButton* btn, const std::string& name) const;
 

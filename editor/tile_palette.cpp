@@ -45,8 +45,20 @@ TilePalette::TilePalette(TilemapConfig& config,
     }
     std::sort(sorted_names.begin(), sorted_names.end());
 
-    // For now, all tiles go in a single section
-    auto section = make_section("Tiles", sorted_names, tsz, preview_size);
+    // Tiles section
+    auto section = make_section("Tiles", sorted_names, preview_size,
+        [this, tsz](const std::string& name) -> QPixmap {
+            const auto& def = config_.tiles.at(name);
+            std::string atlas_path = def.path.empty() ? config_.path : def.path;
+            auto it = atlases_.find(atlas_path);
+            if (it == atlases_.end() || it->second.isNull()) return {};
+            return it->second.copy(QRect(def.x, def.y, tsz, tsz));
+        },
+        [this](const std::string& name) {
+            selected_tile_ = name;
+            emit tile_selected(name);
+        },
+        true);
     sections_.push_back(std::move(section));
     scroll_layout->addWidget(sections_.back().header->parentWidget());
 
@@ -59,7 +71,19 @@ TilePalette::TilePalette(TilemapConfig& config,
     std::sort(sorted_props.begin(), sorted_props.end());
 
     if (!sorted_props.empty()) {
-        auto props_section = make_prop_section("Props", sorted_props, tsz, preview_size);
+        auto props_section = make_section("Props", sorted_props, preview_size,
+            [this, tsz](const std::string& name) -> QPixmap {
+                const auto& def = config_.props.at(name);
+                if (def.paths.empty()) return {};
+                auto it = atlases_.find(def.paths[0]);
+                if (it == atlases_.end() || it->second.isNull()) return {};
+                return it->second.copy(QRect(def.src_x, def.src_y, def.src_w, def.src_h));
+            },
+            [this](const std::string& name) {
+                selected_tile_ = name;
+                emit prop_selected(name);
+            },
+            false);
         sections_.push_back(std::move(props_section));
         scroll_layout->addWidget(sections_.back().header->parentWidget());
     }
@@ -72,11 +96,14 @@ TilePalette::TilePalette(TilemapConfig& config,
 
 TilePalette::SectionWidgets TilePalette::make_section(
     const std::string& title,
-    const std::vector<std::string>& tile_names,
-    int tsz, int preview_size) {
+    const std::vector<std::string>& names,
+    int preview_size,
+    std::function<QPixmap(const std::string&)> get_thumbnail,
+    std::function<void(const std::string&)> on_click,
+    bool enable_walkable_menu) {
 
     QString base = QString::fromStdString(title) +
-                   QString(" (%1)").arg(static_cast<int>(tile_names.size()));
+                   QString(" (%1)").arg(static_cast<int>(names.size()));
 
     auto* container = new QWidget();
     auto* vlay = new QVBoxLayout(container);
@@ -112,132 +139,38 @@ TilePalette::SectionWidgets TilePalette::make_section(
     grid->setSpacing(4);
 
     int col = 0, row = 0;
-    for (const auto& name : tile_names) {
-        const auto& def = config_.tiles.at(name);
+    for (const auto& name : names) {
         auto* btn = new QToolButton();
         btn->setText(QString::fromStdString(name));
         btn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
         btn->setCheckable(true);
         btn->setFixedSize(90, 90);
 
-        btn->setToolTip(QString::fromStdString(
-            name + (def.walkable ? " (walkable)" : " (blocked)")));
-
-        if (!def.walkable) {
-            btn->setStyleSheet("QToolButton { border: 2px solid red; }");
-        }
-
-        std::string atlas_path = def.path.empty() ? config_.path : def.path;
-        auto atlas_it = atlases_.find(atlas_path);
-        if (atlas_it != atlases_.end() && !atlas_it->second.isNull()) {
-            QPixmap tile = atlas_it->second.copy(QRect(def.x, def.y, tsz, tsz));
-            btn->setIcon(QIcon(tile.scaled(preview_size, preview_size,
-                                           Qt::KeepAspectRatio,
-                                           Qt::SmoothTransformation)));
+        QPixmap thumb = get_thumbnail(name);
+        if (!thumb.isNull()) {
+            btn->setIcon(QIcon(thumb.scaled(preview_size, preview_size,
+                                            Qt::KeepAspectRatio,
+                                            Qt::SmoothTransformation)));
             btn->setIconSize(QSize(preview_size, preview_size));
         }
 
-        btn->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(btn, &QToolButton::customContextMenuRequested, this,
-                [this, name]() {
-                    toggle_walkable(name);
-                });
-
-        button_group_->addButton(btn);
-
-        connect(btn, &QToolButton::clicked, this, [this, name]() {
-            on_button_clicked(name);
-        });
-
-        tile_buttons_[name] = btn;
-
-        grid->addWidget(btn, row, col);
-        col++;
-        if (col >= 2) {
-            col = 0;
-            row++;
-        }
-    }
-
-    vlay->addWidget(header);
-    vlay->addWidget(content);
-
-    connect(header, &QToolButton::toggled, this,
-            [header, content, base](bool checked) {
-                content->setVisible(checked);
-                header->setText(QString(checked ? "▼ " : "▶ ") + base);
-            });
-
-    return {header, content};
-}
-
-TilePalette::SectionWidgets TilePalette::make_prop_section(
-    const std::string& title,
-    const std::vector<std::string>& prop_names,
-    int /*tsz*/, int preview_size) {
-
-    QString base = QString::fromStdString(title) +
-                   QString(" (%1)").arg(static_cast<int>(prop_names.size()));
-
-    auto* container = new QWidget();
-    auto* vlay = new QVBoxLayout(container);
-    vlay->setContentsMargins(0, 0, 0, 0);
-    vlay->setSpacing(0);
-
-    auto* header = new QToolButton();
-    header->setText("▼ " + base);
-    header->setCheckable(true);
-    header->setChecked(true);
-    header->setToolButtonStyle(Qt::ToolButtonTextOnly);
-    header->setStyleSheet(
-        "QToolButton {"
-        "  background: #e0e0e0;"
-        "  border: 1px solid #ccc;"
-        "  border-radius: 4px;"
-        "  padding: 6px;"
-        "  font-weight: bold;"
-        "  text-align: left;"
-        "}"
-        "QToolButton:hover {"
-        "  background: #d0d0d0;"
-        "}"
-        "QToolButton:checked {"
-        "  border-bottom: 1px solid #aaa;"
-        "  border-radius: 4px 4px 0 0;"
-        "}"
-    );
-    header->setFixedHeight(32);
-
-    auto* content = new QWidget();
-    auto* grid = new QGridLayout(content);
-    grid->setSpacing(4);
-
-    int col = 0, row = 0;
-    for (const auto& name : prop_names) {
-        const auto& def = config_.props.at(name);
-        auto* btn = new QToolButton();
-        btn->setText(QString::fromStdString(name));
-        btn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-        btn->setCheckable(true);
-        btn->setFixedSize(90, 90);
-
-        if (!def.paths.empty()) {
-            auto atlas_it = atlases_.find(def.paths[0]);
-            if (atlas_it != atlases_.end() && !atlas_it->second.isNull()) {
-                QPixmap frame = atlas_it->second.copy(
-                    QRect(def.src_x, def.src_y, def.src_w, def.src_h));
-                btn->setIcon(QIcon(frame.scaled(preview_size, preview_size,
-                                                Qt::KeepAspectRatio,
-                                                Qt::SmoothTransformation)));
-                btn->setIconSize(QSize(preview_size, preview_size));
+        if (enable_walkable_menu) {
+            const auto& def = config_.tiles.at(name);
+            btn->setToolTip(QString::fromStdString(
+                name + (def.walkable ? " (walkable)" : " (blocked)")));
+            if (!def.walkable) {
+                btn->setStyleSheet("QToolButton { border: 2px solid red; }");
             }
+            btn->setContextMenuPolicy(Qt::CustomContextMenu);
+            connect(btn, &QToolButton::customContextMenuRequested, this,
+                    [this, name]() { toggle_walkable(name); });
         }
 
         button_group_->addButton(btn);
 
-        connect(btn, &QToolButton::clicked, this, [this, name]() {
+        connect(btn, &QToolButton::clicked, this, [this, name, on_click]() {
             selected_tile_ = name;
-            emit prop_selected(name);
+            on_click(name);
         });
 
         tile_buttons_[name] = btn;
@@ -260,11 +193,6 @@ TilePalette::SectionWidgets TilePalette::make_prop_section(
             });
 
     return {header, content};
-}
-
-void TilePalette::on_button_clicked(const std::string& name) {
-    selected_tile_ = name;
-    emit tile_selected(name);
 }
 
 void TilePalette::toggle_walkable(const std::string& name) {

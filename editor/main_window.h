@@ -31,12 +31,14 @@ private:
     void render_props();
     void set_tile(int row, int col, const std::string& name);
     void set_prop(int row, int col, const std::string& name);
-    void resize_map(int new_width, int new_height);
+    void resize_map(int cols, int rows);
     void save_map();
     void save_map_as();
     void new_map();
     void open_map();
     void toggle_walkable_overlay();
+    void clear_grid(std::vector<std::vector<QGraphicsPixmapItem*>>& grid);
+    void connect_palette_signals();
 
     TilemapDocument doc_;
     std::unordered_map<std::string, QPixmap> atlases_;
