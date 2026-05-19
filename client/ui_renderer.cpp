@@ -1,9 +1,8 @@
 #include "ui_renderer.h"
 
 #include <algorithm>
-#include <stdexcept>
 
-#include <SDL2/SDL_image.h>
+#include "texture_loader.h"
 
 UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h):
         renderer(renderer),
@@ -103,10 +102,3 @@ void UIRenderer::render_chat_cursor(int x_offset) const {
     }
 }
 
-SDL2pp::Surface UIRenderer::load_surface(const std::string& path) {
-    SDL_Surface* raw_surface = IMG_Load(path.c_str());
-    if (!raw_surface) {
-        throw std::runtime_error(std::string("IMG_Load failed: ") + IMG_GetError());
-    }
-    return SDL2pp::Surface(raw_surface);
-}

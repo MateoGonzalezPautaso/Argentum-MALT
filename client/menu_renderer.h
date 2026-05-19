@@ -25,7 +25,6 @@ public:
 
 private:
     void init_layout();
-    static SDL2pp::Surface load_surface(const std::string& path);
 };
 
 #endif

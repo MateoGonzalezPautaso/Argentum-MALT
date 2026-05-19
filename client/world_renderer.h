@@ -56,7 +56,6 @@ public:
     void set_anchor_src_y(int y);
 
 private:
-    static SDL2pp::Surface load_surface(const std::string& path);
     void init_tilemap(const TilemapConfig& tilemap);
     void init_sprites(const std::vector<SpriteConfig>& sprites_config);
     SpriteRender build_sprite_render(const SpriteConfig& sprite_config);

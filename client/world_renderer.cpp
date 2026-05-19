@@ -5,7 +5,8 @@
 #include <utility>
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+
+#include "texture_loader.h"
 
 WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig& background,
                              const TilemapConfig& tilemap,
@@ -343,10 +344,3 @@ const WorldRenderer::SpriteRender* WorldRenderer::find_movable_sprite() const {
     return nullptr;
 }
 
-SDL2pp::Surface WorldRenderer::load_surface(const std::string& path) {
-    SDL_Surface* raw_surface = IMG_Load(path.c_str());
-    if (!raw_surface) {
-        throw std::runtime_error(std::string("IMG_Load failed: ") + IMG_GetError());
-    }
-    return SDL2pp::Surface(raw_surface);
-}

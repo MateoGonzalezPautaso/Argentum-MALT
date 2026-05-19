@@ -1,0 +1,12 @@
+#include "texture_loader.h"
+
+#include <SDL2/SDL_image.h>
+#include <stdexcept>
+
+SDL2pp::Surface load_surface(const std::string& path) {
+    SDL_Surface* raw = IMG_Load(path.c_str());
+    if (!raw) {
+        throw std::runtime_error(std::string("IMG_Load failed: ") + IMG_GetError());
+    }
+    return SDL2pp::Surface(raw);
+}

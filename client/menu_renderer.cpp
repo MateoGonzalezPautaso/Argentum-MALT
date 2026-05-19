@@ -1,9 +1,8 @@
 #include "menu_renderer.h"
 
 #include <algorithm>
-#include <stdexcept>
 
-#include <SDL2/SDL_image.h>
+#include "texture_loader.h"
 
 MenuRenderer::MenuRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h):
         renderer(renderer),
@@ -53,10 +52,3 @@ void MenuRenderer::init_layout() {
     menu_button_rect = SDL2pp::Rect(button_x, button_y, button_w, button_h);
 }
 
-SDL2pp::Surface MenuRenderer::load_surface(const std::string& path) {
-    SDL_Surface* raw_surface = IMG_Load(path.c_str());
-    if (!raw_surface) {
-        throw std::runtime_error(std::string("IMG_Load failed: ") + IMG_GetError());
-    }
-    return SDL2pp::Surface(raw_surface);
-}

@@ -32,7 +32,6 @@ private:
     SDL2pp::Texture make_text_texture(const std::string& text, int& text_w, int& text_h) const;
     void render_chat_cursor(int x_offset) const;
     void render_chat_text_line(int& clipped_w) const;
-    static SDL2pp::Surface load_surface(const std::string& path);
 };
 
 #endif
