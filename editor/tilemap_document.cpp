@@ -63,7 +63,7 @@ void TilemapDocument::create_new(int rows, int cols, const TilemapConfig& tile_c
     config_.tiles = tile_config.tiles;
     config_.mapa.assign(static_cast<std::size_t>(rows),
                         std::vector<std::string>(static_cast<std::size_t>(cols), ""));
-    config_.props.clear();
+    config_.props = tile_config.props;
     config_.prop_map.assign(static_cast<std::size_t>(rows),
                             std::vector<std::string>(static_cast<std::size_t>(cols), ""));
     path_.clear();

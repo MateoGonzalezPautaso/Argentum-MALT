@@ -150,7 +150,7 @@ void MainWindow::setup_ui() {
     auto* walkable_action = view_menu->addAction("Show &Walkable Overlay");
     walkable_action->setCheckable(true);
     walkable_action->setChecked(show_walkable_overlay_);
-    connect(walkable_action, &QAction::toggled, this, &MainWindow::toggle_walkable_overlay);
+    connect(walkable_action, &QAction::triggered, this, &MainWindow::toggle_walkable_overlay);
 }
 
 void MainWindow::draw_grid() {
