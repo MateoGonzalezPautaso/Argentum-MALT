@@ -39,6 +39,15 @@ void TilemapDocument::resize(int new_rows, int new_cols, const std::string& defa
     }
 }
 
+void TilemapDocument::create_new(int rows, int cols, const TilemapConfig& tile_config) {
+    config_.path = tile_config.path;
+    config_.tile_size = tile_config.tile_size;
+    config_.tiles = tile_config.tiles;
+    config_.mapa.assign(static_cast<std::size_t>(rows),
+                        std::vector<std::string>(static_cast<std::size_t>(cols), ""));
+    path_.clear();
+}
+
 void TilemapDocument::save(const std::string& path) const {
     toml::table tilemap_tbl;
 

@@ -2,7 +2,10 @@
 #include "tile_palette.h"
 
 #include <QApplication>
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QFileDialog>
+#include <QFormLayout>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QHBoxLayout>
@@ -113,6 +116,12 @@ void MainWindow::setup_ui() {
 
     // File menu
     auto* file_menu = menuBar()->addMenu("&File");
+
+    auto* new_action = file_menu->addAction("&New Map");
+    new_action->setShortcut(QKeySequence::New);
+    connect(new_action, &QAction::triggered, this, &MainWindow::new_map);
+
+    file_menu->addSeparator();
 
     auto* save_action = file_menu->addAction("&Save");
     save_action->setShortcut(QKeySequence::Save);
@@ -288,6 +297,61 @@ void MainWindow::save_map_as() {
     } catch (const std::exception& e) {
         QMessageBox::warning(this, "Save Error", e.what());
     }
+}
+
+void MainWindow::new_map() {
+    QDialog dialog(this);
+    dialog.setWindowTitle("New Map");
+
+    auto* form = new QFormLayout(&dialog);
+
+    auto* w_spin = new QSpinBox();
+    w_spin->setRange(1, 256);
+    w_spin->setValue(20);
+
+    auto* h_spin = new QSpinBox();
+    h_spin->setRange(1, 256);
+    h_spin->setValue(20);
+
+    form->addRow("Width:", w_spin);
+    form->addRow("Height:", h_spin);
+
+    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    form->addRow(buttons);
+
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+
+    if (dialog.exec() != QDialog::Accepted) return;
+
+    int new_w = w_spin->value();
+    int new_h = h_spin->value();
+
+    for (auto& row : tile_items_) {
+        for (auto* item : row) {
+            if (item) {
+                scene_->removeItem(item);
+                delete item;
+            }
+        }
+    }
+    tile_items_.clear();
+    scene_->clear();
+
+    doc_.create_new(new_h, new_w, doc_.config());
+    load_atlas();
+
+    render_tiles();
+    draw_grid();
+
+    width_spin_->setValue(doc_.width());
+    height_spin_->setValue(doc_.height());
+
+    view_->fitInView(scene_->sceneRect(), Qt::KeepAspectRatio);
+
+    setWindowTitle("Map Editor - Untitled");
+    statusBar()->showMessage(
+        QString("New map: %1 x %2 tiles").arg(new_w).arg(new_h));
 }
 
 void MainWindow::showEvent(QShowEvent* event) {

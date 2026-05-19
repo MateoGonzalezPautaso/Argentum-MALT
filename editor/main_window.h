@@ -31,6 +31,7 @@ private:
     void resize_map(int new_width, int new_height);
     void save_map();
     void save_map_as();
+    void new_map();
 
     TilemapDocument doc_;
     QPixmap atlas_;
