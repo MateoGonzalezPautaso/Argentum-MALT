@@ -9,11 +9,11 @@
 
 #include "chat_input.h"
 #include "config.h"
-#include "login_renderer.h"
-#include "menu_renderer.h"
 #include "move_controller.h"
-#include "ui_renderer.h"
-#include "world_renderer.h"
+#include "render/login_renderer.h"
+#include "render/menu_renderer.h"
+#include "render/ui_renderer.h"
+#include "render/world_renderer.h"
 
 class ClientEngine {
 private:

@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "chat_input.h"
+#include "../chat_input.h"
 #include "texture_loader.h"
 
 LoginRenderer::LoginRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h,
