@@ -7,6 +7,9 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include <algorithm>
+#include <vector>
+
 TilePalette::TilePalette(TilemapConfig& config,
                          std::unordered_map<std::string, QPixmap>& atlases,
                          QWidget* parent)
@@ -33,7 +36,15 @@ TilePalette::TilePalette(TilemapConfig& config,
     int preview_size = 64;
     int col = 0, row = 0;
 
-    for (const auto& [name, def] : config_.tiles) {
+    std::vector<std::string> sorted_names;
+    sorted_names.reserve(config_.tiles.size());
+    for (const auto& kv : config_.tiles) {
+        sorted_names.push_back(kv.first);
+    }
+    std::sort(sorted_names.begin(), sorted_names.end());
+
+    for (const auto& name : sorted_names) {
+        const auto& def = config_.tiles.at(name);
         auto* btn = new QToolButton();
         btn->setText(QString::fromStdString(name));
         btn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
