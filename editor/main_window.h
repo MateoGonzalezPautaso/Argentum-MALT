@@ -34,6 +34,7 @@ private:
     void save_map_as();
     void new_map();
     void open_map();
+    void toggle_walkable_overlay();
 
     TilemapDocument doc_;
     std::unordered_map<std::string, QPixmap> atlases_;
@@ -46,6 +47,7 @@ private:
     QSpinBox* height_spin_ = nullptr;
     std::string selected_tile_;
     bool first_show_ = true;
+    bool show_walkable_overlay_ = true;
 };
 
 #endif

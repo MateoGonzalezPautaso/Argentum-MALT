@@ -6,8 +6,10 @@
 #include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QFormLayout>
+#include <QGraphicsRectItem>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QGraphicsRectItem>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMenuBar>
@@ -134,6 +136,13 @@ void MainWindow::setup_ui() {
     auto* save_as_action = file_menu->addAction("Save &As...");
     save_as_action->setShortcut(QKeySequence::SaveAs);
     connect(save_as_action, &QAction::triggered, this, &MainWindow::save_map_as);
+
+    // View menu
+    auto* view_menu = menuBar()->addMenu("&View");
+    auto* walkable_action = view_menu->addAction("Show &Walkable Overlay");
+    walkable_action->setCheckable(true);
+    walkable_action->setChecked(show_walkable_overlay_);
+    connect(walkable_action, &QAction::toggled, this, &MainWindow::toggle_walkable_overlay);
 }
 
 void MainWindow::draw_grid() {
@@ -200,6 +209,11 @@ void MainWindow::render_tiles() {
             QPixmap tile = atlas_it->second.copy(QRect(def.x, def.y, tsz, tsz));
             auto* item = scene_->addPixmap(tile);
             item->setPos(c * tsz, r * tsz);
+            if (!def.walkable && show_walkable_overlay_) {
+                auto* overlay = new QGraphicsRectItem(0, 0, tsz, tsz, item);
+                overlay->setBrush(QColor(255, 0, 0, 60));
+                overlay->setPen(QPen(Qt::NoPen));
+            }
 
             row_items.push_back(item);
         }
@@ -253,6 +267,11 @@ void MainWindow::set_tile(int row, int col, const std::string& name) {
                 QPixmap tile = atlas_it->second.copy(QRect(def.x, def.y, tsz, tsz));
                 auto* item = scene_->addPixmap(tile);
                 item->setPos(col * tsz, row * tsz);
+                if (!def.walkable && show_walkable_overlay_) {
+                    auto* overlay = new QGraphicsRectItem(0, 0, tsz, tsz, item);
+                    overlay->setBrush(QColor(255, 0, 0, 60));
+                    overlay->setPen(QPen(Qt::NoPen));
+                }
                 tile_items_[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = item;
             }
         }
@@ -367,6 +386,20 @@ void MainWindow::open_map() {
     } catch (const std::exception& e) {
         QMessageBox::critical(this, "Open Error", e.what());
     }
+}
+
+void MainWindow::toggle_walkable_overlay() {
+    show_walkable_overlay_ = !show_walkable_overlay_;
+    for (auto& row : tile_items_) {
+        for (auto* item : row) {
+            if (item) {
+                scene_->removeItem(item);
+                delete item;
+            }
+        }
+    }
+    tile_items_.clear();
+    render_tiles();
 }
 
 void MainWindow::new_map() {

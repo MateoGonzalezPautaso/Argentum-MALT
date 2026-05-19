@@ -25,7 +25,7 @@ mapa = [
         'a5125_25',
         'a5125_74',
         'a5125_77',
-        'a5145_63',
+        'a5145_66',
         'a5145_64'
     ],
     [
@@ -104,6 +104,7 @@ tile_size = 128
 
     [tilemap.tiles.a5125_00]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 0
     y = 0
 
@@ -214,11 +215,13 @@ tile_size = 128
 
     [tilemap.tiles.a5125_26]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 768
     y = 256
 
     [tilemap.tiles.a5125_27]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 896
     y = 256
 
@@ -542,6 +545,7 @@ tile_size = 128
 
     [tilemap.tiles.a5144_26]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 768
     y = 256
 
@@ -669,11 +673,13 @@ tile_size = 128
 
     [tilemap.tiles.a5144_56]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 768
     y = 640
 
     [tilemap.tiles.a5144_57]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 896
     y = 640
 
@@ -1020,6 +1026,7 @@ tile_size = 128
 
     [tilemap.tiles.a5145_63]
     path = 'assets/Graficos/5145.png'
+    walkable = false
     x = 384
     y = 768
 
@@ -1059,6 +1066,7 @@ tile_size = 128
 
     [tilemap.tiles.a5145_72]
     path = 'assets/Graficos/5145.png'
+    walkable = false
     x = 256
     y = 896
 
@@ -1204,6 +1212,7 @@ tile_size = 128
 
     [tilemap.tiles.a5146_27]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 896
     y = 256
 
@@ -1214,6 +1223,7 @@ tile_size = 128
 
     [tilemap.tiles.a5146_31]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 128
     y = 384
 
@@ -1244,6 +1254,7 @@ tile_size = 128
 
     [tilemap.tiles.a5146_37]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 896
     y = 384
 
@@ -1254,6 +1265,7 @@ tile_size = 128
 
     [tilemap.tiles.a5146_41]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 128
     y = 512
 
@@ -1284,6 +1296,7 @@ tile_size = 128
 
     [tilemap.tiles.a5146_47]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 896
     y = 512
 
