@@ -35,7 +35,6 @@ private:
     bool has_tilemap = false;
     int tile_size = 128;
     std::vector<std::vector<SDL2pp::Rect>> tilemap_src;
-    std::vector<std::vector<bool>> tilemap_walkable;
     int map_px_w = 0;
     int map_px_h = 0;
     std::vector<SpriteRender> sprites;
@@ -48,7 +47,6 @@ public:
                   int window_w, int window_h);
 
     void render();
-    bool move_sprite(int dx, int dy);
     void set_movable_position(int x, int y);
     bool get_movable_position(int& x, int& y) const;
     void get_camera_offset(int& x, int& y) const;
@@ -67,7 +65,6 @@ private:
     void render_sprites(const SDL2pp::Rect& cam);
     void update_animation();
     void update_anchor_positions();
-    bool is_walkable_for_sprite(int x, int y, const SpriteRender& sprite) const;
     SpriteRender* find_movable_sprite();
     const SpriteRender* find_movable_sprite() const;
 };

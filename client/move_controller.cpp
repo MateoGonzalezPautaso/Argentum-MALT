@@ -1,6 +1,5 @@
 #include "move_controller.h"
 
-#include <algorithm>
 #include <cmath>
 
 #include "client_protocol.h"
@@ -24,34 +23,17 @@ void MoveController::set_move_target(int x, int y) {
 }
 
 void MoveController::move_direction(Direction dir, uint32_t now) {
-    switch (dir) {
-        case Direction::WEST:
-            apply_movement(dir, -config.move_step, 0, now, true);
-            break;
-        case Direction::EAST:
-            apply_movement(dir, config.move_step, 0, now, true);
-            break;
-        case Direction::NORTH:
-            apply_movement(dir, 0, -config.move_step, now, true);
-            break;
-        case Direction::SOUTH:
-            apply_movement(dir, 0, config.move_step, now, true);
-            break;
-    }
+    apply_movement(dir, now, true);
 }
 
-void MoveController::apply_movement(Direction dir, int dx, int dy, uint32_t now,
-                                    bool cancel_target) {
+void MoveController::apply_movement(Direction dir, uint32_t now, bool cancel_target) {
     if (cancel_target) {
         has_target = false;
     }
 
     set_direction_rows(dir);
     advance_walk_frame(dir, now);
-
-    if (renderer.move_sprite(dx, dy)) {
-        protocol.send_command(MoveCmd{dir});
-    }
+    protocol.send_command(MoveCmd{dir});
 }
 
 void MoveController::set_direction_rows(Direction dir) {
@@ -101,41 +83,14 @@ bool MoveController::get_movable_position(int& x, int& y) {
     return true;
 }
 
-bool MoveController::should_stop_at_target(int current_x, int current_y, int new_x, int new_y) {
-    if (new_x == target_x && new_y == target_y) {
-        return true;
-    }
-    if (new_x == current_x && new_y == current_y) {
-        return true;
-    }
-    return false;
-}
-
-void MoveController::compute_step_to_target(int current_x, int current_y, int& move_dx,
-                                            int& move_dy, Direction& dir) const {
+Direction MoveController::compute_direction_to_target(int current_x, int current_y) const {
     const int dx = target_x - current_x;
     const int dy = target_y - current_y;
-    move_dx = 0;
-    move_dy = 0;
-    dir = Direction::SOUTH;
 
     if (std::abs(dx) >= std::abs(dy)) {
-        if (dx > 0) {
-            move_dx = std::min(config.move_step, dx);
-            dir = Direction::EAST;
-        } else {
-            move_dx = std::max(-config.move_step, dx);
-            dir = Direction::WEST;
-        }
-    } else {
-        if (dy > 0) {
-            move_dy = std::min(config.move_step, dy);
-            dir = Direction::SOUTH;
-        } else {
-            move_dy = std::max(-config.move_step, dy);
-            dir = Direction::NORTH;
-        }
+        return dx > 0 ? Direction::EAST : Direction::WEST;
     }
+    return dy > 0 ? Direction::SOUTH : Direction::NORTH;
 }
 
 void MoveController::move_toward_target(uint32_t now) {
@@ -150,19 +105,6 @@ void MoveController::move_toward_target(uint32_t now) {
         return;
     }
 
-    int move_dx = 0;
-    int move_dy = 0;
-    Direction dir = Direction::SOUTH;
-    compute_step_to_target(current_x, current_y, move_dx, move_dy, dir);
-    apply_movement(dir, move_dx, move_dy, now, false);
-
-    int new_x = 0;
-    int new_y = 0;
-    if (!get_movable_position(new_x, new_y)) {
-        return;
-    }
-
-    if (should_stop_at_target(current_x, current_y, new_x, new_y)) {
-        has_target = false;
-    }
+    Direction dir = compute_direction_to_target(current_x, current_y);
+    apply_movement(dir, now, false);
 }

@@ -48,11 +48,9 @@ public:
 private:
     void set_direction_rows(Direction dir);
     void advance_walk_frame(Direction dir, uint32_t now);
-    void apply_movement(Direction dir, int dx, int dy, uint32_t now, bool cancel_target);
+    void apply_movement(Direction dir, uint32_t now, bool cancel_target);
     bool get_movable_position(int& x, int& y);
-    bool should_stop_at_target(int current_x, int current_y, int new_x, int new_y);
-    void compute_step_to_target(int current_x, int current_y, int& move_dx, int& move_dy,
-                                Direction& dir) const;
+    Direction compute_direction_to_target(int current_x, int current_y) const;
     void move_toward_target(uint32_t now);
     int walk_src_frames_for(Direction dir) const;
 };

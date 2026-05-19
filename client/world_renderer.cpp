@@ -40,28 +40,6 @@ void WorldRenderer::render() {
     renderer.SetViewport(SDL2pp::NullOpt);
 }
 
-bool WorldRenderer::move_sprite(int dx, int dy) {
-    SpriteRender* sprite = find_movable_sprite();
-    if (!sprite) {
-        return false;
-    }
-    const int max_x = has_tilemap ? std::max(0, map_px_w - sprite->dst.GetW()) :
-                                    std::max(0, window_w - sprite->dst.GetW());
-    const int max_y = has_tilemap ? std::max(0, map_px_h - sprite->dst.GetH()) :
-                                    std::max(0, window_h - sprite->dst.GetH());
-    const int new_x = std::clamp(sprite->dst.GetX() + dx, 0, max_x);
-    const int new_y = std::clamp(sprite->dst.GetY() + dy, 0, max_y);
-
-    // no avanza si el tile destino no es caminable.
-    if (!is_walkable_for_sprite(new_x, new_y, *sprite)) {
-        return false;
-    }
-
-    sprite->dst.SetX(new_x);
-    sprite->dst.SetY(new_y);
-    return true;
-}
-
 void WorldRenderer::set_movable_position(int x, int y) {
     SpriteRender* sprite = find_movable_sprite();
     if (!sprite) {
@@ -150,31 +128,24 @@ void WorldRenderer::init_tilemap(const TilemapConfig& tilemap) {
     has_tilemap = true;
     tile_size = tilemap.tile_size;
     tilemap_src.clear();
-    tilemap_walkable.clear();
     tilemap_src.reserve(tilemap.mapa.size());
-    tilemap_walkable.reserve(tilemap.mapa.size());
     map_px_w = 0;
     map_px_h = 0;
 
     for (const auto& row: tilemap.mapa) {
         std::vector<SDL2pp::Rect> src_row;
-        std::vector<bool> walkable_row;
         src_row.reserve(row.size());
-        walkable_row.reserve(row.size());
         map_px_w = std::max(map_px_w, static_cast<int>(row.size()) * tile_size);
         for (const auto& name: row) {
             auto it = tilemap.tiles.find(name);
             if (it == tilemap.tiles.end()) {
                 src_row.emplace_back(0, 0, tile_size, tile_size);
-                walkable_row.push_back(false);
                 continue;
             }
             const TileDef& def = it->second;
             src_row.emplace_back(def.x, def.y, tile_size, tile_size);
-            walkable_row.push_back(def.walkable);
         }
         tilemap_src.push_back(std::move(src_row));
-        tilemap_walkable.push_back(std::move(walkable_row));
     }
 
     map_px_h = static_cast<int>(tilemap_src.size()) * tile_size;
@@ -352,31 +323,6 @@ void WorldRenderer::update_anchor_positions() {
         sprite.dst.SetX(clamped_x);
         sprite.dst.SetY(clamped_y);
     }
-}
-
-bool WorldRenderer::is_walkable_for_sprite(int x, int y, const SpriteRender& sprite) const {
-    if (!has_tilemap) {
-        return true;
-    }
-    if (tile_size <= 0 || tilemap_walkable.empty()) {
-        return true;
-    }
-    const int foot_x = x + sprite.dst.GetW() / 2;
-    const int foot_y = y + sprite.dst.GetH() - 1;
-    if (foot_x < 0 || foot_y < 0) {
-        return false;
-    }
-
-    const int col = foot_x / tile_size;
-    const int row = foot_y / tile_size;
-    if (row < 0 || row >= static_cast<int>(tilemap_walkable.size())) {
-        return false;
-    }
-    if (col < 0 || col >= static_cast<int>(tilemap_walkable[row].size())) {
-        return false;
-    }
-
-    return tilemap_walkable[row][col];
 }
 
 WorldRenderer::SpriteRender* WorldRenderer::find_movable_sprite() {
