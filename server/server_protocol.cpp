@@ -102,22 +102,7 @@ void ServerProtocol::send_entity_move(const EntityMoveEvent& ev) {
     protocol.send_uint8(static_cast<uint8_t>(ev.entity_dir));
 }
 
-/**
- * Creates a struct that inherits from all the lambdas passed to it.
- * Each lambda has its own operator(), and using Ts::operator()...;
- * brings all of them into scope. When std::visit calls operator()
- * on the overloaded object, overload resolution picks the lambda whose parameter type matches.
- */
-template <class... Ts>
-struct overloaded: Ts... {
-    using Ts::operator()...;
-};
-/**
- * Tells the compiler: "when you write overloaded{lambda1, lambda2, ...},
- * deduce the template arguments from the lambdas' types"
- */
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
+#include "../common/visit.h"
 
 void ServerProtocol::send_event(const ServerEvent& ev) {
     std::visit(overloaded{

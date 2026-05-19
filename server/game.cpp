@@ -1,5 +1,31 @@
 #include "game.h"
 
+#include "../common/visit.h"
+#include <variant>
+
+namespace {
+
+struct Delta {
+    int dx;
+    int dy;
+};
+
+Delta direction_to_delta(Direction dir, int step) {
+    switch (dir) {
+        case Direction::NORTH:
+            return {0, -step};
+        case Direction::SOUTH:
+            return {0, step};
+        case Direction::WEST:
+            return {-step, 0};
+        case Direction::EAST:
+            return {step, 0};
+    }
+    return {0, 0};
+}
+
+}  // namespace
+
 Game::Game(uint16_t player_id, const ServerConfig& config):
         player{player_id, "hero", {300, 160}, Direction::SOUTH, Race::HUMAN, Class::WARRIOR,
                config.balance},
@@ -40,31 +66,17 @@ std::vector<ServerEvent> Game::get_initial_events() {
 }
 
 std::vector<ServerEvent> Game::process_command(const ClientCommand& cmd) {
-    if (std::holds_alternative<MoveCmd>(cmd)) {
-        return handle_move(std::get<MoveCmd>(cmd));
-    }
-    return {};
+    return std::visit(overloaded{
+                              [this](const MoveCmd& c) { return handle_move(c); },
+                              [](const auto&) { return std::vector<ServerEvent>{}; },
+                      },
+                      cmd);
 }
 
 std::vector<ServerEvent> Game::tick() { return {}; }
 
 std::vector<ServerEvent> Game::handle_move(const MoveCmd& cmd) {
-    int16_t dx = 0;
-    int16_t dy = 0;
-    switch (cmd.direction) {
-        case Direction::NORTH:
-            dy = -move_step;
-            break;
-        case Direction::SOUTH:
-            dy = move_step;
-            break;
-        case Direction::WEST:
-            dx = -move_step;
-            break;
-        case Direction::EAST:
-            dx = move_step;
-            break;
-    }
+    auto [dx, dy] = direction_to_delta(cmd.direction, move_step);
 
     const int current_x = static_cast<int>(player.pos.x);
     const int current_y = static_cast<int>(player.pos.y);

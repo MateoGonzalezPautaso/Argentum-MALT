@@ -4,12 +4,7 @@
 
 #include <SDL2/SDL.h>
 
-template <class... Ts>
-struct overloaded: Ts... {
-    using Ts::operator()...;
-};
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
+#include "../common/visit.h"
 
 ClientEngine::ClientEngine(const ClientConfig& config, ClientProtocol& protocol):
         sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO),
