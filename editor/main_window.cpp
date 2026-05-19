@@ -26,6 +26,7 @@ MainWindow::MainWindow(const std::string& config_path, QWidget* parent)
     }
 
     setup_ui();
+    render_tiles();
     draw_grid();
 
     setWindowTitle(QString::fromStdString("Map Editor - " + config_path));
@@ -81,13 +82,49 @@ void MainWindow::draw_grid() {
     QPen grid_pen(QColor(80, 80, 80), 1);
 
     for (int r = 0; r <= rows; ++r) {
-        scene_->addLine(0, r * tsz, w, r * tsz, grid_pen);
+        auto* line = scene_->addLine(0, r * tsz, w, r * tsz, grid_pen);
+        line->setZValue(1);
     }
     for (int c = 0; c <= cols; ++c) {
-        scene_->addLine(c * tsz, 0, c * tsz, h, grid_pen);
+        auto* line = scene_->addLine(c * tsz, 0, c * tsz, h, grid_pen);
+        line->setZValue(1);
     }
 
     scene_->setSceneRect(0, 0, w, h);
+}
+
+void MainWindow::render_tiles() {
+    const auto& cfg = doc_.config();
+    if (cfg.path.empty()) return;
+
+    atlas_ = QPixmap(QString::fromStdString(cfg.path));
+    if (atlas_.isNull()) return;
+
+    auto tsz = doc_.tile_size();
+    tile_items_.reserve(doc_.height());
+
+    for (int r = 0; r < doc_.height(); ++r) {
+        std::vector<QGraphicsPixmapItem*> row_items;
+        row_items.reserve(doc_.width());
+
+        for (int c = 0; c < doc_.width(); ++c) {
+            const auto& name = doc_.tile_name(r, c);
+            auto it = cfg.tiles.find(name);
+            if (it == cfg.tiles.end()) {
+                row_items.push_back(nullptr);
+                continue;
+            }
+
+            const auto& def = it->second;
+            QPixmap tile = atlas_.copy(QRect(def.x, def.y, tsz, tsz));
+            auto* item = scene_->addPixmap(tile);
+            item->setPos(c * tsz, r * tsz);
+
+            row_items.push_back(item);
+        }
+
+        tile_items_.push_back(std::move(row_items));
+    }
 }
 
 void MainWindow::showEvent(QShowEvent* event) {
