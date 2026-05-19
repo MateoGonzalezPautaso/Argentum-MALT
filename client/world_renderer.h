@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <SDL2pp/SDL2pp.hh>
@@ -11,6 +12,11 @@
 
 class WorldRenderer {
 private:
+    struct TileSrcInfo {
+        SDL2pp::Rect src;
+        std::string atlas_path;
+    };
+
     struct SpriteRender {
         std::vector<SDL2pp::Texture> frames;
         SDL2pp::Rect src;
@@ -31,10 +37,10 @@ private:
     SDL2pp::Texture background_texture;
     SDL2pp::Rect background_rect;
     SDL2pp::Rect game_viewport;
-    SDL2pp::Texture tilemap_texture;
+    std::unordered_map<std::string, SDL2pp::Texture> tilemap_textures_;
     bool has_tilemap = false;
     int tile_size = 128;
-    std::vector<std::vector<SDL2pp::Rect>> tilemap_src;
+    std::vector<std::vector<TileSrcInfo>> tilemap_tiles_;
     int map_px_w = 0;
     int map_px_h = 0;
     std::vector<SpriteRender> sprites;
