@@ -3,7 +3,9 @@
 
 #include <QWidget>
 #include <QPixmap>
+#include <QToolButton>
 #include <string>
+#include <unordered_map>
 #include "../common/config.h"
 
 class QButtonGroup;
@@ -12,7 +14,7 @@ class TilePalette : public QWidget {
     Q_OBJECT
 
 public:
-    TilePalette(const TilemapConfig& config,
+    TilePalette(TilemapConfig& config,
                 const QPixmap& atlas,
                 QWidget* parent = nullptr);
 
@@ -23,9 +25,13 @@ signals:
 
 private:
     void on_button_clicked(const std::string& name);
+    void toggle_walkable(const std::string& name);
+    void update_button_visual(QToolButton* btn, const std::string& name) const;
 
     std::string selected_tile_;
     QButtonGroup* button_group_ = nullptr;
+    TilemapConfig& config_;
+    std::unordered_map<std::string, QToolButton*> tile_buttons_;
 };
 
 #endif

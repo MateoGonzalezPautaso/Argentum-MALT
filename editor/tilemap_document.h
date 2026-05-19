@@ -18,6 +18,7 @@ public:
     void create_new(int rows, int cols, const TilemapConfig& tile_config);
 
     const TilemapConfig& config() const { return config_; }
+    TilemapConfig& config() { return config_; }
     const std::string& path() const { return path_; }
     void set_path(const std::string& path) { path_ = path; }
 
