@@ -39,6 +39,33 @@ LoginOkEvent Client::do_login() {
     throw std::runtime_error("Unexpected response to login");
 }
 
+bool Client::run_menu() {
+    client_app::GameState state = client_app::GameState::Menu;
+    bool running = true;
+    const uint32_t tick_ms = config.tick_ms;
+    uint32_t last_tick = SDL_GetTicks();
+
+    while (running && state == client_app::GameState::Menu) {
+        running = client_app::pump_events(engine, state);
+        if (!running) {
+            break;
+        }
+
+        const uint32_t now = SDL_GetTicks();
+        const uint32_t elapsed = now - last_tick;
+        if (elapsed >= tick_ms) {
+            last_tick = now;
+            client_app::render_menu(engine);
+        }
+
+        const uint32_t sleep_ms = (elapsed < tick_ms) ? (tick_ms - elapsed) : 0;
+        if (sleep_ms > 0) {
+            SDL_Delay(sleep_ms);
+        }
+    }
+    return running;
+}
+
 void Client::game_loop() {
     client_app::GameState state = client_app::GameState::Playing;
     bool running = true;
@@ -79,6 +106,10 @@ void Client::shutdown() {
 }
 
 void Client::run() {
+    if (!run_menu()) {
+        return;
+    }
+
     LoginOkEvent login_ev = do_login();
     std::cout << "Logged in as " << login_ev.username << std::endl;
 

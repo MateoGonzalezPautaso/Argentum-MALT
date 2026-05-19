@@ -27,6 +27,7 @@ private:
     // server replies. Returns the LoginOkEvent on success, throws on error.
     LoginOkEvent do_login();
 
+    bool run_menu();
     void game_loop();
 
     // Closes the command queue (unblocks Sender), then shuts down the socket
