@@ -48,10 +48,10 @@ void MainWindow::setup_ui() {
     auto* central = new QWidget(this);
     setCentralWidget(central);
 
-    auto* splitter = new QSplitter(Qt::Horizontal, central);
+    splitter_ = new QSplitter(Qt::Horizontal, central);
     auto* layout = new QHBoxLayout(central);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(splitter);
+    layout->addWidget(splitter_);
 
     // Left: canvas
     auto* canvas_container = new QWidget();
@@ -66,11 +66,11 @@ void MainWindow::setup_ui() {
     view_->viewport()->installEventFilter(this);
     canvas_layout->addWidget(view_);
 
-    splitter->addWidget(canvas_container);
+    splitter_->addWidget(canvas_container);
 
     // Right: tile palette
     palette_ = new TilePalette(doc_.config(), atlas_, this);
-    splitter->addWidget(palette_);
+    splitter_->addWidget(palette_);
 
     connect(palette_, &TilePalette::tile_selected, this,
             [this](const std::string& name) {
@@ -81,8 +81,8 @@ void MainWindow::setup_ui() {
                         .arg(doc_.width()).arg(doc_.height()));
             });
 
-    splitter->setStretchFactor(0, 3);
-    splitter->setStretchFactor(1, 1);
+    splitter_->setStretchFactor(0, 3);
+    splitter_->setStretchFactor(1, 1);
 
     statusBar()->showMessage(
         QString("Map: %1 x %2 tiles  |  Tile size: %3 px")
@@ -120,6 +120,10 @@ void MainWindow::setup_ui() {
     auto* new_action = file_menu->addAction("&New Map");
     new_action->setShortcut(QKeySequence::New);
     connect(new_action, &QAction::triggered, this, &MainWindow::new_map);
+
+    auto* open_action = file_menu->addAction("&Open...");
+    open_action->setShortcut(QKeySequence::Open);
+    connect(open_action, &QAction::triggered, this, &MainWindow::open_map);
 
     file_menu->addSeparator();
 
@@ -296,6 +300,56 @@ void MainWindow::save_map_as() {
         statusBar()->showMessage(QString("Saved to %1").arg(path), 3000);
     } catch (const std::exception& e) {
         QMessageBox::warning(this, "Save Error", e.what());
+    }
+}
+
+void MainWindow::open_map() {
+    QString path = QFileDialog::getOpenFileName(this, "Open Map",
+        QString::fromStdString(doc_.path().empty()
+            ? "config" : doc_.path()),
+        "TOML files (*.toml)");
+    if (path.isEmpty()) return;
+
+    try {
+        for (auto& row : tile_items_) {
+            for (auto* item : row) {
+                if (item) {
+                    scene_->removeItem(item);
+                    delete item;
+                }
+            }
+        }
+        tile_items_.clear();
+        scene_->clear();
+
+        doc_.load(path.toStdString());
+        load_atlas();
+
+        // Rebuild palette
+        delete palette_;
+        palette_ = new TilePalette(doc_.config(), atlas_, this);
+        splitter_->addWidget(palette_);
+        connect(palette_, &TilePalette::tile_selected, this,
+                [this](const std::string& name) {
+                    selected_tile_ = name;
+                    statusBar()->showMessage(
+                        QString("Selected tile: %1  |  Map: %2 x %3")
+                            .arg(QString::fromStdString(name))
+                            .arg(doc_.width()).arg(doc_.height()));
+                });
+
+        render_tiles();
+        draw_grid();
+
+        width_spin_->setValue(doc_.width());
+        height_spin_->setValue(doc_.height());
+
+        view_->fitInView(scene_->sceneRect(), Qt::KeepAspectRatio);
+
+        setWindowTitle(QString::fromStdString("Map Editor - " + path.toStdString()));
+        statusBar()->showMessage(QString("Opened %1").arg(path), 3000);
+    } catch (const std::exception& e) {
+        QMessageBox::critical(this, "Open Error", e.what());
     }
 }
 

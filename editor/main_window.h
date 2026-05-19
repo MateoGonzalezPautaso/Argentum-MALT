@@ -9,6 +9,7 @@
 
 class QGraphicsScene;
 class QGraphicsView;
+class QSplitter;
 class QSpinBox;
 class TilePalette;
 
@@ -32,12 +33,14 @@ private:
     void save_map();
     void save_map_as();
     void new_map();
+    void open_map();
 
     TilemapDocument doc_;
     QPixmap atlas_;
     std::vector<std::vector<QGraphicsPixmapItem*>> tile_items_;
     QGraphicsScene* scene_ = nullptr;
     QGraphicsView* view_ = nullptr;
+    QSplitter* splitter_ = nullptr;
     TilePalette* palette_ = nullptr;
     QSpinBox* width_spin_ = nullptr;
     QSpinBox* height_spin_ = nullptr;
