@@ -2,10 +2,13 @@
 
 #include <algorithm>
 
+#include "chat_input.h"
 #include "texture_loader.h"
 
-UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h):
+UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h,
+                       const ChatInput& chat_model):
         renderer(renderer),
+        chat_model(chat_model),
         ui_frame_texture(renderer, load_surface("assets/interface/en_ventanaprincipal.bmp")),
         ui_frame_rect(0, 0, window_w, window_h),
         chat_input_rect(41, 122, 565, 20) {
@@ -31,10 +34,11 @@ void UIRenderer::render_chat_input() {
         return;
     }
 
-    const bool show_cursor = chat_input_focused && ((SDL_GetTicks() / 500U) % 2U == 0U);
+    const bool show_cursor = chat_model.is_focused() && ((SDL_GetTicks() / 500U) % 2U == 0U);
 
     int clipped_w = 0;
-    if (!chat_input_text.empty()) {
+    const std::string& text = chat_model.get_text();
+    if (!text.empty()) {
         render_chat_text_line(clipped_w);
     }
 
@@ -42,10 +46,6 @@ void UIRenderer::render_chat_input() {
         render_chat_cursor(clipped_w);
     }
 }
-
-void UIRenderer::set_chat_input_text(const std::string& text) { chat_input_text = text; }
-
-void UIRenderer::set_chat_input_focus(bool focused) { chat_input_focused = focused; }
 
 bool UIRenderer::is_chat_input_hit(int x, int y) const {
     const int left = chat_input_rect.GetX();
@@ -74,7 +74,7 @@ void UIRenderer::render_chat_text_line(int& clipped_w) const {
     try {
         int text_w = 0;
         int text_h = 0;
-        SDL2pp::Texture text_texture = make_text_texture(chat_input_text, text_w, text_h);
+        SDL2pp::Texture text_texture = make_text_texture(chat_model.get_text(), text_w, text_h);
 
         clipped_w = std::min(text_w, chat_input_rect.GetW());
         const int clipped_h = std::min(text_h, chat_input_rect.GetH());
@@ -101,4 +101,3 @@ void UIRenderer::render_chat_cursor(int x_offset) const {
         return;
     }
 }
-

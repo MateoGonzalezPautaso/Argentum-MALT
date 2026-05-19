@@ -6,7 +6,7 @@
 #include "../common/messages.h"
 
 class ClientProtocol;
-class ClientRenderer;
+class WorldRenderer;
 
 struct MoveConfig {
     int move_step = 4;
@@ -29,7 +29,7 @@ struct MoveConfig {
 
 class MoveController {
 private:
-    ClientRenderer& renderer;
+    WorldRenderer& world_renderer;
     ClientProtocol& protocol;
     MoveConfig config;
     uint32_t last_walk_tick = 0;
@@ -38,8 +38,8 @@ private:
     int target_y = 0;
 
 public:
-    MoveController(ClientRenderer& renderer, ClientProtocol& protocol, const MoveConfig& config,
-                   uint32_t initial_ticks);
+    MoveController(WorldRenderer& world_renderer, ClientProtocol& protocol,
+                   const MoveConfig& config, uint32_t initial_ticks);
 
     void tick(uint32_t now);
     void set_move_target(int x, int y);

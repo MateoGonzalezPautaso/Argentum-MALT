@@ -1,6 +1,8 @@
 #ifndef CLIENT_ENGINE_H
 #define CLIENT_ENGINE_H
 
+#include <string>
+
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 
@@ -8,20 +10,24 @@
 
 #include "chat_input.h"
 #include "config.h"
+#include "menu_renderer.h"
 #include "move_controller.h"
-#include "renderer.h"
+#include "ui_renderer.h"
+#include "world_renderer.h"
 
 class ClientProtocol;
 
 class ClientEngine {
 private:
-    // objetos de SDL que viven durante toda la vida del engine.
     SDL2pp::SDL sdl;
     SDL2pp::Window window;
-    ClientRenderer renderer;
+    SDL2pp::Renderer sdl_renderer;
+    MenuRenderer menu_renderer;
+    WorldRenderer world_renderer;
+    UIRenderer ui_renderer;
+    ChatInput chat_input;
     ClientProtocol& protocol;
     MoveController move_controller;
-    ChatInput chat_input;
 
 public:
     explicit ClientEngine(const ClientConfig& config, ClientProtocol& protocol);
@@ -35,9 +41,10 @@ public:
     bool is_menu_click(int x, int y) const;
 
 private:
+    void render_game_frame();
+    void render_menu_frame();
     bool handle_mouse_button(const SDL_Event& event);
     bool handle_keydown(const SDL_Event& event);
-    void sync_chat_to_renderer();
 };
 
 #endif

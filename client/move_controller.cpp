@@ -3,11 +3,12 @@
 #include <cmath>
 
 #include "client_protocol.h"
-#include "renderer.h"
+#include "world_renderer.h"
 
-MoveController::MoveController(ClientRenderer& renderer, ClientProtocol& protocol,
+MoveController::MoveController(WorldRenderer& world_renderer, ClientProtocol& protocol,
                                const MoveConfig& config, uint32_t initial_ticks):
-        renderer(renderer), protocol(protocol), config(config), last_walk_tick(initial_ticks) {}
+        world_renderer(world_renderer), protocol(protocol), config(config),
+        last_walk_tick(initial_ticks) {}
 
 void MoveController::tick(uint32_t now) {
     if (!has_target) {
@@ -38,17 +39,17 @@ void MoveController::apply_movement(Direction dir, uint32_t now, bool cancel_tar
 
 void MoveController::set_direction_rows(Direction dir) {
     if (dir == Direction::NORTH) {
-        renderer.set_movable_src_y(config.dir_src_y_up);
-        renderer.set_anchor_src_y(config.head_dir_src_y_up);
+        world_renderer.set_movable_src_y(config.dir_src_y_up);
+        world_renderer.set_anchor_src_y(config.head_dir_src_y_up);
     } else if (dir == Direction::SOUTH) {
-        renderer.set_movable_src_y(config.dir_src_y_down);
-        renderer.set_anchor_src_y(config.head_dir_src_y_down);
+        world_renderer.set_movable_src_y(config.dir_src_y_down);
+        world_renderer.set_anchor_src_y(config.head_dir_src_y_down);
     } else if (dir == Direction::WEST) {
-        renderer.set_movable_src_y(config.dir_src_y_left);
-        renderer.set_anchor_src_y(config.head_dir_src_y_left);
+        world_renderer.set_movable_src_y(config.dir_src_y_left);
+        world_renderer.set_anchor_src_y(config.head_dir_src_y_left);
     } else if (dir == Direction::EAST) {
-        renderer.set_movable_src_y(config.dir_src_y_right);
-        renderer.set_anchor_src_y(config.head_dir_src_y_right);
+        world_renderer.set_movable_src_y(config.dir_src_y_right);
+        world_renderer.set_anchor_src_y(config.head_dir_src_y_right);
     }
 }
 
@@ -56,7 +57,7 @@ void MoveController::advance_walk_frame(Direction dir, uint32_t now) {
     if (now - last_walk_tick < config.walk_frame_ms) {
         return;
     }
-    renderer.step_movable_src_x(config.walk_src_step, walk_src_frames_for(dir));
+    world_renderer.step_movable_src_x(config.walk_src_step, walk_src_frames_for(dir));
     last_walk_tick = now;
 }
 
@@ -76,7 +77,7 @@ int MoveController::walk_src_frames_for(Direction dir) const {
 }
 
 bool MoveController::get_movable_position(int& x, int& y) {
-    if (!renderer.get_movable_position(x, y)) {
+    if (!world_renderer.get_movable_position(x, y)) {
         has_target = false;
         return false;
     }

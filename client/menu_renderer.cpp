@@ -20,12 +20,9 @@ MenuRenderer::MenuRenderer(SDL2pp::Renderer& renderer, int window_w, int window_
 }
 
 void MenuRenderer::render() {
-    renderer.SetDrawColor(0, 0, 0, 255);
-    renderer.Clear();
     renderer.Copy(menu_background_texture, SDL2pp::NullOpt, menu_background_rect);
     renderer.Copy(menu_logo_texture, SDL2pp::NullOpt, menu_logo_rect);
     renderer.Copy(menu_button_texture, SDL2pp::NullOpt, menu_button_rect);
-    renderer.Present();
 }
 
 bool MenuRenderer::is_button_hit(int x, int y) const {

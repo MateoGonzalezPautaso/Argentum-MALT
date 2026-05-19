@@ -6,26 +6,25 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>
 
+class ChatInput;
+
 class UIRenderer {
 private:
     SDL2pp::Renderer& renderer;
+    const ChatInput& chat_model;
     SDL2pp::Texture ui_frame_texture;
     SDL2pp::Rect ui_frame_rect;
     SDL2pp::Rect chat_input_rect;
-    std::string chat_input_text;
-    bool chat_input_focused = false;
     TTF_Font* chat_font = nullptr;
     SDL_Color chat_color{255, 255, 255, 255};
 
 public:
-    UIRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h);
+    UIRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h,
+               const ChatInput& chat_model);
     ~UIRenderer();
 
     void render_frame_background();
     void render_chat_input();
-
-    void set_chat_input_text(const std::string& text);
-    void set_chat_input_focus(bool focused);
     bool is_chat_input_hit(int x, int y) const;
 
 private:
