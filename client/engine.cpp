@@ -6,7 +6,7 @@
 
 #include "../common/visit.h"
 
-ClientEngine::ClientEngine(const ClientConfig& config, ClientProtocol& protocol):
+ClientEngine::ClientEngine(const ClientConfig& config, Queue<ClientCommand>& command_queue):
         sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO),
         window(config.window.title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                config.window.width, config.window.height, 0),
@@ -15,8 +15,7 @@ ClientEngine::ClientEngine(const ClientConfig& config, ClientProtocol& protocol)
         world_renderer(sdl_renderer, config.background, config.tilemap, config.sprites, LOGICAL_W,
                        LOGICAL_H),
         ui_renderer(sdl_renderer, LOGICAL_W, LOGICAL_H, chat_input),
-        protocol(protocol),
-        move_controller(world_renderer, protocol, MoveConfig(config), SDL_GetTicks()) {
+        move_controller(world_renderer, command_queue, MoveConfig(config), SDL_GetTicks()) {
     SDL_RenderSetLogicalSize(sdl_renderer.Get(), LOGICAL_W, LOGICAL_H);
     SDL_StartTextInput();
 }

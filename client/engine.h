@@ -5,6 +5,7 @@
 #include <SDL2pp/SDL2pp.hh>
 
 #include "../common/messages.h"
+#include "../common/queue.h"
 
 #include "chat_input.h"
 #include "config.h"
@@ -12,8 +13,6 @@
 #include "move_controller.h"
 #include "ui_renderer.h"
 #include "world_renderer.h"
-
-class ClientProtocol;
 
 class ClientEngine {
 private:
@@ -29,11 +28,10 @@ private:
     WorldRenderer world_renderer;
     UIRenderer ui_renderer;
     ChatInput chat_input;
-    ClientProtocol& protocol;
     MoveController move_controller;
 
 public:
-    explicit ClientEngine(const ClientConfig& config, ClientProtocol& protocol);
+    explicit ClientEngine(const ClientConfig& config, Queue<ClientCommand>& command_queue);
     ~ClientEngine();
 
     void tick();
