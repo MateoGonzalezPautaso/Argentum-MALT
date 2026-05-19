@@ -7,6 +7,8 @@
 
 #include "client_protocol.h"
 
+// Receiver runs on its own thread, blocking on incoming server events and
+// pushing each ServerEvent into the queue for the main thread to consume.
 class Receiver: public Thread {
 private:
     ClientProtocol& protocol;
