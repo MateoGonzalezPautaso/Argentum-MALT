@@ -1,4 +1,5 @@
 #include "main_window.h"
+#include "tile_palette.h"
 
 #include <QApplication>
 #include <QGraphicsScene>
@@ -25,6 +26,7 @@ MainWindow::MainWindow(const std::string& config_path, QWidget* parent)
         return;
     }
 
+    load_atlas();
     setup_ui();
     render_tiles();
     draw_grid();
@@ -56,12 +58,18 @@ void MainWindow::setup_ui() {
 
     splitter->addWidget(canvas_container);
 
-    // Right: palette placeholder
-    auto* right_panel = new QWidget();
-    auto* right_layout = new QVBoxLayout(right_panel);
-    right_layout->addWidget(new QLabel("Tile Palette"));
-    right_panel->setMinimumWidth(220);
-    splitter->addWidget(right_panel);
+    // Right: tile palette
+    palette_ = new TilePalette(doc_.config(), atlas_, this);
+    splitter->addWidget(palette_);
+
+    connect(palette_, &TilePalette::tile_selected, this,
+            [this](const std::string& name) {
+                selected_tile_ = name;
+                statusBar()->showMessage(
+                    QString("Selected tile: %1  |  Map: %2 x %3")
+                        .arg(QString::fromStdString(name))
+                        .arg(doc_.width()).arg(doc_.height()));
+            });
 
     splitter->setStretchFactor(0, 3);
     splitter->setStretchFactor(1, 1);
@@ -93,12 +101,17 @@ void MainWindow::draw_grid() {
     scene_->setSceneRect(0, 0, w, h);
 }
 
-void MainWindow::render_tiles() {
+void MainWindow::load_atlas() {
     const auto& cfg = doc_.config();
-    if (cfg.path.empty()) return;
+    if (!cfg.path.empty()) {
+        atlas_ = QPixmap(QString::fromStdString(cfg.path));
+    }
+}
 
-    atlas_ = QPixmap(QString::fromStdString(cfg.path));
+void MainWindow::render_tiles() {
     if (atlas_.isNull()) return;
+
+    const auto& cfg = doc_.config();
 
     auto tsz = doc_.tile_size();
     tile_items_.reserve(doc_.height());

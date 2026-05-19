@@ -4,10 +4,12 @@
 #include <QMainWindow>
 #include <QPixmap>
 #include <QGraphicsPixmapItem>
+#include <string>
 #include "tilemap_document.h"
 
 class QGraphicsScene;
 class QGraphicsView;
+class TilePalette;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -20,6 +22,7 @@ protected:
 
 private:
     void setup_ui();
+    void load_atlas();
     void draw_grid();
     void render_tiles();
 
@@ -28,6 +31,8 @@ private:
     std::vector<std::vector<QGraphicsPixmapItem*>> tile_items_;
     QGraphicsScene* scene_ = nullptr;
     QGraphicsView* view_ = nullptr;
+    TilePalette* palette_ = nullptr;
+    std::string selected_tile_;
     bool first_show_ = true;
 };
 
