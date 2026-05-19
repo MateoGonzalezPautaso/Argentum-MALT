@@ -7,6 +7,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMessageBox>
+#include <QMouseEvent>
 #include <QPainter>
 #include <QShowEvent>
 #include <QSplitter>
@@ -52,8 +53,9 @@ void MainWindow::setup_ui() {
     scene_ = new QGraphicsScene(this);
     view_ = new QGraphicsView(scene_, this);
     view_->setRenderHint(QPainter::Antialiasing, false);
-    view_->setDragMode(QGraphicsView::ScrollHandDrag);
+    view_->setDragMode(QGraphicsView::NoDrag);
     view_->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+    view_->viewport()->installEventFilter(this);
     canvas_layout->addWidget(view_);
 
     splitter->addWidget(canvas_container);
@@ -137,6 +139,53 @@ void MainWindow::render_tiles() {
         }
 
         tile_items_.push_back(std::move(row_items));
+    }
+}
+
+bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
+    if (obj == view_->viewport() && event->type() == QEvent::MouseButtonPress) {
+        auto* me = static_cast<QMouseEvent*>(event);
+        QPointF scene_pos = view_->mapToScene(me->pos());
+
+        auto tsz = doc_.tile_size();
+        int col = static_cast<int>(scene_pos.x()) / tsz;
+        int row = static_cast<int>(scene_pos.y()) / tsz;
+
+        if (row < 0 || row >= doc_.height() || col < 0 || col >= doc_.width())
+            return false;
+
+        if (me->button() == Qt::LeftButton && !selected_tile_.empty()) {
+            set_tile(row, col, selected_tile_);
+            return true;
+        }
+        if (me->button() == Qt::RightButton) {
+            set_tile(row, col, "");
+            return true;
+        }
+    }
+    return QMainWindow::eventFilter(obj, event);
+}
+
+void MainWindow::set_tile(int row, int col, const std::string& name) {
+    doc_.set_tile(row, col, name);
+
+    auto& old_item = tile_items_[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)];
+    if (old_item) {
+        scene_->removeItem(old_item);
+        delete old_item;
+        old_item = nullptr;
+    }
+
+    if (!name.empty() && !atlas_.isNull()) {
+        auto it = doc_.config().tiles.find(name);
+        if (it != doc_.config().tiles.end()) {
+            const auto& def = it->second;
+            auto tsz = doc_.tile_size();
+            QPixmap tile = atlas_.copy(QRect(def.x, def.y, tsz, tsz));
+            auto* item = scene_->addPixmap(tile);
+            item->setPos(col * tsz, row * tsz);
+            tile_items_[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = item;
+        }
     }
 }
 

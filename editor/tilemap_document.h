@@ -12,6 +12,7 @@ public:
     int height() const;
     int tile_size() const;
     const std::string& tile_name(int row, int col) const;
+    void set_tile(int row, int col, const std::string& name);
 
     const TilemapConfig& config() const { return config_; }
 

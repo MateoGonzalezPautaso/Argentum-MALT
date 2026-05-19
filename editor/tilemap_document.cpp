@@ -25,3 +25,7 @@ int TilemapDocument::tile_size() const {
 const std::string& TilemapDocument::tile_name(int row, int col) const {
     return config_.mapa[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)];
 }
+
+void TilemapDocument::set_tile(int row, int col, const std::string& name) {
+    config_.mapa[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = name;
+}

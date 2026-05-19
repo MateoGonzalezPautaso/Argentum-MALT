@@ -19,12 +19,14 @@ public:
 
 protected:
     void showEvent(QShowEvent* event) override;
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
 private:
     void setup_ui();
     void load_atlas();
     void draw_grid();
     void render_tiles();
+    void set_tile(int row, int col, const std::string& name);
 
     TilemapDocument doc_;
     QPixmap atlas_;
