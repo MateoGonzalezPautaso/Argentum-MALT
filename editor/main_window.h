@@ -36,7 +36,7 @@ private:
     void open_map();
 
     TilemapDocument doc_;
-    QPixmap atlas_;
+    std::unordered_map<std::string, QPixmap> atlases_;
     std::vector<std::vector<QGraphicsPixmapItem*>> tile_items_;
     QGraphicsScene* scene_ = nullptr;
     QGraphicsView* view_ = nullptr;

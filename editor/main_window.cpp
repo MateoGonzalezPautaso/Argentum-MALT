@@ -69,7 +69,7 @@ void MainWindow::setup_ui() {
     splitter_->addWidget(canvas_container);
 
     // Right: tile palette
-    palette_ = new TilePalette(doc_.config(), atlas_, this);
+    palette_ = new TilePalette(doc_.config(), atlases_, this);
     splitter_->addWidget(palette_);
 
     connect(palette_, &TilePalette::tile_selected, this,
@@ -160,15 +160,20 @@ void MainWindow::draw_grid() {
 
 void MainWindow::load_atlas() {
     const auto& cfg = doc_.config();
-    if (!cfg.path.empty()) {
-        atlas_ = QPixmap(QString::fromStdString(cfg.path));
+    auto ensure_loaded = [this](const std::string& path) {
+        if (!path.empty() && atlases_.find(path) == atlases_.end()) {
+            atlases_.emplace(path, QPixmap(QString::fromStdString(path)));
+        }
+    };
+    ensure_loaded(cfg.path);
+    for (const auto& [name, def] : cfg.tiles) {
+        ensure_loaded(def.path);
     }
 }
 
 void MainWindow::render_tiles() {
-    if (atlas_.isNull()) return;
-
     const auto& cfg = doc_.config();
+    if (cfg.tiles.empty()) return;
 
     auto tsz = doc_.tile_size();
     tile_items_.reserve(doc_.height());
@@ -179,14 +184,20 @@ void MainWindow::render_tiles() {
 
         for (int c = 0; c < doc_.width(); ++c) {
             const auto& name = doc_.tile_name(r, c);
-            auto it = cfg.tiles.find(name);
-            if (it == cfg.tiles.end()) {
+            auto tile_it = cfg.tiles.find(name);
+            if (tile_it == cfg.tiles.end()) {
                 row_items.push_back(nullptr);
                 continue;
             }
 
-            const auto& def = it->second;
-            QPixmap tile = atlas_.copy(QRect(def.x, def.y, tsz, tsz));
+            const auto& def = tile_it->second;
+            std::string atlas_path = def.path.empty() ? cfg.path : def.path;
+            auto atlas_it = atlases_.find(atlas_path);
+            if (atlas_it == atlases_.end() || atlas_it->second.isNull()) {
+                row_items.push_back(nullptr);
+                continue;
+            }
+            QPixmap tile = atlas_it->second.copy(QRect(def.x, def.y, tsz, tsz));
             auto* item = scene_->addPixmap(tile);
             item->setPos(c * tsz, r * tsz);
 
@@ -231,15 +242,19 @@ void MainWindow::set_tile(int row, int col, const std::string& name) {
         old_item = nullptr;
     }
 
-    if (!name.empty() && !atlas_.isNull()) {
-        auto it = doc_.config().tiles.find(name);
-        if (it != doc_.config().tiles.end()) {
-            const auto& def = it->second;
-            auto tsz = doc_.tile_size();
-            QPixmap tile = atlas_.copy(QRect(def.x, def.y, tsz, tsz));
-            auto* item = scene_->addPixmap(tile);
-            item->setPos(col * tsz, row * tsz);
-            tile_items_[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = item;
+    if (!name.empty()) {
+        auto tile_it = doc_.config().tiles.find(name);
+        if (tile_it != doc_.config().tiles.end()) {
+            const auto& def = tile_it->second;
+            std::string atlas_path = def.path.empty() ? doc_.config().path : def.path;
+            auto atlas_it = atlases_.find(atlas_path);
+            if (atlas_it != atlases_.end() && !atlas_it->second.isNull()) {
+                auto tsz = doc_.tile_size();
+                QPixmap tile = atlas_it->second.copy(QRect(def.x, def.y, tsz, tsz));
+                auto* item = scene_->addPixmap(tile);
+                item->setPos(col * tsz, row * tsz);
+                tile_items_[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = item;
+            }
         }
     }
 }
@@ -323,11 +338,12 @@ void MainWindow::open_map() {
         scene_->clear();
 
         doc_.load(path.toStdString());
+        atlases_.clear();
         load_atlas();
 
         // Rebuild palette
         delete palette_;
-        palette_ = new TilePalette(doc_.config(), atlas_, this);
+        palette_ = new TilePalette(doc_.config(), atlases_, this);
         splitter_->addWidget(palette_);
         connect(palette_, &TilePalette::tile_selected, this,
                 [this](const std::string& name) {

@@ -15,7 +15,7 @@ class TilePalette : public QWidget {
 
 public:
     TilePalette(TilemapConfig& config,
-                const QPixmap& atlas,
+                std::unordered_map<std::string, QPixmap>& atlases,
                 QWidget* parent = nullptr);
 
     std::string selected_tile() const { return selected_tile_; }
@@ -31,6 +31,7 @@ private:
     std::string selected_tile_;
     QButtonGroup* button_group_ = nullptr;
     TilemapConfig& config_;
+    std::unordered_map<std::string, QPixmap>& atlases_;
     std::unordered_map<std::string, QToolButton*> tile_buttons_;
 };
 

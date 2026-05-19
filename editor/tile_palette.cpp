@@ -8,9 +8,9 @@
 #include <QVBoxLayout>
 
 TilePalette::TilePalette(TilemapConfig& config,
-                         const QPixmap& atlas,
+                         std::unordered_map<std::string, QPixmap>& atlases,
                          QWidget* parent)
-    : QWidget(parent), config_(config) {
+    : QWidget(parent), config_(config), atlases_(atlases) {
     auto* layout = new QVBoxLayout(this);
     layout->setContentsMargins(4, 4, 4, 4);
 
@@ -33,8 +33,6 @@ TilePalette::TilePalette(TilemapConfig& config,
     int preview_size = 64;
     int col = 0, row = 0;
 
-    bool has_atlas = !atlas.isNull();
-
     for (const auto& [name, def] : config_.tiles) {
         auto* btn = new QToolButton();
         btn->setText(QString::fromStdString(name));
@@ -49,8 +47,10 @@ TilePalette::TilePalette(TilemapConfig& config,
             btn->setStyleSheet("QToolButton { border: 2px solid red; }");
         }
 
-        if (has_atlas) {
-            QPixmap tile = atlas.copy(QRect(def.x, def.y, tsz, tsz));
+        std::string atlas_path = def.path.empty() ? config_.path : def.path;
+        auto atlas_it = atlases_.find(atlas_path);
+        if (atlas_it != atlases_.end() && !atlas_it->second.isNull()) {
+            QPixmap tile = atlas_it->second.copy(QRect(def.x, def.y, tsz, tsz));
             btn->setIcon(QIcon(tile.scaled(preview_size, preview_size,
                                            Qt::KeepAspectRatio,
                                            Qt::SmoothTransformation)));

@@ -98,6 +98,7 @@ void parse_tilemap_config(const toml::table& root, TilemapConfig& config) {
                 def.x = toml_get_int(*tile_tbl, "x", def.x);
                 def.y = toml_get_int(*tile_tbl, "y", def.y);
                 def.walkable = toml_get_bool(*tile_tbl, "walkable", def.walkable);
+                def.path = toml_get_string(*tile_tbl, "path", std::string());
                 config.tiles.emplace(key, def);
             }
         }

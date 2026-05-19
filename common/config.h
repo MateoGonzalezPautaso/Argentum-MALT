@@ -12,6 +12,7 @@ struct TileDef {
     int x = 0;
     int y = 0;
     bool walkable = true;
+    std::string path;
 };
 
 struct TilemapConfig {

@@ -72,6 +72,9 @@ void TilemapDocument::save(const std::string& path) const {
         if (!def.walkable) {
             tile_def.emplace("walkable", false);
         }
+        if (!def.path.empty()) {
+            tile_def.emplace("path", def.path);
+        }
         tiles_tbl.emplace(name, std::move(tile_def));
     }
     tilemap_tbl.emplace("tiles", std::move(tiles_tbl));
