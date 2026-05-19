@@ -2,7 +2,6 @@
 
 #include <cmath>
 
-#include "client_protocol.h"
 #include "config.h"
 #include "world_renderer.h"
 
@@ -24,10 +23,10 @@ MoveConfig::MoveConfig(const ClientConfig& config):
         head_dir_src_y_left(config.head_dir_src_y_left),
         head_dir_src_y_right(config.head_dir_src_y_right) {}
 
-MoveController::MoveController(WorldRenderer& world_renderer, ClientProtocol& protocol,
+MoveController::MoveController(WorldRenderer& world_renderer, Queue<ClientCommand>& command_queue,
                                const MoveConfig& config, uint32_t initial_ticks):
         world_renderer(world_renderer),
-        protocol(protocol),
+        command_queue(command_queue),
         config(config),
         last_walk_tick(initial_ticks) {}
 
@@ -53,7 +52,7 @@ void MoveController::apply_movement(Direction dir, uint32_t now, bool cancel_tar
 
     set_direction_rows(dir);
     advance_walk_frame(dir, now);
-    protocol.send_command(MoveCmd{dir});
+    command_queue.push(MoveCmd{dir});
 }
 
 void MoveController::set_direction_rows(Direction dir) {
@@ -120,7 +119,8 @@ void MoveController::move_toward_target(uint32_t now) {
         return;
     }
 
-    if (target_x == current_x && target_y == current_y) {
+    if (std::abs(target_x - current_x) < config.move_step &&
+        std::abs(target_y - current_y) < config.move_step) {
         has_target = false;
         return;
     }

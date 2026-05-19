@@ -4,9 +4,9 @@
 #include <cstdint>
 
 #include "../common/messages.h"
+#include "../common/queue.h"
 
 struct ClientConfig;
-class ClientProtocol;
 class WorldRenderer;
 
 struct MoveConfig {
@@ -34,7 +34,7 @@ struct MoveConfig {
 class MoveController {
 private:
     WorldRenderer& world_renderer;
-    ClientProtocol& protocol;
+    Queue<ClientCommand>& command_queue;
     MoveConfig config;
     uint32_t last_walk_tick = 0;
     bool has_target = false;
@@ -42,7 +42,7 @@ private:
     int target_y = 0;
 
 public:
-    MoveController(WorldRenderer& world_renderer, ClientProtocol& protocol,
+    MoveController(WorldRenderer& world_renderer, Queue<ClientCommand>& command_queue,
                    const MoveConfig& config, uint32_t initial_ticks);
 
     void tick(uint32_t now);
