@@ -14,6 +14,7 @@ ServerConfig load_server_config(const std::string& path) {
     if (auto server = root["server"].as_table()) {
         config.port =
                 static_cast<uint16_t>(toml_get_int(*server, "port", static_cast<int>(config.port)));
+        config.tick_rate_hz = toml_get_int(*server, "tick_rate_hz", config.tick_rate_hz);
     }
 
     {

@@ -1,5 +1,5 @@
-#ifndef SERVER_CONFIG_H
-#define SERVER_CONFIG_H
+#ifndef CONFIG_H
+#define CONFIG_H
 
 #include <cstdint>
 #include <string>
@@ -22,6 +22,7 @@ struct BalanceConfig {
 
 struct ServerConfig {
     uint16_t port = 1234;
+    int tick_rate_hz = 20;
     TilemapConfig tilemap;
     int move_step = 4;
     int sprite_width = 27;
@@ -31,4 +32,4 @@ struct ServerConfig {
 
 ServerConfig load_server_config(const std::string& path);
 
-#endif  // SERVER_CONFIG_H
+#endif  // CONFIG_H
