@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "../chat_input.h"
+#include "geometry.h"
 #include "texture_loader.h"
 
 LoginRenderer::LoginRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h,
@@ -51,17 +52,11 @@ void LoginRenderer::render() {
 }
 
 bool LoginRenderer::is_username_hit(int x, int y) const {
-    return x >= username_field_rect.GetX() &&
-           x <= username_field_rect.GetX() + username_field_rect.GetW() &&
-           y >= username_field_rect.GetY() &&
-           y <= username_field_rect.GetY() + username_field_rect.GetH();
+    return point_in_rect(x, y, username_field_rect);
 }
 
 bool LoginRenderer::is_password_hit(int x, int y) const {
-    return x >= password_field_rect.GetX() &&
-           x <= password_field_rect.GetX() + password_field_rect.GetW() &&
-           y >= password_field_rect.GetY() &&
-           y <= password_field_rect.GetY() + password_field_rect.GetH();
+    return point_in_rect(x, y, password_field_rect);
 }
 
 bool LoginRenderer::is_connect_button_hit(int x, int y) const {

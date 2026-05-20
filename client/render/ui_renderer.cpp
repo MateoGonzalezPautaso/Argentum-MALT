@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "../chat_input.h"
+#include "geometry.h"
 #include "texture_loader.h"
 
 UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h,
@@ -48,11 +49,7 @@ void UIRenderer::render_chat_input() {
 }
 
 bool UIRenderer::is_chat_input_hit(int x, int y) const {
-    const int left = chat_input_rect.GetX();
-    const int top = chat_input_rect.GetY();
-    const int right = left + chat_input_rect.GetW();
-    const int bottom = top + chat_input_rect.GetH();
-    return x >= left && x <= right && y >= top && y <= bottom;
+    return point_in_rect(x, y, chat_input_rect);
 }
 
 SDL2pp::Texture UIRenderer::make_text_texture(const std::string& text, int& text_w,

@@ -3,6 +3,8 @@
 
 #include <SDL2pp/SDL2pp.hh>
 
+#include "geometry.h"
+
 struct Button {
     SDL2pp::Texture default_tex;
     SDL2pp::Texture hover_tex;
@@ -21,10 +23,7 @@ struct Button {
         renderer.Copy(tex, SDL2pp::NullOpt, rect);
     }
 
-    bool is_hit(int x, int y) const {
-        return x >= rect.GetX() && x <= rect.GetX() + rect.GetW() &&
-               y >= rect.GetY() && y <= rect.GetY() + rect.GetH();
-    }
+    bool is_hit(int x, int y) const { return point_in_rect(x, y, rect); }
 };
 
 #endif  // CLIENT_RENDER_BUTTON_H
