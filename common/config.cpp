@@ -132,6 +132,12 @@ void parse_prop_config(const toml::table& root, TilemapConfig& config) {
                 def.width = toml_get_int(*tbl, "width", def.width);
                 def.height = toml_get_int(*tbl, "height", def.height);
                 def.frame_ms = toml_get_uint32(*tbl, "frame_ms", def.frame_ms);
+                if (auto hb = (*tbl)["hitbox"].as_table()) {
+                    def.hitbox.x = toml_get_int(*hb, "x", def.hitbox.x);
+                    def.hitbox.y = toml_get_int(*hb, "y", def.hitbox.y);
+                    def.hitbox.w = toml_get_int(*hb, "w", def.hitbox.w);
+                    def.hitbox.h = toml_get_int(*hb, "h", def.hitbox.h);
+                }
                 config.props.emplace(key, def);
             }
         }

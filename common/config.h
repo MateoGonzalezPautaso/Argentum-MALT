@@ -15,6 +15,13 @@ struct TileDef {
     std::string path;
 };
 
+struct HitboxDef {
+    int x = 0;
+    int y = 0;
+    int w = 0;
+    int h = 0;
+};
+
 struct PropDef {
     std::vector<std::string> paths;
     int src_x = 0;
@@ -24,6 +31,7 @@ struct PropDef {
     int width = 0;
     int height = 0;
     uint32_t frame_ms = 0;
+    HitboxDef hitbox;
 };
 
 struct TilemapConfig {

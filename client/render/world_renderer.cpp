@@ -46,6 +46,10 @@ void WorldRenderer::render() {
     render_sprites(cam);
     render_props(cam, player_foot_y, false);
 
+    if (show_hitboxes_) { //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
+        render_props_hitboxes(cam); //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
+    }
+
     renderer.SetViewport(SDL2pp::NullOpt);
 }
 
@@ -193,6 +197,10 @@ void WorldRenderer::init_props(const TilemapConfig& tilemap) {
             pr.frame_ms = def.frame_ms;
             pr.current_frame = 0;
             pr.last_ticks = SDL_GetTicks();
+            pr.hitbox_x = def.hitbox.x; //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
+            pr.hitbox_y = def.hitbox.y; //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
+            pr.hitbox_w = def.hitbox.w; //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
+            pr.hitbox_h = def.hitbox.h; //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
 
             for (const auto& path: def.paths) {
                 pr.frames.emplace_back(renderer, load_surface(path));
@@ -335,6 +343,40 @@ void WorldRenderer::render_props(const SDL2pp::Rect& cam, int player_foot_y, boo
                 (row + 1) * tile_size - cam.GetY() - prop.display_h,
                 prop.display_w, prop.display_h);
             renderer.Copy(prop.frames[prop.current_frame], prop.src, dst);
+        }
+    }
+}
+
+void WorldRenderer::render_props_hitboxes(const SDL2pp::Rect& cam) { //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
+    if (prop_tiles_.empty() || !has_tilemap) return;
+
+    const int first_col = std::max(0, cam.GetX() / tile_size);
+    const int first_row = std::max(0, cam.GetY() / tile_size);
+    const int last_col = std::max(0, (cam.GetX() + cam.GetW() - 1) / tile_size);
+    const int last_row = std::max(0, (cam.GetY() + cam.GetH() - 1) / tile_size);
+
+    SDL_SetRenderDrawBlendMode(renderer.Get(), SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(renderer.Get(), 255, 0, 0, 128);
+
+    for (int row = first_row; row <= last_row; ++row) {
+        if (row < 0 || row >= static_cast<int>(prop_tiles_.size())) continue;
+        auto& prop_row = prop_tiles_[static_cast<std::size_t>(row)];
+        if (prop_row.empty()) continue;
+
+        const int row_last_col = std::min(last_col, static_cast<int>(prop_row.size()) - 1);
+        for (int col = first_col; col <= row_last_col; ++col) {
+            if (col < 0) continue;
+            auto& prop = prop_row[static_cast<std::size_t>(col)];
+            if (prop.frames.empty() || prop.hitbox_w <= 0 || prop.hitbox_h <= 0) continue;
+
+            int prop_screen_x = col * tile_size - cam.GetX();
+            int prop_screen_y = (row + 1) * tile_size - cam.GetY() - prop.display_h;
+
+            SDL2pp::Rect hb_rect(
+                prop_screen_x + prop.hitbox_x,
+                prop_screen_y + prop.hitbox_y,
+                prop.hitbox_w, prop.hitbox_h);
+            renderer.FillRect(hb_rect);
         }
     }
 }

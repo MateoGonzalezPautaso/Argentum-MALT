@@ -20,6 +20,7 @@ ServerConfig load_server_config(const std::string& path) {
     {
         toml::table tilemap_tbl = toml::parse_file("config/common_tilemap.toml");
         parse_tilemap_config(tilemap_tbl, config.tilemap);
+        parse_prop_config(tilemap_tbl, config.tilemap);
     }
 
     if (config.tilemap.mapa.empty()) {
