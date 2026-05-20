@@ -59,6 +59,8 @@ ServerEvent ClientProtocol::recv_event() {
             return recv_character_error();
         case OpCode::ENTITY_SPAWN:
             return recv_entity_spawn();
+        case OpCode::ENTITY_DESPAWN:
+            return recv_entity_despawn();
         case OpCode::ENTITY_MOVE:
             return recv_entity_move();
         default:
@@ -80,6 +82,12 @@ ServerEvent ClientProtocol::recv_entity_spawn() {
     return ev;
 }
 
+ServerEvent ClientProtocol::recv_entity_despawn() {
+    EntityDespawnEvent ev;
+    ev.entity_id = protocol.recv_uint16();
+    return ev;
+}
+
 ServerEvent ClientProtocol::recv_entity_move() {
     EntityMoveEvent ev;
     ev.entity_id = protocol.recv_uint16();
@@ -97,6 +105,7 @@ LoginOkEvent ClientProtocol::recv_login_payload() {
     ev.player_class = static_cast<PlayerClass>(protocol.recv_uint8());
     ev.level = protocol.recv_uint8();
     ev.experience = protocol.recv_uint32();
+    ev.exp_to_next = protocol.recv_uint32();
     ev.hp_current = protocol.recv_uint32();
     ev.hp_max = protocol.recv_uint32();
     ev.mana_current = protocol.recv_uint32();

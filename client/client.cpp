@@ -15,28 +15,82 @@ Client::Client(const ClientConfig& cfg):
         sender(protocol, command_queue),
         receiver(protocol, event_queue) {}
 
-LoginOkEvent Client::do_login() {
-    std::string username;
-    std::string password;
+bool Client::run_menu() {
+    client_app::GameState state = client_app::GameState::Menu;
+    bool running = true;
+    const uint32_t tick_ms = config.tick_ms;
+    uint32_t last_tick = SDL_GetTicks();
 
-    std::cout << "Username: ";
-    std::getline(std::cin, username);
-    std::cout << "Password: ";
-    std::getline(std::cin, password);
+    while (running && state == client_app::GameState::Menu) {
+        running = client_app::pump_events(engine, state);
+        if (!running) {
+            break;
+        }
 
-    protocol.send_command(LoginCmd{username, password});
+        const uint32_t now = SDL_GetTicks();
+        const uint32_t elapsed = now - last_tick;
+        if (elapsed >= tick_ms) {
+            last_tick = now;
+            client_app::render_menu(engine);
+        }
 
-    ServerEvent response = protocol.recv_event();
-
-    if (std::holds_alternative<LoginOkEvent>(response)) {
-        return std::get<LoginOkEvent>(response);
+        const uint32_t sleep_ms = (elapsed < tick_ms) ? (tick_ms - elapsed) : 0;
+        if (sleep_ms > 0) {
+            SDL_Delay(sleep_ms);
+        }
     }
+    return running;
+}
 
-    if (std::holds_alternative<LoginErrorEvent>(response)) {
-        throw std::runtime_error("Login failed: " + std::get<LoginErrorEvent>(response).message);
+std::optional<LoginOkEvent> Client::run_login() {
+    client_app::GameState state = client_app::GameState::Login;
+    bool running = true;
+    const uint32_t tick_ms = config.tick_ms;
+    uint32_t last_tick = SDL_GetTicks();
+
+    while (running && state == client_app::GameState::Login) {
+        running = client_app::pump_events(engine, state);
+        if (!running) {
+            break;
+        }
+
+        if (state == client_app::GameState::Menu) {
+            return std::nullopt;
+        }
+
+        if (engine.is_login_submitted()) {
+            const std::string& username = engine.login_username_text();
+            const std::string& password = engine.login_password_text();
+
+            protocol.send_command(LoginCmd{username, password});
+
+            ServerEvent response = protocol.recv_event();
+
+            if (std::holds_alternative<LoginOkEvent>(response)) {
+                return std::get<LoginOkEvent>(response);
+            }
+
+            if (std::holds_alternative<LoginErrorEvent>(response)) {
+                std::cerr << "Login failed: " << std::get<LoginErrorEvent>(response).message
+                          << std::endl;
+                // Reset for retry — would need engine reset in a real implementation
+                return std::nullopt;
+            }
+        }
+
+        const uint32_t now = SDL_GetTicks();
+        const uint32_t elapsed = now - last_tick;
+        if (elapsed >= tick_ms) {
+            last_tick = now;
+            client_app::render_login(engine);
+        }
+
+        const uint32_t sleep_ms = (elapsed < tick_ms) ? (tick_ms - elapsed) : 0;
+        if (sleep_ms > 0) {
+            SDL_Delay(sleep_ms);
+        }
     }
-
-    throw std::runtime_error("Unexpected response to login");
+    return std::nullopt;
 }
 
 void Client::game_loop() {
@@ -79,10 +133,22 @@ void Client::shutdown() {
 }
 
 void Client::run() {
-    LoginOkEvent login_ev = do_login();
-    std::cout << "Logged in as " << login_ev.username << std::endl;
+    while (true) {
+        if (!run_menu()) {
+            return;
+        }
 
-    engine.apply_server_event(login_ev);
+        auto login_result = run_login();
+        if (!login_result) {
+            continue;
+        }
+
+        std::cout << "Logged in as " << login_result->username << std::endl;
+
+        engine.apply_server_event(*login_result);
+
+        break;
+    }
 
     sender.start();
     receiver.start();

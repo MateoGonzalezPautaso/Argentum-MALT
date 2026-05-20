@@ -8,7 +8,7 @@
 #include "server_protocol.h"
 
 // Drains each client output queue and sends each event to the client.
-class Sender : public Thread {
+class Sender: public Thread {
     ServerProtocol& protocol;
     Queue<ServerEvent>& queue;
 

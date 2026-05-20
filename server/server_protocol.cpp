@@ -55,6 +55,7 @@ void ServerProtocol::send_login_payload(const LoginOkEvent& ev) {
     protocol.send_uint8(static_cast<uint8_t>(ev.player_class));
     protocol.send_uint8(ev.level);
     protocol.send_uint32(ev.experience);
+    protocol.send_uint32(ev.exp_to_next);
     protocol.send_uint32(ev.hp_current);
     protocol.send_uint32(ev.hp_max);
     protocol.send_uint32(ev.mana_current);
@@ -98,6 +99,11 @@ void ServerProtocol::send_entity_spawn(const EntitySpawnEvent& ev) {
     protocol.send_uint8(static_cast<uint8_t>(ev.entity_class));
 }
 
+void ServerProtocol::send_entity_despawn(const EntityDespawnEvent& ev) {
+    protocol.send_opcode(OpCode::ENTITY_DESPAWN);
+    protocol.send_uint16(ev.entity_id);
+}
+
 void ServerProtocol::send_entity_move(const EntityMoveEvent& ev) {
     protocol.send_opcode(OpCode::ENTITY_MOVE);
     protocol.send_uint16(ev.entity_id);
@@ -115,6 +121,7 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [this](const CharacterCreatedEvent& msg) { send_character_created(msg); },
                        [this](const CharacterErrorEvent& msg) { send_character_error(msg); },
                        [this](const EntitySpawnEvent& msg) { send_entity_spawn(msg); },
+                       [this](const EntityDespawnEvent& msg) { send_entity_despawn(msg); },
                        [this](const EntityMoveEvent& msg) { send_entity_move(msg); },
                        [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },

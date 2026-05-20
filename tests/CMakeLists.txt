@@ -11,6 +11,9 @@ target_sources(taller_tests
     ${SERVER_SRC}
     ${CMAKE_SOURCE_DIR}/client/client_protocol.cpp
     ${CMAKE_SOURCE_DIR}/server/server_protocol.cpp
+    ${CMAKE_SOURCE_DIR}/server/client_handler.cpp
+    ${CMAKE_SOURCE_DIR}/server/sender.cpp
+    ${CMAKE_SOURCE_DIR}/server/receiver.cpp
     PUBLIC
     ${SERVER_HEADERS}
 )

@@ -242,6 +242,7 @@ struct LoginOkEvent {
     PlayerClass player_class;
     uint8_t level;
     uint32_t experience;
+    uint32_t exp_to_next = 0;
     uint32_t hp_current;
     uint32_t hp_max;
     uint32_t mana_current;
@@ -285,7 +286,9 @@ struct EntitySpawnEvent {
 };
 
 // 0x87
-struct EntityDespawnEvent {};
+struct EntityDespawnEvent {
+    uint16_t entity_id;
+};
 
 // 0x88
 struct EntityMoveEvent {

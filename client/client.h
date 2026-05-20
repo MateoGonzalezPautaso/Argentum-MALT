@@ -1,6 +1,9 @@
 #ifndef CLIENT_CLIENT_H
 #define CLIENT_CLIENT_H
 
+#include <optional>
+#include <string>
+
 #include "../common/messages.h"
 #include "../common/queue.h"
 #include "../common/socket.h"
@@ -11,7 +14,6 @@
 #include "receiver.h"
 #include "sender.h"
 
-// Client owns everything needed for a session
 class Client {
 private:
     ClientConfig config;
@@ -23,14 +25,9 @@ private:
     Sender sender;
     Receiver receiver;
 
-    // Reads credentials from stdin, sends LoginCmd, and blocks until the
-    // server replies. Returns the LoginOkEvent on success, throws on error.
-    LoginOkEvent do_login();
-
+    bool run_menu();
+    std::optional<LoginOkEvent> run_login();
     void game_loop();
-
-    // Closes the command queue (unblocks Sender), then shuts down the socket
-    // (unblocks Receiver), then joins both threads.
     void shutdown();
 
 public:
