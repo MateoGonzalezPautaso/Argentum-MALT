@@ -21,8 +21,7 @@ void Server::game_loop() {
     while (true) {
         PlayerCommand pcmd = input_queue.pop();
         const auto events = game.process_command(pcmd.player_id, pcmd.cmd);
-        for (const auto& ev : events)
-            monitor.broadcast(ev);
+        for (const auto& ev: events) monitor.broadcast(ev);
         monitor.clean_dead();
     }
 }

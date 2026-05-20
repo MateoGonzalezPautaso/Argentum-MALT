@@ -12,7 +12,7 @@
 
 // Blocks on recv_command() and pushes each input_queue command (tagged with
 // player_id) into the shared queue for the game loop
-class Receiver : public Thread {
+class Receiver: public Thread {
     uint16_t player_id;
     ServerProtocol& protocol;
     Queue<PlayerCommand>& input_queue;

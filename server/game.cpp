@@ -1,5 +1,6 @@
 #include "game.h"
 
+#include <utility>
 #include <variant>
 
 #include "../common/visit.h"
@@ -46,8 +47,8 @@ std::vector<ServerEvent> Game::process_command(uint16_t player_id, const ClientC
 std::vector<ServerEvent> Game::tick() { return {}; }
 
 std::vector<ServerEvent> Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
-    Player new_player(player_id, cmd.username, Position{300, 160},
-                      Direction::SOUTH, Race::HUMAN, PlayerClass::WARRIOR, balance);
+    Player new_player(player_id, cmd.username, Position{300, 160}, Direction::SOUTH, Race::HUMAN,
+                      PlayerClass::WARRIOR, balance);
     auto it = players.emplace(player_id, std::move(new_player)).first;
     const Player& p = it->second;
 

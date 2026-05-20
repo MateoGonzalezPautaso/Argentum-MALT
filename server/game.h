@@ -1,5 +1,5 @@
-#ifndef GAME_H_
-#define GAME_H_
+#ifndef GAME_H
+#define GAME_H
 
 #include <cstdint>
 #include <map>
@@ -30,4 +30,4 @@ public:
     std::vector<ServerEvent> tick();
 };
 
-#endif  // GAME_H_
+#endif  // GAME_H

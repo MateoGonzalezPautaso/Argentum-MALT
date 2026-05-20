@@ -1,5 +1,7 @@
 #include "client_list_monitor.h"
 
+#include <utility>
+
 uint16_t ClientListMonitor::add(Socket&& skt, Queue<PlayerCommand>& input_queue) {
     std::lock_guard<std::mutex> lock(mtx);
 
@@ -13,7 +15,7 @@ uint16_t ClientListMonitor::add(Socket&& skt, Queue<PlayerCommand>& input_queue)
 void ClientListMonitor::broadcast(const ServerEvent& event) {
     std::lock_guard<std::mutex> lock(mtx);
 
-    for (auto& [id, client] : clients) {
+    for (auto& [id, client]: clients) {
         try {
             client->push_event(event);
         } catch (const ClosedQueue&) {
@@ -43,7 +45,7 @@ void ClientListMonitor::clean_dead() {
 void ClientListMonitor::stop_all() {
     std::lock_guard<std::mutex> lock(mtx);
 
-    for (auto& [id, client] : clients) {
+    for (auto& [id, client]: clients) {
         client->stop();
         client->join();
     }

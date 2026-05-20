@@ -1,12 +1,11 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "gtest/gtest.h"
-
 #include "client/client_protocol.h"
 #include "common/messages.h"
 #include "common/queue.h"
 #include "common/socket.h"
+#include "gtest/gtest.h"
 #include "server/client_handler.h"
 #include "server/player_command.h"
 
@@ -15,7 +14,7 @@
  *   fds[0] is given to ClientHandler (server side)
  *   fds[1] is kept as peer to simulate a client sending/receiving
  */
-class ClientHandlerTest : public ::testing::Test {
+class ClientHandlerTest: public ::testing::Test {
 protected:
     int fds[2];
     Queue<PlayerCommand> input_queue;
@@ -23,8 +22,10 @@ protected:
     void SetUp() override { ASSERT_NE(socketpair(AF_UNIX, SOCK_STREAM, 0, fds), -1); }
 
     void TearDown() override {
-        if (fds[0] != -1) ::close(fds[0]);
-        if (fds[1] != -1) ::close(fds[1]);
+        if (fds[0] != -1)
+            ::close(fds[0]);
+        if (fds[1] != -1)
+            ::close(fds[1]);
     }
 };
 

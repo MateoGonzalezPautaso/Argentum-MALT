@@ -1,9 +1,10 @@
 #include "acceptor.h"
 
+#include <utility>
+
 #include <sys/socket.h>
 
-Acceptor::Acceptor(Socket& listener, Queue<PlayerCommand>& input_queue,
-                   ClientListMonitor& monitor):
+Acceptor::Acceptor(Socket& listener, Queue<PlayerCommand>& input_queue, ClientListMonitor& monitor):
         listener(listener), input_queue(input_queue), monitor(monitor) {}
 
 void Acceptor::run() {
