@@ -46,6 +46,7 @@ public:
     bool handle_event(const SDL_Event& event);
     void handle_login_event(const SDL_Event& event);
     bool is_menu_click(int x, int y) const;
+    bool is_menu_settings_click(int x, int y) const;
 
     bool is_login_submitted() const { return login_submitted; }
     const std::string& login_username_text() const;

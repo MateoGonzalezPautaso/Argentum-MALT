@@ -9,10 +9,9 @@ class MenuRenderer {
 private:
     SDL2pp::Renderer& renderer;
     SDL2pp::Texture menu_background_texture;
-    SDL2pp::Texture menu_logo_texture;
     Button start_button;
+    Button settings_button;
     SDL2pp::Rect menu_background_rect;
-    SDL2pp::Rect menu_logo_rect;
     int window_w;
     int window_h;
 
@@ -20,8 +19,10 @@ public:
     MenuRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h);
 
     void render();
-    bool is_button_hit(int x, int y) const;
-    void set_button_hovered(int x, int y);
+    bool is_start_hit(int x, int y) const;
+    bool is_settings_hit(int x, int y) const;
+    void set_start_button_hovered(int x, int y);
+    void set_settings_button_hovered(int x, int y);
 
 private:
     void init_layout();

@@ -117,7 +117,11 @@ void ClientEngine::handle_login_event(const SDL_Event& event) {
     }
 }
 
-bool ClientEngine::is_menu_click(int x, int y) const { return menu_renderer.is_button_hit(x, y); }
+bool ClientEngine::is_menu_click(int x, int y) const { return menu_renderer.is_start_hit(x, y); }
+
+bool ClientEngine::is_menu_settings_click(int x, int y) const {
+    return menu_renderer.is_settings_hit(x, y);
+}
 
 bool ClientEngine::handle_mouse_button(const SDL_Event& event) {
     if (event.button.button != SDL_BUTTON_LEFT) {
@@ -188,7 +192,8 @@ void ClientEngine::render_login_frame() {
 }
 
 void ClientEngine::handle_menu_mouse_motion(int x, int y) {
-    menu_renderer.set_button_hovered(x, y);
+    menu_renderer.set_start_button_hovered(x, y);
+    menu_renderer.set_settings_button_hovered(x, y);
 }
 
 void ClientEngine::handle_login_mouse_motion(int x, int y) {
