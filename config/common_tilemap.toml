@@ -28,6 +28,12 @@ width = 160
     x = 0
     y = 0
 
+    [prop.tiles.windmill.hitbox]
+    x = 30
+    y = 110
+    w = 90
+    h = 60
+
 [tilemap]
 mapa = [
     [

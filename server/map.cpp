@@ -41,5 +41,35 @@ bool Map::is_walkable(int foot_x, int foot_y) const {
 
     const auto& name = tilemap.mapa[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)];
     auto it = tilemap.tiles.find(name);
-    return it == tilemap.tiles.end() || it->second.walkable;
+    if (it != tilemap.tiles.end() && !it->second.walkable)
+        return false;
+
+    if (!tilemap.prop_map.empty()) {
+        for (std::size_t r = 0; r < tilemap.prop_map.size(); ++r) {
+            for (std::size_t c = 0; c < tilemap.prop_map[r].size(); ++c) {
+                const auto& prop_name = tilemap.prop_map[r][c];
+                if (prop_name.empty()) continue;
+
+                auto prop_it = tilemap.props.find(prop_name);
+                if (prop_it == tilemap.props.end()) continue;
+
+                const auto& prop = prop_it->second;
+                if (prop.hitbox.w <= 0 || prop.hitbox.h <= 0) continue;
+
+                int prop_x = static_cast<int>(c) * tilemap.tile_size;
+                int prop_y = (static_cast<int>(r) + 1) * tilemap.tile_size - prop.height;
+
+                int hb_left = prop_x + prop.hitbox.x;
+                int hb_top = prop_y + prop.hitbox.y;
+                int hb_right = hb_left + prop.hitbox.w;
+                int hb_bottom = hb_top + prop.hitbox.h;
+
+                if (foot_x >= hb_left && foot_x < hb_right &&
+                    foot_y >= hb_top && foot_y < hb_bottom)
+                    return false;
+            }
+        }
+    }
+
+    return true;
 }
