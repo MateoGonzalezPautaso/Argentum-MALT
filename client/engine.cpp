@@ -174,6 +174,9 @@ bool ClientEngine::handle_keydown(const SDL_Event& event) {
         case SDLK_DOWN:
             move_controller.move_direction(Direction::SOUTH, now);
             break;
+        case SDLK_h: //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
+            world_renderer.set_show_hitboxes(!world_renderer.get_show_hitboxes()); //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
+            break; //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
         default:
             break;
     }

@@ -1,13 +1,302 @@
 [prop.prop_map]
 data = [
     [ '', '', '', '', '', '', '', '', '', '', '', '' ],
-    [ '', '', '', '', '', '', '', '', '', '', '', '' ],
-    [ '', '', '', 'windmill', '', 'casa', '', '', '', '', '', '' ],
-    [ '', '', '', '', '', '', '', '', '', '', '', '' ],
-    [ '', '', '', '', '', '', '', '', '', '', '', '' ],
-    [ '', '', '', '', '', '', '', '', '', '', '', '' ],
+    [ '', '', '', '', 'arbol15', '', '', '', '', '', '', '' ],
+    [ 'arbol10', 'arbol1', '', 'windmill', '', 'casa', '', 'arbol16', '', '', '', '' ],
+    [ '', 'carretilla', '', '', '', '', '', '', '', '', '', '' ],
+    [ '', '', '', 'arbol3', '', '', 'arbol6', '', '', '', '', '' ],
+    [ '', '', '', '', '', 'arbol9', '', '', '', '', '', '' ],
     [ '', '', '', '', '', '', '', '', '', '', '', '' ]
 ]
+
+[prop.tiles.arbol1]
+height = 180
+paths = [ 'assets/Graficos/7016.png' ]
+width = 120
+
+    [prop.tiles.arbol1.hitbox]
+    h = 25
+    w = 20
+    x = 50
+    y = 162
+
+    [prop.tiles.arbol1.src]
+    h = 256
+    w = 256
+    x = 0
+    y = 0
+
+[prop.tiles.arbol10]
+height = 180
+paths = [ 'assets/Graficos/7016.png' ]
+width = 120
+
+    [prop.tiles.arbol10.hitbox]
+    h = 25
+    w = 20
+    x = 50
+    y = 162
+
+    [prop.tiles.arbol10.src]
+    h = 256
+    w = 256
+    x = 256
+    y = 512
+
+[prop.tiles.arbol11]
+height = 180
+paths = [ 'assets/Graficos/7016.png' ]
+width = 120
+
+    [prop.tiles.arbol11.hitbox]
+    h = 25
+    w = 20
+    x = 50
+    y = 162
+
+    [prop.tiles.arbol11.src]
+    h = 256
+    w = 256
+    x = 512
+    y = 512
+
+[prop.tiles.arbol12]
+height = 180
+paths = [ 'assets/Graficos/7016.png' ]
+width = 120
+
+    [prop.tiles.arbol12.hitbox]
+    h = 25
+    w = 20
+    x = 50
+    y = 162
+
+    [prop.tiles.arbol12.src]
+    h = 256
+    w = 256
+    x = 768
+    y = 512
+
+[prop.tiles.arbol13]
+height = 180
+paths = [ 'assets/Graficos/7016.png' ]
+width = 120
+
+    [prop.tiles.arbol13.hitbox]
+    h = 25
+    w = 20
+    x = 50
+    y = 162
+
+    [prop.tiles.arbol13.src]
+    h = 256
+    w = 256
+    x = 0
+    y = 768
+
+[prop.tiles.arbol14]
+height = 180
+paths = [ 'assets/Graficos/7016.png' ]
+width = 120
+
+    [prop.tiles.arbol14.hitbox]
+    h = 25
+    w = 20
+    x = 50
+    y = 162
+
+    [prop.tiles.arbol14.src]
+    h = 256
+    w = 256
+    x = 256
+    y = 768
+
+[prop.tiles.arbol15]
+height = 180
+paths = [ 'assets/Graficos/7016.png' ]
+width = 120
+
+    [prop.tiles.arbol15.hitbox]
+    h = 25
+    w = 20
+    x = 50
+    y = 162
+
+    [prop.tiles.arbol15.src]
+    h = 256
+    w = 256
+    x = 512
+    y = 768
+
+[prop.tiles.arbol16]
+height = 180
+paths = [ 'assets/Graficos/7016.png' ]
+width = 120
+
+    [prop.tiles.arbol16.hitbox]
+    h = 25
+    w = 20
+    x = 50
+    y = 162
+
+    [prop.tiles.arbol16.src]
+    h = 256
+    w = 256
+    x = 768
+    y = 768
+
+[prop.tiles.arbol2]
+height = 180
+paths = [ 'assets/Graficos/7016.png' ]
+width = 120
+
+    [prop.tiles.arbol2.hitbox]
+    h = 25
+    w = 20
+    x = 50
+    y = 162
+
+    [prop.tiles.arbol2.src]
+    h = 256
+    w = 256
+    x = 256
+    y = 0
+
+[prop.tiles.arbol3]
+height = 180
+paths = [ 'assets/Graficos/7016.png' ]
+width = 120
+
+    [prop.tiles.arbol3.hitbox]
+    h = 25
+    w = 20
+    x = 50
+    y = 162
+
+    [prop.tiles.arbol3.src]
+    h = 256
+    w = 256
+    x = 512
+    y = 0
+
+[prop.tiles.arbol4]
+height = 180
+paths = [ 'assets/Graficos/7016.png' ]
+width = 120
+
+    [prop.tiles.arbol4.hitbox]
+    h = 25
+    w = 20
+    x = 50
+    y = 162
+
+    [prop.tiles.arbol4.src]
+    h = 256
+    w = 256
+    x = 768
+    y = 0
+
+[prop.tiles.arbol5]
+height = 180
+paths = [ 'assets/Graficos/7016.png' ]
+width = 120
+
+    [prop.tiles.arbol5.hitbox]
+    h = 25
+    w = 20
+    x = 50
+    y = 162
+
+    [prop.tiles.arbol5.src]
+    h = 256
+    w = 256
+    x = 0
+    y = 256
+
+[prop.tiles.arbol6]
+height = 180
+paths = [ 'assets/Graficos/7016.png' ]
+width = 120
+
+    [prop.tiles.arbol6.hitbox]
+    h = 25
+    w = 20
+    x = 50
+    y = 162
+
+    [prop.tiles.arbol6.src]
+    h = 256
+    w = 256
+    x = 256
+    y = 256
+
+[prop.tiles.arbol7]
+height = 180
+paths = [ 'assets/Graficos/7016.png' ]
+width = 120
+
+    [prop.tiles.arbol7.hitbox]
+    h = 25
+    w = 20
+    x = 50
+    y = 162
+
+    [prop.tiles.arbol7.src]
+    h = 256
+    w = 256
+    x = 512
+    y = 256
+
+[prop.tiles.arbol8]
+height = 180
+paths = [ 'assets/Graficos/7016.png' ]
+width = 120
+
+    [prop.tiles.arbol8.hitbox]
+    h = 25
+    w = 20
+    x = 50
+    y = 162
+
+    [prop.tiles.arbol8.src]
+    h = 256
+    w = 256
+    x = 768
+    y = 256
+
+[prop.tiles.arbol9]
+height = 180
+paths = [ 'assets/Graficos/7016.png' ]
+width = 120
+
+    [prop.tiles.arbol9.hitbox]
+    h = 25
+    w = 20
+    x = 50
+    y = 162
+
+    [prop.tiles.arbol9.src]
+    h = 256
+    w = 256
+    x = 0
+    y = 512
+
+[prop.tiles.carretilla]
+height = 70
+paths = [ 'assets/Graficos/5045.png' ]
+width = 120
+
+    [prop.tiles.carretilla.hitbox]
+    h = 34
+    w = 82
+    x = 30
+    y = 22
+
+    [prop.tiles.carretilla.src]
+    h = 131
+    w = 170
+    x = 254
+    y = 188
 
 [prop.tiles.casa]
 height = 281
@@ -15,9 +304,9 @@ paths = [ 'assets/Graficos/5238.png' ]
 width = 217
 
     [prop.tiles.casa.hitbox]
-    h = 281
+    h = 261
     w = 147
-    x = 27
+    x = 24
     y = 20
 
     [prop.tiles.casa.src]
@@ -69,8 +358,8 @@ mapa = [
     ],
     [
         'a5125_60',
-        'a5125_61',
-        'a5125_04',
+        'a5235_34',
+        'a5235_34',
         'a5125_70',
         'a5125_70',
         'a5125_70',
@@ -83,8 +372,8 @@ mapa = [
     ],
     [
         'a5125_65',
-        'a5125_02',
-        'a5155_36',
+        'a5235_74',
+        'a5235_35',
         'a5125_15',
         'a5234_27',
         'a5235_12',
@@ -98,7 +387,7 @@ mapa = [
     [
         'a5125_56',
         'a5125_34',
-        'a5125_05',
+        'a5235_23',
         'a5125_02',
         'a5125_15',
         'a5234_67',

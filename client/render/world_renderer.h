@@ -41,6 +41,10 @@ private:
         uint32_t frame_ms = 0;
         std::size_t current_frame = 0;
         uint32_t last_ticks = 0;
+        int hitbox_x = 0; //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
+        int hitbox_y = 0; //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
+        int hitbox_w = 0; //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
+        int hitbox_h = 0; //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
     };
 
     SDL2pp::Renderer& renderer;
@@ -57,8 +61,11 @@ private:
     std::vector<SpriteRender> sprites;
     int window_w;
     int window_h;
+    bool show_hitboxes_ = false; //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
 
 public:
+    void set_show_hitboxes(bool v) { show_hitboxes_ = v; } //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
+    bool get_show_hitboxes() const { return show_hitboxes_; } //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
     WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig& background,
                   const TilemapConfig& tilemap, const std::vector<SpriteConfig>& sprites_config,
                   int window_w, int window_h);
@@ -80,6 +87,7 @@ private:
     SDL2pp::Rect camera_rect() const;
     void render_tilemap_or_background(const SDL2pp::Rect& cam);
     void render_props(const SDL2pp::Rect& cam, int player_foot_y, bool behind);
+    void render_props_hitboxes(const SDL2pp::Rect& cam); //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
     void render_sprites(const SDL2pp::Rect& cam);
     void update_animation();
     void update_anchor_positions();
