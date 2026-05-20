@@ -1,6 +1,8 @@
 #ifndef GAME_H_
 #define GAME_H_
 
+#include <cstdint>
+#include <map>
 #include <vector>
 
 #include "../common/messages.h"
@@ -11,20 +13,21 @@
 
 class Game {
 private:
-    Player player;
+    std::map<uint16_t, Player> players;
     Map map;
     int move_step;
     int sprite_width;
     int sprite_height;
+    BalanceConfig balance;
 
-    std::vector<ServerEvent> handle_move(const MoveCmd& cmd);
+    std::vector<ServerEvent> handle_login(uint16_t player_id, const LoginCmd& cmd);
+    std::vector<ServerEvent> handle_move(uint16_t player_id, const MoveCmd& cmd);
 
 public:
-    Game(uint16_t player_id, const ServerConfig& config);
+    explicit Game(const ServerConfig& config);
 
-    std::vector<ServerEvent> process_command(const ClientCommand& cmd);
+    std::vector<ServerEvent> process_command(uint16_t player_id, const ClientCommand& cmd);
     std::vector<ServerEvent> tick();
-    std::vector<ServerEvent> get_initial_events();
 };
 
 #endif  // GAME_H_
