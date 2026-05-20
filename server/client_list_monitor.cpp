@@ -36,22 +36,23 @@ void ClientListMonitor::broadcast(const ServerEvent& event) {
     }
 }
 
-void ClientListMonitor::clean_dead() {
+std::vector<uint16_t> ClientListMonitor::clean_dead() {
     std::lock_guard<std::mutex> lock(mtx);
 
+    std::vector<uint16_t> removed;
     auto it = clients.begin();
     while (it != clients.end()) {
         ClientHandler& client = *it->second;
-        // *it->second dereferences the unique_ptr, giving the ClientHandler
-
         if (!client.is_alive()) {
             client.stop();
             client.join();
+            removed.push_back(it->first);
             it = clients.erase(it);
         } else {
             it++;
         }
     }
+    return removed;
 }
 
 void ClientListMonitor::stop_all() {

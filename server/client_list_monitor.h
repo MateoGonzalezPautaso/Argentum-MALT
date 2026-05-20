@@ -5,6 +5,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 #include "../common/messages.h"
 #include "../common/queue.h"
@@ -31,7 +32,8 @@ public:
     void broadcast(const ServerEvent& event);
 
     // Joins and removes clients whose threads have already exited.
-    void clean_dead();
+    // Returns the player IDs that were removed.
+    std::vector<uint16_t> clean_dead();
 
     // Stops and joins all clients (used on server shutdown).
     void stop_all();

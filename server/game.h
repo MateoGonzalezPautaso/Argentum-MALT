@@ -32,6 +32,7 @@ public:
     explicit Game(const ServerConfig& config);
 
     CommandResult process_command(uint16_t player_id, const ClientCommand& cmd);
+    CommandResult remove_player(uint16_t player_id);
     CommandResult tick();
 };
 

@@ -44,6 +44,16 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                       cmd);
 }
 
+CommandResult Game::remove_player(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+
+    EntityDespawnEvent despawn{.entity_id = player_id};
+    players.erase(it);
+    return {.private_events = {}, .broadcast_events = {despawn}};
+}
+
 CommandResult Game::tick() { return {}; }
 
 CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
@@ -107,5 +117,5 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
             .entity_pos = player.pos,
             .entity_dir = player.dir,
     };
-    return {.broadcast_events = {move}};
+    return {.private_events = {}, .broadcast_events = {move}};
 }
