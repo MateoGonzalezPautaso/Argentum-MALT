@@ -128,6 +128,14 @@ void TilemapDocument::save(const std::string& path) const {
             if (def.frame_ms > 0) {
                 prop_def.emplace("frame_ms", static_cast<int64_t>(def.frame_ms));
             }
+            if (def.hitbox.w > 0 && def.hitbox.h > 0) {
+                toml::table hb;
+                hb.emplace("x", def.hitbox.x);
+                hb.emplace("y", def.hitbox.y);
+                hb.emplace("w", def.hitbox.w);
+                hb.emplace("h", def.hitbox.h);
+                prop_def.emplace("hitbox", std::move(hb));
+            }
             prop_tiles_tbl.emplace(name, std::move(prop_def));
         }
         prop_tbl.emplace("tiles", std::move(prop_tiles_tbl));
