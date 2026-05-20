@@ -28,14 +28,23 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig&
 }
 
 void WorldRenderer::render() {
-    // Renderiza solo el mundo (mapa + sprites) dentro del viewport de juego.
     renderer.SetViewport(game_viewport);
 
     const SDL2pp::Rect cam = camera_rect();
     render_tilemap_or_background(cam);
+
+    int player_foot_y = 0;
+    const SpriteRender* movable = find_movable_sprite();
+    if (movable) {
+        player_foot_y = movable->dst.GetY() + movable->dst.GetH();
+    }
+
+    render_props(cam, player_foot_y, true);
+
     update_animation();
     update_anchor_positions();
     render_sprites(cam);
+    render_props(cam, player_foot_y, false);
 
     renderer.SetViewport(SDL2pp::NullOpt);
 }
@@ -290,38 +299,44 @@ void WorldRenderer::render_tilemap_or_background(const SDL2pp::Rect& cam) {
             }
         }
 
-        // Render props on top of tiles
-        if (!prop_tiles_.empty()) {
-            for (int row = first_row; row <= last_row; ++row) {
-                if (row < 0 || row >= static_cast<int>(prop_tiles_.size())) {
-                    continue;
-                }
-                auto& prop_row = prop_tiles_[static_cast<std::size_t>(row)];
-                if (prop_row.empty()) continue;
-
-                const int row_last_col2 = std::min(last_col,
-                    static_cast<int>(prop_row.size()) - 1);
-                for (int col = first_col; col <= row_last_col2; ++col) {
-                    if (col < 0) continue;
-                    auto& prop = prop_row[static_cast<std::size_t>(col)];
-                    if (prop.frames.empty()) continue;
-
-                    int offset_x = (prop.display_w - tile_size) / 2;
-                    int offset_y = (prop.display_h - tile_size) / 2;
-                    SDL2pp::Rect dst(
-                        col * tile_size - cam.GetX() - offset_x,
-                        row * tile_size - cam.GetY() - offset_y,
-                        prop.display_w, prop.display_h);
-                    renderer.Copy(prop.frames[prop.current_frame], prop.src, dst);
-                }
-            }
-        }
-
         return;
     }
 
     const SDL2pp::Rect gameplay_bg(0, 0, game_viewport.GetW(), game_viewport.GetH());
     renderer.Copy(background_texture, SDL2pp::NullOpt, gameplay_bg);
+}
+
+void WorldRenderer::render_props(const SDL2pp::Rect& cam, int player_foot_y, bool behind) {
+    if (prop_tiles_.empty() || !has_tilemap) return;
+
+    const int first_col = std::max(0, cam.GetX() / tile_size);
+    const int first_row = std::max(0, cam.GetY() / tile_size);
+    const int last_col = std::max(0, (cam.GetX() + cam.GetW() - 1) / tile_size);
+    const int last_row = std::max(0, (cam.GetY() + cam.GetH() - 1) / tile_size);
+
+    for (int row = first_row; row <= last_row; ++row) {
+        if (row < 0 || row >= static_cast<int>(prop_tiles_.size())) continue;
+
+        const int prop_depth = (row + 1) * tile_size;
+        if (behind && prop_depth > player_foot_y) continue;
+        if (!behind && prop_depth <= player_foot_y) continue;
+
+        auto& prop_row = prop_tiles_[static_cast<std::size_t>(row)];
+        if (prop_row.empty()) continue;
+
+        const int row_last_col = std::min(last_col, static_cast<int>(prop_row.size()) - 1);
+        for (int col = first_col; col <= row_last_col; ++col) {
+            if (col < 0) continue;
+            auto& prop = prop_row[static_cast<std::size_t>(col)];
+            if (prop.frames.empty()) continue;
+
+            SDL2pp::Rect dst(
+                col * tile_size - cam.GetX(),
+                (row + 1) * tile_size - cam.GetY() - prop.display_h,
+                prop.display_w, prop.display_h);
+            renderer.Copy(prop.frames[prop.current_frame], prop.src, dst);
+        }
+    }
 }
 
 void WorldRenderer::render_sprites(const SDL2pp::Rect& cam) {

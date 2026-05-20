@@ -79,6 +79,7 @@ private:
     SpriteRender build_sprite_render(const SpriteConfig& sprite_config);
     SDL2pp::Rect camera_rect() const;
     void render_tilemap_or_background(const SDL2pp::Rect& cam);
+    void render_props(const SDL2pp::Rect& cam, int player_foot_y, bool behind);
     void render_sprites(const SDL2pp::Rect& cam);
     void update_animation();
     void update_anchor_positions();
