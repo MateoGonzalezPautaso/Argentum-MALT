@@ -10,6 +10,7 @@
 #include "chat_input.h"
 #include "config.h"
 #include "move_controller.h"
+#include "player_stats.h"
 #include "render/login_renderer.h"
 #include "render/menu_renderer.h"
 #include "render/ui_renderer.h"
@@ -32,6 +33,7 @@ private:
     ChatInput login_password;
     int login_active_field = 0;
     bool login_submitted = false;
+    PlayerStats player_stats;
     MoveController move_controller;
 
 public:

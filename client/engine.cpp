@@ -49,6 +49,18 @@ void ClientEngine::apply_server_event(const ServerEvent& ev) {
                            world_renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
                        },
                        [this](const LoginOkEvent& e) {
+                           player_stats.player_id = e.player_id;
+                           player_stats.username = e.username;
+                           player_stats.race = e.race;
+                           player_stats.player_class = e.player_class;
+                           player_stats.level = e.level;
+                           player_stats.experience = e.experience;
+                           player_stats.hp_current = e.hp_current;
+                           player_stats.hp_max = e.hp_max;
+                           player_stats.mana_current = e.mana_current;
+                           player_stats.mana_max = e.mana_max;
+                           player_stats.gold = e.gold;
+                           player_stats.pos = e.pos;
                            world_renderer.set_movable_position(e.pos.x, e.pos.y);
                        },
                        [](const auto&) {},
