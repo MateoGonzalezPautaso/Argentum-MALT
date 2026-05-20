@@ -66,6 +66,7 @@ private:
     ServerEvent recv_character_error();
     ServerEvent recv_map_info();
     ServerEvent recv_entity_spawn();
+    ServerEvent recv_entity_despawn();
     ServerEvent recv_entity_move();
 
     // TODO ...

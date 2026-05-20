@@ -1,5 +1,7 @@
 #include "receiver.h"
 
+#include <utility>
+
 Receiver::Receiver(uint16_t player_id, ServerProtocol& protocol, Queue<PlayerCommand>& input_queue):
         player_id(player_id), protocol(protocol), input_queue(input_queue) {}
 

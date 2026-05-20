@@ -1,5 +1,7 @@
 #include "client_handler.h"
 
+#include <utility>
+
 ClientHandler::ClientHandler(uint16_t player_id, Socket&& skt, Queue<PlayerCommand>& input_queue):
         player_id(player_id),
         protocol(std::move(skt)),
@@ -27,6 +29,4 @@ void ClientHandler::join() {
 
 // Both threads must be alive for the handler to be considered connected.
 // If either exits (send failure or client disconnect), the handler is dead.
-bool ClientHandler::is_alive() const {
-    return sender.is_alive() && receiver.is_alive();
-}
+bool ClientHandler::is_alive() const { return sender.is_alive() && receiver.is_alive(); }

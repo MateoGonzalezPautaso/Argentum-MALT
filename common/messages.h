@@ -285,7 +285,9 @@ struct EntitySpawnEvent {
 };
 
 // 0x87
-struct EntityDespawnEvent {};
+struct EntityDespawnEvent {
+    uint16_t entity_id;
+};
 
 // 0x88
 struct EntityMoveEvent {

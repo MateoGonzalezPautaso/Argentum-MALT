@@ -1,14 +1,14 @@
-#include <arpa/inet.h>
 #include <cstring>
+
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <unistd.h>
-
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 
 #include "client/client_protocol.h"
 #include "common/messages.h"
 #include "common/socket.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include "server/server_protocol.h"
 
 /*
@@ -22,7 +22,7 @@
  * Each TEST_F gets fresh file descriptors because SetUp() runs before every
  * test and TearDown() runs after.
  */
-class ProtocolTest : public ::testing::Test {
+class ProtocolTest: public ::testing::Test {
 protected:
     int fds[2];
 
@@ -46,8 +46,7 @@ protected:
  * TEST_P defines the test body; INSTANTIATE_TEST_SUITE_P runs it once per
  * value in Values(...).
  */
-class ProtocolMoveTest : public ProtocolTest,
-                         public ::testing::WithParamInterface<Direction> {};
+class ProtocolMoveTest: public ProtocolTest, public ::testing::WithParamInterface<Direction> {};
 
 TEST_P(ProtocolMoveTest, RoundtripAllDirections) {
     Socket client_skt = Socket::from_fd(fds[0]);
@@ -78,7 +77,7 @@ INSTANTIATE_TEST_SUITE_P(AllDirections, ProtocolMoveTest,
 // Verifies the exact binary format of the MOVE message
 TEST_F(ProtocolTest, SendMoveCheckRawBytes) {
     Socket client_skt = Socket::from_fd(fds[0]);
-    Socket peer        = Socket::from_fd(fds[1]);
+    Socket peer = Socket::from_fd(fds[1]);
 
     ClientProtocol client(std::move(client_skt));
 
@@ -152,7 +151,7 @@ TEST_F(ProtocolTest, LoginEmptyFieldsRoundtrip) {
  * The parameter is std::pair<Race, PlayerClass>: all 4 race+class combinations
  * are tested. auto [race, class_] = GetParam()
  */
-class ProtocolCreateCharacterTest :
+class ProtocolCreateCharacterTest:
         public ProtocolTest,
         public ::testing::WithParamInterface<std::pair<Race, PlayerClass>> {};
 
@@ -174,12 +173,11 @@ TEST_P(ProtocolCreateCharacterTest, RoundtripRaceAndClass) {
 }
 
 // Generates one test per race+class combination.
-INSTANTIATE_TEST_SUITE_P(
-        RaceClassCombinations, ProtocolCreateCharacterTest,
-        ::testing::Values(std::make_pair(Race::HUMAN, PlayerClass::WARRIOR),
-                          std::make_pair(Race::ELF, PlayerClass::MAGE),
-                          std::make_pair(Race::DWARF, PlayerClass::CLERIC),
-                          std::make_pair(Race::GNOME, PlayerClass::PALADIN)));
+INSTANTIATE_TEST_SUITE_P(RaceClassCombinations, ProtocolCreateCharacterTest,
+                         ::testing::Values(std::make_pair(Race::HUMAN, PlayerClass::WARRIOR),
+                                           std::make_pair(Race::ELF, PlayerClass::MAGE),
+                                           std::make_pair(Race::DWARF, PlayerClass::CLERIC),
+                                           std::make_pair(Race::GNOME, PlayerClass::PALADIN)));
 
 // ─────────────────────────────────────────────────────────────
 // LOGIN_OK event
@@ -231,7 +229,7 @@ TEST_F(ProtocolTest, LoginOkRoundtrip) {
 
 // Parameterized over all three LoginError enum values to ensure each error
 // code survives serialization.
-class ProtocolLoginErrorTest :
+class ProtocolLoginErrorTest:
         public ProtocolTest,
         public ::testing::WithParamInterface<LoginError> {};
 
@@ -251,8 +249,7 @@ TEST_P(ProtocolLoginErrorTest, RoundtripAllErrorCodes) {
 
 INSTANTIATE_TEST_SUITE_P(AllLoginErrors, ProtocolLoginErrorTest,
                          ::testing::Values(LoginError::INVALID_CREDENTIALS,
-                                           LoginError::ALREADY_LOGGED_IN,
-                                           LoginError::SERVER_FULL));
+                                           LoginError::ALREADY_LOGGED_IN, LoginError::SERVER_FULL));
 
 // ─────────────────────────────────────────────────────────────
 // CHARACTER_CREATED event
@@ -264,8 +261,8 @@ TEST_F(ProtocolTest, CharacterCreatedRoundtrip) {
     ServerProtocol server(Socket::from_fd(fds[0]));
     ClientProtocol client(Socket::from_fd(fds[1]));
 
-    CharacterCreatedEvent sent{LoginOkEvent{1, "newchar", Race::DWARF, PlayerClass::PALADIN,
-                                            1, 0, 100, 100, 50, 50, 0, {10, 20}}};
+    CharacterCreatedEvent sent{LoginOkEvent{
+            1, "newchar", Race::DWARF, PlayerClass::PALADIN, 1, 0, 100, 100, 50, 50, 0, {10, 20}}};
     server.send_event(sent);
 
     ServerEvent ev = client.recv_event();
@@ -356,6 +353,22 @@ TEST_F(ProtocolTest, EntitySpawnNpcRoundtrip) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// ENTITY_DESPAWN event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, EntityDespawnRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    EntityDespawnEvent sent{.entity_id = 42};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<EntityDespawnEvent>(ev));
+    EXPECT_EQ(std::get<EntityDespawnEvent>(ev).entity_id, sent.entity_id);
+}
+
+// ─────────────────────────────────────────────────────────────
 // ENTITY_MOVE event
 // ─────────────────────────────────────────────────────────────
 
@@ -423,10 +436,15 @@ TEST_F(ProtocolTest, MultipleEventsInSequence) {
     ServerProtocol server(Socket::from_fd(fds[0]));
     ClientProtocol client(Socket::from_fd(fds[1]));
 
-    server.send_event(LoginOkEvent{1, "hero", Race::HUMAN, PlayerClass::WARRIOR,
-                                   1, 0, 100, 100, 50, 50, 0, {0, 0}});
-    server.send_event(EntitySpawnEvent{1, EntityType::PLAYER, {0, 0}, Direction::SOUTH,
-                                       "hero", Race::HUMAN, PlayerClass::WARRIOR});
+    server.send_event(LoginOkEvent{
+            1, "hero", Race::HUMAN, PlayerClass::WARRIOR, 1, 0, 100, 100, 50, 50, 0, {0, 0}});
+    server.send_event(EntitySpawnEvent{1,
+                                       EntityType::PLAYER,
+                                       {0, 0},
+                                       Direction::SOUTH,
+                                       "hero",
+                                       Race::HUMAN,
+                                       PlayerClass::WARRIOR});
     server.send_event(EntityMoveEvent{1, {10, 0}, Direction::EAST});
 
     EXPECT_TRUE(std::holds_alternative<LoginOkEvent>(client.recv_event()));
