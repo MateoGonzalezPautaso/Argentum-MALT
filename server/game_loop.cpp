@@ -17,8 +17,6 @@ void GameLoop::run() {
     const milliseconds tick_duration = milliseconds(1000 / tick_rate_hz);
     auto next_tick = steady_clock::now();
 
-    bool had_players = false;
-
     while (should_keep_running()) {
         next_tick += tick_duration;
 
@@ -44,15 +42,9 @@ void GameLoop::run() {
 
         // Remove clients whose sender/receiver threads have exited
         for (uint16_t dead_id: monitor.clean_dead()) {
-            had_players = true;
-
             CommandResult despawn = game.remove_player(dead_id);
             for (const ServerEvent& ev: despawn.broadcast_events) monitor.broadcast(ev);
         }
-
-        // Stop once every player has left (requires at least one)
-        if (had_players && monitor.is_empty())
-            break;
 
         // If the tick body overran, skip the missed complete ticks
         auto now = steady_clock::now();

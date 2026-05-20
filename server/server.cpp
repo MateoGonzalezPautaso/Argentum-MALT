@@ -1,6 +1,7 @@
 #include "server.h"
 
 #include <iostream>
+#include <string>
 
 Server::Server(const ServerConfig& cfg):
         config(cfg),
@@ -12,8 +13,14 @@ Server::Server(const ServerConfig& cfg):
 
 void Server::run() {
     std::cout << "Server listening on port " << config.port << "...\n";
+    std::cout << "Press 'q' + Enter to stop the server.\n";
     acceptor.start();
     game_loop.start();
+
+    std::string line;
+    while (std::getline(std::cin, line) && line != "q") {}
+
+    game_loop.stop();
     game_loop.join();
     shutdown();
 }
