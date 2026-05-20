@@ -1,6 +1,7 @@
 #include "ui_renderer.h"
 
 #include <algorithm>
+#include <string>
 
 #include "../chat_input.h"
 #include "geometry.h"
@@ -12,14 +13,15 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h,
         chat_model(chat_model),
         ui_frame_texture(renderer, load_surface("assets/interface/en_ventanaprincipal.bmp")),
         hp_bar_texture(renderer, load_surface("assets/interface/en_barradevida.bmp")),
+        mp_bar_texture(renderer, load_surface("assets/interface/en_barrademana.bmp")),
         ui_frame_rect(0, 0, window_w, window_h),
         chat_input_rect(41, 122, 565, 20) {
     chat_font = TTF_OpenFont("assets/OUTPUT/Cardo.ttf", 16);
     if (!chat_font) {
         throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
     }
-    hp_font = TTF_OpenFont("assets/OUTPUT/Cardo.ttf", 11);
-    if (!hp_font) {
+    bar_font = TTF_OpenFont("assets/OUTPUT/Cardo.ttf", 11);
+    if (!bar_font) {
         throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
     }
 }
@@ -29,9 +31,9 @@ UIRenderer::~UIRenderer() {
         TTF_CloseFont(chat_font);
         chat_font = nullptr;
     }
-    if (hp_font) {
-        TTF_CloseFont(hp_font);
-        hp_font = nullptr;
+    if (bar_font) {
+        TTF_CloseFont(bar_font);
+        bar_font = nullptr;
     }
 }
 
@@ -62,26 +64,35 @@ bool UIRenderer::is_chat_input_hit(int x, int y) const {
 }
 
 void UIRenderer::render_hp_bar(uint32_t current, uint32_t max) {
+    render_stat_bar(hp_bar_texture, HP_BAR_X, HP_BAR_Y, HP_BAR_W, HP_BAR_H, current, max);
+}
+
+void UIRenderer::render_mp_bar(uint32_t current, uint32_t max) {
+    render_stat_bar(mp_bar_texture, MP_BAR_X, MP_BAR_Y, MP_BAR_W, MP_BAR_H, current, max);
+}
+
+void UIRenderer::render_stat_bar(SDL2pp::Texture& tex, int x, int y, int w, int h,
+                                 uint32_t current, uint32_t max) const {
     if (max == 0) {
         return;
     }
 
     const float ratio = std::min(1.0f, static_cast<float>(current) / static_cast<float>(max));
-    const int filled_w = static_cast<int>(HP_BAR_W * ratio);
+    const int filled_w = static_cast<int>(w * ratio);
     if (filled_w == 0) {
         return;
     }
 
-    SDL2pp::Rect src(0, 0, filled_w, HP_BAR_H);
-    SDL2pp::Rect dst(HP_BAR_X, HP_BAR_Y, filled_w, HP_BAR_H);
-    renderer.Copy(hp_bar_texture, src, dst);
+    SDL2pp::Rect src(0, 0, filled_w, h);
+    SDL2pp::Rect dst(x, y, filled_w, h);
+    renderer.Copy(tex, src, dst);
 
-    if (!hp_font) {
+    if (!bar_font) {
         return;
     }
 
     std::string text = std::to_string(current) + "/" + std::to_string(max);
-    SDL_Surface* text_surface = TTF_RenderUTF8_Blended(hp_font, text.c_str(), chat_color);
+    SDL_Surface* text_surface = TTF_RenderUTF8_Blended(bar_font, text.c_str(), chat_color);
     if (!text_surface) {
         return;
     }
@@ -89,13 +100,13 @@ void UIRenderer::render_hp_bar(uint32_t current, uint32_t max) {
 
     int text_w = 0;
     int text_h = 0;
-    if (TTF_SizeUTF8(hp_font, text.c_str(), &text_w, &text_h) != 0) {
+    if (TTF_SizeUTF8(bar_font, text.c_str(), &text_w, &text_h) != 0) {
         return;
     }
 
     SDL2pp::Texture text_texture(renderer, wrapped);
-    const int text_x = HP_BAR_X + (HP_BAR_W - text_w) / 2;
-    const int text_y = HP_BAR_Y + (HP_BAR_H - text_h) / 2;
+    const int text_x = x + (w - text_w) / 2;
+    const int text_y = y + (h - text_h) / 2;
     SDL2pp::Rect text_dst(text_x, text_y, text_w, text_h);
     renderer.Copy(text_texture, SDL2pp::NullOpt, text_dst);
 }
