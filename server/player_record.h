@@ -1,0 +1,36 @@
+#ifndef SERVER_PLAYER_RECORD_H
+#define SERVER_PLAYER_RECORD_H
+
+#include <cstdint>
+#include <cstring>
+#include <string>
+
+// Binary structure for storing player data in the database.
+struct PlayerRecord {
+    static constexpr std::size_t USERNAME_MAX = 32;
+    static constexpr std::size_t PASSWORD_MAX = 32;
+
+    char username[USERNAME_MAX];
+    char password[PASSWORD_MAX];
+    uint16_t pos_x;
+    uint16_t pos_y;
+    uint8_t dir;
+    uint8_t race;
+    uint8_t player_class;
+    uint8_t level;
+    uint32_t experience;
+    uint32_t hp_current;
+    uint32_t hp_max;
+    uint32_t mana_current;
+    uint32_t mana_max;
+    uint32_t gold;
+
+    PlayerRecord();
+
+    void set_username(const std::string& name);
+    std::string get_username() const;
+    void set_password(const std::string& pw);
+    bool check_password(const std::string& pw) const;
+};
+
+#endif  // SERVER_PLAYER_RECORD_H
