@@ -40,6 +40,8 @@ public:
     void gain_gold(uint32_t amount);
     void spend_gold(uint32_t amount);
 
+    uint32_t exp_to_next_level() const;
+
     void increase_max_hp(uint32_t amount);
     void increase_max_mana(uint32_t amount);
 };

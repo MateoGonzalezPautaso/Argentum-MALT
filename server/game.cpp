@@ -69,6 +69,7 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
             .player_class = p.player_class,
             .level = p.level,
             .experience = p.experience,
+            .exp_to_next = p.exp_to_next_level(),
             .hp_current = p.hp_current,
             .hp_max = p.hp_max,
             .mana_current = p.mana_current,

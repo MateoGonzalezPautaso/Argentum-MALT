@@ -55,6 +55,7 @@ void ServerProtocol::send_login_payload(const LoginOkEvent& ev) {
     protocol.send_uint8(static_cast<uint8_t>(ev.player_class));
     protocol.send_uint8(ev.level);
     protocol.send_uint32(ev.experience);
+    protocol.send_uint32(ev.exp_to_next);
     protocol.send_uint32(ev.hp_current);
     protocol.send_uint32(ev.hp_max);
     protocol.send_uint32(ev.mana_current);

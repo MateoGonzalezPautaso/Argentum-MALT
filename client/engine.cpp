@@ -55,6 +55,7 @@ void ClientEngine::apply_server_event(const ServerEvent& ev) {
                            player_stats.player_class = e.player_class;
                            player_stats.level = e.level;
                            player_stats.experience = e.experience;
+                           player_stats.exp_to_next = e.exp_to_next;
                            player_stats.hp_current = e.hp_current;
                            player_stats.hp_max = e.hp_max;
                            player_stats.mana_current = e.mana_current;

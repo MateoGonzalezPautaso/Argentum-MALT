@@ -94,3 +94,8 @@ void Player::spend_gold(uint32_t amount) {
         gold -= amount;
     }
 }
+
+uint32_t Player::exp_to_next_level() const {
+    return static_cast<uint32_t>(
+            balance.level_exp_base * std::pow(level, balance.level_exp_exponent));
+}

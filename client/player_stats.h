@@ -13,6 +13,7 @@ struct PlayerStats {
     PlayerClass player_class = PlayerClass::WARRIOR;
     uint8_t level = 1;
     uint32_t experience = 0;
+    uint32_t exp_to_next = 0;
     uint32_t hp_current = 0;
     uint32_t hp_max = 0;
     uint32_t mana_current = 0;

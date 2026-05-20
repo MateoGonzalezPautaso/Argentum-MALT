@@ -262,7 +262,8 @@ TEST_F(ProtocolTest, CharacterCreatedRoundtrip) {
     ClientProtocol client(Socket::from_fd(fds[1]));
 
     CharacterCreatedEvent sent{LoginOkEvent{
-            1, "newchar", Race::DWARF, PlayerClass::PALADIN, 1, 0, 100, 100, 50, 50, 0, {10, 20}}};
+            1, "newchar", Race::DWARF, PlayerClass::PALADIN, 1, 0, 0, 100, 100, 50, 50, 0,
+            {10, 20}}};
     server.send_event(sent);
 
     ServerEvent ev = client.recv_event();
@@ -437,7 +438,7 @@ TEST_F(ProtocolTest, MultipleEventsInSequence) {
     ClientProtocol client(Socket::from_fd(fds[1]));
 
     server.send_event(LoginOkEvent{
-            1, "hero", Race::HUMAN, PlayerClass::WARRIOR, 1, 0, 100, 100, 50, 50, 0, {0, 0}});
+            1, "hero", Race::HUMAN, PlayerClass::WARRIOR, 1, 0, 0, 100, 100, 50, 50, 0, {0, 0}});
     server.send_event(EntitySpawnEvent{1,
                                        EntityType::PLAYER,
                                        {0, 0},
