@@ -1,4 +1,4 @@
-.PHONY: all test clean editor client common server build
+.PHONY: all test clean editor client common server build lint
 
 compile-debug:
 	mkdir -p build/
@@ -9,6 +9,9 @@ run-tests: compile-debug
 	./build/taller_tests
 
 all: clean run-tests
+
+lint:
+	pre-commit run --all-files
 
 clean:
 	rm -Rf build/
