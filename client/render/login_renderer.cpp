@@ -13,6 +13,8 @@ LoginRenderer::LoginRenderer(SDL2pp::Renderer& renderer, int window_w, int windo
         password_model(password_model),
         background_texture(renderer,
                            load_surface("assets/BabelUI/static/media/leather_brown..png")),
+        logo_texture(renderer,
+                     load_surface("assets/BabelUI/static/media/ao20_logo_med..png")),
         connect_button(
                 SDL2pp::Texture(renderer,
                                 load_surface("assets/interface/en_boton-conectar-default.bmp")),
@@ -23,10 +25,16 @@ LoginRenderer::LoginRenderer(SDL2pp::Renderer& renderer, int window_w, int windo
                     SDL2pp::Texture(renderer,
                                     load_surface("assets/interface/en_boton-volver-over.bmp"))),
         background_rect(0, 0, window_w, window_h),
+        logo_rect(0, 0, 0, 0),
+        title_rect(0, 0, 0, 0),
         window_w(window_w),
         window_h(window_h) {
     field_font = TTF_OpenFont("assets/OUTPUT/Cardo.ttf", 18);
     if (!field_font) {
+        throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
+    }
+    title_font = TTF_OpenFont("assets/OUTPUT/Cardo.ttf", 28);
+    if (!title_font) {
         throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
     }
     init_layout();
@@ -37,10 +45,23 @@ LoginRenderer::~LoginRenderer() {
         TTF_CloseFont(field_font);
         field_font = nullptr;
     }
+    if (title_font) {
+        TTF_CloseFont(title_font);
+        title_font = nullptr;
+    }
 }
 
 void LoginRenderer::render() {
     renderer.Copy(background_texture, SDL2pp::NullOpt, background_rect);
+
+    renderer.Copy(logo_texture, SDL2pp::NullOpt, logo_rect);
+
+    SDL_Surface* title_surface = TTF_RenderUTF8_Blended(title_font, TITLE_TEXT, title_color);
+    if (title_surface) {
+        SDL2pp::Surface wrapped(title_surface);
+        SDL2pp::Texture title_texture(renderer, wrapped);
+        renderer.Copy(title_texture, SDL2pp::NullOpt, title_rect);
+    }
 
     render_text_field(username_field_rect, username_model.get_text(),
                       username_model.is_focused(), USERNAME_PLACEHOLDER);
@@ -76,11 +97,30 @@ void LoginRenderer::set_back_button_hovered(int x, int y) {
 }
 
 void LoginRenderer::init_layout() {
+    // Logo centered near the top
+    const int logo_w = logo_texture.GetWidth();
+    const int logo_h = logo_texture.GetHeight();
+    const int logo_x = std::max(0, (window_w - logo_w) / 2);
+    const int logo_y = 80;
+    logo_rect = SDL2pp::Rect(logo_x, logo_y, logo_w, logo_h);
+
+    // Title below the logo
+    int title_w = 0;
+    int title_h = 0;
+    if (title_font) {
+        TTF_SizeUTF8(title_font, TITLE_TEXT, &title_w, &title_h);
+    }
+    const int title_x = std::max(0, (window_w - title_w) / 2);
+    const int title_y = logo_y + logo_h + 20;
+    title_rect = SDL2pp::Rect(title_x, title_y, title_w, title_h);
+
+    // Fields below the title
     const int field_w = 320;
     const int field_h = 34;
     const int field_x = std::max(0, (window_w - field_w) / 2);
-    const int username_y = window_h / 2 - 80;
-    const int password_y = window_h / 2 - 20;
+    const int field_start_y = title_y + title_h + 30;
+    const int username_y = field_start_y;
+    const int password_y = username_y + field_h + 16;
 
     username_field_rect = SDL2pp::Rect(field_x, username_y, field_w, field_h);
     password_field_rect = SDL2pp::Rect(field_x, password_y, field_w, field_h);
@@ -102,7 +142,6 @@ void LoginRenderer::render_text_field(const SDL2pp::Rect& rect, const std::strin
         return;
     }
 
-    // field background — lighter when focused
     if (focused) {
         renderer.SetDrawColor(45, 45, 45, 220);
     } else {
@@ -110,7 +149,6 @@ void LoginRenderer::render_text_field(const SDL2pp::Rect& rect, const std::strin
     }
     renderer.FillRect(rect);
 
-    // border — gold when focused, gray when inactive
     if (focused) {
         renderer.SetDrawColor(200, 180, 80, 255);
     } else {
