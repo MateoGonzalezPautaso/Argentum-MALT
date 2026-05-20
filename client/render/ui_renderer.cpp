@@ -11,7 +11,7 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h,
                        const ChatInput& chat_model):
         renderer(renderer),
         chat_model(chat_model),
-        ui_frame_texture(renderer, load_surface("assets/interface/en_ventanaprincipal.bmp")),
+        ui_frame_texture(renderer, load_surface("assets/interface/en_ventanaprincipal_edit.bmp")),
         hp_bar_texture(renderer, load_surface("assets/interface/en_barradevida.bmp")),
         mp_bar_texture(renderer, load_surface("assets/interface/en_barrademana.bmp")),
         ui_frame_rect(0, 0, window_w, window_h),
