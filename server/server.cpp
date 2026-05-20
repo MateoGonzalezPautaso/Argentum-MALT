@@ -20,12 +20,12 @@ void Server::run() {
     std::string line;
     while (std::getline(std::cin, line) && line != "q") {}
 
-    game_loop.stop();
-    game_loop.join();
-    shutdown();
+    stop();
 }
 
-void Server::shutdown() {
+void Server::stop() {
+    game_loop.stop();
+    game_loop.join();
     acceptor.stop();
     acceptor.join();
     input_queue.close();

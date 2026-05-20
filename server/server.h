@@ -18,7 +18,7 @@ class Server {
     Acceptor acceptor;
     GameLoop game_loop;
 
-    void shutdown();
+    void stop();
 
 public:
     explicit Server(const ServerConfig& config);
