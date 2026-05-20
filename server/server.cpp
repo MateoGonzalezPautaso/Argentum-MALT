@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "game.h"
+
 Server::Server(const ServerConfig& cfg):
         config(cfg),
         listener(std::to_string(cfg.port).c_str()),
@@ -20,8 +22,11 @@ void Server::run() {
 void Server::game_loop() {
     while (true) {
         PlayerCommand pcmd = input_queue.pop();
-        const auto events = game.process_command(pcmd.player_id, pcmd.cmd);
-        for (const auto& ev: events) monitor.broadcast(ev);
+        CommandResult result = game.process_command(pcmd.player_id, pcmd.cmd);
+        for (const ServerEvent& ev : result.private_events)
+            monitor.push_event(pcmd.player_id, ev);
+        for (const ServerEvent& ev : result.broadcast_events)
+            monitor.broadcast(ev);
         monitor.clean_dead();
     }
 }

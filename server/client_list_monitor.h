@@ -24,7 +24,10 @@ public:
     // Adds a new client, starts its threads and returns the assigned player_id
     uint16_t add(Socket&& skt, Queue<PlayerCommand>& input_queue);
 
-    // Sends an event to every connected client
+    // Sends an event to a single client by player_id.
+    void push_event(uint16_t player_id, const ServerEvent& event);
+
+    // Sends an event to every connected client.
     void broadcast(const ServerEvent& event);
 
     // Joins and removes clients whose threads have already exited.

@@ -12,6 +12,18 @@ uint16_t ClientListMonitor::add(Socket&& skt, Queue<PlayerCommand>& input_queue)
     return id;
 }
 
+void ClientListMonitor::push_event(uint16_t player_id, const ServerEvent& event) {
+    std::lock_guard<std::mutex> lock(mtx);
+
+    auto it = clients.find(player_id);
+    if (it == clients.end())
+        return;
+
+    try {
+        it->second->push_event(event);
+    } catch (const ClosedQueue&) {}
+}
+
 void ClientListMonitor::broadcast(const ServerEvent& event) {
     std::lock_guard<std::mutex> lock(mtx);
 

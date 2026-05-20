@@ -11,6 +11,11 @@
 #include "map.h"
 #include "player.h"
 
+struct CommandResult {
+    std::vector<ServerEvent> private_events;    // only to the player who sent the command
+    std::vector<ServerEvent> broadcast_events;  // to all connected players
+};
+
 class Game {
 private:
     std::map<uint16_t, Player> players;
@@ -20,14 +25,14 @@ private:
     int sprite_height;
     BalanceConfig balance;
 
-    std::vector<ServerEvent> handle_login(uint16_t player_id, const LoginCmd& cmd);
-    std::vector<ServerEvent> handle_move(uint16_t player_id, const MoveCmd& cmd);
+    CommandResult handle_login(uint16_t player_id, const LoginCmd& cmd);
+    CommandResult handle_move(uint16_t player_id, const MoveCmd& cmd);
 
 public:
     explicit Game(const ServerConfig& config);
 
-    std::vector<ServerEvent> process_command(uint16_t player_id, const ClientCommand& cmd);
-    std::vector<ServerEvent> tick();
+    CommandResult process_command(uint16_t player_id, const ClientCommand& cmd);
+    CommandResult tick();
 };
 
 #endif  // GAME_H

@@ -35,18 +35,18 @@ Game::Game(const ServerConfig& config):
         sprite_height(config.sprite_height),
         balance(config.balance) {}
 
-std::vector<ServerEvent> Game::process_command(uint16_t player_id, const ClientCommand& cmd) {
+CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd) {
     return std::visit(overloaded{
                               [&](const LoginCmd& cmd) { return handle_login(player_id, cmd); },
                               [&](const MoveCmd& cmd) { return handle_move(player_id, cmd); },
-                              [](const auto&) { return std::vector<ServerEvent>{}; },
+                              [](const auto&) { return CommandResult{}; },
                       },
                       cmd);
 }
 
-std::vector<ServerEvent> Game::tick() { return {}; }
+CommandResult Game::tick() { return {}; }
 
-std::vector<ServerEvent> Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
+CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
     Player new_player(player_id, cmd.username, Position{300, 160}, Direction::SOUTH, Race::HUMAN,
                       PlayerClass::WARRIOR, balance);
     auto it = players.emplace(player_id, std::move(new_player)).first;
@@ -75,10 +75,10 @@ std::vector<ServerEvent> Game::handle_login(uint16_t player_id, const LoginCmd& 
             .entity_race = p.race,
             .entity_class = p.player_class,
     };
-    return {login_ok, spawn};
+    return {.private_events = {login_ok}, .broadcast_events = {spawn}};
 }
 
-std::vector<ServerEvent> Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
+CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
     auto it = players.find(player_id);
     if (it == players.end())
         return {};
@@ -102,11 +102,10 @@ std::vector<ServerEvent> Game::handle_move(uint16_t player_id, const MoveCmd& cm
 
     player.apply_move(cmd.direction, final_dx, final_dy);
 
-    std::vector<ServerEvent> events;
-    events.emplace_back(EntityMoveEvent{
+    EntityMoveEvent move{
             .entity_id = player.id,
             .entity_pos = player.pos,
             .entity_dir = player.dir,
-    });
-    return events;
+    };
+    return {.broadcast_events = {move}};
 }
