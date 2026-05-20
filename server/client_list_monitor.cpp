@@ -55,6 +55,11 @@ std::vector<uint16_t> ClientListMonitor::clean_dead() {
     return removed;
 }
 
+bool ClientListMonitor::is_empty() {
+    std::lock_guard<std::mutex> lock(mtx);
+    return clients.empty();
+}
+
 void ClientListMonitor::stop_all() {
     std::lock_guard<std::mutex> lock(mtx);
 
