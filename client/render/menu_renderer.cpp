@@ -42,14 +42,6 @@ void MenuRenderer::set_settings_button_hovered(int x, int y) {
 }
 
 void MenuRenderer::init_layout() {
-    // START button
-    const int start_w = 330;
-    const int start_h = 70;
-    const int start_x = (window_w - start_w) / 2;  // 352
-    start_button.set_position(start_x, 565, start_w, start_h);
-
-    // SETTINGS button
-    const int settings_w = 270;
-    const int settings_h = 45;
-    settings_button.set_position(688, 335, settings_w, settings_h);
+    start_button.set_position(START_X, START_Y, START_W, START_H);
+    settings_button.set_position(SETTINGS_X, SETTINGS_Y, SETTINGS_W, SETTINGS_H);
 }
