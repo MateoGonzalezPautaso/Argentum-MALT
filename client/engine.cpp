@@ -185,6 +185,7 @@ void ClientEngine::render_game_frame() {
     sdl_renderer.Clear();
     ui_renderer.render_frame_background();
     world_renderer.render();
+    ui_renderer.render_hp_bar(player_stats.hp_current, player_stats.hp_max);
     ui_renderer.render_chat_input();
     sdl_renderer.Present();
 }

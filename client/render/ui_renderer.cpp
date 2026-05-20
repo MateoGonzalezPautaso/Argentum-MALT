@@ -11,10 +11,15 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h,
         renderer(renderer),
         chat_model(chat_model),
         ui_frame_texture(renderer, load_surface("assets/interface/en_ventanaprincipal.bmp")),
+        hp_bar_texture(renderer, load_surface("assets/interface/en_barradevida.bmp")),
         ui_frame_rect(0, 0, window_w, window_h),
         chat_input_rect(41, 122, 565, 20) {
     chat_font = TTF_OpenFont("assets/OUTPUT/Cardo.ttf", 16);
     if (!chat_font) {
+        throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
+    }
+    hp_font = TTF_OpenFont("assets/OUTPUT/Cardo.ttf", 11);
+    if (!hp_font) {
         throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
     }
 }
@@ -23,6 +28,10 @@ UIRenderer::~UIRenderer() {
     if (chat_font) {
         TTF_CloseFont(chat_font);
         chat_font = nullptr;
+    }
+    if (hp_font) {
+        TTF_CloseFont(hp_font);
+        hp_font = nullptr;
     }
 }
 
@@ -50,6 +59,45 @@ void UIRenderer::render_chat_input() {
 
 bool UIRenderer::is_chat_input_hit(int x, int y) const {
     return point_in_rect(x, y, chat_input_rect);
+}
+
+void UIRenderer::render_hp_bar(uint32_t current, uint32_t max) {
+    if (max == 0) {
+        return;
+    }
+
+    const float ratio = std::min(1.0f, static_cast<float>(current) / static_cast<float>(max));
+    const int filled_w = static_cast<int>(HP_BAR_W * ratio);
+    if (filled_w == 0) {
+        return;
+    }
+
+    SDL2pp::Rect src(0, 0, filled_w, HP_BAR_H);
+    SDL2pp::Rect dst(HP_BAR_X, HP_BAR_Y, filled_w, HP_BAR_H);
+    renderer.Copy(hp_bar_texture, src, dst);
+
+    if (!hp_font) {
+        return;
+    }
+
+    std::string text = std::to_string(current) + "/" + std::to_string(max);
+    SDL_Surface* text_surface = TTF_RenderUTF8_Blended(hp_font, text.c_str(), chat_color);
+    if (!text_surface) {
+        return;
+    }
+    SDL2pp::Surface wrapped(text_surface);
+
+    int text_w = 0;
+    int text_h = 0;
+    if (TTF_SizeUTF8(hp_font, text.c_str(), &text_w, &text_h) != 0) {
+        return;
+    }
+
+    SDL2pp::Texture text_texture(renderer, wrapped);
+    const int text_x = HP_BAR_X + (HP_BAR_W - text_w) / 2;
+    const int text_y = HP_BAR_Y + (HP_BAR_H - text_h) / 2;
+    SDL2pp::Rect text_dst(text_x, text_y, text_w, text_h);
+    renderer.Copy(text_texture, SDL2pp::NullOpt, text_dst);
 }
 
 SDL2pp::Texture UIRenderer::make_text_texture(const std::string& text, int& text_w,
