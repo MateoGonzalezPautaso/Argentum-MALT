@@ -7,7 +7,7 @@
 #include "acceptor.h"
 #include "client_list_monitor.h"
 #include "config.h"
-#include "game.h"
+#include "game_loop.h"
 #include "player_command.h"
 
 class Server {
@@ -16,9 +16,8 @@ class Server {
     Queue<PlayerCommand> input_queue;
     ClientListMonitor monitor;
     Acceptor acceptor;
-    Game game;
+    GameLoop game_loop;
 
-    void game_loop();
     void shutdown();
 
 public:
