@@ -12,6 +12,9 @@ class ChatInput;
 
 class LoginRenderer {
 private:
+    static constexpr const char* USERNAME_PLACEHOLDER = "Usuario";
+    static constexpr const char* PASSWORD_PLACEHOLDER = "Contraseña";
+
     SDL2pp::Renderer& renderer;
     const ChatInput& username_model;
     const ChatInput& password_model;
@@ -26,6 +29,7 @@ private:
 
     TTF_Font* field_font = nullptr;
     SDL_Color text_color{255, 255, 255, 255};
+    SDL_Color placeholder_color{160, 160, 160, 255};
     int window_w;
     int window_h;
 
@@ -47,7 +51,9 @@ public:
 private:
     void init_layout();
     void render_text_field(const SDL2pp::Rect& rect, const std::string& text,
-                           bool focused) const;
+                           bool focused, const std::string& placeholder) const;
+    void render_text_in_rect(const SDL2pp::Rect& rect, const std::string& text,
+                             SDL_Color color, int& clipped_w) const;
 };
 
 #endif

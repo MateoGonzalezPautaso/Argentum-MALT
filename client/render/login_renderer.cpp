@@ -43,9 +43,9 @@ void LoginRenderer::render() {
     renderer.Copy(background_texture, SDL2pp::NullOpt, background_rect);
 
     render_text_field(username_field_rect, username_model.get_text(),
-                      username_model.is_focused());
+                      username_model.is_focused(), USERNAME_PLACEHOLDER);
     render_text_field(password_field_rect, password_model.get_text(),
-                      password_model.is_focused());
+                      password_model.is_focused(), PASSWORD_PLACEHOLDER);
 
     connect_button.render(renderer);
     back_button.render(renderer);
@@ -97,7 +97,7 @@ void LoginRenderer::init_layout() {
 }
 
 void LoginRenderer::render_text_field(const SDL2pp::Rect& rect, const std::string& text,
-                                      bool focused) const {
+                                      bool focused, const std::string& placeholder) const {
     if (!field_font) {
         return;
     }
@@ -121,25 +121,9 @@ void LoginRenderer::render_text_field(const SDL2pp::Rect& rect, const std::strin
     int clipped_w = 0;
 
     if (!text.empty()) {
-        SDL_Surface* text_surface = TTF_RenderUTF8_Blended(field_font, text.c_str(), text_color);
-        if (!text_surface) {
-            return;
-        }
-        SDL2pp::Surface wrapped(text_surface);
-
-        int text_w = 0;
-        int text_h = 0;
-        if (TTF_SizeUTF8(field_font, text.c_str(), &text_w, &text_h) != 0) {
-            return;
-        }
-
-        SDL2pp::Texture text_texture(renderer, wrapped);
-        clipped_w = std::min(text_w, rect.GetW() - 8);
-        const int clipped_h = std::min(text_h, rect.GetH() - 4);
-        SDL2pp::Rect src_rect(0, 0, clipped_w, clipped_h);
-        SDL2pp::Rect dst_rect(rect.GetX() + 4, rect.GetY() + (rect.GetH() - clipped_h) / 2,
-                              clipped_w, clipped_h);
-        renderer.Copy(text_texture, src_rect, dst_rect);
+        render_text_in_rect(rect, text, text_color, clipped_w);
+    } else if (!focused && !placeholder.empty()) {
+        render_text_in_rect(rect, placeholder, placeholder_color, clipped_w);
     }
 
     if (focused && (SDL_GetTicks() / 500U) % 2U == 0U) {
@@ -148,4 +132,27 @@ void LoginRenderer::render_text_field(const SDL2pp::Rect& rect, const std::strin
         SDL2pp::Rect cursor_rect(cursor_x, rect.GetY() + 4, 2, rect.GetH() - 8);
         renderer.FillRect(cursor_rect);
     }
+}
+
+void LoginRenderer::render_text_in_rect(const SDL2pp::Rect& rect, const std::string& text,
+                                        SDL_Color color, int& clipped_w) const {
+    SDL_Surface* text_surface = TTF_RenderUTF8_Blended(field_font, text.c_str(), color);
+    if (!text_surface) {
+        return;
+    }
+    SDL2pp::Surface wrapped(text_surface);
+
+    int text_w = 0;
+    int text_h = 0;
+    if (TTF_SizeUTF8(field_font, text.c_str(), &text_w, &text_h) != 0) {
+        return;
+    }
+
+    SDL2pp::Texture text_texture(renderer, wrapped);
+    clipped_w = std::min(text_w, rect.GetW() - 8);
+    const int clipped_h = std::min(text_h, rect.GetH() - 4);
+    SDL2pp::Rect src_rect(0, 0, clipped_w, clipped_h);
+    SDL2pp::Rect dst_rect(rect.GetX() + 4, rect.GetY() + (rect.GetH() - clipped_h) / 2,
+                          clipped_w, clipped_h);
+    renderer.Copy(text_texture, src_rect, dst_rect);
 }
