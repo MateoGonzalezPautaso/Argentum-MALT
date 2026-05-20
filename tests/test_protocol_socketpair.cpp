@@ -353,6 +353,22 @@ TEST_F(ProtocolTest, EntitySpawnNpcRoundtrip) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// ENTITY_DESPAWN event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, EntityDespawnRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    EntityDespawnEvent sent{.entity_id = 42};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<EntityDespawnEvent>(ev));
+    EXPECT_EQ(std::get<EntityDespawnEvent>(ev).entity_id, sent.entity_id);
+}
+
+// ─────────────────────────────────────────────────────────────
 // ENTITY_MOVE event
 // ─────────────────────────────────────────────────────────────
 
