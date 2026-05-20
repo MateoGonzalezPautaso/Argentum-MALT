@@ -11,7 +11,8 @@ GameLoop::GameLoop(const ServerConfig& config, Queue<PlayerCommand>& input_queue
         monitor(monitor) {}
 
 void GameLoop::run() {
-    using namespace std::chrono;
+    using std::chrono::milliseconds;
+    using std::chrono::steady_clock;
 
     const milliseconds tick_duration = milliseconds(1000 / tick_rate_hz);
     auto next_tick = steady_clock::now();
@@ -28,11 +29,10 @@ void GameLoop::run() {
             while (input_queue.try_pop(pcmd)) {
                 CommandResult result = game.process_command(pcmd.player_id, pcmd.cmd);
 
-                for (const ServerEvent& ev : result.private_events)
+                for (const ServerEvent& ev: result.private_events)
                     monitor.push_event(pcmd.player_id, ev);
 
-                for (const ServerEvent& ev : result.broadcast_events)
-                    monitor.broadcast(ev);
+                for (const ServerEvent& ev: result.broadcast_events) monitor.broadcast(ev);
             }
         } catch (const ClosedQueue&) {
             break;
@@ -40,16 +40,14 @@ void GameLoop::run() {
 
         // Tick game
         CommandResult tick_result = game.tick();
-        for (const ServerEvent& ev : tick_result.broadcast_events)
-            monitor.broadcast(ev);
+        for (const ServerEvent& ev: tick_result.broadcast_events) monitor.broadcast(ev);
 
         // Remove clients whose sender/receiver threads have exited
-        for (uint16_t dead_id : monitor.clean_dead()) {
+        for (uint16_t dead_id: monitor.clean_dead()) {
             had_players = true;
 
             CommandResult despawn = game.remove_player(dead_id);
-            for (const ServerEvent& ev : despawn.broadcast_events)
-                monitor.broadcast(ev);
+            for (const ServerEvent& ev: despawn.broadcast_events) monitor.broadcast(ev);
         }
 
         // Stop once every player has left (requires at least one)
@@ -62,7 +60,8 @@ void GameLoop::run() {
             auto behind = now - next_tick;
             next_tick += (behind / tick_duration) * tick_duration;
             // behind / tick_duration is integer division on chrono durations
-            // it gives exactly how many complete ticks were missed. Advance next_tick by that many ticks.
+            // it gives exactly how many complete ticks were missed. Advance next_tick by that many
+            // ticks.
         }
 
         std::this_thread::sleep_until(next_tick);
