@@ -14,6 +14,7 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h,
         ui_frame_texture(renderer, load_surface("assets/interface/en_ventanaprincipal_edit.bmp")),
         hp_bar_texture(renderer, load_surface("assets/interface/en_barradevida.bmp")),
         mp_bar_texture(renderer, load_surface("assets/interface/en_barrademana.bmp")),
+        exp_bar_texture(renderer, load_surface("assets/interface/en_barraexperiencia.bmp")),
         ui_frame_rect(0, 0, window_w, window_h),
         chat_input_rect(41, 122, 565, 20) {
     chat_font = TTF_OpenFont("assets/OUTPUT/Cardo.ttf", 16);
@@ -71,6 +72,10 @@ void UIRenderer::render_mp_bar(uint32_t current, uint32_t max) {
     render_stat_bar(mp_bar_texture, MP_BAR_X, MP_BAR_Y, MP_BAR_W, MP_BAR_H, current, max);
 }
 
+void UIRenderer::render_exp_bar(uint32_t current, uint32_t max) {
+    render_stat_bar(exp_bar_texture, EXP_BAR_X, EXP_BAR_Y, EXP_BAR_W, EXP_BAR_H, current, max);
+}
+
 void UIRenderer::render_stat_bar(SDL2pp::Texture& tex, int x, int y, int w, int h,
                                  uint32_t current, uint32_t max) const {
     if (max == 0) {
@@ -79,13 +84,12 @@ void UIRenderer::render_stat_bar(SDL2pp::Texture& tex, int x, int y, int w, int 
 
     const float ratio = std::min(1.0f, static_cast<float>(current) / static_cast<float>(max));
     const int filled_w = static_cast<int>(w * ratio);
-    if (filled_w == 0) {
-        return;
-    }
 
-    SDL2pp::Rect src(0, 0, filled_w, h);
-    SDL2pp::Rect dst(x, y, filled_w, h);
-    renderer.Copy(tex, src, dst);
+    if (filled_w > 0) {
+        SDL2pp::Rect src(0, 0, filled_w, h);
+        SDL2pp::Rect dst(x, y, filled_w, h);
+        renderer.Copy(tex, src, dst);
+    }
 
     if (!bar_font) {
         return;
