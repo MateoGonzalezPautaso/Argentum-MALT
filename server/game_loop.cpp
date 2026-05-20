@@ -4,9 +4,9 @@
 #include <thread>
 
 GameLoop::GameLoop(const ServerConfig& config, Queue<PlayerCommand>& input_queue,
-                   ClientListMonitor& monitor):
+                   ClientListMonitor& monitor, PlayerPersistence& persistence):
         tick_rate_hz(config.tick_rate_hz),
-        game(config),
+        game(config, persistence),
         input_queue(input_queue),
         monitor(monitor) {}
 

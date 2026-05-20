@@ -28,7 +28,8 @@ Delta direction_to_delta(Direction dir, int step) {
 
 }  // namespace
 
-Game::Game(const ServerConfig& config):
+Game::Game(const ServerConfig& config, PlayerPersistence& persistence):
+        persistence(persistence),
         map(config.tilemap),
         move_step(config.move_step),
         sprite_width(config.sprite_width),
@@ -49,6 +50,22 @@ CommandResult Game::remove_player(uint16_t player_id) {
     if (it == players.end())
         return {};
 
+    PlayerRecord rec;
+    rec.set_username(it->second.username);
+    rec.pos_x = it->second.pos.x;
+    rec.pos_y = it->second.pos.y;
+    rec.dir = static_cast<uint8_t>(it->second.dir);
+    rec.race = static_cast<uint8_t>(it->second.race);
+    rec.player_class = static_cast<uint8_t>(it->second.player_class);
+    rec.level = it->second.level;
+    rec.experience = it->second.experience;
+    rec.hp_current = it->second.hp_current;
+    rec.hp_max = it->second.hp_max;
+    rec.mana_current = it->second.mana_current;
+    rec.mana_max = it->second.mana_max;
+    rec.gold = it->second.gold;
+    persistence.save(it->second.username, rec);
+
     EntityDespawnEvent despawn{.entity_id = player_id};
     players.erase(it);
     return {.private_events = {}, .broadcast_events = {despawn}};
@@ -57,8 +74,74 @@ CommandResult Game::remove_player(uint16_t player_id) {
 CommandResult Game::tick() { return {}; }
 
 CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
-    Player new_player(player_id, cmd.username, Position{300, 160}, Direction::SOUTH, Race::HUMAN,
-                      PlayerClass::WARRIOR, balance);
+    PlayerRecord rec;
+
+    if (persistence.load(cmd.username, rec)) {
+        if (!rec.check_password(cmd.password)) {
+            LoginErrorEvent err{LoginError::INVALID_CREDENTIALS, "Invalid password"};
+            return {.private_events = {err}, .broadcast_events = {}};
+        }
+
+        Player player(player_id, cmd.username, Position{rec.pos_x, rec.pos_y},
+                      static_cast<Direction>(rec.dir), static_cast<Race>(rec.race),
+                      static_cast<PlayerClass>(rec.player_class), balance);
+        player.level = rec.level;
+        player.experience = rec.experience;
+        player.hp_current = rec.hp_current;
+        player.hp_max = rec.hp_max;
+        player.mana_current = rec.mana_current;
+        player.mana_max = rec.mana_max;
+        player.gold = rec.gold;
+
+        auto it = players.emplace(player_id, std::move(player)).first;
+        const Player& p = it->second;
+
+        LoginOkEvent login_ok{
+                .player_id = p.id,
+                .username = p.username,
+                .race = p.race,
+                .player_class = p.player_class,
+                .level = p.level,
+                .experience = p.experience,
+                .exp_to_next = p.exp_to_next_level(),
+                .hp_current = p.hp_current,
+                .hp_max = p.hp_max,
+                .mana_current = p.mana_current,
+                .mana_max = p.mana_max,
+                .gold = p.gold,
+                .pos = p.pos,
+        };
+        EntitySpawnEvent spawn{
+                .entity_id = p.id,
+                .entity_type = EntityType::PLAYER,
+                .entity_pos = p.pos,
+                .entity_dir = p.dir,
+                .entity_name = p.username,
+                .entity_race = p.race,
+                .entity_class = p.player_class,
+        };
+        return {.private_events = {login_ok}, .broadcast_events = {spawn}};
+    }
+
+    Player new_player(player_id, cmd.username, Position{300, 160}, Direction::SOUTH,
+                      Race::HUMAN, PlayerClass::WARRIOR, balance);
+
+    rec.set_username(cmd.username);
+    rec.set_password(cmd.password);
+    rec.pos_x = new_player.pos.x;
+    rec.pos_y = new_player.pos.y;
+    rec.dir = static_cast<uint8_t>(new_player.dir);
+    rec.race = static_cast<uint8_t>(new_player.race);
+    rec.player_class = static_cast<uint8_t>(new_player.player_class);
+    rec.level = new_player.level;
+    rec.experience = new_player.experience;
+    rec.hp_current = new_player.hp_current;
+    rec.hp_max = new_player.hp_max;
+    rec.mana_current = new_player.mana_current;
+    rec.mana_max = new_player.mana_max;
+    rec.gold = new_player.gold;
+    persistence.save(cmd.username, rec);
+
     auto it = players.emplace(player_id, std::move(new_player)).first;
     const Player& p = it->second;
 

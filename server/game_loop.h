@@ -8,6 +8,7 @@
 #include "config.h"
 #include "game.h"
 #include "player_command.h"
+#include "player_persistence.h"
 
 class GameLoop: public Thread {
     int tick_rate_hz;
@@ -17,7 +18,7 @@ class GameLoop: public Thread {
 
 public:
     GameLoop(const ServerConfig& config, Queue<PlayerCommand>& input_queue,
-             ClientListMonitor& monitor);
+             ClientListMonitor& monitor, PlayerPersistence& persistence);
 
     void run() override;
 };

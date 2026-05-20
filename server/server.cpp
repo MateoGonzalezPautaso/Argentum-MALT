@@ -8,8 +8,9 @@ Server::Server(const ServerConfig& cfg):
         listener(std::to_string(cfg.port).c_str()),
         input_queue(),
         monitor(),
+        persistence("data/players.dat", "data/players.idx"),
         acceptor(listener, input_queue, monitor),
-        game_loop(config, input_queue, monitor) {}
+        game_loop(config, input_queue, monitor, persistence) {}
 
 void Server::run() {
     std::cout << "Server listening on port " << config.port << "...\n";

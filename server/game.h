@@ -10,6 +10,7 @@
 #include "config.h"
 #include "map.h"
 #include "player.h"
+#include "player_persistence.h"
 
 struct CommandResult {
     std::vector<ServerEvent> private_events;    // only to the player who sent the command
@@ -19,6 +20,7 @@ struct CommandResult {
 class Game {
 private:
     std::map<uint16_t, Player> players;
+    PlayerPersistence& persistence;
     Map map;
     int move_step;
     int sprite_width;
@@ -29,7 +31,7 @@ private:
     CommandResult handle_move(uint16_t player_id, const MoveCmd& cmd);
 
 public:
-    explicit Game(const ServerConfig& config);
+    explicit Game(const ServerConfig& config, PlayerPersistence& persistence);
 
     CommandResult process_command(uint16_t player_id, const ClientCommand& cmd);
     CommandResult remove_player(uint16_t player_id);
