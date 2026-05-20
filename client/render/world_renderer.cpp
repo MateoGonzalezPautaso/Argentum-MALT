@@ -16,11 +16,10 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig&
         background_texture(renderer, load_surface(background.path)),
         background_rect(background.x, background.y, background.width, background.height),
         game_viewport(11, 149, 734, 608),
-        tilemap_texture(renderer,
-                        load_surface(tilemap.path.empty() ? background.path : tilemap.path)),
         window_w(window_w),
         window_h(window_h) {
     init_tilemap(tilemap);
+    init_props(tilemap);
     init_sprites(sprites_config);
 
     if (sprites.empty()) {
@@ -128,28 +127,71 @@ void WorldRenderer::init_tilemap(const TilemapConfig& tilemap) {
 
     has_tilemap = true;
     tile_size = tilemap.tile_size;
-    tilemap_src.clear();
-    tilemap_src.reserve(tilemap.mapa.size());
+    tilemap_tiles_.clear();
+    tilemap_tiles_.reserve(tilemap.mapa.size());
+    tilemap_textures_.clear();
     map_px_w = 0;
     map_px_h = 0;
 
     for (const auto& row: tilemap.mapa) {
-        std::vector<SDL2pp::Rect> src_row;
-        src_row.reserve(row.size());
+        std::vector<TileSrcInfo> tile_row;
+        tile_row.reserve(row.size());
         map_px_w = std::max(map_px_w, static_cast<int>(row.size()) * tile_size);
         for (const auto& name: row) {
             auto it = tilemap.tiles.find(name);
             if (it == tilemap.tiles.end()) {
-                src_row.emplace_back(0, 0, tile_size, tile_size);
+                tile_row.push_back({{0, 0, tile_size, tile_size}, tilemap.path});
                 continue;
             }
             const TileDef& def = it->second;
-            src_row.emplace_back(def.x, def.y, tile_size, tile_size);
+            std::string atlas_path = def.path.empty() ? tilemap.path : def.path;
+            tile_row.push_back({{def.x, def.y, tile_size, tile_size}, atlas_path});
+
+            if (tilemap_textures_.find(atlas_path) == tilemap_textures_.end()) {
+                tilemap_textures_.emplace(atlas_path,
+                    SDL2pp::Texture(renderer, load_surface(atlas_path)));
+            }
         }
-        tilemap_src.push_back(std::move(src_row));
+        tilemap_tiles_.push_back(std::move(tile_row));
     }
 
-    map_px_h = static_cast<int>(tilemap_src.size()) * tile_size;
+    map_px_h = static_cast<int>(tilemap_tiles_.size()) * tile_size;
+}
+
+void WorldRenderer::init_props(const TilemapConfig& tilemap) {
+    prop_tiles_.clear();
+    if (tilemap.props.empty()) return;
+
+    auto tsz = static_cast<std::size_t>(tile_size);
+    for (const auto& row: tilemap.prop_map) {
+        std::vector<PropRender> prop_row;
+        prop_row.reserve(row.size());
+        for (const auto& name: row) {
+            if (name.empty()) {
+                prop_row.push_back({});
+                continue;
+            }
+            auto it = tilemap.props.find(name);
+            if (it == tilemap.props.end()) {
+                prop_row.push_back({});
+                continue;
+            }
+            const PropDef& def = it->second;
+            PropRender pr;
+            pr.src = SDL2pp::Rect(def.src_x, def.src_y, def.src_w, def.src_h);
+            pr.display_w = def.width > 0 ? def.width : static_cast<int>(tsz);
+            pr.display_h = def.height > 0 ? def.height : static_cast<int>(tsz);
+            pr.frame_ms = def.frame_ms;
+            pr.current_frame = 0;
+            pr.last_ticks = SDL_GetTicks();
+
+            for (const auto& path: def.paths) {
+                pr.frames.emplace_back(renderer, load_surface(path));
+            }
+            prop_row.push_back(std::move(pr));
+        }
+        prop_tiles_.push_back(std::move(prop_row));
+    }
 }
 
 void WorldRenderer::init_sprites(const std::vector<SpriteConfig>& sprites_config) {
@@ -219,30 +261,62 @@ SDL2pp::Rect WorldRenderer::camera_rect() const {
 
 void WorldRenderer::render_tilemap_or_background(const SDL2pp::Rect& cam) {
     if (has_tilemap) {
-        // calcula el bloque minimo de tiles visibles.
-        // evita recorrer todo el mapa en cada frame.
         const int first_col = std::max(0, cam.GetX() / tile_size);
         const int first_row = std::max(0, cam.GetY() / tile_size);
         const int last_col = std::max(0, (cam.GetX() + cam.GetW() - 1) / tile_size);
         const int last_row = std::max(0, (cam.GetY() + cam.GetH() - 1) / tile_size);
 
         for (int row = first_row; row <= last_row; ++row) {
-            if (row < 0 || row >= static_cast<int>(tilemap_src.size())) {
+            if (row < 0 || row >= static_cast<int>(tilemap_tiles_.size())) {
                 continue;
             }
 
-            const auto& src_row = tilemap_src[static_cast<std::size_t>(row)];
-            const int row_last_col = std::min(last_col, static_cast<int>(src_row.size()) - 1);
+            const auto& tile_row = tilemap_tiles_[static_cast<std::size_t>(row)];
+            const int row_last_col = std::min(last_col, static_cast<int>(tile_row.size()) - 1);
             for (int col = first_col; col <= row_last_col; ++col) {
                 if (col < 0) {
                     continue;
                 }
 
+                const auto& tile = tile_row[static_cast<std::size_t>(col)];
+                auto tex_it = tilemap_textures_.find(tile.atlas_path);
+                if (tex_it == tilemap_textures_.end()) {
+                    continue;
+                }
+
                 SDL2pp::Rect dst(col * tile_size - cam.GetX(), row * tile_size - cam.GetY(),
                                  tile_size, tile_size);
-                renderer.Copy(tilemap_texture, src_row[static_cast<std::size_t>(col)], dst);
+                renderer.Copy(tex_it->second, tile.src, dst);
             }
         }
+
+        // Render props on top of tiles
+        if (!prop_tiles_.empty()) {
+            for (int row = first_row; row <= last_row; ++row) {
+                if (row < 0 || row >= static_cast<int>(prop_tiles_.size())) {
+                    continue;
+                }
+                auto& prop_row = prop_tiles_[static_cast<std::size_t>(row)];
+                if (prop_row.empty()) continue;
+
+                const int row_last_col2 = std::min(last_col,
+                    static_cast<int>(prop_row.size()) - 1);
+                for (int col = first_col; col <= row_last_col2; ++col) {
+                    if (col < 0) continue;
+                    auto& prop = prop_row[static_cast<std::size_t>(col)];
+                    if (prop.frames.empty()) continue;
+
+                    int offset_x = (prop.display_w - tile_size) / 2;
+                    int offset_y = (prop.display_h - tile_size) / 2;
+                    SDL2pp::Rect dst(
+                        col * tile_size - cam.GetX() - offset_x,
+                        row * tile_size - cam.GetY() - offset_y,
+                        prop.display_w, prop.display_h);
+                    renderer.Copy(prop.frames[prop.current_frame], prop.src, dst);
+                }
+            }
+        }
+
         return;
     }
 
@@ -293,6 +367,20 @@ void WorldRenderer::update_animation() {
         }
         sprite.last_ticks = now;
         sprite.current_frame = (sprite.current_frame + 1) % sprite.frames.size();
+    }
+
+    // Animate props
+    for (auto& row : prop_tiles_) {
+        for (auto& prop : row) {
+            if (prop.frames.size() <= 1 || prop.frame_ms == 0) {
+                continue;
+            }
+            if (now - prop.last_ticks < prop.frame_ms) {
+                continue;
+            }
+            prop.last_ticks = now;
+            prop.current_frame = (prop.current_frame + 1) % prop.frames.size();
+        }
     }
 }
 

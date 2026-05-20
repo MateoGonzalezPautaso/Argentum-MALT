@@ -10,22 +10,6 @@ y = 0
 width = 960
 height = 540
 
-[[sprites]]
-paths = [
-  "assets/Graficos/4994.png",
-  "assets/Graficos/4995.png",
-  "assets/Graficos/4996.png",
-  "assets/Graficos/4997.png",
-  "assets/Graficos/4998.png",
-  "assets/Graficos/4999.png",
-]
-x = 200
-y = 200
-width = 160
-height = 160
-frame_ms = 120
-movable = false
-visible = true
 
 [[sprites]]
 path = "assets/Graficos/1071.png"

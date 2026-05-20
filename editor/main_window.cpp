@@ -1,0 +1,576 @@
+#include "main_window.h"
+#include "tile_palette.h"
+
+#include <QApplication>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QFileDialog>
+#include <QFormLayout>
+#include <QGraphicsRectItem>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QMenuBar>
+#include <QMessageBox>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QPushButton>
+#include <QShowEvent>
+#include <QSpinBox>
+#include <QSplitter>
+#include <QStatusBar>
+#include <QToolBar>
+#include <QVBoxLayout>
+#include <QWidget>
+
+MainWindow::MainWindow(const std::string& config_path, QWidget* parent)
+    : QMainWindow(parent) {
+    try {
+        doc_.load(config_path);
+    } catch (const std::exception& e) {
+        QMessageBox::critical(this, "Load Error",
+            QString("Failed to load %1:\n%2")
+                .arg(QString::fromStdString(config_path), e.what()));
+        QApplication::quit();
+        return;
+    }
+
+    load_atlas();
+    setup_ui();
+    render_tiles();
+    draw_grid();
+
+    setWindowTitle(QString::fromStdString("Map Editor - " + config_path));
+    resize(1200, 800);
+}
+
+void MainWindow::setup_ui() {
+    auto* central = new QWidget(this);
+    setCentralWidget(central);
+
+    splitter_ = new QSplitter(Qt::Horizontal, central);
+    auto* layout = new QHBoxLayout(central);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(splitter_);
+
+    // Left: canvas
+    auto* canvas_container = new QWidget();
+    auto* canvas_layout = new QVBoxLayout(canvas_container);
+    canvas_layout->setContentsMargins(0, 0, 0, 0);
+
+    scene_ = new QGraphicsScene(this);
+    view_ = new QGraphicsView(scene_, this);
+    view_->setRenderHint(QPainter::Antialiasing, false);
+    view_->setDragMode(QGraphicsView::NoDrag);
+    view_->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+    view_->viewport()->installEventFilter(this);
+    canvas_layout->addWidget(view_);
+
+    splitter_->addWidget(canvas_container);
+
+    // Right: tile palette
+    palette_ = new TilePalette(doc_.config(), atlases_, this);
+    splitter_->addWidget(palette_);
+
+    connect_palette_signals();
+
+    splitter_->setStretchFactor(0, 3);
+    splitter_->setStretchFactor(1, 1);
+
+    statusBar()->showMessage(
+        QString("Map: %1 x %2 tiles  |  Tile size: %3 px")
+            .arg(doc_.width()).arg(doc_.height()).arg(doc_.tile_size()));
+
+    // Toolbar: resize controls
+    auto* toolbar = addToolBar("Map");
+    toolbar->setMovable(false);
+
+    auto* width_label = new QLabel("Width:");
+    width_spin_ = new QSpinBox();
+    width_spin_->setRange(1, 256);
+    width_spin_->setValue(doc_.width());
+
+    auto* height_label = new QLabel("  Height:");
+    height_spin_ = new QSpinBox();
+    height_spin_->setRange(1, 256);
+    height_spin_->setValue(doc_.height());
+
+    auto* resize_btn = new QPushButton("Resize");
+
+    toolbar->addWidget(width_label);
+    toolbar->addWidget(width_spin_);
+    toolbar->addWidget(height_label);
+    toolbar->addWidget(height_spin_);
+    toolbar->addWidget(resize_btn);
+
+    connect(resize_btn, &QPushButton::clicked, this, [this]() {
+        resize_map(width_spin_->value(), height_spin_->value());
+    });
+
+    // File menu
+    auto* file_menu = menuBar()->addMenu("&File");
+
+    auto* new_action = file_menu->addAction("&New Map");
+    new_action->setShortcut(QKeySequence::New);
+    connect(new_action, &QAction::triggered, this, &MainWindow::new_map);
+
+    auto* open_action = file_menu->addAction("&Open...");
+    open_action->setShortcut(QKeySequence::Open);
+    connect(open_action, &QAction::triggered, this, &MainWindow::open_map);
+
+    file_menu->addSeparator();
+
+    auto* save_action = file_menu->addAction("&Save");
+    save_action->setShortcut(QKeySequence::Save);
+    connect(save_action, &QAction::triggered, this, &MainWindow::save_map);
+
+    auto* save_as_action = file_menu->addAction("Save &As...");
+    save_as_action->setShortcut(QKeySequence::SaveAs);
+    connect(save_as_action, &QAction::triggered, this, &MainWindow::save_map_as);
+
+    // View menu
+    auto* view_menu = menuBar()->addMenu("&View");
+    auto* walkable_action = view_menu->addAction("Show &Walkable Overlay");
+    walkable_action->setCheckable(true);
+    walkable_action->setChecked(show_walkable_overlay_);
+    connect(walkable_action, &QAction::triggered, this, &MainWindow::toggle_walkable_overlay);
+}
+
+void MainWindow::draw_grid() {
+    auto rows = doc_.height();
+    auto cols = doc_.width();
+    auto tsz = doc_.tile_size();
+
+    int w = cols * tsz;
+    int h = rows * tsz;
+
+    QPen grid_pen(QColor(80, 80, 80), 1);
+
+    for (int r = 0; r <= rows; ++r) {
+        auto* line = scene_->addLine(0, r * tsz, w, r * tsz, grid_pen);
+        line->setZValue(1);
+    }
+    for (int c = 0; c <= cols; ++c) {
+        auto* line = scene_->addLine(c * tsz, 0, c * tsz, h, grid_pen);
+        line->setZValue(1);
+    }
+
+    scene_->setSceneRect(0, 0, w, h);
+}
+
+void MainWindow::load_atlas() {
+    const auto& cfg = doc_.config();
+    auto ensure_loaded = [this](const std::string& path) {
+        if (!path.empty() && atlases_.find(path) == atlases_.end()) {
+            atlases_.emplace(path, QPixmap(QString::fromStdString(path)));
+        }
+    };
+    ensure_loaded(cfg.path);
+    for (const auto& [name, def] : cfg.tiles) {
+        ensure_loaded(def.path);
+    }
+    for (const auto& [name, def] : cfg.props) {
+        if (!def.paths.empty()) {
+            ensure_loaded(def.paths[0]);
+        }
+    }
+}
+
+void MainWindow::render_tiles() {
+    const auto& cfg = doc_.config();
+    if (cfg.tiles.empty()) return;
+
+    auto tsz = doc_.tile_size();
+    tile_items_.reserve(doc_.height());
+
+    for (int r = 0; r < doc_.height(); ++r) {
+        std::vector<QGraphicsPixmapItem*> row_items;
+        row_items.reserve(doc_.width());
+
+        for (int c = 0; c < doc_.width(); ++c) {
+            const auto& name = doc_.tile_name(r, c);
+            auto tile_it = cfg.tiles.find(name);
+            if (tile_it == cfg.tiles.end()) {
+                row_items.push_back(nullptr);
+                continue;
+            }
+
+            const auto& def = tile_it->second;
+            std::string atlas_path = def.path.empty() ? cfg.path : def.path;
+            auto atlas_it = atlases_.find(atlas_path);
+            if (atlas_it == atlases_.end() || atlas_it->second.isNull()) {
+                row_items.push_back(nullptr);
+                continue;
+            }
+            QPixmap tile = atlas_it->second.copy(QRect(def.x, def.y, tsz, tsz));
+            auto* item = scene_->addPixmap(tile);
+            item->setPos(c * tsz, r * tsz);
+            if (!def.walkable && show_walkable_overlay_) {
+                auto* overlay = new QGraphicsRectItem(0, 0, tsz, tsz, item);
+                overlay->setBrush(QColor(255, 0, 0, 60));
+                overlay->setPen(QPen(Qt::NoPen));
+            }
+
+            row_items.push_back(item);
+        }
+
+        tile_items_.push_back(std::move(row_items));
+    }
+
+    render_props();
+}
+
+void MainWindow::render_props() {
+    const auto& cfg = doc_.config();
+    if (cfg.props.empty()) return;
+
+    // Clear old prop items
+    for (auto& row : prop_items_) {
+        for (auto* item : row) {
+            if (item) {
+                scene_->removeItem(item);
+                delete item;
+            }
+        }
+    }
+    prop_items_.clear();
+
+    auto tsz = doc_.tile_size();
+    prop_items_.reserve(doc_.height());
+
+    for (int r = 0; r < doc_.height(); ++r) {
+        std::vector<QGraphicsPixmapItem*> row_items;
+        row_items.reserve(doc_.width());
+
+        for (int c = 0; c < doc_.width(); ++c) {
+            const auto& name = doc_.prop_name(r, c);
+            if (name.empty()) {
+                row_items.push_back(nullptr);
+                continue;
+            }
+
+            auto prop_it = cfg.props.find(name);
+            if (prop_it == cfg.props.end()) {
+                row_items.push_back(nullptr);
+                continue;
+            }
+
+            const auto& def = prop_it->second;
+            if (def.paths.empty()) {
+                row_items.push_back(nullptr);
+                continue;
+            }
+
+            auto atlas_it = atlases_.find(def.paths[0]);
+            if (atlas_it == atlases_.end() || atlas_it->second.isNull()) {
+                row_items.push_back(nullptr);
+                continue;
+            }
+
+            QPixmap frame = atlas_it->second.copy(
+                QRect(def.src_x, def.src_y, def.src_w, def.src_h));
+
+            int display_w = def.width > 0 ? def.width : tsz;
+            int display_h = def.height > 0 ? def.height : tsz;
+            QPixmap scaled = frame.scaled(display_w, display_h,
+                                          Qt::IgnoreAspectRatio,
+                                          Qt::SmoothTransformation);
+
+            auto* item = scene_->addPixmap(scaled);
+            // Center the prop on the tile cell
+            int offset_x = (display_w - tsz) / 2;
+            int offset_y = (display_h - tsz) / 2;
+            item->setPos(c * tsz - offset_x, r * tsz - offset_y);
+            item->setZValue(0.5);  // above tiles (z=0), below grid (z=1)
+            row_items.push_back(item);
+        }
+
+        prop_items_.push_back(std::move(row_items));
+    }
+}
+
+bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
+    if (obj == view_->viewport() && event->type() == QEvent::MouseButtonPress) {
+        auto* me = static_cast<QMouseEvent*>(event);
+        QPointF scene_pos = view_->mapToScene(me->pos());
+
+        auto tsz = doc_.tile_size();
+        int col = static_cast<int>(scene_pos.x()) / tsz;
+        int row = static_cast<int>(scene_pos.y()) / tsz;
+
+        if (row < 0 || row >= doc_.height() || col < 0 || col >= doc_.width())
+            return false;
+
+        if (me->button() == Qt::LeftButton && !selected_tile_.empty()) {
+            // Check if it's a tile or prop
+            if (doc_.config().props.find(selected_tile_) != doc_.config().props.end()) {
+                set_prop(row, col, selected_tile_);
+            } else {
+                set_tile(row, col, selected_tile_);
+            }
+            return true;
+        }
+        if (me->button() == Qt::RightButton) {
+            set_tile(row, col, "");
+            set_prop(row, col, "");
+            return true;
+        }
+    }
+    return QMainWindow::eventFilter(obj, event);
+}
+
+void MainWindow::set_tile(int row, int col, const std::string& name) {
+    doc_.set_tile(row, col, name);
+
+    auto& old_item = tile_items_[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)];
+    if (old_item) {
+        scene_->removeItem(old_item);
+        delete old_item;
+        old_item = nullptr;
+    }
+
+    if (!name.empty()) {
+        auto tile_it = doc_.config().tiles.find(name);
+        if (tile_it != doc_.config().tiles.end()) {
+            const auto& def = tile_it->second;
+            std::string atlas_path = def.path.empty() ? doc_.config().path : def.path;
+            auto atlas_it = atlases_.find(atlas_path);
+            if (atlas_it != atlases_.end() && !atlas_it->second.isNull()) {
+                auto tsz = doc_.tile_size();
+                QPixmap tile = atlas_it->second.copy(QRect(def.x, def.y, tsz, tsz));
+                auto* item = scene_->addPixmap(tile);
+                item->setPos(col * tsz, row * tsz);
+                if (!def.walkable && show_walkable_overlay_) {
+                    auto* overlay = new QGraphicsRectItem(0, 0, tsz, tsz, item);
+                    overlay->setBrush(QColor(255, 0, 0, 60));
+                    overlay->setPen(QPen(Qt::NoPen));
+                }
+                tile_items_[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = item;
+            }
+        }
+    }
+}
+
+void MainWindow::set_prop(int row, int col, const std::string& name) {
+    doc_.set_prop(row, col, name);
+
+    auto& old_item = prop_items_[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)];
+    if (old_item) {
+        scene_->removeItem(old_item);
+        delete old_item;
+        old_item = nullptr;
+    }
+
+    if (!name.empty()) {
+        auto prop_it = doc_.config().props.find(name);
+        if (prop_it != doc_.config().props.end()) {
+            const auto& def = prop_it->second;
+            if (!def.paths.empty()) {
+                auto atlas_it = atlases_.find(def.paths[0]);
+                if (atlas_it != atlases_.end() && !atlas_it->second.isNull()) {
+                    auto tsz = doc_.tile_size();
+                    QPixmap frame = atlas_it->second.copy(
+                        QRect(def.src_x, def.src_y, def.src_w, def.src_h));
+                    int display_w = def.width > 0 ? def.width : tsz;
+                    int display_h = def.height > 0 ? def.height : tsz;
+                    QPixmap scaled = frame.scaled(display_w, display_h,
+                                                  Qt::IgnoreAspectRatio,
+                                                  Qt::SmoothTransformation);
+                    auto* item = scene_->addPixmap(scaled);
+                    int offset_x = (display_w - tsz) / 2;
+                    int offset_y = (display_h - tsz) / 2;
+                    item->setPos(col * tsz - offset_x, row * tsz - offset_y);
+                    item->setZValue(0.5);
+                    prop_items_[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = item;
+                }
+            }
+        }
+    }
+}
+
+void MainWindow::resize_map(int cols, int rows) {
+    clear_grid(tile_items_);
+    clear_grid(prop_items_);
+
+    scene_->clear();
+
+    doc_.resize(rows, cols, "");
+
+    render_tiles();
+    draw_grid();
+
+    width_spin_->setValue(doc_.width());
+    height_spin_->setValue(doc_.height());
+
+    view_->fitInView(scene_->sceneRect(), Qt::KeepAspectRatio);
+
+    statusBar()->showMessage(
+        QString("Map resized to %1 x %2 tiles")
+            .arg(doc_.width()).arg(doc_.height()));
+}
+
+void MainWindow::save_map() {
+    if (doc_.path().empty()) {
+        save_map_as();
+        return;
+    }
+    try {
+        doc_.save(doc_.path());
+        statusBar()->showMessage(
+            QString("Saved to %1").arg(QString::fromStdString(doc_.path())), 3000);
+    } catch (const std::exception& e) {
+        QMessageBox::warning(this, "Save Error", e.what());
+    }
+}
+
+void MainWindow::save_map_as() {
+    QString path = QFileDialog::getSaveFileName(this, "Save Map As",
+        QString::fromStdString(doc_.path().empty()
+            ? "config/common_tilemap.toml" : doc_.path()),
+        "TOML files (*.toml)");
+    if (path.isEmpty()) return;
+
+    try {
+        doc_.save(path.toStdString());
+        doc_.set_path(path.toStdString());
+        setWindowTitle(QString::fromStdString("Map Editor - " + path.toStdString()));
+        statusBar()->showMessage(QString("Saved to %1").arg(path), 3000);
+    } catch (const std::exception& e) {
+        QMessageBox::warning(this, "Save Error", e.what());
+    }
+}
+
+void MainWindow::open_map() {
+    QString path = QFileDialog::getOpenFileName(this, "Open Map",
+        QString::fromStdString(doc_.path().empty()
+            ? "config" : doc_.path()),
+        "TOML files (*.toml)");
+    if (path.isEmpty()) return;
+
+    try {
+        clear_grid(tile_items_);
+        clear_grid(prop_items_);
+
+        scene_->clear();
+
+        doc_.load(path.toStdString());
+        atlases_.clear();
+        load_atlas();
+
+        // Rebuild palette
+        delete palette_;
+        palette_ = new TilePalette(doc_.config(), atlases_, this);
+        splitter_->addWidget(palette_);
+        connect_palette_signals();
+
+        render_tiles();
+        draw_grid();
+
+        width_spin_->setValue(doc_.width());
+        height_spin_->setValue(doc_.height());
+
+        view_->fitInView(scene_->sceneRect(), Qt::KeepAspectRatio);
+
+        setWindowTitle(QString::fromStdString("Map Editor - " + path.toStdString()));
+        statusBar()->showMessage(QString("Opened %1").arg(path), 3000);
+    } catch (const std::exception& e) {
+        QMessageBox::critical(this, "Open Error", e.what());
+    }
+}
+
+void MainWindow::toggle_walkable_overlay() {
+    show_walkable_overlay_ = !show_walkable_overlay_;
+    clear_grid(tile_items_);
+    clear_grid(prop_items_);
+
+    render_tiles();
+}
+
+void MainWindow::new_map() {
+    QDialog dialog(this);
+    dialog.setWindowTitle("New Map");
+
+    auto* form = new QFormLayout(&dialog);
+
+    auto* w_spin = new QSpinBox();
+    w_spin->setRange(1, 256);
+    w_spin->setValue(20);
+
+    auto* h_spin = new QSpinBox();
+    h_spin->setRange(1, 256);
+    h_spin->setValue(20);
+
+    form->addRow("Width:", w_spin);
+    form->addRow("Height:", h_spin);
+
+    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    form->addRow(buttons);
+
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+
+    if (dialog.exec() != QDialog::Accepted) return;
+
+    int new_w = w_spin->value();
+    int new_h = h_spin->value();
+
+    clear_grid(tile_items_);
+    clear_grid(prop_items_);
+
+    scene_->clear();
+
+    doc_.create_new(new_h, new_w, doc_.config());
+    load_atlas();
+
+    render_tiles();
+    draw_grid();
+
+    width_spin_->setValue(doc_.width());
+    height_spin_->setValue(doc_.height());
+
+    view_->fitInView(scene_->sceneRect(), Qt::KeepAspectRatio);
+
+    setWindowTitle("Map Editor - Untitled");
+    statusBar()->showMessage(
+        QString("New map: %1 x %2 tiles").arg(new_w).arg(new_h));
+}
+
+void MainWindow::clear_grid(std::vector<std::vector<QGraphicsPixmapItem*>>& grid) {
+    for (auto& row : grid) {
+        for (auto* item : row) {
+            if (item) {
+                scene_->removeItem(item);
+                delete item;
+            }
+        }
+    }
+    grid.clear();
+}
+
+void MainWindow::connect_palette_signals() {
+    connect(palette_, &TilePalette::tile_selected, this,
+            [this](const std::string& name) {
+                selected_tile_ = name;
+                statusBar()->showMessage(
+                    QString("Selected tile: %1  |  Map: %2 x %3")
+                        .arg(QString::fromStdString(name))
+                        .arg(doc_.width()).arg(doc_.height()));
+            });
+    connect(palette_, &TilePalette::prop_selected, this,
+            [this](const std::string& name) {
+                selected_tile_ = name;
+                statusBar()->showMessage(
+                    QString("Selected prop: %1  |  Map: %2 x %3")
+                        .arg(QString::fromStdString(name))
+                        .arg(doc_.width()).arg(doc_.height()));
+            });
+}
+
+void MainWindow::showEvent(QShowEvent* event) {
+    QMainWindow::showEvent(event);
+    if (first_show_) {
+        first_show_ = false;
+        view_->fitInView(scene_->sceneRect(), Qt::KeepAspectRatio);
+    }
+}

@@ -98,10 +98,60 @@ void parse_tilemap_config(const toml::table& root, TilemapConfig& config) {
                 def.x = toml_get_int(*tile_tbl, "x", def.x);
                 def.y = toml_get_int(*tile_tbl, "y", def.y);
                 def.walkable = toml_get_bool(*tile_tbl, "walkable", def.walkable);
+                def.path = toml_get_string(*tile_tbl, "path", std::string());
                 config.tiles.emplace(key, def);
             }
         }
 
         config.mapa = parse_map_grid(*tilemap);
+    }
+}
+
+void parse_prop_config(const toml::table& root, TilemapConfig& config) {
+    if (auto prop = root["prop"].as_table()) {
+        if (auto prop_tiles = (*prop)["tiles"].as_table()) {
+            for (const auto& [key, value]: *prop_tiles) {
+                const auto* tbl = value.as_table();
+                if (!tbl) {
+                    continue;
+                }
+                PropDef def;
+                if (auto arr = (*tbl)["paths"].as_array()) {
+                    for (const auto& p : *arr) {
+                        if (auto s = p.value<std::string>()) {
+                            def.paths.push_back(*s);
+                        }
+                    }
+                }
+                if (auto src = (*tbl)["src"].as_table()) {
+                    def.src_x = toml_get_int(*src, "x", def.src_x);
+                    def.src_y = toml_get_int(*src, "y", def.src_y);
+                    def.src_w = toml_get_int(*src, "w", def.src_w);
+                    def.src_h = toml_get_int(*src, "h", def.src_h);
+                }
+                def.width = toml_get_int(*tbl, "width", def.width);
+                def.height = toml_get_int(*tbl, "height", def.height);
+                def.frame_ms = toml_get_uint32(*tbl, "frame_ms", def.frame_ms);
+                config.props.emplace(key, def);
+            }
+        }
+
+        if (auto pm = (*prop)["prop_map"].as_table()) {
+            if (auto grid = (*pm)["data"].as_array()) {
+                for (const auto& row_node: *grid) {
+                    const auto* row_array = row_node.as_array();
+                    if (!row_array) continue;
+                    std::vector<std::string> row;
+                    for (const auto& cell: *row_array) {
+                        if (auto value = cell.value<std::string>()) {
+                            row.push_back(*value);
+                        }
+                    }
+                    if (!row.empty()) {
+                        config.prop_map.push_back(std::move(row));
+                    }
+                }
+            }
+        }
     }
 }
