@@ -140,6 +140,7 @@ void Client::run() {
 
         auto login_result = run_login();
         if (!login_result) {
+            engine.reset_login_submitted();
             continue;
         }
 

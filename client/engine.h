@@ -51,6 +51,7 @@ public:
     bool is_menu_settings_click(int x, int y) const;
 
     bool is_login_submitted() const { return login_submitted; }
+    void reset_login_submitted();
     const std::string& login_username_text() const;
     const std::string& login_password_text() const;
 
