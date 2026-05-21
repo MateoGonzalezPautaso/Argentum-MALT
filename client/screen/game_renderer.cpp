@@ -10,7 +10,8 @@ GameRenderer::GameRenderer(SDL2pp::Renderer& renderer, const ClientConfig& confi
         world_renderer(renderer, config.background, config.tilemap, config.sprites, LOGICAL_W,
                        LOGICAL_H),
         ui_renderer(renderer, LOGICAL_W, LOGICAL_H, chat_input),
-        move_controller(world_renderer, command_queue, MoveConfig(config), SDL_GetTicks()) {}
+        move_controller(world_renderer, command_queue, MoveConfig(config), SDL_GetTicks()),
+        move_config(config) {}
 
 void GameRenderer::tick() { move_controller.tick(SDL_GetTicks()); }
 
@@ -29,11 +30,26 @@ void GameRenderer::render() {
 void GameRenderer::apply_server_event(const ServerEvent& ev) {
     std::visit(overloaded{
                        [this](const EntityMoveEvent& e) {
-                           world_renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
-                       },
-                       [this](const EntitySpawnEvent& e) {
-                           world_renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
-                       },
+                            if (e.entity_id == player_stats.player_id) {
+                                world_renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
+                            } else {
+                                world_renderer.move_entity(e.entity_id, e.entity_pos.x, e.entity_pos.y);
+                                world_renderer.set_entity_src_y(e.entity_id, move_config.body_src_y_for(e.entity_dir),
+                                                                 move_config.head_src_y_for(e.entity_dir));
+                                world_renderer.step_entity_src_x(e.entity_id, move_config.walk_src_step,
+                                                                  move_config.walk_src_frames_for(e.entity_dir));
+                            }
+                        },
+                        [this](const EntitySpawnEvent& e) {
+                            if (e.entity_id == player_stats.player_id) {
+                                world_renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
+                            } else {
+                                world_renderer.spawn_entity(e.entity_id, e.entity_pos.x, e.entity_pos.y, e.entity_name);
+                            }
+                        },
+                        [this](const EntityDespawnEvent& e) {
+                            world_renderer.despawn_entity(e.entity_id);
+                        },
                        [this](const LoginOkEvent& e) {
                            player_stats.player_id = e.player_id;
                            player_stats.username = e.username;

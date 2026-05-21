@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <SDL2pp/SDL2pp.hh>
+#include <SDL_ttf.h>
 
 #include "../config/config.h"
 
@@ -31,6 +32,12 @@ private:
         int anchor_offset_x = 0;
         int anchor_offset_y = 0;
         bool visible = true;
+    };
+
+    struct EntityNameRender {
+        SDL2pp::Texture texture;
+        int w;
+        int h;
     };
 
     struct PropRender {
@@ -59,6 +66,10 @@ private:
     int map_px_w = 0;
     int map_px_h = 0;
     std::vector<SpriteRender> sprites;
+    TTF_Font* name_font = nullptr;
+    std::unordered_map<uint16_t, std::vector<SpriteRender>> entity_sprites;
+    std::unordered_map<uint16_t, EntityNameRender> entity_name_render;
+    std::vector<SpriteConfig> entity_part_configs;
     int window_w;
     int window_h;
     bool show_hitboxes_ = false; //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
@@ -69,15 +80,21 @@ public:
     WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig& background,
                   const TilemapConfig& tilemap, const std::vector<SpriteConfig>& sprites_config,
                   int window_w, int window_h);
+    ~WorldRenderer();
 
     void render();
     void set_movable_position(int x, int y);
+    void spawn_entity(uint16_t entity_id, int x, int y, const std::string& name);
+    void despawn_entity(uint16_t entity_id);
+    void move_entity(uint16_t entity_id, int x, int y);
     bool get_movable_position(int& x, int& y) const;
     void get_camera_offset(int& x, int& y) const;
     bool screen_to_world(int screen_x, int screen_y, int& world_x, int& world_y) const;
     void set_movable_src_y(int y);
     void step_movable_src_x(int step, int frame_count);
     void set_anchor_src_y(int y);
+    void set_entity_src_y(uint16_t entity_id, int body_src_y, int head_src_y);
+    void step_entity_src_x(uint16_t entity_id, int step, int frame_count);
 
 private:
     void init_tilemap(const TilemapConfig& tilemap);

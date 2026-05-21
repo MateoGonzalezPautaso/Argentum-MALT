@@ -23,6 +23,48 @@ MoveConfig::MoveConfig(const ClientConfig& config):
         head_dir_src_y_left(config.head_dir_src_y_left),
         head_dir_src_y_right(config.head_dir_src_y_right) {}
 
+int MoveConfig::body_src_y_for(Direction dir) const {
+    switch (dir) {
+        case Direction::NORTH:
+            return dir_src_y_up;
+        case Direction::SOUTH:
+            return dir_src_y_down;
+        case Direction::WEST:
+            return dir_src_y_left;
+        case Direction::EAST:
+            return dir_src_y_right;
+    }
+    return dir_src_y_down;
+}
+
+int MoveConfig::head_src_y_for(Direction dir) const {
+    switch (dir) {
+        case Direction::NORTH:
+            return head_dir_src_y_up;
+        case Direction::SOUTH:
+            return head_dir_src_y_down;
+        case Direction::WEST:
+            return head_dir_src_y_left;
+        case Direction::EAST:
+            return head_dir_src_y_right;
+    }
+    return head_dir_src_y_down;
+}
+
+int MoveConfig::walk_src_frames_for(Direction dir) const {
+    switch (dir) {
+        case Direction::NORTH:
+            return walk_src_frames_up;
+        case Direction::SOUTH:
+            return walk_src_frames_down;
+        case Direction::WEST:
+            return walk_src_frames_left;
+        case Direction::EAST:
+            return walk_src_frames_right;
+    }
+    return walk_src_frames;
+}
+
 MoveController::MoveController(WorldRenderer& world_renderer, Queue<ClientCommand>& command_queue,
                                const MoveConfig& config, uint32_t initial_ticks):
         world_renderer(world_renderer),
@@ -56,19 +98,8 @@ void MoveController::apply_movement(Direction dir, uint32_t now, bool cancel_tar
 }
 
 void MoveController::set_direction_rows(Direction dir) {
-    if (dir == Direction::NORTH) {
-        world_renderer.set_movable_src_y(config.dir_src_y_up);
-        world_renderer.set_anchor_src_y(config.head_dir_src_y_up);
-    } else if (dir == Direction::SOUTH) {
-        world_renderer.set_movable_src_y(config.dir_src_y_down);
-        world_renderer.set_anchor_src_y(config.head_dir_src_y_down);
-    } else if (dir == Direction::WEST) {
-        world_renderer.set_movable_src_y(config.dir_src_y_left);
-        world_renderer.set_anchor_src_y(config.head_dir_src_y_left);
-    } else if (dir == Direction::EAST) {
-        world_renderer.set_movable_src_y(config.dir_src_y_right);
-        world_renderer.set_anchor_src_y(config.head_dir_src_y_right);
-    }
+    world_renderer.set_movable_src_y(config.body_src_y_for(dir));
+    world_renderer.set_anchor_src_y(config.head_src_y_for(dir));
 }
 
 void MoveController::advance_walk_frame(Direction dir, uint32_t now) {
@@ -80,18 +111,7 @@ void MoveController::advance_walk_frame(Direction dir, uint32_t now) {
 }
 
 int MoveController::walk_src_frames_for(Direction dir) const {
-    switch (dir) {
-        case Direction::NORTH:
-            return config.walk_src_frames_up;
-        case Direction::SOUTH:
-            return config.walk_src_frames_down;
-        case Direction::WEST:
-            return config.walk_src_frames_left;
-        case Direction::EAST:
-            return config.walk_src_frames_right;
-        default:
-            return config.walk_src_frames;
-    }
+    return config.walk_src_frames_for(dir);
 }
 
 bool MoveController::get_movable_position(int& x, int& y) {

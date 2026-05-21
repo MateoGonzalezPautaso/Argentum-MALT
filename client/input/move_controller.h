@@ -29,6 +29,10 @@ struct MoveConfig {
 
     MoveConfig() = default;
     explicit MoveConfig(const ClientConfig& config);
+
+    int body_src_y_for(Direction dir) const;
+    int head_src_y_for(Direction dir) const;
+    int walk_src_frames_for(Direction dir) const;
 };
 
 class MoveController {

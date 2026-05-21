@@ -125,7 +125,22 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
                 .entity_race = p.race,
                 .entity_class = p.player_class,
         };
-        return {.private_events = {login_ok}, .broadcast_events = {spawn}};
+        std::vector<ServerEvent> private_events = {login_ok};
+        for (const auto& [existing_id, existing_player]: players) {
+            if (existing_id == p.id) {
+                continue;
+            }
+            private_events.push_back(EntitySpawnEvent{
+                    .entity_id = existing_player.id,
+                    .entity_type = EntityType::PLAYER,
+                    .entity_pos = existing_player.pos,
+                    .entity_dir = existing_player.dir,
+                    .entity_name = existing_player.username,
+                    .entity_race = existing_player.race,
+                    .entity_class = existing_player.player_class,
+            });
+        }
+        return {.private_events = std::move(private_events), .broadcast_events = {spawn}};
     }
 
     LoginErrorEvent err{LoginError::INVALID_CREDENTIALS, "Invalid username or password"};

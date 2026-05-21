@@ -5,6 +5,7 @@
 #include <utility>
 
 #include <SDL2/SDL.h>
+#include <SDL_ttf.h>
 
 #include "texture_loader.h"
 
@@ -18,12 +19,23 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig&
         game_viewport(11, 149, 734, 608),
         window_w(window_w),
         window_h(window_h) {
+    name_font = TTF_OpenFont("assets/OUTPUT/Cardo.ttf", 12);
+    if (!name_font) {
+        throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
+    }
+
     init_tilemap(tilemap);
     init_props(tilemap);
     init_sprites(sprites_config);
 
     if (sprites.empty()) {
         throw std::runtime_error("No sprites to render");
+    }
+}
+
+WorldRenderer::~WorldRenderer() {
+    if (name_font) {
+        TTF_CloseFont(name_font);
     }
 }
 
@@ -67,6 +79,115 @@ void WorldRenderer::set_movable_position(int x, int y) {
     // Just use it in LoginOkEvent, EntitySpawnEvent and EntityMoveEvent
     sprite->dst.SetX(std::clamp(x, 0, max_x));
     sprite->dst.SetY(std::clamp(y, 0, max_y));
+}
+
+void WorldRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::string& name) {
+    if (entity_part_configs.empty()) {
+        return;
+    }
+
+    std::vector<SpriteRender> parts;
+    parts.reserve(entity_part_configs.size());
+
+    for (const auto& config: entity_part_configs) {
+        SpriteRender part = build_sprite_render(config);
+        if (part.frames.empty()) {
+            continue;
+        }
+        if (part.movable) {
+            part.dst.SetX(x);
+            part.dst.SetY(y);
+        }
+        parts.push_back(std::move(part));
+    }
+
+    if (parts.empty()) {
+        return;
+    }
+
+    // Position anchored parts relative to the body
+    SpriteRender* body = nullptr;
+    for (auto& part: parts) {
+        if (part.movable) {
+            body = &part;
+            break;
+        }
+    }
+
+    if (body) {
+        for (auto& part: parts) {
+            if (part.anchor_to_movable) {
+                const int desired_x = body->dst.GetX() + part.anchor_offset_x;
+                const int desired_y = body->dst.GetY() + part.anchor_offset_y;
+                const int max_x = has_tilemap ? std::max(0, map_px_w - part.dst.GetW()) :
+                                                std::max(0, window_w - part.dst.GetW());
+                const int max_y = has_tilemap ? std::max(0, map_px_h - part.dst.GetH()) :
+                                                std::max(0, window_h - part.dst.GetH());
+                part.dst.SetX(std::clamp(desired_x, 0, max_x));
+                part.dst.SetY(std::clamp(desired_y, 0, max_y));
+            }
+        }
+    }
+
+    entity_sprites[entity_id] = std::move(parts);
+
+    // Create name texture
+    if (!name.empty() && name_font) {
+        SDL_Color white = {255, 255, 255, 255};
+        SDL_Surface* surface = TTF_RenderUTF8_Blended(name_font, name.c_str(), white);
+        if (surface) {
+            SDL2pp::Surface wrapped(surface);
+            int text_w = 0, text_h = 0;
+            TTF_SizeUTF8(name_font, name.c_str(), &text_w, &text_h);
+            entity_name_render.emplace(entity_id,
+                                       EntityNameRender{SDL2pp::Texture(renderer, wrapped), text_w, text_h});
+        }
+    }
+}
+
+void WorldRenderer::despawn_entity(uint16_t entity_id) {
+    entity_sprites.erase(entity_id);
+    entity_name_render.erase(entity_id);
+}
+
+void WorldRenderer::move_entity(uint16_t entity_id, int x, int y) {
+    auto it = entity_sprites.find(entity_id);
+    if (it == entity_sprites.end()) {
+        return;
+    }
+
+    auto& parts = it->second;
+    SpriteRender* body = nullptr;
+    for (auto& part: parts) {
+        if (part.movable) {
+            body = &part;
+            break;
+        }
+    }
+    if (!body) {
+        return;
+    }
+
+    const int max_x = has_tilemap ? std::max(0, map_px_w - body->dst.GetW()) :
+                                    std::max(0, window_w - body->dst.GetW());
+    const int max_y = has_tilemap ? std::max(0, map_px_h - body->dst.GetH()) :
+                                    std::max(0, window_h - body->dst.GetH());
+    body->dst.SetX(std::clamp(x, 0, max_x));
+    body->dst.SetY(std::clamp(y, 0, max_y));
+
+    for (auto& part: parts) {
+        if (!part.anchor_to_movable) {
+            continue;
+        }
+        const int desired_x = body->dst.GetX() + part.anchor_offset_x;
+        const int desired_y = body->dst.GetY() + part.anchor_offset_y;
+        const int clamp_x_max = has_tilemap ? std::max(0, map_px_w - part.dst.GetW()) :
+                                              std::max(0, window_w - part.dst.GetW());
+        const int clamp_y_max = has_tilemap ? std::max(0, map_px_h - part.dst.GetH()) :
+                                              std::max(0, window_h - part.dst.GetH());
+        part.dst.SetX(std::clamp(desired_x, 0, clamp_x_max));
+        part.dst.SetY(std::clamp(desired_y, 0, clamp_y_max));
+    }
 }
 
 bool WorldRenderer::get_movable_position(int& x, int& y) const {
@@ -129,6 +250,38 @@ void WorldRenderer::set_anchor_src_y(int y) {
             continue;
         }
         sprite.src.SetY(y);
+    }
+}
+
+void WorldRenderer::set_entity_src_y(uint16_t entity_id, int body_src_y, int head_src_y) {
+    auto it = entity_sprites.find(entity_id);
+    if (it == entity_sprites.end()) {
+        return;
+    }
+    for (auto& sprite: it->second) {
+        if (!sprite.use_src) {
+            continue;
+        }
+        if (sprite.movable) {
+            sprite.src.SetY(body_src_y);
+        } else if (sprite.anchor_to_movable) {
+            sprite.src.SetY(head_src_y);
+        }
+    }
+}
+
+void WorldRenderer::step_entity_src_x(uint16_t entity_id, int step, int frame_count) {
+    auto it = entity_sprites.find(entity_id);
+    if (it == entity_sprites.end()) {
+        return;
+    }
+    for (auto& sprite: it->second) {
+        if (!sprite.movable || !sprite.use_src || frame_count <= 0 || step <= 0) {
+            continue;
+        }
+        const int current_index = sprite.src.GetX() / step;
+        const int next_index = (current_index + 1) % frame_count;
+        sprite.src.SetX(next_index * step);
     }
 }
 
@@ -218,6 +371,7 @@ void WorldRenderer::init_sprites(const std::vector<SpriteConfig>& sprites_config
         if (sprite.frames.empty()) {
             continue;
         }
+        entity_part_configs.push_back(sprite_config);
         sprites.push_back(std::move(sprite));
     }
 }
@@ -384,6 +538,14 @@ void WorldRenderer::render_props_hitboxes(const SDL2pp::Rect& cam) { //PARA HITB
 void WorldRenderer::render_sprites(const SDL2pp::Rect& cam) {
     // dibuja sprites en coordenadas de camara.
     // primero descarta los que no intersectan el viewport para optimizar
+    struct Drawable {
+        SDL2pp::Texture* texture;
+        SDL2pp::Rect* src;
+        SDL2pp::Rect dst;
+        int foot_y;
+    };
+    std::vector<Drawable> drawables;
+
     for (auto& sprite: sprites) {
         if (!sprite.visible || sprite.frames.empty()) {
             continue;
@@ -405,10 +567,63 @@ void WorldRenderer::render_sprites(const SDL2pp::Rect& cam) {
 
         SDL2pp::Rect dst(sprite.dst.GetX() - cam.GetX(), sprite.dst.GetY() - cam.GetY(),
                          sprite.dst.GetW(), sprite.dst.GetH());
-        if (sprite.use_src) {
-            renderer.Copy(sprite.frames[sprite.current_frame], sprite.src, dst);
+        drawables.push_back({&sprite.frames[sprite.current_frame],
+                             sprite.use_src ? &sprite.src : nullptr, dst,
+                             sprite.dst.GetY() + sprite.dst.GetH()});
+    }
+
+    for (auto& pair: entity_sprites) {
+        const uint16_t eid = pair.first;
+        int body_foot_y = 0;
+        for (auto& sprite: pair.second) {
+            if (!sprite.visible || sprite.frames.empty()) {
+                continue;
+            }
+
+            const int sprite_left = sprite.dst.GetX();
+            const int sprite_top = sprite.dst.GetY();
+            const int sprite_right = sprite_left + sprite.dst.GetW();
+            const int sprite_bottom = sprite_top + sprite.dst.GetH();
+            const int cam_left = cam.GetX();
+            const int cam_top = cam.GetY();
+            const int cam_right = cam_left + cam.GetW();
+            const int cam_bottom = cam_top + cam.GetH();
+
+            if (sprite_right <= cam_left || sprite_left >= cam_right || sprite_bottom <= cam_top ||
+                sprite_top >= cam_bottom) {
+                continue;
+            }
+
+            SDL2pp::Rect dst(sprite.dst.GetX() - cam.GetX(), sprite.dst.GetY() - cam.GetY(),
+                             sprite.dst.GetW(), sprite.dst.GetH());
+            drawables.push_back({&sprite.frames[sprite.current_frame],
+                                 sprite.use_src ? &sprite.src : nullptr, dst,
+                                 sprite.dst.GetY() + sprite.dst.GetH()});
+
+            if (sprite.movable) {
+                body_foot_y = sprite.dst.GetY() + sprite.dst.GetH();
+            }
+        }
+
+        // Render name above this entity
+        auto name_it = entity_name_render.find(eid);
+        if (name_it != entity_name_render.end() && body_foot_y > 0) {
+            auto& body = pair.second[0];
+            const int name_x = body.dst.GetX() + (body.dst.GetW() - name_it->second.w) / 2 - cam.GetX();
+            const int name_y = body.dst.GetY() - name_it->second.h - 24 - cam.GetY();
+            renderer.Copy(name_it->second.texture, SDL2pp::NullOpt,
+                          SDL2pp::Rect(name_x, name_y, name_it->second.w, name_it->second.h));
+        }
+    }
+
+    std::sort(drawables.begin(), drawables.end(),
+              [](const Drawable& a, const Drawable& b) { return a.foot_y < b.foot_y; });
+
+    for (auto& d: drawables) {
+        if (d.src) {
+            renderer.Copy(*d.texture, *d.src, d.dst);
         } else {
-            renderer.Copy(sprite.frames[sprite.current_frame], SDL2pp::NullOpt, dst);
+            renderer.Copy(*d.texture, SDL2pp::NullOpt, d.dst);
         }
     }
 }
@@ -424,6 +639,19 @@ void WorldRenderer::update_animation() {
         }
         sprite.last_ticks = now;
         sprite.current_frame = (sprite.current_frame + 1) % sprite.frames.size();
+    }
+
+    for (auto& pair: entity_sprites) {
+        for (auto& sprite: pair.second) {
+            if (!sprite.animated || sprite.frame_ms == 0) {
+                continue;
+            }
+            if (now - sprite.last_ticks < sprite.frame_ms) {
+                continue;
+            }
+            sprite.last_ticks = now;
+            sprite.current_frame = (sprite.current_frame + 1) % sprite.frames.size();
+        }
     }
 
     // Animate props

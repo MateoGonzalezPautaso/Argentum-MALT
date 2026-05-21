@@ -35,6 +35,7 @@ private:
     WorldRenderer world_renderer;
     UIRenderer ui_renderer;
     MoveController move_controller;
+    MoveConfig move_config;
 
     bool handle_mouse_button(const SDL_Event& event);
     bool handle_keydown(const SDL_Event& event);
