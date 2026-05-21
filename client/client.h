@@ -22,7 +22,7 @@ private:
     ClientProtocol protocol;
     Queue<ClientCommand> command_queue;
     Queue<ServerEvent> event_queue;
-    ClientEngine engine;
+    Engine engine;
     Sender sender;
     Receiver receiver;
 

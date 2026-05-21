@@ -1,0 +1,21 @@
+#ifndef CLIENT_MENU_CONTROLLER_H
+#define CLIENT_MENU_CONTROLLER_H
+
+#include <SDL2pp/SDL2pp.hh>
+
+#include "render/menu_renderer.h"
+
+class MenuController {
+public:
+    explicit MenuController(SDL2pp::Renderer& renderer, int logical_w, int logical_h);
+
+    void handle_mouse_motion(int x, int y);
+    bool is_start_hit(int x, int y) const;
+    bool is_settings_hit(int x, int y) const;
+    void render();
+
+private:
+    MenuRenderer menu_renderer;
+};
+
+#endif

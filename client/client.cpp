@@ -5,15 +5,15 @@
 
 #include <SDL2/SDL.h>
 
-#include "app.h"
-
 Client::Client(const ClientConfig& cfg):
         config(cfg),
         skt("127.0.0.1", "1234"),
         protocol(std::move(skt)),
         engine(config, command_queue),
         sender(protocol, command_queue),
-        receiver(protocol, event_queue) {}
+        receiver(protocol, event_queue) {
+    SDL_StartTextInput();
+}
 
 void Client::frame_sync(uint32_t& last_tick, std::function<void()> render) const {
     const uint32_t now = SDL_GetTicks();
@@ -28,43 +28,40 @@ void Client::frame_sync(uint32_t& last_tick, std::function<void()> render) const
 }
 
 bool Client::run_menu() {
-    client_app::GameState state = client_app::GameState::Menu;
+    GameState state = GameState::Menu;
     bool running = true;
     uint32_t last_tick = SDL_GetTicks();
 
-    while (running && state == client_app::GameState::Menu) {
-        running = client_app::pump_events(engine, state);
+    while (running && state == GameState::Menu) {
+        running = engine.dispatch_event(state);
         if (!running) {
             break;
         }
 
-        frame_sync(last_tick, [&] { client_app::render_menu(engine); });
+        frame_sync(last_tick, [&] { engine.render_menu_frame(); });
     }
     return running;
 }
 
 std::optional<LoginOkEvent> Client::run_login() {
-    client_app::GameState state = client_app::GameState::Login;
+    GameState state = GameState::Login;
     bool running = true;
     uint32_t last_tick = SDL_GetTicks();
 
-    while (running && state == client_app::GameState::Login) {
-        running = client_app::pump_events(engine, state);
+    while (running && state == GameState::Login) {
+        running = engine.dispatch_event(state);
         if (!running) {
             break;
         }
 
-        if (state == client_app::GameState::Menu) {
-            engine.clear_login_error();
+        if (state == GameState::Menu) {
+            engine.reset_login_state();
             return std::nullopt;
         }
 
-        if (engine.is_login_submitted()) {
-            engine.clear_login_error();
-            const std::string& username = engine.login_username_text();
-            const std::string& password = engine.login_password_text();
-            engine.reset_login_submitted();
-
+        std::string username;
+        std::string password;
+        if (engine.try_submit_login(username, password)) {
             protocol.send_command(LoginCmd{username, password});
 
             ServerEvent response = protocol.recv_event();
@@ -74,23 +71,22 @@ std::optional<LoginOkEvent> Client::run_login() {
             }
 
             if (std::holds_alternative<LoginErrorEvent>(response)) {
-                engine.reset_login_fields();
-                engine.set_login_error(std::get<LoginErrorEvent>(response).message);
+                engine.handle_login_error(std::get<LoginErrorEvent>(response).message);
             }
         }
 
-        frame_sync(last_tick, [&] { client_app::render_login(engine); });
+        frame_sync(last_tick, [&] { engine.render_login_frame(); });
     }
     return std::nullopt;
 }
 
 void Client::game_loop() {
-    client_app::GameState state = client_app::GameState::Playing;
+    GameState state = GameState::Playing;
     bool running = true;
     uint32_t last_tick = SDL_GetTicks();
 
     while (running) {
-        running = client_app::pump_events(engine, state);
+        running = engine.dispatch_event(state);
         if (!running) {
             break;
         }
@@ -100,7 +96,8 @@ void Client::game_loop() {
             engine.apply_server_event(ev);
         }
 
-        frame_sync(last_tick, [&] { client_app::render_playing(engine); });
+        engine.tick_game();
+        frame_sync(last_tick, [&] { engine.render_game_frame(); });
     }
 }
 
@@ -120,7 +117,7 @@ void Client::run() {
 
         auto login_result = run_login();
         if (!login_result) {
-            engine.reset_login_submitted();
+            engine.reset_login_state();
             continue;
         }
 
