@@ -15,10 +15,21 @@ Client::Client(const ClientConfig& cfg):
         sender(protocol, command_queue),
         receiver(protocol, event_queue) {}
 
+void Client::frame_sync(uint32_t& last_tick, std::function<void()> render) const {
+    const uint32_t now = SDL_GetTicks();
+    const uint32_t elapsed = now - last_tick;
+    if (elapsed >= config.tick_ms) {
+        last_tick = now;
+        render();
+    }
+    if (elapsed < config.tick_ms) {
+        SDL_Delay(config.tick_ms - elapsed);
+    }
+}
+
 bool Client::run_menu() {
     client_app::GameState state = client_app::GameState::Menu;
     bool running = true;
-    const uint32_t tick_ms = config.tick_ms;
     uint32_t last_tick = SDL_GetTicks();
 
     while (running && state == client_app::GameState::Menu) {
@@ -27,17 +38,7 @@ bool Client::run_menu() {
             break;
         }
 
-        const uint32_t now = SDL_GetTicks();
-        const uint32_t elapsed = now - last_tick;
-        if (elapsed >= tick_ms) {
-            last_tick = now;
-            client_app::render_menu(engine);
-        }
-
-        const uint32_t sleep_ms = (elapsed < tick_ms) ? (tick_ms - elapsed) : 0;
-        if (sleep_ms > 0) {
-            SDL_Delay(sleep_ms);
-        }
+        frame_sync(last_tick, [&] { client_app::render_menu(engine); });
     }
     return running;
 }
@@ -45,7 +46,6 @@ bool Client::run_menu() {
 std::optional<LoginOkEvent> Client::run_login() {
     client_app::GameState state = client_app::GameState::Login;
     bool running = true;
-    const uint32_t tick_ms = config.tick_ms;
     uint32_t last_tick = SDL_GetTicks();
 
     while (running && state == client_app::GameState::Login) {
@@ -79,17 +79,7 @@ std::optional<LoginOkEvent> Client::run_login() {
             }
         }
 
-        const uint32_t now = SDL_GetTicks();
-        const uint32_t elapsed = now - last_tick;
-        if (elapsed >= tick_ms) {
-            last_tick = now;
-            client_app::render_login(engine);
-        }
-
-        const uint32_t sleep_ms = (elapsed < tick_ms) ? (tick_ms - elapsed) : 0;
-        if (sleep_ms > 0) {
-            SDL_Delay(sleep_ms);
-        }
+        frame_sync(last_tick, [&] { client_app::render_login(engine); });
     }
     return std::nullopt;
 }
@@ -97,7 +87,6 @@ std::optional<LoginOkEvent> Client::run_login() {
 void Client::game_loop() {
     client_app::GameState state = client_app::GameState::Playing;
     bool running = true;
-    const uint32_t tick_ms = config.tick_ms;
     uint32_t last_tick = SDL_GetTicks();
 
     while (running) {
@@ -111,17 +100,7 @@ void Client::game_loop() {
             engine.apply_server_event(ev);
         }
 
-        const uint32_t now = SDL_GetTicks();
-        const uint32_t elapsed = now - last_tick;
-        if (elapsed >= tick_ms) {
-            last_tick = now;
-            client_app::render_playing(engine);
-        }
-
-        const uint32_t sleep_ms = (elapsed < tick_ms) ? (tick_ms - elapsed) : 0;
-        if (sleep_ms > 0) {
-            SDL_Delay(sleep_ms);
-        }
+        frame_sync(last_tick, [&] { client_app::render_playing(engine); });
     }
 }
 
