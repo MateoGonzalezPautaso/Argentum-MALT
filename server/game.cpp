@@ -82,6 +82,11 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
             return {.private_events = {err}, .broadcast_events = {}};
         }
 
+        if (is_username_logged_in(cmd.username)) {
+            LoginErrorEvent err{LoginError::ALREADY_LOGGED_IN, "This user is already logged in"};
+            return {.private_events = {err}, .broadcast_events = {}};
+        }
+
         Player player(player_id, cmd.username, Position{rec.pos_x, rec.pos_y},
                       static_cast<Direction>(rec.dir), static_cast<Race>(rec.race),
                       static_cast<PlayerClass>(rec.player_class), balance);
@@ -125,6 +130,14 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
 
     LoginErrorEvent err{LoginError::INVALID_CREDENTIALS, "Invalid username or password"};
     return {.private_events = {err}, .broadcast_events = {}};
+}
+
+bool Game::is_username_logged_in(const std::string& username) const {
+    for (const auto& [id, player] : players) {
+        if (player.username == username)
+            return true;
+    }
+    return false;
 }
 
 CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {

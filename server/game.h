@@ -29,6 +29,7 @@ private:
 
     CommandResult handle_login(uint16_t player_id, const LoginCmd& cmd);
     CommandResult handle_move(uint16_t player_id, const MoveCmd& cmd);
+    bool is_username_logged_in(const std::string& username) const;
 
 public:
     explicit Game(const ServerConfig& config, PlayerPersistence& persistence);
