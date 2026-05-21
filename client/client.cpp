@@ -55,10 +55,12 @@ std::optional<LoginOkEvent> Client::run_login() {
         }
 
         if (state == client_app::GameState::Menu) {
+            engine.clear_login_error();
             return std::nullopt;
         }
 
         if (engine.is_login_submitted()) {
+            engine.clear_login_error();
             const std::string& username = engine.login_username_text();
             const std::string& password = engine.login_password_text();
             engine.reset_login_submitted();
@@ -72,9 +74,8 @@ std::optional<LoginOkEvent> Client::run_login() {
             }
 
             if (std::holds_alternative<LoginErrorEvent>(response)) {
-                std::cerr << "Login failed: " << std::get<LoginErrorEvent>(response).message
-                          << std::endl;
                 engine.reset_login_fields();
+                engine.set_login_error(std::get<LoginErrorEvent>(response).message);
             }
         }
 

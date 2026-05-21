@@ -70,6 +70,8 @@ void LoginRenderer::render() {
 
     connect_button.render(renderer);
     back_button.render(renderer);
+
+    render_error();
 }
 
 bool LoginRenderer::is_username_hit(int x, int y) const {
@@ -193,4 +195,32 @@ void LoginRenderer::render_text_in_rect(const SDL2pp::Rect& rect, const std::str
     SDL2pp::Rect dst_rect(rect.GetX() + 4, rect.GetY() + (rect.GetH() - clipped_h) / 2,
                           clipped_w, clipped_h);
     renderer.Copy(text_texture, src_rect, dst_rect);
+}
+
+void LoginRenderer::set_error(const std::string& text) { error_text = text; }
+
+void LoginRenderer::clear_error() { error_text.clear(); }
+
+void LoginRenderer::render_error() const {
+    if (error_text.empty() || !field_font) {
+        return;
+    }
+
+    SDL_Surface* surface = TTF_RenderUTF8_Blended(field_font, error_text.c_str(), error_color);
+    if (!surface) {
+        return;
+    }
+    SDL2pp::Surface wrapped(surface);
+    SDL2pp::Texture texture(renderer, wrapped);
+
+    int text_w = 0;
+    int text_h = 0;
+    if (TTF_SizeUTF8(field_font, error_text.c_str(), &text_w, &text_h) != 0) {
+        return;
+    }
+
+    const int x = std::max(0, (window_w - text_w) / 2);
+    const int y = connect_button.rect.GetY() + connect_button.rect.GetH() + 10;
+    SDL2pp::Rect dst(x, y, text_w, text_h);
+    renderer.Copy(texture, SDL2pp::NullOpt, dst);
 }

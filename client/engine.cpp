@@ -39,6 +39,10 @@ void ClientEngine::reset_login_fields() {
     login_password.clear();
 }
 
+void ClientEngine::set_login_error(const std::string& msg) { login_renderer.set_error(msg); }
+
+void ClientEngine::clear_login_error() { login_renderer.clear_error(); }
+
 const std::string& ClientEngine::login_username_text() const {
     return login_username.get_text();
 }

@@ -20,6 +20,9 @@ private:
     const ChatInput& username_model;
     const ChatInput& password_model;
 
+    std::string error_text;
+    SDL_Color error_color{255, 60, 60, 255};
+
     SDL2pp::Texture background_texture;
     SDL2pp::Texture logo_texture;
     Button connect_button;
@@ -54,12 +57,16 @@ public:
     void set_connect_button_hovered(int x, int y);
     void set_back_button_hovered(int x, int y);
 
+    void set_error(const std::string& text);
+    void clear_error();
+
 private:
     void init_layout();
     void render_text_field(const SDL2pp::Rect& rect, const std::string& text,
                            bool focused, const std::string& placeholder) const;
     void render_text_in_rect(const SDL2pp::Rect& rect, const std::string& text,
                               SDL_Color color, int& clipped_w) const;
+    void render_error() const;
 };
 
 #endif
