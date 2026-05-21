@@ -1,7 +1,7 @@
 #include "menu_controller.h"
 
-MenuController::MenuController(SDL2pp::Renderer& renderer, int logical_w, int logical_h):
-        menu_renderer(renderer, logical_w, logical_h) {}
+MenuController::MenuController(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg):
+        menu_renderer(renderer, ui_cfg) {}
 
 void MenuController::handle_mouse_motion(int x, int y) {
     menu_renderer.set_start_button_hovered(x, y);

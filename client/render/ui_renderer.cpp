@@ -7,21 +7,23 @@
 #include "geometry.h"
 #include "texture_loader.h"
 
-UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h,
+UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
                        const ChatInput& chat_model):
         renderer(renderer),
         chat_model(chat_model),
-        ui_frame_texture(renderer, load_surface("assets/interface/en_ventanaprincipal_edit.bmp")),
-        hp_bar_texture(renderer, load_surface("assets/interface/en_barradevida.bmp")),
-        mp_bar_texture(renderer, load_surface("assets/interface/en_barrademana.bmp")),
-        exp_bar_texture(renderer, load_surface("assets/interface/en_barraexperiencia.bmp")),
-        ui_frame_rect(0, 0, window_w, window_h),
-        chat_input_rect(41, 122, 565, 20) {
-    chat_font = TTF_OpenFont("assets/OUTPUT/Cardo.ttf", 16);
+        ui_frame_texture(renderer, load_surface(ui_cfg.asset_ui_frame)),
+        hp_bar_texture(renderer, load_surface(ui_cfg.asset_hp_bar)),
+        mp_bar_texture(renderer, load_surface(ui_cfg.asset_mp_bar)),
+        exp_bar_texture(renderer, load_surface(ui_cfg.asset_exp_bar)),
+        ui_frame_rect(0, 0, ui_cfg.window_w, ui_cfg.window_h),
+        chat_input_rect(ui_cfg.chat_input_x, ui_cfg.chat_input_y, ui_cfg.chat_input_w,
+                        ui_cfg.chat_input_h),
+        ui_cfg(ui_cfg) {
+    chat_font = TTF_OpenFont(ui_cfg.font_path.c_str(), ui_cfg.font_chat_size);
     if (!chat_font) {
         throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
     }
-    bar_font = TTF_OpenFont("assets/OUTPUT/Cardo.ttf", 11);
+    bar_font = TTF_OpenFont(ui_cfg.font_path.c_str(), ui_cfg.font_bar_size);
     if (!bar_font) {
         throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
     }
@@ -65,15 +67,18 @@ bool UIRenderer::is_chat_input_hit(int x, int y) const {
 }
 
 void UIRenderer::render_hp_bar(uint32_t current, uint32_t max) {
-    render_stat_bar(hp_bar_texture, HP_BAR_X, HP_BAR_Y, HP_BAR_W, HP_BAR_H, current, max);
+    render_stat_bar(hp_bar_texture, ui_cfg.hp_bar.x, ui_cfg.hp_bar.y, ui_cfg.hp_bar.w,
+                    ui_cfg.hp_bar.h, current, max);
 }
 
 void UIRenderer::render_mp_bar(uint32_t current, uint32_t max) {
-    render_stat_bar(mp_bar_texture, MP_BAR_X, MP_BAR_Y, MP_BAR_W, MP_BAR_H, current, max);
+    render_stat_bar(mp_bar_texture, ui_cfg.mp_bar.x, ui_cfg.mp_bar.y, ui_cfg.mp_bar.w,
+                    ui_cfg.mp_bar.h, current, max);
 }
 
 void UIRenderer::render_exp_bar(uint32_t current, uint32_t max) {
-    render_stat_bar(exp_bar_texture, EXP_BAR_X, EXP_BAR_Y, EXP_BAR_W, EXP_BAR_H, current, max);
+    render_stat_bar(exp_bar_texture, ui_cfg.exp_bar.x, ui_cfg.exp_bar.y, ui_cfg.exp_bar.w,
+                    ui_cfg.exp_bar.h, current, max);
 }
 
 void UIRenderer::render_stat_bar(SDL2pp::Texture& tex, int x, int y, int w, int h,

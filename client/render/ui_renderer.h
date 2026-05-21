@@ -6,25 +6,12 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>
 
+#include "../config/config.h"
+
 class ChatInput;
 
 class UIRenderer {
 private:
-    static constexpr int HP_BAR_X = 790;
-    static constexpr int HP_BAR_Y = 601;
-    static constexpr int HP_BAR_W = 218;
-    static constexpr int HP_BAR_H = 17;
-
-    static constexpr int MP_BAR_X = 790;
-    static constexpr int MP_BAR_Y = 629;
-    static constexpr int MP_BAR_W = 217;
-    static constexpr int MP_BAR_H = 17;
-
-    static constexpr int EXP_BAR_X = 790;
-    static constexpr int EXP_BAR_Y = 657;
-    static constexpr int EXP_BAR_W = 217;
-    static constexpr int EXP_BAR_H = 17;
-
     SDL2pp::Renderer& renderer;
     const ChatInput& chat_model;
     SDL2pp::Texture ui_frame_texture;
@@ -36,9 +23,10 @@ private:
     TTF_Font* chat_font = nullptr;
     TTF_Font* bar_font = nullptr;
     SDL_Color chat_color{255, 255, 255, 255};
+    UIConfig ui_cfg;
 
 public:
-    UIRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h, const ChatInput& chat_model);
+    UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg, const ChatInput& chat_model);
     ~UIRenderer();
 
     void render_frame_background();

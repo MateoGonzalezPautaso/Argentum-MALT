@@ -4,22 +4,17 @@
 
 #include "texture_loader.h"
 
-MenuRenderer::MenuRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h):
+MenuRenderer::MenuRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg):
         renderer(renderer),
-        menu_background_texture(renderer,
-                                load_surface("assets/interface/en_ventanalauncher.bmp")),
-        start_button(SDL2pp::Texture(renderer,
-                                     load_surface("assets/interface/en_boton-comenzar-default.bmp")),
-                     SDL2pp::Texture(renderer,
-                                     load_surface("assets/interface/en_boton-comenzar-over.bmp"))),
+        menu_background_texture(renderer, load_surface(ui_cfg.asset_menu_bg)),
+        start_button(
+                SDL2pp::Texture(renderer, load_surface(ui_cfg.asset_start_default)),
+                SDL2pp::Texture(renderer, load_surface(ui_cfg.asset_start_hover))),
         settings_button(
-                SDL2pp::Texture(renderer,
-                                load_surface("assets/interface/en_boton-config-default.bmp")),
-                SDL2pp::Texture(renderer,
-                                load_surface("assets/interface/en_boton-config-over.bmp"))),
-        menu_background_rect(0, 0, window_w, window_h),
-        window_w(window_w),
-        window_h(window_h) {
+                SDL2pp::Texture(renderer, load_surface(ui_cfg.asset_settings_default)),
+                SDL2pp::Texture(renderer, load_surface(ui_cfg.asset_settings_hover))),
+        menu_background_rect(0, 0, ui_cfg.window_w, ui_cfg.window_h),
+        ui_cfg(ui_cfg) {
     init_layout();
 }
 
@@ -42,6 +37,7 @@ void MenuRenderer::set_settings_button_hovered(int x, int y) {
 }
 
 void MenuRenderer::init_layout() {
-    start_button.set_position(START_X, START_Y, START_W, START_H);
-    settings_button.set_position(SETTINGS_X, SETTINGS_Y, SETTINGS_W, SETTINGS_H);
+    start_button.set_position(ui_cfg.start_x, ui_cfg.start_y, ui_cfg.start_w, ui_cfg.start_h);
+    settings_button.set_position(ui_cfg.settings_x, ui_cfg.settings_y, ui_cfg.settings_w,
+                                 ui_cfg.settings_h);
 }

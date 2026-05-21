@@ -1,7 +1,7 @@
 #include "login_controller.h"
 
-LoginController::LoginController(SDL2pp::Renderer& renderer, int logical_w, int logical_h):
-        login_renderer(renderer, logical_w, logical_h, login_username, login_password) {
+LoginController::LoginController(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg):
+        login_renderer(renderer, ui_cfg, login_username, login_password) {
     login_username.set_focus(true);
 }
 

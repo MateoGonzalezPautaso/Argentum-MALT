@@ -6,16 +6,13 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>
 
+#include "../config/config.h"
 #include "button.h"
 
 class ChatInput;
 
 class LoginRenderer {
 private:
-    static constexpr const char* USERNAME_PLACEHOLDER = "Username";
-    static constexpr const char* PASSWORD_PLACEHOLDER = "Password";
-    static constexpr const char* TITLE_TEXT = "Sign in";
-
     SDL2pp::Renderer& renderer;
     const ChatInput& username_model;
     const ChatInput& password_model;
@@ -39,11 +36,10 @@ private:
     SDL_Color text_color{255, 255, 255, 255};
     SDL_Color placeholder_color{160, 160, 160, 255};
     SDL_Color title_color{255, 215, 0, 255};
-    int window_w;
-    int window_h;
+    UIConfig ui_cfg;
 
 public:
-    LoginRenderer(SDL2pp::Renderer& renderer, int window_w, int window_h,
+    LoginRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
                   const ChatInput& username_model, const ChatInput& password_model);
     ~LoginRenderer();
 

@@ -1,9 +1,10 @@
 #include "engine.h"
 
 Engine::Engine(const ClientConfig& config, Queue<ClientCommand>& command_queue):
-        render_ctx(config.window.title, config.window.width, config.window.height),
-        menu_ctrl(render_ctx.renderer(), RenderContext::LOGICAL_W, RenderContext::LOGICAL_H),
-        login_ctrl(render_ctx.renderer(), RenderContext::LOGICAL_W, RenderContext::LOGICAL_H),
+        render_ctx(config.window.title, config.window.width, config.window.height,
+                   config.viewport.logical_w, config.viewport.logical_h),
+        menu_ctrl(render_ctx.renderer(), config.ui),
+        login_ctrl(render_ctx.renderer(), config.ui),
         game_renderer(render_ctx.renderer(), config, command_queue) {}
 
 bool Engine::dispatch_event(GameState& state) {

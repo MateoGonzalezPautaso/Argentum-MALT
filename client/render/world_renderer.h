@@ -79,7 +79,7 @@ public:
     bool get_show_hitboxes() const { return show_hitboxes_; } //PARA HITBOX DEBUG ONLY - BORRAR EN PROD
     WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig& background,
                   const TilemapConfig& tilemap, const std::vector<SpriteConfig>& sprites_config,
-                  int window_w, int window_h);
+                  const ViewportConfig& viewport_cfg, const FontConfig& font_cfg);
     ~WorldRenderer();
 
     void render();

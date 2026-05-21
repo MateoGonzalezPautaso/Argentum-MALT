@@ -6,10 +6,8 @@
 
 class RenderContext {
 public:
-    static constexpr int LOGICAL_W = 1024;
-    static constexpr int LOGICAL_H = 768;
-
-    RenderContext(const std::string& title, int window_w, int window_h);
+    RenderContext(const std::string& title, int window_w, int window_h, int logical_w = 1024,
+                  int logical_h = 768);
     ~RenderContext();
 
     SDL2pp::Renderer& renderer() { return sdl_renderer; }
@@ -21,6 +19,8 @@ private:
     SDL2pp::SDL sdl;
     SDL2pp::Window window;
     SDL2pp::Renderer sdl_renderer;
+    int logical_w;
+    int logical_h;
 };
 
 #endif

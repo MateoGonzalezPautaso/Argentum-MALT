@@ -10,6 +10,78 @@ y = 0
 width = 960
 height = 540
 
+[viewport]
+logical_w = 1024
+logical_h = 768
+game_x = 11
+game_y = 149
+game_w = 734
+game_h = 608
+
+[font]
+path = "assets/OUTPUT/Cardo.ttf"
+name_size = 12
+chat_size = 16
+bar_size = 11
+field_size = 18
+title_size = 28
+
+[ui]
+window_w = 1024
+window_h = 768
+placeholder_username = "Username"
+placeholder_password = "Password"
+title_text = "Sign in"
+login_field_w = 320
+login_field_h = 34
+login_logo_y = 80
+chat_input_x = 41
+chat_input_y = 122
+chat_input_w = 565
+chat_input_h = 20
+start_x = 347
+start_y = 568
+start_w = 330
+start_h = 65
+settings_x = 688
+settings_y = 335
+settings_w = 270
+settings_h = 45
+
+[ui.hp_bar]
+x = 790
+y = 601
+w = 218
+h = 17
+
+[ui.mp_bar]
+x = 790
+y = 629
+w = 217
+h = 17
+
+[ui.exp_bar]
+x = 790
+y = 657
+w = 217
+h = 17
+
+[assets]
+menu_bg = "assets/interface/en_ventanalauncher.bmp"
+start_default = "assets/interface/en_boton-comenzar-default.bmp"
+start_hover = "assets/interface/en_boton-comenzar-over.bmp"
+settings_default = "assets/interface/en_boton-config-default.bmp"
+settings_hover = "assets/interface/en_boton-config-over.bmp"
+login_bg = "assets/BabelUI/static/media/leather_brown..png"
+login_logo = "assets/BabelUI/static/media/ao20_logo_med..png"
+connect_default = "assets/interface/en_boton-conectar-default.bmp"
+connect_hover = "assets/interface/en_boton-conectar-over.bmp"
+back_default = "assets/interface/en_boton-volver-default.bmp"
+back_hover = "assets/interface/en_boton-volver-over.bmp"
+ui_frame = "assets/interface/en_ventanaprincipal_edit.bmp"
+hp_bar = "assets/interface/en_barradevida.bmp"
+mp_bar = "assets/interface/en_barrademana.bmp"
+exp_bar = "assets/interface/en_barraexperiencia.bmp"
 
 [[sprites]]
 path = "assets/Graficos/1071.png"

@@ -16,9 +16,6 @@
 
 class GameRenderer {
 public:
-    static constexpr int LOGICAL_W = 1024;
-    static constexpr int LOGICAL_H = 768;
-
     GameRenderer(SDL2pp::Renderer& renderer, const ClientConfig& config,
                  Queue<ClientCommand>& command_queue);
 

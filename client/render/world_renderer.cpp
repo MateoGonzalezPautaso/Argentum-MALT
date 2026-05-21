@@ -11,15 +11,16 @@
 
 WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig& background,
                              const TilemapConfig& tilemap,
-                             const std::vector<SpriteConfig>& sprites_config, int window_w,
-                             int window_h):
+                             const std::vector<SpriteConfig>& sprites_config,
+                             const ViewportConfig& viewport_cfg, const FontConfig& font_cfg):
         renderer(renderer),
         background_texture(renderer, load_surface(background.path)),
         background_rect(background.x, background.y, background.width, background.height),
-        game_viewport(11, 149, 734, 608),
-        window_w(window_w),
-        window_h(window_h) {
-    name_font = TTF_OpenFont("assets/OUTPUT/Cardo.ttf", 12);
+        game_viewport(viewport_cfg.game_x, viewport_cfg.game_y, viewport_cfg.game_w,
+                      viewport_cfg.game_h),
+        window_w(viewport_cfg.logical_w),
+        window_h(viewport_cfg.logical_h) {
+    name_font = TTF_OpenFont(font_cfg.path.c_str(), font_cfg.name_size);
     if (!name_font) {
         throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
     }

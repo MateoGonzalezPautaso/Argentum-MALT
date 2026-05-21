@@ -7,9 +7,9 @@
 GameRenderer::GameRenderer(SDL2pp::Renderer& renderer, const ClientConfig& config,
                            Queue<ClientCommand>& command_queue):
         renderer(renderer),
-        world_renderer(renderer, config.background, config.tilemap, config.sprites, LOGICAL_W,
-                       LOGICAL_H),
-        ui_renderer(renderer, LOGICAL_W, LOGICAL_H, chat_input),
+        world_renderer(renderer, config.background, config.tilemap, config.sprites,
+                       config.viewport, config.font),
+        ui_renderer(renderer, config.ui, chat_input),
         move_controller(world_renderer, command_queue, MoveConfig(config), SDL_GetTicks()),
         move_config(config) {}
 

@@ -39,11 +39,86 @@ struct SpriteConfig {
     bool visible = true;
 };
 
+struct FontConfig {
+    std::string path = "assets/OUTPUT/Cardo.ttf";
+    int name_size = 12;
+    int chat_size = 16;
+    int bar_size = 11;
+    int field_size = 18;
+    int title_size = 28;
+};
+
+struct ViewportConfig {
+    int logical_w = 1024;
+    int logical_h = 768;
+    int game_x = 11;
+    int game_y = 149;
+    int game_w = 734;
+    int game_h = 608;
+};
+
+struct StatBarConfig {
+    int x = 790;
+    int y = 601;
+    int w = 218;
+    int h = 17;
+};
+
+struct UIConfig {
+    int window_w = 1024;
+    int window_h = 768;
+    std::string placeholder_username = "Username";
+    std::string placeholder_password = "Password";
+    std::string title_text = "Sign in";
+    int login_field_w = 320;
+    int login_field_h = 34;
+    int login_logo_y = 80;
+    StatBarConfig hp_bar;
+    StatBarConfig mp_bar{790, 629, 217, 17};
+    StatBarConfig exp_bar{790, 657, 217, 17};
+    int chat_input_x = 41;
+    int chat_input_y = 122;
+    int chat_input_w = 565;
+    int chat_input_h = 20;
+    int start_x = 347;
+    int start_y = 568;
+    int start_w = 330;
+    int start_h = 65;
+    int settings_x = 688;
+    int settings_y = 335;
+    int settings_w = 270;
+    int settings_h = 45;
+    std::string font_path = "assets/OUTPUT/Cardo.ttf";
+    int font_name_size = 12;
+    int font_chat_size = 16;
+    int font_bar_size = 11;
+    int font_field_size = 18;
+    int font_title_size = 28;
+    std::string asset_menu_bg = "assets/interface/en_ventanalauncher.bmp";
+    std::string asset_start_default = "assets/interface/en_boton-comenzar-default.bmp";
+    std::string asset_start_hover = "assets/interface/en_boton-comenzar-over.bmp";
+    std::string asset_settings_default = "assets/interface/en_boton-config-default.bmp";
+    std::string asset_settings_hover = "assets/interface/en_boton-config-over.bmp";
+    std::string asset_login_bg = "assets/BabelUI/static/media/leather_brown..png";
+    std::string asset_login_logo = "assets/BabelUI/static/media/ao20_logo_med..png";
+    std::string asset_connect_default = "assets/interface/en_boton-conectar-default.bmp";
+    std::string asset_connect_hover = "assets/interface/en_boton-conectar-over.bmp";
+    std::string asset_back_default = "assets/interface/en_boton-volver-default.bmp";
+    std::string asset_back_hover = "assets/interface/en_boton-volver-over.bmp";
+    std::string asset_ui_frame = "assets/interface/en_ventanaprincipal_edit.bmp";
+    std::string asset_hp_bar = "assets/interface/en_barradevida.bmp";
+    std::string asset_mp_bar = "assets/interface/en_barrademana.bmp";
+    std::string asset_exp_bar = "assets/interface/en_barraexperiencia.bmp";
+};
+
 struct ClientConfig {
     WindowConfig window;
     BackgroundConfig background;
     TilemapConfig tilemap;
     std::vector<SpriteConfig> sprites;
+    FontConfig font;
+    ViewportConfig viewport;
+    UIConfig ui;
     int move_step = 4;
     int walk_src_step = 30;
     int walk_src_frames = 6;

@@ -6,11 +6,12 @@
 #include <SDL2/SDL.h>
 
 #include "../input/chat_input.h"
+#include "../config/config.h"
 #include "../render/login_renderer.h"
 
 class LoginController {
 public:
-    LoginController(SDL2pp::Renderer& renderer, int logical_w, int logical_h);
+    LoginController(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg);
 
     void handle_event(const SDL_Event& event);
     void handle_mouse_motion(int x, int y);
