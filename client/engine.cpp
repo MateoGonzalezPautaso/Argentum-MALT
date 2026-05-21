@@ -34,6 +34,11 @@ void ClientEngine::tick() { move_controller.tick(SDL_GetTicks()); }
 
 void ClientEngine::reset_login_submitted() { login_submitted = false; }
 
+void ClientEngine::reset_login_fields() {
+    login_username.clear();
+    login_password.clear();
+}
+
 const std::string& ClientEngine::login_username_text() const {
     return login_username.get_text();
 }

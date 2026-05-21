@@ -74,6 +74,7 @@ std::optional<LoginOkEvent> Client::run_login() {
             if (std::holds_alternative<LoginErrorEvent>(response)) {
                 std::cerr << "Login failed: " << std::get<LoginErrorEvent>(response).message
                           << std::endl;
+                engine.reset_login_fields();
             }
         }
 

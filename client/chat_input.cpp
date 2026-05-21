@@ -54,3 +54,5 @@ bool ChatInput::set_focus(bool value) {
 bool ChatInput::is_focused() const { return focused; }
 
 const std::string& ChatInput::get_text() const { return text; }
+
+void ChatInput::clear() { text.clear(); }

@@ -17,6 +17,7 @@ public:
     bool set_focus(bool value);
     bool is_focused() const;
     const std::string& get_text() const;
+    void clear();
 };
 
 #endif  // CHAT_INPUT_H

@@ -52,6 +52,7 @@ public:
 
     bool is_login_submitted() const { return login_submitted; }
     void reset_login_submitted();
+    void reset_login_fields();
     const std::string& login_username_text() const;
     const std::string& login_password_text() const;
 
