@@ -75,14 +75,27 @@ void PlayerPersistence::save(const std::string& username, const PlayerRecord& re
     auto it = index.find(username);
 
     if (it != index.end()) {
-        // Overwrite existing record in place
+        PlayerRecord previous;
+        {
+            std::ifstream in(data_path, std::ios::binary);
+            if (in.is_open()) {
+                in.seekg(it->second);
+                in.read(reinterpret_cast<char*>(&previous), sizeof(PlayerRecord));
+            }
+        }
+
+        // Merge new record with existing one, preserving username and password
+        PlayerRecord merged = record;
+        std::memcpy(merged.username, previous.username, sizeof(merged.username));
+        std::memcpy(merged.password, previous.password, sizeof(merged.password));
+
         std::ofstream data(data_path,
                            std::ios::binary | std::ios::in | std::ios::out);
         if (!data.is_open()) {
             return;
         }
         data.seekp(it->second);
-        data.write(reinterpret_cast<const char*>(&record), sizeof(PlayerRecord));
+        data.write(reinterpret_cast<const char*>(&merged), sizeof(PlayerRecord));
     } else {
         // Append new record at the end
         std::ofstream data(data_path,

@@ -61,6 +61,7 @@ std::optional<LoginOkEvent> Client::run_login() {
         if (engine.is_login_submitted()) {
             const std::string& username = engine.login_username_text();
             const std::string& password = engine.login_password_text();
+            engine.reset_login_submitted();
 
             protocol.send_command(LoginCmd{username, password});
 
@@ -73,8 +74,6 @@ std::optional<LoginOkEvent> Client::run_login() {
             if (std::holds_alternative<LoginErrorEvent>(response)) {
                 std::cerr << "Login failed: " << std::get<LoginErrorEvent>(response).message
                           << std::endl;
-                // Reset for retry — would need engine reset in a real implementation
-                return std::nullopt;
             }
         }
 
