@@ -12,9 +12,9 @@ class ChatInput;
 
 class LoginRenderer {
 private:
-    static constexpr const char* USERNAME_PLACEHOLDER = "Usuario";
-    static constexpr const char* PASSWORD_PLACEHOLDER = "Contrasena";
-    static constexpr const char* TITLE_TEXT = "Iniciar sesion";
+    static constexpr const char* USERNAME_PLACEHOLDER = "Username";
+    static constexpr const char* PASSWORD_PLACEHOLDER = "Password";
+    static constexpr const char* TITLE_TEXT = "Sign in";
 
     SDL2pp::Renderer& renderer;
     const ChatInput& username_model;
