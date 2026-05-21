@@ -5,7 +5,7 @@
 
 #include <sys/socket.h>
 
-#include "../common/socket.h"
+#include "../../common/socket.h"
 
 ClientProtocol::ClientProtocol(Socket&& skt): skt(std::move(skt)), protocol(this->skt) {}
 
@@ -33,7 +33,7 @@ void ClientProtocol::send_move(const MoveCmd& cmd) {
     protocol.send_uint8(static_cast<uint8_t>(cmd.direction));
 }
 
-#include "../common/visit.h"
+#include "../../common/visit.h"
 
 void ClientProtocol::send_command(const ClientCommand& cmd) {
     std::visit(overloaded{

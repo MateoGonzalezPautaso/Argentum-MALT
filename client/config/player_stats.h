@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <string>
 
-#include "../common/messages.h"
+#include "../../common/messages.h"
 
 struct PlayerStats {
     uint16_t player_id = 0;

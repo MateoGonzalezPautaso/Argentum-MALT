@@ -2,8 +2,8 @@
 
 #include <cmath>
 
-#include "config.h"
-#include "render/world_renderer.h"
+#include "../config/config.h"
+#include "../render/world_renderer.h"
 
 MoveConfig::MoveConfig(const ClientConfig& config):
         move_step(config.move_step),

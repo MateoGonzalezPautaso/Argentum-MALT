@@ -2,7 +2,7 @@
 
 #include <variant>
 
-#include "../common/visit.h"
+#include "../../common/visit.h"
 
 GameRenderer::GameRenderer(SDL2pp::Renderer& renderer, const ClientConfig& config,
                            Queue<ClientCommand>& command_queue):

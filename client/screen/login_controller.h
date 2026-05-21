@@ -5,8 +5,8 @@
 
 #include <SDL2/SDL.h>
 
-#include "chat_input.h"
-#include "render/login_renderer.h"
+#include "../input/chat_input.h"
+#include "../render/login_renderer.h"
 
 class LoginController {
 public:

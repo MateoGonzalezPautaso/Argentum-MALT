@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "../common/config.h"
+#include "../../common/config.h"
 
 struct WindowConfig {
     int width = 960;

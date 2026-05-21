@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "client/client_protocol.h"
+#include "client/network/client_protocol.h"
 #include "common/messages.h"
 #include "common/socket.h"
 #include "gmock/gmock.h"

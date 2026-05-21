@@ -3,14 +3,14 @@
 
 #include <string>
 
-#include "../common/messages.h"
-#include "../common/queue.h"
+#include "../../common/messages.h"
+#include "../../common/queue.h"
 
-#include "config.h"
-#include "game_renderer.h"
-#include "login_controller.h"
-#include "menu_controller.h"
-#include "render_context.h"
+#include "../config/config.h"
+#include "../screen/game_renderer.h"
+#include "../screen/login_controller.h"
+#include "../screen/menu_controller.h"
+#include "../render/render_context.h"
 
 enum class GameState { Menu, Login, Playing };
 

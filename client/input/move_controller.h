@@ -3,8 +3,8 @@
 
 #include <cstdint>
 
-#include "../common/messages.h"
-#include "../common/queue.h"
+#include "../../common/messages.h"
+#include "../../common/queue.h"
 
 struct ClientConfig;
 class WorldRenderer;

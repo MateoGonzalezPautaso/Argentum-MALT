@@ -5,15 +5,15 @@
 #include <optional>
 #include <string>
 
-#include "../common/messages.h"
-#include "../common/queue.h"
-#include "../common/socket.h"
+#include "../../common/messages.h"
+#include "../../common/queue.h"
+#include "../../common/socket.h"
 
-#include "client_protocol.h"
-#include "config.h"
+#include "../network/client_protocol.h"
+#include "../config/config.h"
 #include "engine.h"
-#include "receiver.h"
-#include "sender.h"
+#include "../network/receiver.h"
+#include "../network/sender.h"
 
 class Client {
 private:

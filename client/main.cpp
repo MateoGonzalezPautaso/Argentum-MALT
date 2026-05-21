@@ -1,8 +1,8 @@
 #include <exception>
 #include <iostream>
 
-#include "app.h"
-#include "client.h"
+#include "core/app.h"
+#include "core/client.h"
 
 int main() try {
     client_app::init_image();

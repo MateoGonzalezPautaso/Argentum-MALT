@@ -1,8 +1,8 @@
 #ifndef CLIENT_PROTOCOL_H_
 #define CLIENT_PROTOCOL_H_
 
-#include "../common/messages.h"
-#include "../common/protocol.h"
+#include "../../common/messages.h"
+#include "../../common/protocol.h"
 
 class ClientProtocol {
 public:

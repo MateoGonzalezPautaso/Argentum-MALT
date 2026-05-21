@@ -1,9 +1,9 @@
 #ifndef CLIENT_SENDER_H
 #define CLIENT_SENDER_H
 
-#include "../common/messages.h"
-#include "../common/queue.h"
-#include "../common/thread.h"
+#include "../../common/messages.h"
+#include "../../common/queue.h"
+#include "../../common/thread.h"
 
 #include "client_protocol.h"
 

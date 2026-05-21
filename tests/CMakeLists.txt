@@ -9,7 +9,7 @@ file(GLOB SERVER_HEADERS
 target_sources(taller_tests
     PRIVATE
     ${SERVER_SRC}
-    ${CMAKE_SOURCE_DIR}/client/client_protocol.cpp
+    ${CMAKE_SOURCE_DIR}/client/network/client_protocol.cpp
     ${CMAKE_SOURCE_DIR}/server/server_protocol.cpp
     ${CMAKE_SOURCE_DIR}/server/client_handler.cpp
     ${CMAKE_SOURCE_DIR}/server/sender.cpp

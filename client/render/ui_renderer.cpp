@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <string>
 
-#include "../chat_input.h"
+#include "../input/chat_input.h"
 #include "geometry.h"
 #include "texture_loader.h"
 

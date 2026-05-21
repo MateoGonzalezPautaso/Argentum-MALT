@@ -8,7 +8,7 @@
 
 #include <SDL2pp/SDL2pp.hh>
 
-#include "../config.h"
+#include "../config/config.h"
 
 class WorldRenderer {
 private:

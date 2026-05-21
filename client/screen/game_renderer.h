@@ -4,15 +4,15 @@
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 
-#include "../common/messages.h"
-#include "../common/queue.h"
+#include "../../common/messages.h"
+#include "../../common/queue.h"
 
-#include "chat_input.h"
-#include "config.h"
-#include "move_controller.h"
-#include "player_stats.h"
-#include "render/ui_renderer.h"
-#include "render/world_renderer.h"
+#include "../input/chat_input.h"
+#include "../config/config.h"
+#include "../input/move_controller.h"
+#include "../config/player_stats.h"
+#include "../render/ui_renderer.h"
+#include "../render/world_renderer.h"
 
 class GameRenderer {
 public:

@@ -3,7 +3,7 @@
 
 #include <SDL2pp/SDL2pp.hh>
 
-#include "render/menu_renderer.h"
+#include "../render/menu_renderer.h"
 
 class MenuController {
 public:
