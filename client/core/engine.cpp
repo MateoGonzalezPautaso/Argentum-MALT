@@ -60,21 +60,9 @@ void Engine::dispatch_login_event(const SDL_Event& event, GameState& state) {
     login_ctrl.handle_event(event);
 }
 
-void Engine::render_menu_frame() {
-    render_ctx.renderer().SetDrawColor(0, 0, 0, 255);
-    render_ctx.renderer().Clear();
-    menu_ctrl.render();
-    render_ctx.renderer().Present();
-}
-
-void Engine::render_login_frame() {
-    render_ctx.renderer().SetDrawColor(0, 0, 0, 255);
-    render_ctx.renderer().Clear();
-    login_ctrl.render();
-    render_ctx.renderer().Present();
-}
-
-void Engine::render_game_frame() { game_controller.render(); }
+void Engine::render_menu_frame()   { menu_ctrl.render(); }
+void Engine::render_login_frame()  { login_ctrl.render(); }
+void Engine::render_game_frame()   { game_controller.render(); }
 
 void Engine::tick_game() { game_controller.tick(); }
 

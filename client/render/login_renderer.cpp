@@ -46,6 +46,8 @@ LoginRenderer::~LoginRenderer() {
 }
 
 void LoginRenderer::render() {
+    renderer.SetDrawColor(0, 0, 0, 255);
+    renderer.Clear();
     renderer.Copy(background_texture, SDL2pp::NullOpt, background_rect);
 
     renderer.Copy(logo_texture, SDL2pp::NullOpt, logo_rect);
@@ -67,6 +69,8 @@ void LoginRenderer::render() {
     back_button.render(renderer);
 
     render_error();
+
+    renderer.Present();
 }
 
 bool LoginRenderer::is_username_hit(int x, int y) const {

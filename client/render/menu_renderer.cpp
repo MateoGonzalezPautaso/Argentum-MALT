@@ -19,9 +19,12 @@ MenuRenderer::MenuRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg):
 }
 
 void MenuRenderer::render() {
+    renderer.SetDrawColor(0, 0, 0, 255);
+    renderer.Clear();
     renderer.Copy(menu_background_texture, SDL2pp::NullOpt, menu_background_rect);
     settings_button.render(renderer);
     start_button.render(renderer);
+    renderer.Present();
 }
 
 bool MenuRenderer::is_start_hit(int x, int y) const { return start_button.is_hit(x, y); }
