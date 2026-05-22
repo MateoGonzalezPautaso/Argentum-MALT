@@ -1,5 +1,5 @@
 #include <QApplication>
-#include "main_window.h"
+#include "core/main_window.h"
 
 int main(int argc, char* argv[]) {
     qputenv("QT_QPA_PLATFORM", "xcb");

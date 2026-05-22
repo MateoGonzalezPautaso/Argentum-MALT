@@ -9,7 +9,6 @@ void TilemapDocument::load(const std::string& path) {
     if (config_.mapa.empty()) {
         throw std::runtime_error("Empty map grid in config file");
     }
-    // Ensure prop_map matches mapa dimensions
     if (config_.prop_map.empty()) {
         config_.prop_map.resize(config_.mapa.size(),
             std::vector<std::string>(config_.mapa[0].size(), ""));
@@ -103,7 +102,6 @@ void TilemapDocument::save(const std::string& path) const {
     toml::table root;
     root.emplace("tilemap", std::move(tilemap_tbl));
 
-    // Save props
     if (!config_.props.empty()) {
         toml::table prop_tbl;
 
@@ -140,7 +138,6 @@ void TilemapDocument::save(const std::string& path) const {
         }
         prop_tbl.emplace("tiles", std::move(prop_tiles_tbl));
 
-        // Only save prop_map if it has any non-empty entries
         bool has_props = false;
         for (const auto& row : config_.prop_map) {
             for (const auto& cell : row) {
