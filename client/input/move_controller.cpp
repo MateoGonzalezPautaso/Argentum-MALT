@@ -8,61 +8,15 @@
 MoveConfig::MoveConfig(const ClientConfig& config):
         move_step(config.move_step),
         walk_src_step(config.walk_src_step),
-        walk_src_frames(config.walk_src_frames),
-        walk_src_frames_down(config.walk_src_frames_down),
-        walk_src_frames_up(config.walk_src_frames_up),
-        walk_src_frames_left(config.walk_src_frames_left),
-        walk_src_frames_right(config.walk_src_frames_right),
-        walk_frame_ms(config.walk_frame_ms),
-        dir_src_y_down(config.dir_src_y_down),
-        dir_src_y_up(config.dir_src_y_up),
-        dir_src_y_left(config.dir_src_y_left),
-        dir_src_y_right(config.dir_src_y_right),
-        head_dir_src_y_down(config.head_dir_src_y_down),
-        head_dir_src_y_up(config.head_dir_src_y_up),
-        head_dir_src_y_left(config.head_dir_src_y_left),
-        head_dir_src_y_right(config.head_dir_src_y_right) {}
-
-int MoveConfig::body_src_y_for(Direction dir) const {
-    switch (dir) {
-        case Direction::NORTH:
-            return dir_src_y_up;
-        case Direction::SOUTH:
-            return dir_src_y_down;
-        case Direction::WEST:
-            return dir_src_y_left;
-        case Direction::EAST:
-            return dir_src_y_right;
-    }
-    return dir_src_y_down;
-}
-
-int MoveConfig::head_src_y_for(Direction dir) const {
-    switch (dir) {
-        case Direction::NORTH:
-            return head_dir_src_y_up;
-        case Direction::SOUTH:
-            return head_dir_src_y_down;
-        case Direction::WEST:
-            return head_dir_src_y_left;
-        case Direction::EAST:
-            return head_dir_src_y_right;
-    }
-    return head_dir_src_y_down;
-}
-
-int MoveConfig::walk_src_frames_for(Direction dir) const {
-    switch (dir) {
-        case Direction::NORTH:
-            return walk_src_frames_up;
-        case Direction::SOUTH:
-            return walk_src_frames_down;
-        case Direction::WEST:
-            return walk_src_frames_left;
-        case Direction::EAST:
-            return walk_src_frames_right;
-    }
-    return walk_src_frames;
+        walk_frame_ms(config.walk_frame_ms) {
+    dir_data[Direction::NORTH] = {config.dir_src_y_up, config.head_dir_src_y_up,
+                                  config.walk_src_frames_up};
+    dir_data[Direction::SOUTH] = {config.dir_src_y_down, config.head_dir_src_y_down,
+                                  config.walk_src_frames_down};
+    dir_data[Direction::EAST] = {config.dir_src_y_right, config.head_dir_src_y_right,
+                                 config.walk_src_frames_right};
+    dir_data[Direction::WEST] = {config.dir_src_y_left, config.head_dir_src_y_left,
+                                 config.walk_src_frames_left};
 }
 
 MoveController::MoveController(WorldRenderer& world_renderer, Queue<ClientCommand>& command_queue,
@@ -106,12 +60,8 @@ void MoveController::advance_walk_frame(Direction dir, uint32_t now) {
     if (now - last_walk_tick < config.walk_frame_ms) {
         return;
     }
-    world_renderer.step_movable_src_x(config.walk_src_step, walk_src_frames_for(dir));
+    world_renderer.step_movable_src_x(config.walk_src_step, config.walk_src_frames_for(dir));
     last_walk_tick = now;
-}
-
-int MoveController::walk_src_frames_for(Direction dir) const {
-    return config.walk_src_frames_for(dir);
 }
 
 bool MoveController::get_movable_position(int& x, int& y) {

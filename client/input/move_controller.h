@@ -2,6 +2,7 @@
 #define MOVE_CONTROLLER_H
 
 #include <cstdint>
+#include <unordered_map>
 
 #include "../../common/messages.h"
 #include "../../common/queue.h"
@@ -9,30 +10,25 @@
 struct ClientConfig;
 class WorldRenderer;
 
+struct DirectionData {
+    int body_src_y;
+    int head_src_y;
+    int walk_src_frames;
+};
+
 struct MoveConfig {
     int move_step = 4;
     int walk_src_step = 27;
-    int walk_src_frames = 6;
-    int walk_src_frames_down = 6;
-    int walk_src_frames_up = 6;
-    int walk_src_frames_left = 6;
-    int walk_src_frames_right = 6;
     uint32_t walk_frame_ms = 120;
-    int dir_src_y_down = 0;
-    int dir_src_y_up = 40;
-    int dir_src_y_left = 80;
-    int dir_src_y_right = 120;
-    int head_dir_src_y_down = 0;
-    int head_dir_src_y_up = 64;
-    int head_dir_src_y_left = 128;
-    int head_dir_src_y_right = 192;
+
+    std::unordered_map<Direction, DirectionData> dir_data;
 
     MoveConfig() = default;
     explicit MoveConfig(const ClientConfig& config);
 
-    int body_src_y_for(Direction dir) const;
-    int head_src_y_for(Direction dir) const;
-    int walk_src_frames_for(Direction dir) const;
+    int body_src_y_for(Direction dir) const { return dir_data.at(dir).body_src_y; }
+    int head_src_y_for(Direction dir) const { return dir_data.at(dir).head_src_y; }
+    int walk_src_frames_for(Direction dir) const { return dir_data.at(dir).walk_src_frames; }
 };
 
 class MoveController {
@@ -60,7 +56,6 @@ private:
     bool get_movable_position(int& x, int& y);
     Direction compute_direction_to_target(int current_x, int current_y) const;
     void move_toward_target(uint32_t now);
-    int walk_src_frames_for(Direction dir) const;
 };
 
 #endif  // MOVE_CONTROLLER_H
