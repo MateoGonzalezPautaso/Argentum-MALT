@@ -1,12 +1,15 @@
 [prop.prop_map]
 data = [
-    [ '', '', '', '', '', '', '', '', '', '', '', '' ],
-    [ '', '', '', '', 'arbol15', '', '', '', '', '', '', '' ],
-    [ 'arbol10', 'arbol1', '', 'windmill', '', 'casa', '', 'arbol16', '', '', '', '' ],
-    [ '', 'carretilla', '', '', '', '', '', '', '', '', '', '' ],
-    [ '', '', '', 'arbol3', '', '', 'arbol6', '', '', '', '', '' ],
-    [ '', '', '', '', '', 'arbol9', '', '', '', '', '', '' ],
-    [ '', '', '', '', '', '', '', '', '', '', '', '' ]
+    [ '', 'arbol6', '', '', '', 'arbol4', 'arbol9', '', '', '', '', '', '', 'banderita', '' ],
+    [ '', '', '', 'tienda2', '', '', '', '', '', 'arbol13', '', '', '', 'arbol11', '' ],
+    [ '', 'pozo', '', '', '', 'arbol1', 'windmill', 'arbol16', '', '', '', '', '', '', '' ],
+    [ '', '', '', '', '', 'carretilla', '', '', '', '', '', '', '', '', '' ],
+    [ '', '', '', '', '', '', '', '', 'tienda1', '', '', '', '', '', '' ],
+    [ 'arbol5', '', '', '', '', '', '', '', '', '', '', '', '', '', '' ],
+    [ '', '', '', '', '', '', '', '', 'arbol11', '', 'arbol1', '', '', '', '' ],
+    [ '', 'arbol16', 'arbol8', '', '', '', '', '', '', '', '', '', '', 'barriles', '' ],
+    [ '', '', '', '', '', '', '', '', 'arbol10', '', '', '', '', '', '' ],
+    [ 'arbol14', '', '', 'arbol16', '', '', '', '', '', '', '', '', '', '', '' ]
 ]
 
 [prop.tiles.arbol1]
@@ -281,6 +284,40 @@ width = 120
     x = 0
     y = 512
 
+[prop.tiles.banderita]
+height = 90
+paths = [ 'assets/Graficos/5084.png' ]
+width = 70
+
+    [prop.tiles.banderita.hitbox]
+    h = 30
+    w = 30
+    x = 20
+    y = 50
+
+    [prop.tiles.banderita.src]
+    h = 115
+    w = 88
+    x = 896
+    y = 268
+
+[prop.tiles.barriles]
+height = 90
+paths = [ 'assets/Graficos/5084.png' ]
+width = 115
+
+    [prop.tiles.barriles.hitbox]
+    h = 50
+    w = 75
+    x = 20
+    y = 30
+
+    [prop.tiles.barriles.src]
+    h = 111
+    w = 146
+    x = 1
+    y = 434
+
 [prop.tiles.carretilla]
 height = 70
 paths = [ 'assets/Graficos/5045.png' ]
@@ -315,6 +352,57 @@ width = 217
     x = 0
     y = 0
 
+[prop.tiles.pozo]
+height = 120
+paths = [ 'assets/Graficos/5084.png' ]
+width = 120
+
+    [prop.tiles.pozo.hitbox]
+    h = 60
+    w = 80
+    x = 20
+    y = 50
+
+    [prop.tiles.pozo.src]
+    h = 146
+    w = 154
+    x = 382
+    y = 16
+
+[prop.tiles.tienda1]
+height = 130
+paths = [ 'assets/Graficos/5084.png' ]
+width = 170
+
+    [prop.tiles.tienda1.hitbox]
+    h = 70
+    w = 100
+    x = 35
+    y = 50
+
+    [prop.tiles.tienda1.src]
+    h = 153
+    w = 209
+    x = 16
+    y = 545
+
+[prop.tiles.tienda2]
+height = 130
+paths = [ 'assets/Graficos/5084.png' ]
+width = 170
+
+    [prop.tiles.tienda2.hitbox]
+    h = 70
+    w = 100
+    x = 35
+    y = 50
+
+    [prop.tiles.tienda2.src]
+    h = 158
+    w = 213
+    x = 0
+    y = 703
+
 [prop.tiles.windmill]
 frame_ms = 120
 height = 260
@@ -344,73 +432,88 @@ width = 260
 mapa = [
     [
         'a5125_00',
-        'a5125_00',
+        'a5144_66',
         'a5125_00',
         'a5125_57',
         'a5144_53',
         'a5125_57',
         'a5125_57',
         'a5144_26',
-        'a5125_57',
-        'a5125_75',
-        'a5145_61',
-        'a5145_62'
+        'a5125_22',
+        'a5125_12',
+        'a5125_11',
+        'a5125_12',
+        'a5125_20',
+        'a5125_13',
+        'a5145_61'
     ],
     [
-        'a5125_60',
-        'a5235_34',
-        'a5235_34',
-        'a5125_70',
-        'a5125_70',
-        'a5125_70',
-        'a5125_70',
-        'a5125_25',
-        'a5125_74',
-        'a5125_77',
-        'a5145_66',
-        'a5145_64'
-    ],
-    [
-        'a5125_65',
-        'a5235_74',
-        'a5235_35',
+        'a5125_30',
         'a5125_15',
-        'a5234_27',
-        'a5235_12',
-        'a5125_05',
+        'a5125_15',
+        'a5125_70',
+        'a5125_70',
+        'a5125_70',
+        'a5125_70',
+        'a5125_20',
         'a5125_73',
-        'a5125_77',
+        'a5146_60',
+        'a5146_16',
+        'a5146_17',
+        'a5125_01',
+        'a5144_00',
+        'a5145_71'
+    ],
+    [
+        'a5125_30',
+        'a5125_10',
+        'a5125_15',
+        'a5125_10',
+        'a5125_73',
+        'a5144_24',
+        'a5144_25',
+        'a5125_72',
+        'a5125_73',
         'a5125_74',
-        'a5145_66',
-        'a5145_72'
+        'a5146_00',
+        'a5145_72',
+        'a5125_03',
+        'a5125_00',
+        'a5144_51'
     ],
     [
         'a5125_56',
-        'a5125_34',
-        'a5235_23',
-        'a5125_02',
         'a5125_15',
-        'a5234_67',
-        'a5234_41',
+        'a5125_15',
+        'a5125_15',
         'a5125_73',
-        'a5125_74',
-        'a5125_76',
-        'a5146_37',
-        'a5125_75'
+        'a5144_34',
+        'a5144_35',
+        'a5125_72',
+        'a5125_73',
+        'a5125_77',
+        'a5144_41',
+        'a5146_31',
+        'a5144_04',
+        'a5144_77',
+        'a5146_11'
     ],
     [
         'a5125_56',
         'a5125_40',
         'a5125_32',
-        'a5125_06',
+        'a5125_10',
         'a5125_05',
         'a5125_15',
-        'a5125_06',
-        'a5125_73',
-        'a5144_62',
+        'a5125_20',
+        'a5125_15',
+        'a5125_31',
         'a5144_63',
-        'a5146_37',
-        'a5125_75'
+        'a5146_01',
+        'a5146_41',
+        'a5144_01',
+        'a5144_47',
+        'a5146_47'
     ],
     [
         'a5125_46',
@@ -418,27 +521,84 @@ mapa = [
         'a5125_56',
         'a5125_32',
         'a5125_71',
+        'a5125_15',
         'a5125_71',
         'a5125_71',
         'a5125_35',
         'a5125_74',
-        'a5125_74',
-        'a5146_47',
-        'a5125_75'
+        'a5146_50',
+        'a5146_51',
+        'a5146_54',
+        'a5146_23',
+        'a5146_57'
     ],
     [
         'a5125_56',
+        'a5144_66',
         'a5125_46',
-        'a5125_46',
-        'a5125_46',
+        'a5144_66',
+        'a5125_74',
+        'a5125_01',
         'a5125_56',
-        'a5125_46',
-        'a5125_56',
         'a5125_74',
         'a5125_74',
         'a5125_74',
         'a5125_74',
-        'a5125_75'
+        'a5146_62',
+        'a5146_64',
+        'a5145_70',
+        'a5145_31'
+    ],
+    [
+        'a5125_75',
+        'a5125_52',
+        'a5144_66',
+        'a5125_67',
+        'a5125_24',
+        'a5125_15',
+        'a5125_25',
+        'a5144_53',
+        'a5125_00',
+        'a5144_40',
+        'a5144_52',
+        'a5125_75',
+        'a5144_03',
+        'a5155_15',
+        'a5155_17'
+    ],
+    [
+        'a5125_52',
+        'a5125_60',
+        'a5125_61',
+        'a5144_76',
+        'a5125_72',
+        'a5125_10',
+        'a5125_73',
+        'a5125_52',
+        'a5125_75',
+        'a5155_15',
+        'a5155_24',
+        'a5155_16',
+        'a5155_24',
+        'a5155_17',
+        'a5155_71'
+    ],
+    [
+        'a5125_75',
+        'a5144_77',
+        'a5125_77',
+        'a5125_75',
+        'a5125_34',
+        'a5125_71',
+        'a5125_35',
+        'a5144_26',
+        'a5144_43',
+        'a5155_47',
+        'a5155_34',
+        'a5155_27',
+        'a5155_26',
+        'a5155_44',
+        'a5155_11'
     ]
 ]
 path = 'assets/Graficos/5144.png'
@@ -599,11 +759,13 @@ tile_size = 128
 
     [tilemap.tiles.a5125_36]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 768
     y = 384
 
     [tilemap.tiles.a5125_37]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 896
     y = 384
 
@@ -615,26 +777,31 @@ tile_size = 128
 
     [tilemap.tiles.a5125_41]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 128
     y = 512
 
     [tilemap.tiles.a5125_42]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 256
     y = 512
 
     [tilemap.tiles.a5125_43]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 384
     y = 512
 
     [tilemap.tiles.a5125_44]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 512
     y = 512
 
     [tilemap.tiles.a5125_45]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 640
     y = 512
 
@@ -646,36 +813,43 @@ tile_size = 128
 
     [tilemap.tiles.a5125_47]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 896
     y = 512
 
     [tilemap.tiles.a5125_50]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 0
     y = 640
 
     [tilemap.tiles.a5125_51]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 128
     y = 640
 
     [tilemap.tiles.a5125_52]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 256
     y = 640
 
     [tilemap.tiles.a5125_53]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 384
     y = 640
 
     [tilemap.tiles.a5125_54]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 512
     y = 640
 
     [tilemap.tiles.a5125_55]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 640
     y = 640
 
@@ -693,26 +867,31 @@ tile_size = 128
 
     [tilemap.tiles.a5125_60]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 0
     y = 768
 
     [tilemap.tiles.a5125_61]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 128
     y = 768
 
     [tilemap.tiles.a5125_62]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 256
     y = 768
 
     [tilemap.tiles.a5125_63]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 384
     y = 768
 
     [tilemap.tiles.a5125_64]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 512
     y = 768
 
@@ -728,6 +907,7 @@ tile_size = 128
 
     [tilemap.tiles.a5125_67]
     path = 'assets/Graficos/5125.png'
+    walkable = false
     x = 896
     y = 768
 
@@ -853,6 +1033,7 @@ tile_size = 128
 
     [tilemap.tiles.a5144_17]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 896
     y = 128
 
@@ -894,6 +1075,7 @@ tile_size = 128
 
     [tilemap.tiles.a5144_27]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 896
     y = 256
 
@@ -929,46 +1111,55 @@ tile_size = 128
 
     [tilemap.tiles.a5144_36]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 768
     y = 384
 
     [tilemap.tiles.a5144_37]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 896
     y = 384
 
     [tilemap.tiles.a5144_40]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 0
     y = 512
 
     [tilemap.tiles.a5144_41]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 128
     y = 512
 
     [tilemap.tiles.a5144_42]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 256
     y = 512
 
     [tilemap.tiles.a5144_43]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 384
     y = 512
 
     [tilemap.tiles.a5144_44]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 512
     y = 512
 
     [tilemap.tiles.a5144_45]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 640
     y = 512
 
     [tilemap.tiles.a5144_46]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 768
     y = 512
 
@@ -1052,21 +1243,25 @@ tile_size = 128
 
     [tilemap.tiles.a5144_64]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 512
     y = 768
 
     [tilemap.tiles.a5144_65]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 640
     y = 768
 
     [tilemap.tiles.a5144_66]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 768
     y = 768
 
     [tilemap.tiles.a5144_67]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 896
     y = 768
 
@@ -1092,21 +1287,25 @@ tile_size = 128
 
     [tilemap.tiles.a5144_74]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 512
     y = 896
 
     [tilemap.tiles.a5144_75]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 640
     y = 896
 
     [tilemap.tiles.a5144_76]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 768
     y = 896
 
     [tilemap.tiles.a5144_77]
     path = 'assets/Graficos/5144.png'
+    walkable = false
     x = 896
     y = 896
 
@@ -1272,11 +1471,13 @@ tile_size = 128
 
     [tilemap.tiles.a5145_40]
     path = 'assets/Graficos/5145.png'
+    walkable = false
     x = 0
     y = 512
 
     [tilemap.tiles.a5145_41]
     path = 'assets/Graficos/5145.png'
+    walkable = false
     x = 128
     y = 512
 
@@ -1322,6 +1523,7 @@ tile_size = 128
 
     [tilemap.tiles.a5145_52]
     path = 'assets/Graficos/5145.png'
+    walkable = false
     x = 256
     y = 640
 
@@ -1332,11 +1534,13 @@ tile_size = 128
 
     [tilemap.tiles.a5145_54]
     path = 'assets/Graficos/5145.png'
+    walkable = false
     x = 512
     y = 640
 
     [tilemap.tiles.a5145_55]
     path = 'assets/Graficos/5145.png'
+    walkable = false
     x = 640
     y = 640
 
@@ -1352,6 +1556,7 @@ tile_size = 128
 
     [tilemap.tiles.a5145_60]
     path = 'assets/Graficos/5145.png'
+    walkable = false
     x = 0
     y = 768
 
@@ -1415,6 +1620,7 @@ tile_size = 128
 
     [tilemap.tiles.a5145_73]
     path = 'assets/Graficos/5145.png'
+    walkable = false
     x = 384
     y = 896
 
@@ -1440,11 +1646,13 @@ tile_size = 128
 
     [tilemap.tiles.a5146_00]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 0
     y = 0
 
     [tilemap.tiles.a5146_01]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 128
     y = 0
 
@@ -1475,46 +1683,55 @@ tile_size = 128
 
     [tilemap.tiles.a5146_07]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 896
     y = 0
 
     [tilemap.tiles.a5146_10]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 0
     y = 128
 
     [tilemap.tiles.a5146_11]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 128
     y = 128
 
     [tilemap.tiles.a5146_12]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 256
     y = 128
 
     [tilemap.tiles.a5146_13]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 384
     y = 128
 
     [tilemap.tiles.a5146_14]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 512
     y = 128
 
     [tilemap.tiles.a5146_15]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 640
     y = 128
 
     [tilemap.tiles.a5146_16]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 768
     y = 128
 
     [tilemap.tiles.a5146_17]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 896
     y = 128
 
@@ -1525,31 +1742,37 @@ tile_size = 128
 
     [tilemap.tiles.a5146_21]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 128
     y = 256
 
     [tilemap.tiles.a5146_22]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 256
     y = 256
 
     [tilemap.tiles.a5146_23]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 384
     y = 256
 
     [tilemap.tiles.a5146_24]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 512
     y = 256
 
     [tilemap.tiles.a5146_25]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 640
     y = 256
 
     [tilemap.tiles.a5146_26]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 768
     y = 256
 
@@ -1561,6 +1784,7 @@ tile_size = 128
 
     [tilemap.tiles.a5146_30]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 0
     y = 384
 
@@ -1572,26 +1796,31 @@ tile_size = 128
 
     [tilemap.tiles.a5146_32]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 256
     y = 384
 
     [tilemap.tiles.a5146_33]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 384
     y = 384
 
     [tilemap.tiles.a5146_34]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 512
     y = 384
 
     [tilemap.tiles.a5146_35]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 640
     y = 384
 
     [tilemap.tiles.a5146_36]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 768
     y = 384
 
@@ -1603,6 +1832,7 @@ tile_size = 128
 
     [tilemap.tiles.a5146_40]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 0
     y = 512
 
@@ -1629,6 +1859,7 @@ tile_size = 128
 
     [tilemap.tiles.a5146_45]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 640
     y = 512
 
@@ -1645,21 +1876,25 @@ tile_size = 128
 
     [tilemap.tiles.a5146_50]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 0
     y = 640
 
     [tilemap.tiles.a5146_51]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 128
     y = 640
 
     [tilemap.tiles.a5146_52]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 256
     y = 640
 
     [tilemap.tiles.a5146_53]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 384
     y = 640
 
@@ -1670,21 +1905,25 @@ tile_size = 128
 
     [tilemap.tiles.a5146_55]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 640
     y = 640
 
     [tilemap.tiles.a5146_56]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 768
     y = 640
 
     [tilemap.tiles.a5146_57]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 896
     y = 640
 
     [tilemap.tiles.a5146_60]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 0
     y = 768
 
@@ -1695,11 +1934,13 @@ tile_size = 128
 
     [tilemap.tiles.a5146_62]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 256
     y = 768
 
     [tilemap.tiles.a5146_63]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 384
     y = 768
 
@@ -1710,6 +1951,7 @@ tile_size = 128
 
     [tilemap.tiles.a5146_65]
     path = 'assets/Graficos/5146.png'
+    walkable = false
     x = 640
     y = 768
 
@@ -2085,11 +2327,13 @@ tile_size = 128
 
     [tilemap.tiles.a5155_00]
     path = 'assets/Graficos/5155.png'
+    walkable = false
     x = 0
     y = 0
 
     [tilemap.tiles.a5155_01]
     path = 'assets/Graficos/5155.png'
+    walkable = false
     x = 128
     y = 0
 
@@ -2405,6 +2649,7 @@ tile_size = 128
 
     [tilemap.tiles.a5233_00]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 0
     y = 0
 
@@ -2480,6 +2725,7 @@ tile_size = 128
 
     [tilemap.tiles.a5233_17]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 896
     y = 128
 
@@ -2515,11 +2761,13 @@ tile_size = 128
 
     [tilemap.tiles.a5233_26]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 768
     y = 256
 
     [tilemap.tiles.a5233_27]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 896
     y = 256
 
@@ -2555,131 +2803,157 @@ tile_size = 128
 
     [tilemap.tiles.a5233_36]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 768
     y = 384
 
     [tilemap.tiles.a5233_37]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 896
     y = 384
 
     [tilemap.tiles.a5233_40]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 0
     y = 512
 
     [tilemap.tiles.a5233_41]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 128
     y = 512
 
     [tilemap.tiles.a5233_42]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 256
     y = 512
 
     [tilemap.tiles.a5233_43]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 384
     y = 512
 
     [tilemap.tiles.a5233_44]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 512
     y = 512
 
     [tilemap.tiles.a5233_45]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 640
     y = 512
 
     [tilemap.tiles.a5233_46]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 768
     y = 512
 
     [tilemap.tiles.a5233_47]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 896
     y = 512
 
     [tilemap.tiles.a5233_50]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 0
     y = 640
 
     [tilemap.tiles.a5233_51]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 128
     y = 640
 
     [tilemap.tiles.a5233_52]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 256
     y = 640
 
     [tilemap.tiles.a5233_53]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 384
     y = 640
 
     [tilemap.tiles.a5233_54]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 512
     y = 640
 
     [tilemap.tiles.a5233_55]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 640
     y = 640
 
     [tilemap.tiles.a5233_56]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 768
     y = 640
 
     [tilemap.tiles.a5233_57]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 896
     y = 640
 
     [tilemap.tiles.a5233_60]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 0
     y = 768
 
     [tilemap.tiles.a5233_61]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 128
     y = 768
 
     [tilemap.tiles.a5233_62]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 256
     y = 768
 
     [tilemap.tiles.a5233_63]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 384
     y = 768
 
     [tilemap.tiles.a5233_64]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 512
     y = 768
 
     [tilemap.tiles.a5233_65]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 640
     y = 768
 
     [tilemap.tiles.a5233_66]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 768
     y = 768
 
     [tilemap.tiles.a5233_67]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 896
     y = 768
 
@@ -2705,21 +2979,25 @@ tile_size = 128
 
     [tilemap.tiles.a5233_74]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 512
     y = 896
 
     [tilemap.tiles.a5233_75]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 640
     y = 896
 
     [tilemap.tiles.a5233_76]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 768
     y = 896
 
     [tilemap.tiles.a5233_77]
     path = 'assets/Graficos/5233.png'
+    walkable = false
     x = 896
     y = 896
 
@@ -2885,11 +3163,13 @@ tile_size = 128
 
     [tilemap.tiles.a5234_40]
     path = 'assets/Graficos/5234.png'
+    walkable = false
     x = 0
     y = 512
 
     [tilemap.tiles.a5234_41]
     path = 'assets/Graficos/5234.png'
+    walkable = false
     x = 128
     y = 512
 
@@ -2935,21 +3215,25 @@ tile_size = 128
 
     [tilemap.tiles.a5234_52]
     path = 'assets/Graficos/5234.png'
+    walkable = false
     x = 256
     y = 640
 
     [tilemap.tiles.a5234_53]
     path = 'assets/Graficos/5234.png'
+    walkable = false
     x = 384
     y = 640
 
     [tilemap.tiles.a5234_54]
     path = 'assets/Graficos/5234.png'
+    walkable = false
     x = 512
     y = 640
 
     [tilemap.tiles.a5234_55]
     path = 'assets/Graficos/5234.png'
+    walkable = false
     x = 640
     y = 640
 
@@ -3305,6 +3589,7 @@ tile_size = 128
 
     [tilemap.tiles.a5235_64]
     path = 'assets/Graficos/5235.png'
+    walkable = false
     x = 512
     y = 768
 
