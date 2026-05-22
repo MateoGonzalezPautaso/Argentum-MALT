@@ -5,7 +5,7 @@ Engine::Engine(const ClientConfig& config, Queue<ClientCommand>& command_queue):
                    config.viewport.logical_w, config.viewport.logical_h),
         menu_ctrl(render_ctx.renderer(), config.ui),
         login_ctrl(render_ctx.renderer(), config.ui),
-        game_renderer(render_ctx.renderer(), config, command_queue) {}
+        game_controller(render_ctx.renderer(), config, command_queue) {}
 
 bool Engine::dispatch_event(GameState& state) {
     SDL_Event event{};
@@ -23,7 +23,7 @@ bool Engine::dispatch_event(GameState& state) {
                 dispatch_login_event(event, state);
                 break;
             case GameState::Playing:
-                if (!game_renderer.handle_event(event))
+                if (!game_controller.handle_event(event))
                     return false;
                 break;
         }
@@ -74,11 +74,11 @@ void Engine::render_login_frame() {
     render_ctx.renderer().Present();
 }
 
-void Engine::render_game_frame() { game_renderer.render(); }
+void Engine::render_game_frame() { game_controller.render(); }
 
-void Engine::tick_game() { game_renderer.tick(); }
+void Engine::tick_game() { game_controller.tick(); }
 
-void Engine::apply_server_event(const ServerEvent& ev) { game_renderer.apply_server_event(ev); }
+void Engine::apply_server_event(const ServerEvent& ev) { game_controller.apply_server_event(ev); }
 
 bool Engine::try_submit_login(std::string& username, std::string& password) {
     if (!login_ctrl.is_submitted()) {

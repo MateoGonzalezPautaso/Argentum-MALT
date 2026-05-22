@@ -7,7 +7,7 @@
 #include "../../common/queue.h"
 
 #include "../config/config.h"
-#include "../screen/game_renderer.h"
+#include "../screen/game_controller.h"
 #include "../screen/login_controller.h"
 #include "../screen/menu_controller.h"
 #include "../render/render_context.h"
@@ -34,7 +34,7 @@ private:
     RenderContext render_ctx;
     MenuController menu_ctrl;
     LoginController login_ctrl;
-    GameRenderer game_renderer;
+    GameController game_controller;
 
     bool dispatch_menu_event(const SDL_Event& event, GameState& state);
     void dispatch_login_event(const SDL_Event& event, GameState& state);

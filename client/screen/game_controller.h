@@ -1,5 +1,5 @@
-#ifndef CLIENT_GAME_RENDERER_H
-#define CLIENT_GAME_RENDERER_H
+#ifndef CLIENT_GAME_CONTROLLER_H
+#define CLIENT_GAME_CONTROLLER_H
 
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
@@ -14,10 +14,10 @@
 #include "../render/ui_renderer.h"
 #include "../render/world_renderer.h"
 
-class GameRenderer {
+class GameController {
 public:
-    GameRenderer(SDL2pp::Renderer& renderer, const ClientConfig& config,
-                 Queue<ClientCommand>& command_queue);
+    GameController(SDL2pp::Renderer& renderer, const ClientConfig& config,
+                   Queue<ClientCommand>& command_queue);
 
     void tick();
     void render();

@@ -1,10 +1,10 @@
-#include "game_renderer.h"
+#include "game_controller.h"
 
 #include <variant>
 
 #include "../../common/visit.h"
 
-GameRenderer::GameRenderer(SDL2pp::Renderer& renderer, const ClientConfig& config,
+GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& config,
                            Queue<ClientCommand>& command_queue):
         renderer(renderer),
         world_renderer(renderer, config.background, config.tilemap, config.sprites,
@@ -13,9 +13,9 @@ GameRenderer::GameRenderer(SDL2pp::Renderer& renderer, const ClientConfig& confi
         move_controller(world_renderer, command_queue, MoveConfig(config), SDL_GetTicks()),
         move_config(config) {}
 
-void GameRenderer::tick() { move_controller.tick(SDL_GetTicks()); }
+void GameController::tick() { move_controller.tick(SDL_GetTicks()); }
 
-void GameRenderer::render() {
+void GameController::render() {
     renderer.SetDrawColor(0, 0, 0, 255);
     renderer.Clear();
     ui_renderer.render_frame_background();
@@ -27,7 +27,7 @@ void GameRenderer::render() {
     renderer.Present();
 }
 
-void GameRenderer::apply_server_event(const ServerEvent& ev) {
+void GameController::apply_server_event(const ServerEvent& ev) {
     std::visit(overloaded{
                        [this](const EntityMoveEvent& e) {
                             if (e.entity_id == player_stats.player_id) {
@@ -71,7 +71,7 @@ void GameRenderer::apply_server_event(const ServerEvent& ev) {
                ev);
 }
 
-bool GameRenderer::handle_event(const SDL_Event& event) {
+bool GameController::handle_event(const SDL_Event& event) {
     if (event.type == SDL_QUIT) {
         return false;
     }
@@ -91,7 +91,7 @@ bool GameRenderer::handle_event(const SDL_Event& event) {
     return true;
 }
 
-bool GameRenderer::handle_mouse_button(const SDL_Event& event) {
+bool GameController::handle_mouse_button(const SDL_Event& event) {
     if (event.button.button != SDL_BUTTON_LEFT) {
         return true;
     }
@@ -111,7 +111,7 @@ bool GameRenderer::handle_mouse_button(const SDL_Event& event) {
     return true;
 }
 
-bool GameRenderer::handle_keydown(const SDL_Event& event) {
+bool GameController::handle_keydown(const SDL_Event& event) {
     const uint32_t now = SDL_GetTicks();
 
     switch (event.key.keysym.sym) {
