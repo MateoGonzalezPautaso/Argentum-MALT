@@ -83,12 +83,12 @@ void MainWindow::setup_ui() {
 
     auto* width_label = new QLabel("Width:");
     width_spin_ = new QSpinBox();
-    width_spin_->setRange(1, 256);
+    width_spin_->setRange(1, kMaxMapDimension);
     width_spin_->setValue(doc_.width());
 
     auto* height_label = new QLabel("  Height:");
     height_spin_ = new QSpinBox();
-    height_spin_->setRange(1, 256);
+    height_spin_->setRange(1, kMaxMapDimension);
     height_spin_->setValue(doc_.height());
 
     auto* resize_btn = new QPushButton("Resize");
@@ -173,7 +173,7 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
 
         if (click.button == Qt::LeftButton && interaction_.has_selection()) {
             const auto& name = interaction_.selected();
-            if (doc_.config().props.find(name) != doc_.config().props.end()) {
+            if (doc_.is_prop(name)) {
                 doc_.set_prop(click.row, click.col, name);
                 renderer_->update_prop(click.row, click.col, name, doc_);
             } else {

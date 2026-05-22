@@ -42,12 +42,38 @@ QPixmap MapSceneRenderer::prop_pixmap(const TilemapDocument& doc, const std::str
                         Qt::SmoothTransformation);
 }
 
-void MapSceneRenderer::add_walkable_overlay(QGraphicsPixmapItem* item, bool walkable, int tsz) {
-    if (!walkable) {
-        auto* overlay = new QGraphicsRectItem(0, 0, tsz, tsz, item);
-        overlay->setBrush(QColor(255, 0, 0, 60));
-        overlay->setPen(QPen(Qt::NoPen));
+void MapSceneRenderer::add_non_walkable_indicator(QGraphicsPixmapItem* item, int tsz) {
+    auto* overlay = new QGraphicsRectItem(0, 0, tsz, tsz, item);
+    overlay->setBrush(QColor(255, 0, 0, 60));
+    overlay->setPen(QPen(Qt::NoPen));
+}
+
+void MapSceneRenderer::apply_prop_pos(QGraphicsPixmapItem* item, int col, int row,
+                                       const std::string& prop_name,
+                                       const TilemapDocument& doc) const {
+    const auto& cfg = doc.config();
+    auto prop_it = cfg.props.find(prop_name);
+    int tsz = doc.tile_size();
+    int display_w = (prop_it != cfg.props.end() && prop_it->second.width > 0)
+                        ? prop_it->second.width : tsz;
+    int display_h = (prop_it != cfg.props.end() && prop_it->second.height > 0)
+                        ? prop_it->second.height : tsz;
+    int offset_x = (display_w - tsz) / 2;
+    int offset_y = (display_h - tsz) / 2;
+    item->setPos(col * tsz - offset_x, row * tsz - offset_y);
+    item->setZValue(0.5);
+}
+
+void MapSceneRenderer::clear_grid(std::vector<std::vector<QGraphicsPixmapItem*>>& grid) {
+    for (auto& row : grid) {
+        for (auto* item : row) {
+            if (item) {
+                scene_->removeItem(item);
+                delete item;
+            }
+        }
     }
+    grid.clear();
 }
 
 void MapSceneRenderer::render_all(const TilemapDocument& doc, bool show_walkable_overlay) {
@@ -73,8 +99,8 @@ void MapSceneRenderer::render_all(const TilemapDocument& doc, bool show_walkable
                 item->setPos(c * tsz, r * tsz);
                 if (show_walkable_overlay) {
                     auto tile_it = cfg.tiles.find(name);
-                    if (tile_it != cfg.tiles.end()) {
-                        add_walkable_overlay(item, tile_it->second.walkable, tsz);
+                    if (tile_it != cfg.tiles.end() && !tile_it->second.walkable) {
+                        add_non_walkable_indicator(item, tsz);
                     }
                 }
             }
@@ -90,7 +116,6 @@ void MapSceneRenderer::render_props(const TilemapDocument& doc) {
     const auto& cfg = doc.config();
     if (cfg.props.empty()) return;
 
-    int tsz = doc.tile_size();
     prop_items_.reserve(doc.height());
 
     for (int r = 0; r < doc.height(); ++r) {
@@ -111,17 +136,7 @@ void MapSceneRenderer::render_props(const TilemapDocument& doc) {
             }
 
             auto* item = scene_->addPixmap(scaled);
-
-            auto prop_it = cfg.props.find(name);
-            int display_w = (prop_it != cfg.props.end() && prop_it->second.width > 0)
-                                ? prop_it->second.width : tsz;
-            int display_h = (prop_it != cfg.props.end() && prop_it->second.height > 0)
-                                ? prop_it->second.height : tsz;
-            int offset_x = (display_w - tsz) / 2;
-            int offset_y = (display_h - tsz) / 2;
-            item->setPos(c * tsz - offset_x, r * tsz - offset_y);
-            item->setZValue(0.5);
-
+            apply_prop_pos(item, c, r, name, doc);
             row_items.push_back(item);
         }
         prop_items_.push_back(std::move(row_items));
@@ -171,8 +186,8 @@ void MapSceneRenderer::update_tile(int row, int col, const std::string& tile_nam
     if (show_walkable_overlay) {
         const auto& cfg = doc.config();
         auto tile_it = cfg.tiles.find(tile_name);
-        if (tile_it != cfg.tiles.end()) {
-            add_walkable_overlay(item, tile_it->second.walkable, tsz);
+        if (tile_it != cfg.tiles.end() && !tile_it->second.walkable) {
+            add_non_walkable_indicator(item, tsz);
         }
     }
 
@@ -193,43 +208,15 @@ void MapSceneRenderer::update_prop(int row, int col, const std::string& prop_nam
     QPixmap scaled = prop_pixmap(doc, prop_name);
     if (scaled.isNull()) return;
 
-    int tsz = doc.tile_size();
     auto* item = scene_->addPixmap(scaled);
-
-    const auto& cfg = doc.config();
-    auto prop_it = cfg.props.find(prop_name);
-    int display_w = (prop_it != cfg.props.end() && prop_it->second.width > 0)
-                        ? prop_it->second.width : tsz;
-    int display_h = (prop_it != cfg.props.end() && prop_it->second.height > 0)
-                        ? prop_it->second.height : tsz;
-    int offset_x = (display_w - tsz) / 2;
-    int offset_y = (display_h - tsz) / 2;
-    item->setPos(col * tsz - offset_x, row * tsz - offset_y);
-    item->setZValue(0.5);
+    apply_prop_pos(item, col, row, prop_name, doc);
 
     prop_items_[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = item;
 }
 
 void MapSceneRenderer::clear_tiles_and_props() {
-    for (auto& row : tile_items_) {
-        for (auto* item : row) {
-            if (item) {
-                scene_->removeItem(item);
-                delete item;
-            }
-        }
-    }
-    tile_items_.clear();
-
-    for (auto& row : prop_items_) {
-        for (auto* item : row) {
-            if (item) {
-                scene_->removeItem(item);
-                delete item;
-            }
-        }
-    }
-    prop_items_.clear();
+    clear_grid(tile_items_);
+    clear_grid(prop_items_);
 }
 
 void MapSceneRenderer::clear_all() {

@@ -19,6 +19,10 @@ public:
     void resize(int new_rows, int new_cols, const std::string& default_tile = "");
     void create_new(int rows, int cols, const TilemapConfig& tile_config);
 
+    bool is_prop(const std::string& name) const {
+        return config_.props.find(name) != config_.props.end();
+    }
+
     const TilemapConfig& config() const { return config_; }
     TilemapConfig& config() { return config_; }
     const std::string& path() const { return path_; }

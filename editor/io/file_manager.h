@@ -12,11 +12,9 @@ public:
     bool save(TilemapDocument& doc);
     bool save_as(TilemapDocument& doc);
     bool open(TilemapDocument& doc);
-    const std::string& last_error() const { return last_error_; }
 
 private:
     QWidget* parent_;
-    std::string last_error_;
 };
 
 #endif

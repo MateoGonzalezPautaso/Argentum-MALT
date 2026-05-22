@@ -23,9 +23,13 @@ public:
 
 private:
     void render_props(const TilemapDocument& doc);
+    void apply_prop_pos(QGraphicsPixmapItem* item, int col, int row,
+                        const std::string& prop_name, const TilemapDocument& doc) const;
+    void add_non_walkable_indicator(QGraphicsPixmapItem* item, int tsz);
+    void clear_grid(std::vector<std::vector<QGraphicsPixmapItem*>>& grid);
+
     QPixmap tile_pixmap(const TilemapDocument& doc, const std::string& name) const;
     QPixmap prop_pixmap(const TilemapDocument& doc, const std::string& name) const;
-    void add_walkable_overlay(QGraphicsPixmapItem* item, bool walkable, int tsz);
 
     QGraphicsScene* scene_;
     const AtlasLoader* atlases_;

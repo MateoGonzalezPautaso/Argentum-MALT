@@ -14,7 +14,6 @@ bool FileManager::save(TilemapDocument& doc) {
         doc.save(doc.path());
         return true;
     } catch (const std::exception& e) {
-        last_error_ = e.what();
         QMessageBox::warning(parent_, "Save Error", e.what());
         return false;
     }
@@ -32,7 +31,6 @@ bool FileManager::save_as(TilemapDocument& doc) {
         doc.set_path(path.toStdString());
         return true;
     } catch (const std::exception& e) {
-        last_error_ = e.what();
         QMessageBox::warning(parent_, "Save Error", e.what());
         return false;
     }
@@ -49,7 +47,6 @@ bool FileManager::open(TilemapDocument& doc) {
         doc.load(path.toStdString());
         return true;
     } catch (const std::exception& e) {
-        last_error_ = e.what();
         QMessageBox::critical(parent_, "Open Error", e.what());
         return false;
     }

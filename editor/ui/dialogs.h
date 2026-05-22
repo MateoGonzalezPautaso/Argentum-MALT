@@ -6,6 +6,8 @@
 #include <QFormLayout>
 #include <QSpinBox>
 
+constexpr int kMaxMapDimension = 256;
+
 struct NewMapResult {
     int width = 20;
     int height = 20;
@@ -19,11 +21,11 @@ inline NewMapResult show_new_map_dialog(QWidget* parent) {
     auto* form = new QFormLayout(&dialog);
 
     auto* w_spin = new QSpinBox();
-    w_spin->setRange(1, 256);
+    w_spin->setRange(1, kMaxMapDimension);
     w_spin->setValue(20);
 
     auto* h_spin = new QSpinBox();
-    h_spin->setRange(1, 256);
+    h_spin->setRange(1, kMaxMapDimension);
     h_spin->setValue(20);
 
     form->addRow("Width:", w_spin);
