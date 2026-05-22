@@ -307,10 +307,10 @@ paths = [ 'assets/Graficos/5084.png' ]
 width = 115
 
     [prop.tiles.barriles.hitbox]
-    h = 50
-    w = 75
-    x = 20
-    y = 30
+    h = 60
+    w = 85
+    x = 0
+    y = 50
 
     [prop.tiles.barriles.src]
     h = 111
@@ -360,8 +360,8 @@ width = 120
     [prop.tiles.pozo.hitbox]
     h = 60
     w = 80
-    x = 20
-    y = 50
+    x = 5
+    y = 85
 
     [prop.tiles.pozo.src]
     h = 146
@@ -375,9 +375,9 @@ paths = [ 'assets/Graficos/5084.png' ]
 width = 170
 
     [prop.tiles.tienda1.hitbox]
-    h = 70
-    w = 100
-    x = 35
+    h = 90
+    w = 130
+    x = 0
     y = 50
 
     [prop.tiles.tienda1.src]
@@ -392,9 +392,9 @@ paths = [ 'assets/Graficos/5084.png' ]
 width = 170
 
     [prop.tiles.tienda2.hitbox]
-    h = 70
-    w = 100
-    x = 35
+    h = 90
+    w = 130
+    x = 0
     y = 50
 
     [prop.tiles.tienda2.src]
