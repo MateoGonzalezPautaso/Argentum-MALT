@@ -13,6 +13,7 @@ height = 48
 base_damage = 10
 attack_range_px = 80
 damage_variance = 5
+cooldown_ticks = 10
 
 [balance]
 starting_hp = 100
