@@ -10,6 +10,7 @@
 
 class Player {
     friend class Game;
+    friend class CombatController;
 
 private:
     uint16_t id;
@@ -25,11 +26,17 @@ private:
     uint32_t mana_current;
     uint32_t mana_max;
     uint32_t gold;
+    uint32_t next_attack_tick = 0;
     BalanceConfig balance;
 
 public:
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
            PlayerClass player_class, const BalanceConfig& balance);
+
+    uint16_t pos_x() const { return pos.x; }
+    uint16_t pos_y() const { return pos.y; }
+
+    bool try_attack(uint32_t current_tick, uint32_t cooldown_ticks);
 
     void apply_move(Direction new_dir, int dx, int dy);
     void gain_experience(uint32_t exp);

@@ -43,6 +43,8 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_int(*attack, "attack_range_px", config.attack.attack_range_px);
         config.attack.damage_variance =
                 toml_get_int(*attack, "damage_variance", config.attack.damage_variance);
+        config.attack.cooldown_ticks =
+                toml_get_int(*attack, "cooldown_ticks", config.attack.cooldown_ticks);
     }
 
     if (auto balance = root["balance"].as_table()) {

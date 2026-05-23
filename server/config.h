@@ -10,6 +10,7 @@ struct AttackConfig {
     int base_damage = 10;
     int attack_range_px = 30;
     int damage_variance = 5;
+    int cooldown_ticks = 10;
 };
 
 struct BalanceConfig {
