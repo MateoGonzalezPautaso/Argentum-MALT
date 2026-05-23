@@ -9,6 +9,11 @@ move_step = 4
 width = 27
 height = 48
 
+[attack]
+base_damage = 10
+attack_range_px = 80
+damage_variance = 5
+
 [balance]
 starting_hp = 100
 starting_mana = 50
