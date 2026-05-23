@@ -159,7 +159,9 @@ struct MoveCmd {
 };
 
 // 0x04
-struct AttackCmd {};
+struct AttackCmd {
+    uint16_t target_id;
+};
 
 // 0x05
 struct CastSpellCmd {};
@@ -298,16 +300,24 @@ struct EntityMoveEvent {
 };
 
 // 0x89
-struct DamageDealtEvent {};
+struct DamageDealtEvent {
+    uint16_t target_id;
+    uint32_t damage;
+};
 
 // 0x8A
-struct DamageReceivedEvent {};
+struct DamageReceivedEvent {
+    uint16_t attacker_id;
+    uint32_t damage;
+};
 
 // 0x8B
 struct AttackDodgedEvent {};
 
 // 0x8C
-struct EntityDiedEvent {};
+struct EntityDiedEvent {
+    uint16_t entity_id;
+};
 
 // 0x8D
 struct PlayerRespawnedEvent {};
