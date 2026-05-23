@@ -13,7 +13,7 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig&
                              const std::vector<SpriteConfig>& sprites_config,
                              const ViewportConfig& viewport_cfg, const FontConfig& font_cfg):
         renderer(renderer),
-        background_texture(renderer, load_surface(background.path)),
+        background_texture(renderer, texture::load_surface(background.path)),
         background_rect(background.x, background.y, background.width, background.height),
         window_w(viewport_cfg.logical_w),
         window_h(viewport_cfg.logical_h),

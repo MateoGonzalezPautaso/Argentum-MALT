@@ -5,6 +5,8 @@
 
 #include <SDL2pp/SDL2pp.hh>
 
-SDL2pp::Surface load_surface(const std::string& path);
+namespace texture {
+    SDL2pp::Surface load_surface(const std::string& path);
+}
 
 #endif  // CLIENT_TEXTURE_LOADER_H

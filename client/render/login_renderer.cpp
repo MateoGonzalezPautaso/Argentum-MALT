@@ -4,6 +4,7 @@
 
 #include "../input/chat_input.h"
 #include "geometry.h"
+#include "text_renderer.h"
 #include "texture_loader.h"
 
 LoginRenderer::LoginRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
@@ -11,14 +12,14 @@ LoginRenderer::LoginRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
         renderer(renderer),
         username_model(username_model),
         password_model(password_model),
-        background_texture(renderer, load_surface(ui_cfg.asset_login_bg)),
-        logo_texture(renderer, load_surface(ui_cfg.asset_login_logo)),
+        background_texture(renderer, texture::load_surface(ui_cfg.asset_login_bg)),
+        logo_texture(renderer, texture::load_surface(ui_cfg.asset_login_logo)),
         connect_button(
-                SDL2pp::Texture(renderer, load_surface(ui_cfg.asset_connect_default)),
-                SDL2pp::Texture(renderer, load_surface(ui_cfg.asset_connect_hover))),
+                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_connect_default)),
+                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_connect_hover))),
         back_button(
-                SDL2pp::Texture(renderer, load_surface(ui_cfg.asset_back_default)),
-                SDL2pp::Texture(renderer, load_surface(ui_cfg.asset_back_hover))),
+                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_back_default)),
+                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_back_hover))),
         background_rect(0, 0, ui_cfg.window_w, ui_cfg.window_h),
         logo_rect(0, 0, 0, 0),
         title_rect(0, 0, 0, 0),
@@ -170,25 +171,17 @@ void LoginRenderer::render_text_field(const SDL2pp::Rect& rect, const std::strin
 
 void LoginRenderer::render_text_in_rect(const SDL2pp::Rect& rect, const std::string& text,
                                         SDL_Color color, int& clipped_w) const {
-    SDL_Surface* text_surface = TTF_RenderUTF8_Blended(field_font, text.c_str(), color);
-    if (!text_surface) {
+    auto result = texture::render_text(renderer, field_font, text, color);
+    if (result.w == 0) {
+        clipped_w = 0;
         return;
     }
-    SDL2pp::Surface wrapped(text_surface);
-
-    int text_w = 0;
-    int text_h = 0;
-    if (TTF_SizeUTF8(field_font, text.c_str(), &text_w, &text_h) != 0) {
-        return;
-    }
-
-    SDL2pp::Texture text_texture(renderer, wrapped);
-    clipped_w = std::min(text_w, rect.GetW() - 8);
-    const int clipped_h = std::min(text_h, rect.GetH() - 4);
+    clipped_w = std::min(result.w, rect.GetW() - 8);
+    const int clipped_h = std::min(result.h, rect.GetH() - 4);
     SDL2pp::Rect src_rect(0, 0, clipped_w, clipped_h);
     SDL2pp::Rect dst_rect(rect.GetX() + 4, rect.GetY() + (rect.GetH() - clipped_h) / 2,
                           clipped_w, clipped_h);
-    renderer.Copy(text_texture, src_rect, dst_rect);
+    renderer.Copy(result.texture, src_rect, dst_rect);
 }
 
 void LoginRenderer::set_error(const std::string& text) { error_text = text; }
@@ -200,21 +193,13 @@ void LoginRenderer::render_error() const {
         return;
     }
 
-    SDL_Surface* surface = TTF_RenderUTF8_Blended(field_font, error_text.c_str(), error_color);
-    if (!surface) {
-        return;
-    }
-    SDL2pp::Surface wrapped(surface);
-    SDL2pp::Texture texture(renderer, wrapped);
-
-    int text_w = 0;
-    int text_h = 0;
-    if (TTF_SizeUTF8(field_font, error_text.c_str(), &text_w, &text_h) != 0) {
+    auto result = texture::render_text(renderer, field_font, error_text, error_color);
+    if (result.w == 0) {
         return;
     }
 
-    const int x = std::max(0, (ui_cfg.window_w - text_w) / 2);
+    const int x = std::max(0, (ui_cfg.window_w - result.w) / 2);
     const int y = connect_button.rect.GetY() + connect_button.rect.GetH() + 10;
-    SDL2pp::Rect dst(x, y, text_w, text_h);
-    renderer.Copy(texture, SDL2pp::NullOpt, dst);
+    SDL2pp::Rect dst(x, y, result.w, result.h);
+    renderer.Copy(result.texture, SDL2pp::NullOpt, dst);
 }

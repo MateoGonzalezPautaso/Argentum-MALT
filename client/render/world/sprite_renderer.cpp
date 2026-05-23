@@ -41,7 +41,7 @@ SpriteRenderer::SpriteRender SpriteRenderer::build_sprite_render(const SpriteCon
     SpriteRender sprite;
     sprite.frames.reserve(sprite_config.paths.size());
     for (const auto& path: sprite_config.paths) {
-        SDL2pp::Surface surface = load_surface(path);
+        SDL2pp::Surface surface = texture::load_surface(path);
         sprite.frames.emplace_back(renderer, surface);
     }
 

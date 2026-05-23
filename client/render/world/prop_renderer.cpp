@@ -44,7 +44,7 @@ void PropRenderer::load(const TilemapConfig& tilemap, int tile_size) {
             pr.hitbox_h = def.hitbox.h;
 
             for (const auto& path: def.paths) {
-                pr.frames.emplace_back(renderer, load_surface(path));
+                pr.frames.emplace_back(renderer, texture::load_surface(path));
             }
             prop_row.push_back(std::move(pr));
         }

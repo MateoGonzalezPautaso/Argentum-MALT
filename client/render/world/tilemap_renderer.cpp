@@ -37,7 +37,7 @@ void TilemapRenderer::load(const TilemapConfig& tilemap) {
 
             if (textures.find(atlas_path) == textures.end()) {
                 textures.emplace(atlas_path,
-                                 SDL2pp::Texture(renderer, load_surface(atlas_path)));
+                                 SDL2pp::Texture(renderer, texture::load_surface(atlas_path)));
             }
         }
         tiles.push_back(std::move(tile_row));

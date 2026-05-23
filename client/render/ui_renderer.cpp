@@ -5,16 +5,17 @@
 
 #include "../input/chat_input.h"
 #include "geometry.h"
+#include "text_renderer.h"
 #include "texture_loader.h"
 
 UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
                        const ChatInput& chat_model):
         renderer(renderer),
         chat_model(chat_model),
-        ui_frame_texture(renderer, load_surface(ui_cfg.asset_ui_frame)),
-        hp_bar_texture(renderer, load_surface(ui_cfg.asset_hp_bar)),
-        mp_bar_texture(renderer, load_surface(ui_cfg.asset_mp_bar)),
-        exp_bar_texture(renderer, load_surface(ui_cfg.asset_exp_bar)),
+        ui_frame_texture(renderer, texture::load_surface(ui_cfg.asset_ui_frame)),
+        hp_bar_texture(renderer, texture::load_surface(ui_cfg.asset_hp_bar)),
+        mp_bar_texture(renderer, texture::load_surface(ui_cfg.asset_mp_bar)),
+        exp_bar_texture(renderer, texture::load_surface(ui_cfg.asset_exp_bar)),
         ui_frame_rect(0, 0, ui_cfg.window_w, ui_cfg.window_h),
         chat_input_rect(ui_cfg.chat_input_x, ui_cfg.chat_input_y, ui_cfg.chat_input_w,
                         ui_cfg.chat_input_h),
@@ -101,68 +102,38 @@ void UIRenderer::render_stat_bar(SDL2pp::Texture& tex, int x, int y, int w, int 
     }
 
     std::string text = std::to_string(current) + "/" + std::to_string(max);
-    SDL_Surface* text_surface = TTF_RenderUTF8_Blended(bar_font, text.c_str(), chat_color);
-    if (!text_surface) {
+    auto result = texture::render_text(renderer, bar_font, text, chat_color);
+    if (result.w == 0) {
         return;
     }
-    SDL2pp::Surface wrapped(text_surface);
-
-    int text_w = 0;
-    int text_h = 0;
-    if (TTF_SizeUTF8(bar_font, text.c_str(), &text_w, &text_h) != 0) {
-        return;
-    }
-
-    SDL2pp::Texture text_texture(renderer, wrapped);
-    const int text_x = x + (w - text_w) / 2;
-    const int text_y = y + (h - text_h) / 2;
-    SDL2pp::Rect text_dst(text_x, text_y, text_w, text_h);
-    renderer.Copy(text_texture, SDL2pp::NullOpt, text_dst);
-}
-
-SDL2pp::Texture UIRenderer::make_text_texture(const std::string& text, int& text_w,
-                                              int& text_h) const {
-    SDL_Surface* text_surface = TTF_RenderUTF8_Blended(chat_font, text.c_str(), chat_color);
-    if (!text_surface) {
-        throw std::runtime_error(std::string("TTF_RenderUTF8_Blended failed: ") + TTF_GetError());
-    }
-
-    SDL2pp::Surface wrapped_surface(text_surface);
-    if (TTF_SizeUTF8(chat_font, text.c_str(), &text_w, &text_h) != 0) {
-        throw std::runtime_error(std::string("TTF_SizeUTF8 failed: ") + TTF_GetError());
-    }
-
-    return SDL2pp::Texture(renderer, wrapped_surface);
+    const int text_x = x + (w - result.w) / 2;
+    const int text_y = y + (h - result.h) / 2;
+    SDL2pp::Rect text_dst(text_x, text_y, result.w, result.h);
+    renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
 }
 
 void UIRenderer::render_chat_text_line(int& clipped_w) const {
-    try {
-        int text_w = 0;
-        int text_h = 0;
-        SDL2pp::Texture text_texture = make_text_texture(chat_model.get_text(), text_w, text_h);
-
-        clipped_w = std::min(text_w, chat_input_rect.GetW());
-        const int clipped_h = std::min(text_h, chat_input_rect.GetH());
-        SDL2pp::Rect src_rect(0, 0, clipped_w, clipped_h);
-        SDL2pp::Rect dst_rect(chat_input_rect.GetX(), chat_input_rect.GetY(), clipped_w, clipped_h);
-        renderer.Copy(text_texture, src_rect, dst_rect);
-    } catch (const std::runtime_error&) {
+    auto result = texture::render_text(renderer, chat_font, chat_model.get_text(), chat_color);
+    if (result.w == 0) {
         clipped_w = 0;
+        return;
     }
+    clipped_w = std::min(result.w, chat_input_rect.GetW());
+    const int clipped_h = std::min(result.h, chat_input_rect.GetH());
+    SDL2pp::Rect src_rect(0, 0, clipped_w, clipped_h);
+    SDL2pp::Rect dst_rect(chat_input_rect.GetX(), chat_input_rect.GetY(), clipped_w, clipped_h);
+    renderer.Copy(result.texture, src_rect, dst_rect);
 }
 
 void UIRenderer::render_chat_cursor(int x_offset) const {
-    try {
-        int cursor_w = 0;
-        int cursor_h = 0;
-        SDL2pp::Texture cursor_texture = make_text_texture("|", cursor_w, cursor_h);
-        const int cursor_x = std::min(chat_input_rect.GetX() + x_offset,
-                                      chat_input_rect.GetX() + chat_input_rect.GetW() - cursor_w);
-        SDL2pp::Rect cursor_dst(cursor_x, chat_input_rect.GetY(),
-                                std::min(cursor_w, chat_input_rect.GetW()),
-                                std::min(cursor_h, chat_input_rect.GetH()));
-        renderer.Copy(cursor_texture, SDL2pp::NullOpt, cursor_dst);
-    } catch (const std::runtime_error&) {
+    auto result = texture::render_text(renderer, chat_font, "|", chat_color);
+    if (result.w == 0) {
         return;
     }
+    const int cursor_x = std::min(chat_input_rect.GetX() + x_offset,
+                                  chat_input_rect.GetX() + chat_input_rect.GetW() - result.w);
+    SDL2pp::Rect cursor_dst(cursor_x, chat_input_rect.GetY(),
+                            std::min(result.w, chat_input_rect.GetW()),
+                            std::min(result.h, chat_input_rect.GetH()));
+    renderer.Copy(result.texture, SDL2pp::NullOpt, cursor_dst);
 }

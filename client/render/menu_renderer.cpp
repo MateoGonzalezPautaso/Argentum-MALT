@@ -6,13 +6,13 @@
 
 MenuRenderer::MenuRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg):
         renderer(renderer),
-        menu_background_texture(renderer, load_surface(ui_cfg.asset_menu_bg)),
+        menu_background_texture(renderer, texture::load_surface(ui_cfg.asset_menu_bg)),
         start_button(
-                SDL2pp::Texture(renderer, load_surface(ui_cfg.asset_start_default)),
-                SDL2pp::Texture(renderer, load_surface(ui_cfg.asset_start_hover))),
+                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_start_default)),
+                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_start_hover))),
         settings_button(
-                SDL2pp::Texture(renderer, load_surface(ui_cfg.asset_settings_default)),
-                SDL2pp::Texture(renderer, load_surface(ui_cfg.asset_settings_hover))),
+                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_settings_default)),
+                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_settings_hover))),
         menu_background_rect(0, 0, ui_cfg.window_w, ui_cfg.window_h),
         ui_cfg(ui_cfg) {
     init_layout();
