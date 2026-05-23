@@ -32,6 +32,7 @@ private:
     PlayerStats player_stats;
     WorldRenderer world_renderer;
     UIRenderer ui_renderer;
+    Queue<ClientCommand>& command_queue;
     MoveController move_controller;
     MoveConfig move_config;
     SDL_Cursor* hand_cursor;

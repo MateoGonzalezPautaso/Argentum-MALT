@@ -10,7 +10,8 @@ GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& c
         world_renderer(renderer, config.background, config.tilemap, config.sprites,
                        config.viewport, config.font),
         ui_renderer(renderer, config.ui, chat_input),
-        move_controller(world_renderer, command_queue, MoveConfig(config), SDL_GetTicks()),
+        command_queue(command_queue),
+        move_controller(world_renderer, this->command_queue, MoveConfig(config), SDL_GetTicks()),
         move_config(config),
         hand_cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND)),
         arrow_cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW)) {}
@@ -73,9 +74,19 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                            player_stats.pos = e.pos;
                            world_renderer.set_movable_position(e.pos.x, e.pos.y);
                        },
-                       [](const auto&) {},
-               },
-               ev);
+                        [this](const DamageReceivedEvent& e) {
+                            if (e.damage >= player_stats.hp_current) {
+                                player_stats.hp_current = 0;
+                            } else {
+                                player_stats.hp_current -= e.damage;
+                            }
+                        },
+                        [this](const EntityDiedEvent& e) {
+                            world_renderer.despawn_entity(e.entity_id);
+                        },
+                        [](const auto&) {},
+                },
+                ev);
 }
 
 bool GameController::handle_event(const SDL_Event& event) {
@@ -118,6 +129,13 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
     if (!world_renderer.screen_to_world(event.button.x, event.button.y, world_x, world_y)) {
         return true;
     }
+
+    uint16_t entity_id = 0;
+    if (world_renderer.hit_test_entity(world_x, world_y, entity_id)) {
+        command_queue.push(AttackCmd{entity_id});
+        return true;
+    }
+
     move_controller.set_move_target(world_x, world_y);
     return true;
 }
