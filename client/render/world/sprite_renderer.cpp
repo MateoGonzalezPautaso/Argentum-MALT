@@ -6,6 +6,7 @@
 
 #include <SDL2/SDL.h>
 
+#include "../geometry.h"
 #include "../texture_loader.h"
 #include "animation_system.h"
 
@@ -364,6 +365,18 @@ void SpriteRenderer::tick_animations(AnimationSystem& anim) {
             anim.tick(sprite);
         }
     }
+}
+
+bool SpriteRenderer::hit_test_entity(int world_x, int world_y, uint16_t& out_entity_id) const {
+    for (const auto& pair: entity_sprites) {
+        for (const auto& part: pair.second) {
+            if (part.movable && point_in_rect(world_x, world_y, part.dst)) {
+                out_entity_id = pair.first;
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 SpriteRenderer::SpriteRender* SpriteRenderer::find_movable_sprite() {

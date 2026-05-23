@@ -18,6 +18,7 @@ class GameController {
 public:
     GameController(SDL2pp::Renderer& renderer, const ClientConfig& config,
                    Queue<ClientCommand>& command_queue);
+    ~GameController();
 
     void tick();
     void render();
@@ -33,8 +34,11 @@ private:
     UIRenderer ui_renderer;
     MoveController move_controller;
     MoveConfig move_config;
+    SDL_Cursor* hand_cursor;
+    SDL_Cursor* arrow_cursor;
 
     bool handle_mouse_button(const SDL_Event& event);
+    bool handle_mouse_motion(const SDL_Event& event);
     bool handle_keydown(const SDL_Event& event);
 };
 

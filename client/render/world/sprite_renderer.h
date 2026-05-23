@@ -39,6 +39,8 @@ public:
     void render(const SDL2pp::Rect& cam);
     void tick_animations(AnimationSystem& anim);
 
+    bool hit_test_entity(int world_x, int world_y, uint16_t& out_entity_id) const;
+
     bool empty() const { return sprites.empty(); }
     int movable_x() const;
     int movable_y() const;
