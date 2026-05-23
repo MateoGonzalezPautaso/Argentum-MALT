@@ -52,7 +52,7 @@ void PropRenderer::load(const TilemapConfig& tilemap, int tile_size) {
     }
 }
 
-void PropRenderer::render_behind(const SDL2pp::Rect& cam, int player_foot_y) {
+void PropRenderer::render_conditional(const SDL2pp::Rect& cam, int player_foot_y, bool behind) {
     if (prop_tiles_.empty() || !has_tilemap_)
         return;
 
@@ -65,8 +65,8 @@ void PropRenderer::render_behind(const SDL2pp::Rect& cam, int player_foot_y) {
         if (row < 0 || row >= static_cast<int>(prop_tiles_.size()))
             continue;
 
-        const int prop_depth = (row + 1) * tile_size_;
-        if (prop_depth > player_foot_y)
+        const bool prop_in_front = (row + 1) * tile_size_ > player_foot_y;
+        if (behind == prop_in_front)
             continue;
 
         auto& prop_row = prop_tiles_[static_cast<std::size_t>(row)];
@@ -89,41 +89,12 @@ void PropRenderer::render_behind(const SDL2pp::Rect& cam, int player_foot_y) {
     }
 }
 
+void PropRenderer::render_behind(const SDL2pp::Rect& cam, int player_foot_y) {
+    render_conditional(cam, player_foot_y, true);
+}
+
 void PropRenderer::render_front(const SDL2pp::Rect& cam, int player_foot_y) {
-    if (prop_tiles_.empty() || !has_tilemap_)
-        return;
-
-    const int first_col = std::max(0, cam.GetX() / tile_size_);
-    const int first_row = std::max(0, cam.GetY() / tile_size_);
-    const int last_col = std::max(0, (cam.GetX() + cam.GetW() - 1) / tile_size_);
-    const int last_row = std::max(0, (cam.GetY() + cam.GetH() - 1) / tile_size_);
-
-    for (int row = first_row; row <= last_row; ++row) {
-        if (row < 0 || row >= static_cast<int>(prop_tiles_.size()))
-            continue;
-
-        const int prop_depth = (row + 1) * tile_size_;
-        if (prop_depth <= player_foot_y)
-            continue;
-
-        auto& prop_row = prop_tiles_[static_cast<std::size_t>(row)];
-        if (prop_row.empty())
-            continue;
-
-        const int row_last_col = std::min(last_col, static_cast<int>(prop_row.size()) - 1);
-        for (int col = first_col; col <= row_last_col; ++col) {
-            if (col < 0)
-                continue;
-            auto& prop = prop_row[static_cast<std::size_t>(col)];
-            if (prop.frames.empty())
-                continue;
-
-            SDL2pp::Rect dst(col * tile_size_ - cam.GetX(),
-                             (row + 1) * tile_size_ - cam.GetY() - prop.display_h,
-                             prop.display_w, prop.display_h);
-            renderer.Copy(prop.frames[prop.current_frame], prop.src, dst);
-        }
-    }
+    render_conditional(cam, player_foot_y, false);
 }
 
 void PropRenderer::render_hitboxes(const SDL2pp::Rect& cam) {

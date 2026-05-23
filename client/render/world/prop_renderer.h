@@ -38,6 +38,8 @@ private:
         int hitbox_h = 0;
     };
 
+    void render_conditional(const SDL2pp::Rect& cam, int player_foot_y, bool behind);
+
     SDL2pp::Renderer& renderer;
     std::vector<std::vector<PropRender>> prop_tiles_;
     int tile_size_ = 128;
