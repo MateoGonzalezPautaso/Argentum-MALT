@@ -1,5 +1,6 @@
 #include "game.h"
 
+#include <cstdlib>
 #include <utility>
 #include <variant>
 
@@ -34,12 +35,14 @@ Game::Game(const ServerConfig& config, PlayerPersistence& persistence):
         move_step(config.move_step),
         sprite_width(config.sprite_width),
         sprite_height(config.sprite_height),
-        balance(config.balance) {}
+        balance(config.balance),
+        attack_config(config.attack) {}
 
 CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd) {
     return std::visit(overloaded{
                               [&](const LoginCmd& cmd) { return handle_login(player_id, cmd); },
                               [&](const MoveCmd& cmd) { return handle_move(player_id, cmd); },
+                              [&](const AttackCmd& cmd) { return handle_attack(player_id, cmd); },
                               [](const auto&) { return CommandResult{}; },
                       },
                       cmd);
@@ -68,10 +71,56 @@ CommandResult Game::remove_player(uint16_t player_id) {
 
     EntityDespawnEvent despawn{.entity_id = player_id};
     players.erase(it);
-    return {.private_events = {}, .broadcast_events = {despawn}};
+    return {.private_events = {}, .broadcast_events = {despawn}, .targeted_events = {}};
 }
 
 CommandResult Game::tick() { return {}; }
+
+CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
+    auto attacker_it = players.find(player_id);
+    if (attacker_it == players.end())
+        return {};
+
+    auto target_it = players.find(cmd.target_id);
+    if (target_it == players.end())
+        return {};
+
+    if (player_id == cmd.target_id)
+        return {};
+
+    Player& attacker = attacker_it->second;
+    Player& target = target_it->second;
+
+    const int dx = static_cast<int>(target.pos.x) - static_cast<int>(attacker.pos.x);
+    const int dy = static_cast<int>(target.pos.y) - static_cast<int>(attacker.pos.y);
+    const int dist_sq = dx * dx + dy * dy;
+    const int range_sq = attack_config.attack_range_px * attack_config.attack_range_px;
+
+    if (dist_sq > range_sq)
+        return {};
+
+    int variance = 0;
+    if (attack_config.damage_variance > 0)
+        variance = (std::rand() % (2 * attack_config.damage_variance + 1)) - attack_config.damage_variance;
+    uint32_t damage = static_cast<uint32_t>(std::max(1, attack_config.base_damage + variance));
+
+    target.take_damage(damage);
+
+    DamageDealtEvent dealt{cmd.target_id, damage};
+    DamageReceivedEvent received{player_id, damage};
+    std::vector<ServerEvent> broadcast;
+
+    if (target.hp_current == 0) {
+        EntityDiedEvent died{cmd.target_id};
+        broadcast.push_back(died);
+    }
+
+    return {
+            .private_events = {dealt},
+            .broadcast_events = broadcast,
+            .targeted_events = {{cmd.target_id, {received}}},
+    };
+}
 
 CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
     PlayerRecord rec;
@@ -79,12 +128,12 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
     if (persistence.load(cmd.username, rec)) {
         if (!rec.check_password(cmd.password)) {
             LoginErrorEvent err{LoginError::INVALID_CREDENTIALS, "Invalid password"};
-            return {.private_events = {err}, .broadcast_events = {}};
+            return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
         }
 
         if (is_username_logged_in(cmd.username)) {
             LoginErrorEvent err{LoginError::ALREADY_LOGGED_IN, "This user is already logged in"};
-            return {.private_events = {err}, .broadcast_events = {}};
+            return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
         }
 
         Player player(player_id, cmd.username, Position{rec.pos_x, rec.pos_y},
@@ -140,11 +189,11 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
                     .entity_class = existing_player.player_class,
             });
         }
-        return {.private_events = std::move(private_events), .broadcast_events = {spawn}};
+        return {.private_events = std::move(private_events), .broadcast_events = {spawn}, .targeted_events = {}};
     }
 
     LoginErrorEvent err{LoginError::INVALID_CREDENTIALS, "Invalid username or password"};
-    return {.private_events = {err}, .broadcast_events = {}};
+    return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 bool Game::is_username_logged_in(const std::string& username) const {
@@ -184,5 +233,5 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
             .entity_pos = player.pos,
             .entity_dir = player.dir,
     };
-    return {.private_events = {}, .broadcast_events = {move}};
+    return {.private_events = {}, .broadcast_events = {move}, .targeted_events = {}};
 }

@@ -21,6 +21,8 @@ ClientCommand ServerProtocol::recv_command() {
             return recv_login();
         case OpCode::CREATE_CHARACTER:
             return recv_create_character();
+        case OpCode::ATTACK:
+            return recv_attack();
         default:
             throw std::runtime_error("Unknown command opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
@@ -46,6 +48,11 @@ ClientCommand ServerProtocol::recv_create_character() {
     cmd.race = static_cast<Race>(protocol.recv_uint8());
     cmd.player_class = static_cast<PlayerClass>(protocol.recv_uint8());
     return cmd;
+}
+
+ClientCommand ServerProtocol::recv_attack() {
+    uint16_t target_id = protocol.recv_uint16();
+    return AttackCmd{target_id};
 }
 
 void ServerProtocol::send_login_payload(const LoginOkEvent& ev) {
@@ -112,6 +119,23 @@ void ServerProtocol::send_entity_move(const EntityMoveEvent& ev) {
     protocol.send_uint8(static_cast<uint8_t>(ev.entity_dir));
 }
 
+void ServerProtocol::send_damage_dealt(const DamageDealtEvent& ev) {
+    protocol.send_opcode(OpCode::DAMAGE_DEALT);
+    protocol.send_uint16(ev.target_id);
+    protocol.send_uint32(ev.damage);
+}
+
+void ServerProtocol::send_damage_received(const DamageReceivedEvent& ev) {
+    protocol.send_opcode(OpCode::DAMAGE_RECEIVED);
+    protocol.send_uint16(ev.attacker_id);
+    protocol.send_uint32(ev.damage);
+}
+
+void ServerProtocol::send_entity_died(const EntityDiedEvent& ev) {
+    protocol.send_opcode(OpCode::ENTITY_DIED);
+    protocol.send_uint16(ev.entity_id);
+}
+
 #include "../common/visit.h"
 
 void ServerProtocol::send_event(const ServerEvent& ev) {
@@ -123,6 +147,9 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [this](const EntitySpawnEvent& msg) { send_entity_spawn(msg); },
                        [this](const EntityDespawnEvent& msg) { send_entity_despawn(msg); },
                        [this](const EntityMoveEvent& msg) { send_entity_move(msg); },
+                       [this](const DamageDealtEvent& msg) { send_damage_dealt(msg); },
+                       [this](const DamageReceivedEvent& msg) { send_damage_received(msg); },
+                       [this](const EntityDiedEvent& msg) { send_entity_died(msg); },
                        [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },
                ev);

@@ -15,6 +15,7 @@
 struct CommandResult {
     std::vector<ServerEvent> private_events;    // only to the player who sent the command
     std::vector<ServerEvent> broadcast_events;  // to all connected players
+    std::map<uint16_t, std::vector<ServerEvent>> targeted_events;  // to specific players
 };
 
 class Game {
@@ -26,9 +27,11 @@ private:
     int sprite_width;
     int sprite_height;
     BalanceConfig balance;
+    AttackConfig attack_config;
 
     CommandResult handle_login(uint16_t player_id, const LoginCmd& cmd);
     CommandResult handle_move(uint16_t player_id, const MoveCmd& cmd);
+    CommandResult handle_attack(uint16_t player_id, const AttackCmd& cmd);
     bool is_username_logged_in(const std::string& username) const;
 
 public:
