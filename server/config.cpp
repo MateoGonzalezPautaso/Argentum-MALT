@@ -36,6 +36,15 @@ ServerConfig load_server_config(const std::string& path) {
         config.sprite_height = toml_get_int(*sprite, "height", config.sprite_height);
     }
 
+    if (auto attack = root["attack"].as_table()) {
+        config.attack.base_damage =
+                toml_get_int(*attack, "base_damage", config.attack.base_damage);
+        config.attack.attack_range_px =
+                toml_get_int(*attack, "attack_range_px", config.attack.attack_range_px);
+        config.attack.damage_variance =
+                toml_get_int(*attack, "damage_variance", config.attack.damage_variance);
+    }
+
     if (auto balance = root["balance"].as_table()) {
         config.balance.starting_hp =
                 toml_get_int(*balance, "starting_hp", config.balance.starting_hp);

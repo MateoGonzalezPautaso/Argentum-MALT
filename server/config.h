@@ -6,6 +6,12 @@
 
 #include "../common/config.h"
 
+struct AttackConfig {
+    int base_damage = 10;
+    int attack_range_px = 30;
+    int damage_variance = 5;
+};
+
 struct BalanceConfig {
     int starting_hp = 100;
     int starting_mana = 50;
@@ -28,6 +34,7 @@ struct ServerConfig {
     int sprite_width = 27;
     int sprite_height = 48;
     BalanceConfig balance;
+    AttackConfig attack;
 };
 
 ServerConfig load_server_config(const std::string& path);
