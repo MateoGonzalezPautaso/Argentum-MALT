@@ -118,6 +118,19 @@ anchor_offset_x = 0
 anchor_offset_y = -20
 visible = true
 
+[skins]
+  [skins.body]
+  warrior = "assets/Graficos/1071.png"
+  mage = "assets/Graficos/1291.png"
+  cleric = "assets/Graficos/1279.png"
+  paladin = "assets/Graficos/1228.png"
+
+  [skins.head]
+  human = "assets/Graficos/426.png"
+  elf = "assets/Graficos/422.png"
+  dwarf = "assets/Graficos/429.png"
+  gnome = "assets/Graficos/425.png"
+
 [movement]
 move_step = 8
 walk_src_step = 27

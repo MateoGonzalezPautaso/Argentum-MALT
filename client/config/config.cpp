@@ -193,6 +193,31 @@ void parse_assets_config(const toml::table& root, ClientConfig& config) {
     }
 }
 
+void parse_skin_config(const toml::table& root, ClientConfig& config) {
+    auto skins_tbl = root["skins"].as_table();
+    if (!skins_tbl) {
+        return;
+    }
+
+    auto body_tbl = (*skins_tbl)["body"].as_table();
+    if (body_tbl) {
+        for (const auto& [key, value]: *body_tbl) {
+            if (auto path = value.value<std::string>()) {
+                config.skins.body[std::string(key.str())] = *path;
+            }
+        }
+    }
+
+    auto head_tbl = (*skins_tbl)["head"].as_table();
+    if (head_tbl) {
+        for (const auto& [key, value]: *head_tbl) {
+            if (auto path = value.value<std::string>()) {
+                config.skins.head[std::string(key.str())] = *path;
+            }
+        }
+    }
+}
+
 void parse_movement_config(const toml::table& root, ClientConfig& config) {
     if (auto movement = root["movement"].as_table()) {
         config.move_step = toml_get_int(*movement, "move_step", config.move_step);
@@ -235,6 +260,7 @@ ClientConfig load_client_config(const std::string& path) {
     parse_viewport_config(root, config);
     parse_ui_config(root, config);
     parse_assets_config(root, config);
+    parse_skin_config(root, config);
     parse_movement_config(root, config);
 
     {
