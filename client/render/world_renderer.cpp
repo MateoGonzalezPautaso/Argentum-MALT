@@ -139,3 +139,7 @@ void WorldRenderer::set_entity_src_y(uint16_t entity_id, int body_src_y, int hea
 void WorldRenderer::step_entity_src_x(uint16_t entity_id, int step, int frame_count) {
     sprite_renderer.step_entity_src_x(entity_id, step, frame_count);
 }
+
+void WorldRenderer::set_entity_alpha(uint16_t entity_id, uint8_t alpha) {
+    sprite_renderer.set_entity_alpha(entity_id, alpha);
+}

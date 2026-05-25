@@ -34,6 +34,7 @@ public:
     void set_anchor_src_y(int y);
     void set_entity_src_y(uint16_t entity_id, int body_src_y, int head_src_y);
     void step_entity_src_x(uint16_t entity_id, int step, int frame_count);
+    void set_entity_alpha(uint16_t entity_id, uint8_t alpha);
     void update_anchor_positions();
 
     void render(const SDL2pp::Rect& cam);
@@ -62,6 +63,7 @@ private:
         int anchor_offset_x = 0;
         int anchor_offset_y = 0;
         bool visible = true;
+        uint8_t alpha = 255;
     };
 
     struct EntityNameRender {
