@@ -3,19 +3,15 @@
 
 #include <cstdint>
 #include <map>
-#include <vector>
 
 #include "../common/messages.h"
 
+#include "command_result.h"
+#include "combat_controller.h"
 #include "config.h"
 #include "map.h"
 #include "player.h"
 #include "player_persistence.h"
-
-struct CommandResult {
-    std::vector<ServerEvent> private_events;    // only to the player who sent the command
-    std::vector<ServerEvent> broadcast_events;  // to all connected players
-};
 
 class Game {
 private:
@@ -26,9 +22,12 @@ private:
     int sprite_width;
     int sprite_height;
     BalanceConfig balance;
+    CombatController combat_controller;
+    uint32_t tick_count = 0;
 
     CommandResult handle_login(uint16_t player_id, const LoginCmd& cmd);
     CommandResult handle_move(uint16_t player_id, const MoveCmd& cmd);
+    CommandResult handle_attack(uint16_t player_id, const AttackCmd& cmd);
     bool is_username_logged_in(const std::string& username) const;
 
 public:

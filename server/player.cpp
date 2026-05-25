@@ -20,6 +20,13 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         gold(balance.starting_gold),
         balance(balance) {}
 
+bool Player::try_attack(uint32_t current_tick, uint32_t cooldown_ticks) {
+    if (current_tick < next_attack_tick)
+        return false;
+    next_attack_tick = current_tick + cooldown_ticks;
+    return true;
+}
+
 void Player::apply_move(Direction new_dir, int dx, int dy) {
     dir = new_dir;
     pos.x = static_cast<uint16_t>(static_cast<int>(pos.x) + dx);

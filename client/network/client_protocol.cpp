@@ -33,6 +33,11 @@ void ClientProtocol::send_move(const MoveCmd& cmd) {
     protocol.send_uint8(static_cast<uint8_t>(cmd.direction));
 }
 
+void ClientProtocol::send_attack(const AttackCmd& cmd) {
+    protocol.send_opcode(OpCode::ATTACK);
+    protocol.send_uint16(cmd.target_id);
+}
+
 #include "../../common/visit.h"
 
 void ClientProtocol::send_command(const ClientCommand& cmd) {
@@ -40,6 +45,7 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const MoveCmd& msg) { send_move(msg); },
                        [this](const LoginCmd& msg) { send_login(msg); },
                        [this](const CreateCharacterCmd& msg) { send_create_character(msg); },
+                       [this](const AttackCmd& msg) { send_attack(msg); },
                        [](const auto&) { throw std::runtime_error("Command not implemented"); },
                },
                cmd);
@@ -63,6 +69,20 @@ ServerEvent ClientProtocol::recv_event() {
             return recv_entity_despawn();
         case OpCode::ENTITY_MOVE:
             return recv_entity_move();
+        case OpCode::DAMAGE_DEALT: {
+            uint16_t target_id = protocol.recv_uint16();
+            uint32_t damage = protocol.recv_uint32();
+            return DamageDealtEvent{target_id, damage};
+        }
+        case OpCode::DAMAGE_RECEIVED: {
+            uint16_t attacker_id = protocol.recv_uint16();
+            uint32_t damage = protocol.recv_uint32();
+            return DamageReceivedEvent{attacker_id, damage};
+        }
+        case OpCode::ENTITY_DIED: {
+            uint16_t entity_id = protocol.recv_uint16();
+            return EntityDiedEvent{entity_id};
+        }
         default:
             throw std::runtime_error("Unknown event opcode: " +
                                      std::to_string(static_cast<int>(opcode)));

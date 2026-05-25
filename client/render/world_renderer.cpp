@@ -117,6 +117,11 @@ bool WorldRenderer::screen_to_world(int screen_x, int screen_y, int& world_x,
     return camera.screen_to_world(screen_x, screen_y, world_x, world_y);
 }
 
+bool WorldRenderer::hit_test_entity(int world_x, int world_y,
+                                    uint16_t& out_entity_id) const {
+    return sprite_renderer.hit_test_entity(world_x, world_y, out_entity_id);
+}
+
 void WorldRenderer::set_movable_src_y(int y) { sprite_renderer.set_movable_src_y(y); }
 
 void WorldRenderer::step_movable_src_x(int step, int frame_count) {
