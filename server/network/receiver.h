@@ -6,8 +6,8 @@
 #include "../../common/messages.h"
 #include "../../common/queue.h"
 #include "../../common/thread.h"
-
 #include "../game/player_command.h"
+
 #include "server_protocol.h"
 
 // Blocks on recv_command() and pushes each input_queue command (tagged with

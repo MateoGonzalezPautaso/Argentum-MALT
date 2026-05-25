@@ -11,9 +11,9 @@
 #include "../config/config.h"
 #include "world/animation_system.h"
 #include "world/camera.h"
-#include "world/tilemap_renderer.h"
 #include "world/prop_renderer.h"
 #include "world/sprite_renderer.h"
+#include "world/tilemap_renderer.h"
 
 class WorldRenderer {
 public:

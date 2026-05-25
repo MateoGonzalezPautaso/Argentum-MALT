@@ -7,6 +7,7 @@
 #include <SDL_ttf.h>
 
 #include "../config/config.h"
+
 #include "button.h"
 
 class ChatInput;
@@ -58,10 +59,10 @@ public:
 
 private:
     void init_layout();
-    void render_text_field(const SDL2pp::Rect& rect, const std::string& text,
-                           bool focused, const std::string& placeholder) const;
-    void render_text_in_rect(const SDL2pp::Rect& rect, const std::string& text,
-                              SDL_Color color, int& clipped_w) const;
+    void render_text_field(const SDL2pp::Rect& rect, const std::string& text, bool focused,
+                           const std::string& placeholder) const;
+    void render_text_in_rect(const SDL2pp::Rect& rect, const std::string& text, SDL_Color color,
+                             int& clipped_w) const;
     void render_error() const;
 };
 

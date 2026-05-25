@@ -2,8 +2,8 @@
 
 namespace texture {
 
-RenderedText render_text(SDL2pp::Renderer& renderer, TTF_Font* font,
-                          const std::string& text, SDL_Color color) {
+RenderedText render_text(SDL2pp::Renderer& renderer, TTF_Font* font, const std::string& text,
+                         SDL_Color color) {
     if (!font || text.empty()) {
         return {SDL2pp::Texture(static_cast<SDL_Texture*>(nullptr)), 0, 0};
     }

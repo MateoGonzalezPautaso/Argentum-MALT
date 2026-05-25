@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "../input/chat_input.h"
+
 #include "geometry.h"
 #include "text_renderer.h"
 #include "texture_loader.h"
@@ -17,9 +18,8 @@ LoginRenderer::LoginRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
         connect_button(
                 SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_connect_default)),
                 SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_connect_hover))),
-        back_button(
-                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_back_default)),
-                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_back_hover))),
+        back_button(SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_back_default)),
+                    SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_back_hover))),
         background_rect(0, 0, ui_cfg.window_w, ui_cfg.window_h),
         logo_rect(0, 0, 0, 0),
         title_rect(0, 0, 0, 0),
@@ -61,10 +61,10 @@ void LoginRenderer::render() {
         renderer.Copy(title_texture, SDL2pp::NullOpt, title_rect);
     }
 
-    render_text_field(username_field_rect, username_model.get_text(),
-                      username_model.is_focused(), ui_cfg.placeholder_username);
-    render_text_field(password_field_rect, password_model.get_text(),
-                      password_model.is_focused(), ui_cfg.placeholder_password);
+    render_text_field(username_field_rect, username_model.get_text(), username_model.is_focused(),
+                      ui_cfg.placeholder_username);
+    render_text_field(password_field_rect, password_model.get_text(), password_model.is_focused(),
+                      ui_cfg.placeholder_password);
 
     connect_button.render(renderer);
     back_button.render(renderer);
@@ -86,9 +86,7 @@ bool LoginRenderer::is_connect_button_hit(int x, int y) const {
     return connect_button.is_hit(x, y);
 }
 
-bool LoginRenderer::is_back_button_hit(int x, int y) const {
-    return back_button.is_hit(x, y);
-}
+bool LoginRenderer::is_back_button_hit(int x, int y) const { return back_button.is_hit(x, y); }
 
 void LoginRenderer::set_connect_button_hovered(int x, int y) {
     connect_button.hovered = connect_button.is_hit(x, y);
@@ -119,8 +117,10 @@ void LoginRenderer::init_layout() {
     const int username_y = field_start_y;
     const int password_y = username_y + ui_cfg.login_field_h + 16;
 
-    username_field_rect = SDL2pp::Rect(field_x, username_y, ui_cfg.login_field_w, ui_cfg.login_field_h);
-    password_field_rect = SDL2pp::Rect(field_x, password_y, ui_cfg.login_field_w, ui_cfg.login_field_h);
+    username_field_rect =
+            SDL2pp::Rect(field_x, username_y, ui_cfg.login_field_w, ui_cfg.login_field_h);
+    password_field_rect =
+            SDL2pp::Rect(field_x, password_y, ui_cfg.login_field_w, ui_cfg.login_field_h);
 
     const int button_w = connect_button.default_tex.GetWidth();
     const int button_h = connect_button.default_tex.GetHeight();
@@ -179,8 +179,8 @@ void LoginRenderer::render_text_in_rect(const SDL2pp::Rect& rect, const std::str
     clipped_w = std::min(result.w, rect.GetW() - 8);
     const int clipped_h = std::min(result.h, rect.GetH() - 4);
     SDL2pp::Rect src_rect(0, 0, clipped_w, clipped_h);
-    SDL2pp::Rect dst_rect(rect.GetX() + 4, rect.GetY() + (rect.GetH() - clipped_h) / 2,
-                          clipped_w, clipped_h);
+    SDL2pp::Rect dst_rect(rect.GetX() + 4, rect.GetY() + (rect.GetH() - clipped_h) / 2, clipped_w,
+                          clipped_h);
     renderer.Copy(result.texture, src_rect, dst_rect);
 }
 

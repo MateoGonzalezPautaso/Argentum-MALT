@@ -14,8 +14,8 @@ public:
         Qt::MouseButton button = Qt::NoButton;
     };
 
-    static ClickResult resolve_click(QMouseEvent* event, QGraphicsView* view,
-                                      int tile_size, int map_height, int map_width);
+    static ClickResult resolve_click(QMouseEvent* event, QGraphicsView* view, int tile_size,
+                                     int map_height, int map_width);
 
     void set_selected(const std::string& name) { selected_ = name; }
     const std::string& selected() const { return selected_; }

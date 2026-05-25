@@ -8,6 +8,7 @@
 
 #include "../geometry.h"
 #include "../texture_loader.h"
+
 #include "animation_system.h"
 
 SpriteRenderer::SpriteRenderer(SDL2pp::Renderer& renderer, TTF_Font* name_font, int window_w,
@@ -38,7 +39,8 @@ void SpriteRenderer::load_sprites(const std::vector<SpriteConfig>& sprites_confi
     }
 }
 
-SpriteRenderer::SpriteRender SpriteRenderer::build_sprite_render(const SpriteConfig& sprite_config) {
+SpriteRenderer::SpriteRender SpriteRenderer::build_sprite_render(
+        const SpriteConfig& sprite_config) {
     SpriteRender sprite;
     sprite.frames.reserve(sprite_config.paths.size());
     for (const auto& path: sprite_config.paths) {
@@ -70,14 +72,14 @@ SpriteRenderer::SpriteRender SpriteRenderer::build_sprite_render(const SpriteCon
 }
 
 int SpriteRenderer::clamp_x(int value, int sprite_w) const {
-    const int max_x = has_tilemap ? std::max(0, map_px_w - sprite_w)
-                                  : std::max(0, window_w - sprite_w);
+    const int max_x =
+            has_tilemap ? std::max(0, map_px_w - sprite_w) : std::max(0, window_w - sprite_w);
     return std::clamp(value, 0, max_x);
 }
 
 int SpriteRenderer::clamp_y(int value, int sprite_h) const {
-    const int max_y = has_tilemap ? std::max(0, map_px_h - sprite_h)
-                                  : std::max(0, window_h - sprite_h);
+    const int max_y =
+            has_tilemap ? std::max(0, map_px_h - sprite_h) : std::max(0, window_h - sprite_h);
     return std::clamp(value, 0, max_y);
 }
 
@@ -287,10 +289,8 @@ void SpriteRenderer::update_anchor_positions() {
 }
 
 bool SpriteRenderer::is_visible(const SpriteRender& s, const SDL2pp::Rect& cam) {
-    return s.dst.GetX() + s.dst.GetW() > cam.GetX() &&
-           s.dst.GetX() < cam.GetX() + cam.GetW() &&
-           s.dst.GetY() + s.dst.GetH() > cam.GetY() &&
-           s.dst.GetY() < cam.GetY() + cam.GetH();
+    return s.dst.GetX() + s.dst.GetW() > cam.GetX() && s.dst.GetX() < cam.GetX() + cam.GetW() &&
+           s.dst.GetY() + s.dst.GetH() > cam.GetY() && s.dst.GetY() < cam.GetY() + cam.GetH();
 }
 
 void SpriteRenderer::render(const SDL2pp::Rect& cam) {

@@ -171,8 +171,7 @@ void parse_assets_config(const toml::table& root, ClientConfig& config) {
                 toml_get_string(*tbl, "settings_default", config.ui.asset_settings_default);
         config.ui.asset_settings_hover =
                 toml_get_string(*tbl, "settings_hover", config.ui.asset_settings_hover);
-        config.ui.asset_login_bg =
-                toml_get_string(*tbl, "login_bg", config.ui.asset_login_bg);
+        config.ui.asset_login_bg = toml_get_string(*tbl, "login_bg", config.ui.asset_login_bg);
         config.ui.asset_login_logo =
                 toml_get_string(*tbl, "login_logo", config.ui.asset_login_logo);
         config.ui.asset_connect_default =
@@ -183,8 +182,7 @@ void parse_assets_config(const toml::table& root, ClientConfig& config) {
                 toml_get_string(*tbl, "back_default", config.ui.asset_back_default);
         config.ui.asset_back_hover =
                 toml_get_string(*tbl, "back_hover", config.ui.asset_back_hover);
-        config.ui.asset_ui_frame =
-                toml_get_string(*tbl, "ui_frame", config.ui.asset_ui_frame);
+        config.ui.asset_ui_frame = toml_get_string(*tbl, "ui_frame", config.ui.asset_ui_frame);
         config.ui.asset_hp_bar = toml_get_string(*tbl, "hp_bar", config.ui.asset_hp_bar);
         config.ui.asset_mp_bar = toml_get_string(*tbl, "mp_bar", config.ui.asset_mp_bar);
         config.ui.asset_exp_bar = toml_get_string(*tbl, "exp_bar", config.ui.asset_exp_bar);

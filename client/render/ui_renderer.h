@@ -37,8 +37,8 @@ public:
     bool is_chat_input_hit(int x, int y) const;
 
 private:
-    void render_stat_bar(SDL2pp::Texture& tex, int x, int y, int w, int h,
-                         uint32_t current, uint32_t max) const;
+    void render_stat_bar(SDL2pp::Texture& tex, int x, int y, int w, int h, uint32_t current,
+                         uint32_t max) const;
     void render_chat_cursor(int x_offset) const;
     void render_chat_text_line(int& clipped_w) const;
 };

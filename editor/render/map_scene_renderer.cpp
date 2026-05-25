@@ -3,19 +3,23 @@
 #include <QGraphicsRectItem>
 #include <QPainter>
 #include <QPen>
+#include <utility>
 
-MapSceneRenderer::MapSceneRenderer(QGraphicsScene* scene, const AtlasLoader& atlases)
-    : scene_(scene), atlases_(&atlases) {}
+
+MapSceneRenderer::MapSceneRenderer(QGraphicsScene* scene, const AtlasLoader& atlases):
+        scene_(scene), atlases_(&atlases) {}
 
 QPixmap MapSceneRenderer::tile_pixmap(const TilemapDocument& doc, const std::string& name) const {
     const auto& cfg = doc.config();
     auto tile_it = cfg.tiles.find(name);
-    if (tile_it == cfg.tiles.end()) return {};
+    if (tile_it == cfg.tiles.end())
+        return {};
 
     const auto& def = tile_it->second;
     std::string atlas_path = def.path.empty() ? cfg.path : def.path;
     const QPixmap* atlas = atlases_->get(atlas_path);
-    if (!atlas) return {};
+    if (!atlas)
+        return {};
 
     return atlas->copy(QRect(def.x, def.y, doc.tile_size(), doc.tile_size()));
 }
@@ -23,13 +27,16 @@ QPixmap MapSceneRenderer::tile_pixmap(const TilemapDocument& doc, const std::str
 QPixmap MapSceneRenderer::prop_pixmap(const TilemapDocument& doc, const std::string& name) const {
     const auto& cfg = doc.config();
     auto prop_it = cfg.props.find(name);
-    if (prop_it == cfg.props.end()) return {};
+    if (prop_it == cfg.props.end())
+        return {};
 
     const auto& def = prop_it->second;
-    if (def.paths.empty()) return {};
+    if (def.paths.empty())
+        return {};
 
     const QPixmap* atlas = atlases_->get(def.paths[0]);
-    if (!atlas) return {};
+    if (!atlas)
+        return {};
 
     QPixmap frame = atlas->copy(QRect(def.src_x, def.src_y, def.src_w, def.src_h));
 
@@ -37,9 +44,7 @@ QPixmap MapSceneRenderer::prop_pixmap(const TilemapDocument& doc, const std::str
     int display_w = def.width > 0 ? def.width : tsz;
     int display_h = def.height > 0 ? def.height : tsz;
 
-    return frame.scaled(display_w, display_h,
-                        Qt::IgnoreAspectRatio,
-                        Qt::SmoothTransformation);
+    return frame.scaled(display_w, display_h, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 }
 
 void MapSceneRenderer::add_non_walkable_indicator(QGraphicsPixmapItem* item, int tsz) {
@@ -49,15 +54,16 @@ void MapSceneRenderer::add_non_walkable_indicator(QGraphicsPixmapItem* item, int
 }
 
 void MapSceneRenderer::apply_prop_pos(QGraphicsPixmapItem* item, int col, int row,
-                                       const std::string& prop_name,
-                                       const TilemapDocument& doc) const {
+                                      const std::string& prop_name,
+                                      const TilemapDocument& doc) const {
     const auto& cfg = doc.config();
     auto prop_it = cfg.props.find(prop_name);
     int tsz = doc.tile_size();
-    int display_w = (prop_it != cfg.props.end() && prop_it->second.width > 0)
-                        ? prop_it->second.width : tsz;
-    int display_h = (prop_it != cfg.props.end() && prop_it->second.height > 0)
-                        ? prop_it->second.height : tsz;
+    int display_w =
+            (prop_it != cfg.props.end() && prop_it->second.width > 0) ? prop_it->second.width : tsz;
+    int display_h = (prop_it != cfg.props.end() && prop_it->second.height > 0) ?
+                            prop_it->second.height :
+                            tsz;
     int offset_x = (display_w - tsz) / 2;
     int offset_y = (display_h - tsz) / 2;
     item->setPos(col * tsz - offset_x, row * tsz - offset_y);
@@ -65,8 +71,8 @@ void MapSceneRenderer::apply_prop_pos(QGraphicsPixmapItem* item, int col, int ro
 }
 
 void MapSceneRenderer::clear_grid(std::vector<std::vector<QGraphicsPixmapItem*>>& grid) {
-    for (auto& row : grid) {
-        for (auto* item : row) {
+    for (auto& row: grid) {
+        for (auto* item: row) {
             if (item) {
                 scene_->removeItem(item);
                 delete item;
@@ -80,7 +86,8 @@ void MapSceneRenderer::render_all(const TilemapDocument& doc, bool show_walkable
     clear_tiles_and_props();
 
     const auto& cfg = doc.config();
-    if (cfg.tiles.empty()) return;
+    if (cfg.tiles.empty())
+        return;
 
     int tsz = doc.tile_size();
     tile_items_.reserve(doc.height());
@@ -114,7 +121,8 @@ void MapSceneRenderer::render_all(const TilemapDocument& doc, bool show_walkable
 
 void MapSceneRenderer::render_props(const TilemapDocument& doc) {
     const auto& cfg = doc.config();
-    if (cfg.props.empty()) return;
+    if (cfg.props.empty())
+        return;
 
     prop_items_.reserve(doc.height());
 
@@ -174,10 +182,12 @@ void MapSceneRenderer::update_tile(int row, int col, const std::string& tile_nam
         old_item = nullptr;
     }
 
-    if (tile_name.empty()) return;
+    if (tile_name.empty())
+        return;
 
     QPixmap pix = tile_pixmap(doc, tile_name);
-    if (pix.isNull()) return;
+    if (pix.isNull())
+        return;
 
     int tsz = doc.tile_size();
     auto* item = scene_->addPixmap(pix);
@@ -203,10 +213,12 @@ void MapSceneRenderer::update_prop(int row, int col, const std::string& prop_nam
         old_item = nullptr;
     }
 
-    if (prop_name.empty()) return;
+    if (prop_name.empty())
+        return;
 
     QPixmap scaled = prop_pixmap(doc, prop_name);
-    if (scaled.isNull()) return;
+    if (scaled.isNull())
+        return;
 
     auto* item = scene_->addPixmap(scaled);
     apply_prop_pos(item, col, row, prop_name, doc);

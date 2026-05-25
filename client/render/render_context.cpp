@@ -1,5 +1,7 @@
 #include "render_context.h"
 
+#include <string>
+
 RenderContext::RenderContext(const std::string& title, int window_w, int window_h, int logical_w,
                              int logical_h):
         sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO),

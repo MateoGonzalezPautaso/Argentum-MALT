@@ -3,9 +3,10 @@
 
 #include <QMainWindow>
 #include <string>
+
 #include "../document/tilemap_document.h"
-#include "../render/atlas_loader.h"
 #include "../input/map_interaction.h"
+#include "../render/atlas_loader.h"
 
 class QGraphicsScene;
 class QGraphicsView;
@@ -15,7 +16,7 @@ class TilePalette;
 class MapSceneRenderer;
 class FileManager;
 
-class MainWindow : public QMainWindow {
+class MainWindow: public QMainWindow {
     Q_OBJECT
 
 public:

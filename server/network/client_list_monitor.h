@@ -10,9 +10,9 @@
 #include "../../common/messages.h"
 #include "../../common/queue.h"
 #include "../../common/socket.h"
+#include "../game/player_command.h"
 
 #include "client_handler.h"
-#include "../game/player_command.h"
 
 class ClientListMonitor {
     std::mutex mtx;

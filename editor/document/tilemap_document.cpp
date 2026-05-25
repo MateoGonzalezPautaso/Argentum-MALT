@@ -1,6 +1,9 @@
 #include "tilemap_document.h"
+
 #include <fstream>
 #include <stdexcept>
+#include <utility>
+#include <vector>
 
 void TilemapDocument::load(const std::string& path) {
     toml::table root = toml::parse_file(path);
@@ -11,23 +14,20 @@ void TilemapDocument::load(const std::string& path) {
     }
     if (config_.prop_map.empty()) {
         config_.prop_map.resize(config_.mapa.size(),
-            std::vector<std::string>(config_.mapa[0].size(), ""));
+                                std::vector<std::string>(config_.mapa[0].size(), ""));
     }
     path_ = path;
 }
 
 int TilemapDocument::width() const {
-    if (config_.mapa.empty()) return 0;
+    if (config_.mapa.empty())
+        return 0;
     return static_cast<int>(config_.mapa[0].size());
 }
 
-int TilemapDocument::height() const {
-    return static_cast<int>(config_.mapa.size());
-}
+int TilemapDocument::height() const { return static_cast<int>(config_.mapa.size()); }
 
-int TilemapDocument::tile_size() const {
-    return config_.tile_size;
-}
+int TilemapDocument::tile_size() const { return config_.tile_size; }
 
 const std::string& TilemapDocument::tile_name(int row, int col) const {
     return config_.mapa[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)];
@@ -47,11 +47,11 @@ void TilemapDocument::set_prop(int row, int col, const std::string& name) {
 
 void TilemapDocument::resize(int new_rows, int new_cols, const std::string& default_tile) {
     config_.mapa.resize(static_cast<std::size_t>(new_rows));
-    for (auto& row : config_.mapa) {
+    for (auto& row: config_.mapa) {
         row.resize(static_cast<std::size_t>(new_cols), default_tile);
     }
     config_.prop_map.resize(static_cast<std::size_t>(new_rows));
-    for (auto& row : config_.prop_map) {
+    for (auto& row: config_.prop_map) {
         row.resize(static_cast<std::size_t>(new_cols), "");
     }
 }
@@ -75,9 +75,9 @@ void TilemapDocument::save(const std::string& path) const {
     tilemap_tbl.emplace("tile_size", config_.tile_size);
 
     toml::array mapa_array;
-    for (const auto& row : config_.mapa) {
+    for (const auto& row: config_.mapa) {
         toml::array row_array;
-        for (const auto& cell : row) {
+        for (const auto& cell: row) {
             row_array.push_back(cell);
         }
         mapa_array.push_back(std::move(row_array));
@@ -85,7 +85,7 @@ void TilemapDocument::save(const std::string& path) const {
     tilemap_tbl.emplace("mapa", std::move(mapa_array));
 
     toml::table tiles_tbl;
-    for (const auto& [name, def] : config_.tiles) {
+    for (const auto& [name, def]: config_.tiles) {
         toml::table tile_def;
         tile_def.emplace("x", def.x);
         tile_def.emplace("y", def.y);
@@ -106,10 +106,10 @@ void TilemapDocument::save(const std::string& path) const {
         toml::table prop_tbl;
 
         toml::table prop_tiles_tbl;
-        for (const auto& [name, def] : config_.props) {
+        for (const auto& [name, def]: config_.props) {
             toml::table prop_def;
             toml::array paths_arr;
-            for (const auto& p : def.paths) {
+            for (const auto& p: def.paths) {
                 paths_arr.push_back(p);
             }
             prop_def.emplace("paths", std::move(paths_arr));
@@ -139,18 +139,22 @@ void TilemapDocument::save(const std::string& path) const {
         prop_tbl.emplace("tiles", std::move(prop_tiles_tbl));
 
         bool has_props = false;
-        for (const auto& row : config_.prop_map) {
-            for (const auto& cell : row) {
-                if (!cell.empty()) { has_props = true; break; }
+        for (const auto& row: config_.prop_map) {
+            for (const auto& cell: row) {
+                if (!cell.empty()) {
+                    has_props = true;
+                    break;
+                }
             }
-            if (has_props) break;
+            if (has_props)
+                break;
         }
 
         if (has_props) {
             toml::array prop_grid;
-            for (const auto& row : config_.prop_map) {
+            for (const auto& row: config_.prop_map) {
                 toml::array row_array;
-                for (const auto& cell : row) {
+                for (const auto& cell: row) {
                     row_array.push_back(cell);
                 }
                 prop_grid.push_back(std::move(row_array));

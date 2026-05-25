@@ -1,8 +1,10 @@
 #include "prop_renderer.h"
 
 #include <algorithm>
+#include <utility>
 
 #include "../texture_loader.h"
+
 #include "animation_system.h"
 
 PropRenderer::PropRenderer(SDL2pp::Renderer& renderer): renderer(renderer) {}
@@ -82,8 +84,8 @@ void PropRenderer::render_conditional(const SDL2pp::Rect& cam, int player_foot_y
                 continue;
 
             SDL2pp::Rect dst(col * tile_size_ - cam.GetX(),
-                             (row + 1) * tile_size_ - cam.GetY() - prop.display_h,
-                             prop.display_w, prop.display_h);
+                             (row + 1) * tile_size_ - cam.GetY() - prop.display_h, prop.display_w,
+                             prop.display_h);
             renderer.Copy(prop.frames[prop.current_frame], prop.src, dst);
         }
     }

@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <string>
+
 #include "../document/tilemap_document.h"
 
 class FileManager {

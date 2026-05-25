@@ -3,15 +3,16 @@
 
 #include <cstdint>
 #include <map>
+#include <string>
 
 #include "../../common/messages.h"
-
-#include "command_result.h"
-#include "combat_controller.h"
 #include "../core/config.h"
+#include "../persistence/player_persistence.h"
+
+#include "combat_controller.h"
+#include "command_result.h"
 #include "map.h"
 #include "player.h"
-#include "../persistence/player_persistence.h"
 
 class Game {
 private:

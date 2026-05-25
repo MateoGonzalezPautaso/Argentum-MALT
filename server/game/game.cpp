@@ -1,7 +1,9 @@
 #include "game.h"
 
+#include <string>
 #include <utility>
 #include <variant>
+#include <vector>
 
 #include "../../common/visit.h"
 
@@ -157,7 +159,7 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
 }
 
 bool Game::is_username_logged_in(const std::string& username) const {
-    for (const auto& [id, player] : players) {
+    for (const auto& [id, player]: players) {
         if (player.username == username)
             return true;
     }

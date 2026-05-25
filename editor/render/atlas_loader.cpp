@@ -7,10 +7,10 @@ void AtlasLoader::load(const TilemapConfig& config) {
         }
     };
     load_if_missing(config.path);
-    for (const auto& [name, def] : config.tiles) {
+    for (const auto& [name, def]: config.tiles) {
         load_if_missing(def.path);
     }
-    for (const auto& [name, def] : config.props) {
+    for (const auto& [name, def]: config.props) {
         if (!def.paths.empty()) {
             load_if_missing(def.paths[0]);
         }

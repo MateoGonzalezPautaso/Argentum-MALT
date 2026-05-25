@@ -8,12 +8,12 @@
 #include "../../common/messages.h"
 #include "../../common/queue.h"
 #include "../../common/socket.h"
-
-#include "../network/client_protocol.h"
 #include "../config/config.h"
-#include "engine.h"
+#include "../network/client_protocol.h"
 #include "../network/receiver.h"
 #include "../network/sender.h"
+
+#include "engine.h"
 
 class Client {
 private:

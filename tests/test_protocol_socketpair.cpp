@@ -261,9 +261,19 @@ TEST_F(ProtocolTest, CharacterCreatedRoundtrip) {
     ServerProtocol server(Socket::from_fd(fds[0]));
     ClientProtocol client(Socket::from_fd(fds[1]));
 
-    CharacterCreatedEvent sent{LoginOkEvent{
-            1, "newchar", Race::DWARF, PlayerClass::PALADIN, 1, 0, 0, 100, 100, 50, 50, 0,
-            {10, 20}}};
+    CharacterCreatedEvent sent{LoginOkEvent{1,
+                                            "newchar",
+                                            Race::DWARF,
+                                            PlayerClass::PALADIN,
+                                            1,
+                                            0,
+                                            0,
+                                            100,
+                                            100,
+                                            50,
+                                            50,
+                                            0,
+                                            {10, 20}}};
     server.send_event(sent);
 
     ServerEvent ev = client.recv_event();
