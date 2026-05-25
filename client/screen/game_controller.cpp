@@ -83,12 +83,12 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                              }
                              chat_history.add_message(
                                      ChatMsgType::SYSTEM, "",
-                                     "Recibiste " + std::to_string(e.damage) + " de danio");
+                                     "Recibiste " + std::to_string(e.damage) + " de daño");
                          },
                          [this](const DamageDealtEvent& e) {
                              chat_history.add_message(
                                      ChatMsgType::SYSTEM, "",
-                                     "Infligiste " + std::to_string(e.damage) + " de danio");
+                                     "Hiciste " + std::to_string(e.damage) + " de daño");
                          },
                          [this](const AttackDodgedEvent&) {
                              chat_history.add_message(ChatMsgType::SYSTEM, "",
