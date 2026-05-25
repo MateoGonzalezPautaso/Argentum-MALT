@@ -79,7 +79,7 @@ void TilemapDocument::save(const std::string& path) const {
     toml::array mapa_array;
     for (const auto& row: config_.mapa) {
         toml::array row_array;
-        std::copy(row.begin(), row.end(), std::back_inserter(row_array));
+        for (const auto& val: row) row_array.push_back(val);
         mapa_array.push_back(std::move(row_array));
     }
     tilemap_tbl.emplace("mapa", std::move(mapa_array));
@@ -109,7 +109,7 @@ void TilemapDocument::save(const std::string& path) const {
         for (const auto& [name, def]: config_.props) {
             toml::table prop_def;
             toml::array paths_arr;
-            std::copy(def.paths.begin(), def.paths.end(), std::back_inserter(paths_arr));
+            for (const auto& val: def.paths) paths_arr.push_back(val);
             prop_def.emplace("paths", std::move(paths_arr));
 
             toml::table src;
@@ -147,7 +147,7 @@ void TilemapDocument::save(const std::string& path) const {
             toml::array prop_grid;
             for (const auto& row: config_.prop_map) {
                 toml::array row_array;
-                std::copy(row.begin(), row.end(), std::back_inserter(row_array));
+                for (const auto& val: row) row_array.push_back(val);
                 prop_grid.push_back(std::move(row_array));
             }
             toml::table pm;

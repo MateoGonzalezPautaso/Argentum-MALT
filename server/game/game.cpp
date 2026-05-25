@@ -112,15 +112,13 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             for (const auto& [target_id, player]: players) {
                 if (player.username == target_nick) {
                     ChatMsgEvent chat_ev{ChatMsgType::PRIVATE, sender_name, msg};
-                    return {.private_events = {},
-                            .broadcast_events = {},
-                            .targeted_events = {{target_id, {chat_ev}}}};
+                    return {.private_events = {chat_ev}, .broadcast_events = {}};
                 }
             }
 
             ChatMsgEvent err{ChatMsgType::SYSTEM, "",
                              "Jugador " + target_nick + " no encontrado"};
-            return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
+            return {.private_events = {err}, .broadcast_events = {}};
         }
     }
 
@@ -147,12 +145,12 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
                                   ? "Comando " + cmd_name + " reconocido"
                                   : "Comando " + cmd_name + " no reconocido";
         ChatMsgEvent response{ChatMsgType::SYSTEM, "", msg};
-        return {.private_events = {response}, .broadcast_events = {}, .targeted_events = {}};
+        return {.private_events = {response}, .broadcast_events = {}};
     }
 
     // Texto plano — broadcast a todos
     ChatMsgEvent broadcast_ev{ChatMsgType::SAY, sender_name, text};
-    return {.private_events = {}, .broadcast_events = {broadcast_ev}, .targeted_events = {}};
+    return {.private_events = {}, .broadcast_events = {broadcast_ev}};
 }
 
 CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
