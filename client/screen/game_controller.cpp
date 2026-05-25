@@ -52,35 +52,37 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                                        move_config.walk_src_frames_for(e.entity_dir));
                            }
                        },
-                       [this](const EntitySpawnEvent& e) {
-                           if (e.entity_id == player_stats.player_id) {
-                               world_renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
-                           } else {
-                               world_renderer.spawn_entity(e.entity_id, e.entity_pos.x,
-                                                           e.entity_pos.y, e.entity_name);
-                           }
-                       },
-                       [this](const EntityDespawnEvent& e) {
-                           world_renderer.despawn_entity(e.entity_id);
-                       },
-                       [this](const LoginOkEvent& e) {
-                           player_stats.player_id = e.player_id;
-                           player_stats.username = e.username;
-                           player_stats.race = e.race;
-                           player_stats.player_class = e.player_class;
-                           player_stats.level = e.level;
-                           player_stats.experience = e.experience;
-                           player_stats.exp_to_next = e.exp_to_next;
-                           player_stats.hp_current = e.hp_current;
-                           player_stats.hp_max = e.hp_max;
-                           player_stats.mana_current = e.mana_current;
-                           player_stats.mana_max = e.mana_max;
-                           player_stats.gold = e.gold;
-                           player_stats.pos = e.pos;
-                           world_renderer.set_movable_position(e.pos.x, e.pos.y);
-                       },
+                        [this](const EntitySpawnEvent& e) {
+                            if (e.entity_id == player_stats.player_id) {
+                                world_renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
+                            } else {
+                                world_renderer.spawn_entity(e.entity_id, e.entity_pos.x,
+                                                            e.entity_pos.y, e.entity_name,
+                                                            e.entity_race, e.entity_class);
+                            }
+                        },
+                        [this](const LoginOkEvent& e) {
+                            player_stats.player_id = e.player_id;
+                            player_stats.username = e.username;
+                            player_stats.race = e.race;
+                            player_stats.player_class = e.player_class;
+                            player_stats.level = e.level;
+                            player_stats.experience = e.experience;
+                            player_stats.exp_to_next = e.exp_to_next;
+                            player_stats.hp_current = e.hp_current;
+                            player_stats.hp_max = e.hp_max;
+                            player_stats.mana_current = e.mana_current;
+                            player_stats.mana_max = e.mana_max;
+                            player_stats.gold = e.gold;
+                            player_stats.pos = e.pos;
+                            world_renderer.set_movable_position(e.pos.x, e.pos.y);
+                            world_renderer.set_local_player_info(e.race, e.player_class);
+                        },
+                        [this](const EntityDespawnEvent& e) {
+                            world_renderer.despawn_entity(e.entity_id);
+                        },
 
-                          [this](const DamageReceivedEvent& e) {
+                           [this](const DamageReceivedEvent& e) {
                               if (e.target_id != player_stats.player_id) {
                                   return;
                               }
