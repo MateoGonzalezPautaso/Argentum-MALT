@@ -102,7 +102,9 @@ ServerEvent ClientProtocol::recv_event() {
             ChatMsgType type = static_cast<ChatMsgType>(protocol.recv_uint8());
             std::string sender = protocol.recv_str();
             std::string message = protocol.recv_str();
-            return ChatMsgEvent{type, sender, message};
+            uint16_t recipient_id = protocol.recv_uint16();
+            uint16_t sender_id = protocol.recv_uint16();
+            return ChatMsgEvent{type, sender, message, recipient_id, sender_id};
         }
         default:
             throw std::runtime_error("Unknown event opcode: " +

@@ -367,6 +367,8 @@ struct ChatMsgEvent {
     ChatMsgType type;
     std::string sender_name;
     std::string message;
+    uint16_t recipient_id = 0;
+    uint16_t sender_id = 0;
 };
 
 // 0x99
