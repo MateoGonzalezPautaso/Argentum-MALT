@@ -16,8 +16,10 @@ bool ChatInput::handle_keydown(const SDL_Event& event) {
     switch (event.key.keysym.sym) {
         case SDLK_RETURN:
         case SDLK_KP_ENTER:
-            // todo aca habria que enviar el mensaje al servidor antes de limpiar el input
-            text.clear();
+            if (!text.empty()) {
+                pending_message = std::move(text);
+                text.clear();
+            }
             return true;
         case SDLK_BACKSPACE:
             if (!text.empty()) {
@@ -54,5 +56,13 @@ bool ChatInput::set_focus(bool value) {
 bool ChatInput::is_focused() const { return focused; }
 
 const std::string& ChatInput::get_text() const { return text; }
+
+bool ChatInput::has_pending_message() const { return !pending_message.empty(); }
+
+std::string ChatInput::pop_pending_message() {
+    std::string msg;
+    std::swap(msg, pending_message);
+    return msg;
+}
 
 void ChatInput::clear() { text.clear(); }
