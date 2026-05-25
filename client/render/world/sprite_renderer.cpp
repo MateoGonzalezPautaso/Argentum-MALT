@@ -1,8 +1,11 @@
 #include "sprite_renderer.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <stdexcept>
 #include <utility>
+
+#include "../../../common/messages.h"
 
 #include <SDL2/SDL.h>
 
@@ -92,7 +95,32 @@ void SpriteRenderer::set_movable_position(int x, int y) {
     sprite->dst.SetY(clamp_y(y, sprite->dst.GetH()));
 }
 
-void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::string& name) {
+namespace {
+
+std::string class_to_skin_key(PlayerClass pc) {
+    switch (pc) {
+        case PlayerClass::MAGE:    return "mage";
+        case PlayerClass::CLERIC:  return "cleric";
+        case PlayerClass::PALADIN: return "paladin";
+        case PlayerClass::WARRIOR: return "warrior";
+    }
+    return "";
+}
+
+std::string race_to_skin_key(Race race) {
+    switch (race) {
+        case Race::HUMAN: return "human";
+        case Race::ELF:   return "elf";
+        case Race::DWARF: return "dwarf";
+        case Race::GNOME: return "gnome";
+    }
+    return "";
+}
+
+}  // namespace
+
+void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::string& name,
+                                  Race race, PlayerClass player_class) {
     if (entity_part_configs.empty()) {
         return;
     }
@@ -101,7 +129,19 @@ void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::s
     parts.reserve(entity_part_configs.size());
 
     for (const auto& config: entity_part_configs) {
-        SpriteRender part = build_sprite_render(config);
+        SpriteConfig selected = config;
+        if (config.movable && !config.anchor_to_movable) {
+            auto it = skin_config.body.find(class_to_skin_key(player_class));
+            if (it != skin_config.body.end() && !it->second.empty()) {
+                selected.paths = {it->second};
+            }
+        } else if (config.anchor_to_movable) {
+            auto it = skin_config.head.find(race_to_skin_key(race));
+            if (it != skin_config.head.end() && !it->second.empty()) {
+                selected.paths = {it->second};
+            }
+        }
+        SpriteRender part = build_sprite_render(selected);
         if (part.frames.empty()) {
             continue;
         }
@@ -152,6 +192,35 @@ void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::s
 void SpriteRenderer::despawn_entity(uint16_t entity_id) {
     entity_sprites.erase(entity_id);
     entity_name_render.erase(entity_id);
+}
+
+void SpriteRenderer::set_skin_config(const SkinConfig& cfg) {
+    skin_config = cfg;
+}
+
+void SpriteRenderer::set_local_player_info(Race race, PlayerClass player_class) {
+    if (entity_part_configs.empty()) {
+        return;
+    }
+
+    for (std::size_t i = 0; i < entity_part_configs.size() && i < sprites.size(); ++i) {
+        const auto& config = entity_part_configs[i];
+        SpriteConfig selected = config;
+
+        if (config.movable && !config.anchor_to_movable) {
+            auto it = skin_config.body.find(class_to_skin_key(player_class));
+            if (it != skin_config.body.end() && !it->second.empty()) {
+                selected.paths = {it->second};
+            }
+        } else if (config.anchor_to_movable) {
+            auto it = skin_config.head.find(race_to_skin_key(race));
+            if (it != skin_config.head.end() && !it->second.empty()) {
+                selected.paths = {it->second};
+            }
+        }
+
+        sprites[i] = build_sprite_render(selected);
+    }
 }
 
 void SpriteRenderer::move_entity(uint16_t entity_id, int x, int y) {

@@ -9,6 +9,7 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>
 
+#include "../../../common/messages.h"
 #include "../../config/config.h"
 
 class AnimationSystem;
@@ -23,7 +24,8 @@ public:
     void set_name_font(TTF_Font* font) { name_font = font; }
 
     void set_movable_position(int x, int y);
-    void spawn_entity(uint16_t entity_id, int x, int y, const std::string& name);
+    void spawn_entity(uint16_t entity_id, int x, int y, const std::string& name,
+                      Race race = static_cast<Race>(0), PlayerClass player_class = static_cast<PlayerClass>(0));
     void despawn_entity(uint16_t entity_id);
     void move_entity(uint16_t entity_id, int x, int y);
     bool get_movable_position(int& x, int& y) const;
@@ -37,6 +39,8 @@ public:
     void set_entity_alpha(uint16_t entity_id, uint8_t alpha);
     void set_movable_alpha(uint8_t alpha);
     void update_anchor_positions();
+    void set_local_player_info(Race race, PlayerClass player_class);
+    void set_skin_config(const SkinConfig& skin_config);
 
     void render(const SDL2pp::Rect& cam);
     void tick_animations(AnimationSystem& anim);
@@ -88,6 +92,7 @@ private:
     std::vector<SpriteConfig> entity_part_configs;
     std::unordered_map<uint16_t, std::vector<SpriteRender>> entity_sprites;
     std::unordered_map<uint16_t, EntityNameRender> entity_name_render;
+    SkinConfig skin_config;
     int window_w;
     int window_h;
     bool has_tilemap;

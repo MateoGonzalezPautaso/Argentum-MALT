@@ -11,7 +11,8 @@
 WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig& background,
                              const TilemapConfig& tilemap,
                              const std::vector<SpriteConfig>& sprites_config,
-                             const ViewportConfig& viewport_cfg, const FontConfig& font_cfg):
+                             const ViewportConfig& viewport_cfg, const FontConfig& font_cfg,
+                             const SkinConfig& skin_config):
         renderer(renderer),
         background_texture(renderer, texture::load_surface(background.path)),
         background_rect(background.x, background.y, background.width, background.height),
@@ -42,6 +43,7 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig&
     }
 
     sprite_renderer.load_sprites(sprites_config);
+    sprite_renderer.set_skin_config(skin_config);
 
     if (sprite_renderer.empty()) {
         throw std::runtime_error("No sprites to render");
@@ -95,8 +97,13 @@ void WorldRenderer::set_movable_position(int x, int y) {
     sprite_renderer.set_movable_position(x, y);
 }
 
-void WorldRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::string& name) {
-    sprite_renderer.spawn_entity(entity_id, x, y, name);
+void WorldRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::string& name,
+                                 Race race, PlayerClass player_class) {
+    sprite_renderer.spawn_entity(entity_id, x, y, name, race, player_class);
+}
+
+void WorldRenderer::set_local_player_info(Race race, PlayerClass player_class) {
+    sprite_renderer.set_local_player_info(race, player_class);
 }
 
 void WorldRenderer::despawn_entity(uint16_t entity_id) {

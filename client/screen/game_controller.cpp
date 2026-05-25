@@ -8,7 +8,7 @@ GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& c
                                Queue<ClientCommand>& command_queue):
         renderer(renderer),
         world_renderer(renderer, config.background, config.tilemap, config.sprites, config.viewport,
-                       config.font),
+                       config.font, config.skins),
         ui_renderer(renderer, config.ui, chat_input),
         command_queue(command_queue),
         move_controller(world_renderer, this->command_queue, MoveConfig(config), SDL_GetTicks()),
