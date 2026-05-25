@@ -3,7 +3,7 @@ port = 1234
 tick_rate_hz = 20
 
 [movement]
-move_step = 4
+move_step = 8
 
 [sprite]
 width = 27

@@ -119,14 +119,14 @@ anchor_offset_y = -20
 visible = true
 
 [movement]
-move_step = 4
+move_step = 8
 walk_src_step = 27
 walk_src_frames = 6
 walk_src_frames_down = 6
 walk_src_frames_up = 6
 walk_src_frames_left = 5
 walk_src_frames_right = 5
-walk_frame_ms = 120
+walk_frame_ms = 50
 tick_ms = 33
 dir_src_y_down = 0
 dir_src_y_up = 48
