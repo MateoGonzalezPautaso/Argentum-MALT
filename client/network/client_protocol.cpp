@@ -38,6 +38,11 @@ void ClientProtocol::send_attack(const AttackCmd& cmd) {
     protocol.send_uint16(cmd.target_id);
 }
 
+void ClientProtocol::send_chat_msg(const SendChatMsgCmd& cmd) {
+    protocol.send_opcode(OpCode::SEND_CHAT);
+    protocol.send_str(cmd.text);
+}
+
 #include "../../common/visit.h"
 
 void ClientProtocol::send_command(const ClientCommand& cmd) {
@@ -46,6 +51,7 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const LoginCmd& msg) { send_login(msg); },
                        [this](const CreateCharacterCmd& msg) { send_create_character(msg); },
                        [this](const AttackCmd& msg) { send_attack(msg); },
+                       [this](const SendChatMsgCmd& msg) { send_chat_msg(msg); },
                        [](const auto&) { throw std::runtime_error("Command not implemented"); },
                },
                cmd);
@@ -82,6 +88,12 @@ ServerEvent ClientProtocol::recv_event() {
         case OpCode::ENTITY_DIED: {
             uint16_t entity_id = protocol.recv_uint16();
             return EntityDiedEvent{entity_id};
+        }
+        case OpCode::CHAT_MSG: {
+            ChatMsgType type = static_cast<ChatMsgType>(protocol.recv_uint8());
+            std::string sender = protocol.recv_str();
+            std::string message = protocol.recv_str();
+            return ChatMsgEvent{type, sender, message};
         }
         default:
             throw std::runtime_error("Unknown event opcode: " +
