@@ -241,7 +241,7 @@ CommandResult Game::handle_cheat_infinite_hp(uint16_t player_id) {
     it->second.cheat_infinite_hp = !it->second.cheat_infinite_hp;
     bool active = it->second.cheat_infinite_hp;
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     active ? "[Cheat] Vida infinita: ON" : "[Cheat] Vida infinita: OFF"};
+                     active ? "[Cheat] Infinite HP: ON" : "[Cheat] Infinite HP: OFF"};
     return {.private_events = {msg}, .broadcast_events = {}};
 }
 
@@ -252,7 +252,7 @@ CommandResult Game::handle_cheat_infinite_mana(uint16_t player_id) {
     it->second.cheat_infinite_mana = !it->second.cheat_infinite_mana;
     bool active = it->second.cheat_infinite_mana;
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     active ? "[Cheat] Maná infinito: ON" : "[Cheat] Maná infinito: OFF"};
+                     active ? "[Cheat] Infinite Mana: ON" : "[Cheat] Infinite Mana: OFF"};
     return {.private_events = {msg}, .broadcast_events = {}};
 }
 
@@ -261,9 +261,12 @@ CommandResult Game::handle_cheat_die(uint16_t player_id) {
     if (it == players.end())
         return {};
     it->second.hp_current = 0;
+    it->second.is_dead = true;
+    DamageReceivedEvent dmg{.target_id = player_id, .attacker_id = player_id,
+                            .damage = 0, .hp_current = 0, .hp_max = it->second.hp_max};
     EntityDiedEvent died{.entity_id = player_id};
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] ¡Moriste!"};
-    return {.private_events = {msg}, .broadcast_events = {died}};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] You died!"};
+    return {.private_events = {msg}, .broadcast_events = {dmg, died}};
 }
 
 bool Game::is_username_logged_in(const std::string& username) const {
@@ -282,7 +285,7 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
 
     Player& player = it->second;
     if (!player.is_ghost()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No estas muerto"};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "You are not dead"};
         return {.private_events = {msg}, .broadcast_events = {}};
     }
 
