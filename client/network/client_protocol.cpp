@@ -81,13 +81,22 @@ ServerEvent ClientProtocol::recv_event() {
             return DamageDealtEvent{target_id, damage};
         }
         case OpCode::DAMAGE_RECEIVED: {
+            uint16_t target_id = protocol.recv_uint16();
             uint16_t attacker_id = protocol.recv_uint16();
             uint32_t damage = protocol.recv_uint32();
-            return DamageReceivedEvent{attacker_id, damage};
+            uint32_t hp_current = protocol.recv_uint32();
+            uint32_t hp_max = protocol.recv_uint32();
+            return DamageReceivedEvent{target_id, attacker_id, damage, hp_current, hp_max};
         }
         case OpCode::ENTITY_DIED: {
             uint16_t entity_id = protocol.recv_uint16();
             return EntityDiedEvent{entity_id};
+        }
+        case OpCode::PLAYER_RESPAWNED: {
+            uint16_t entity_id = protocol.recv_uint16();
+            uint32_t hp_current = protocol.recv_uint32();
+            uint32_t hp_max = protocol.recv_uint32();
+            return PlayerRespawnedEvent{entity_id, hp_current, hp_max};
         }
         case OpCode::CHAT_MSG: {
             ChatMsgType type = static_cast<ChatMsgType>(protocol.recv_uint8());

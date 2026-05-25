@@ -80,21 +80,14 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                            world_renderer.set_movable_position(e.pos.x, e.pos.y);
                        },
 
-                         [this](const DamageReceivedEvent& e) {
-                             if (e.damage >= player_stats.hp_current) {
-                                 player_stats.hp_current = 0;
-                             } else {
-                                 player_stats.hp_current -= e.damage;
-                             }
-                             chat_history.add_message(
-                                     ChatMsgType::SYSTEM, "",
-                                     "Recibiste " + std::to_string(e.damage) + " de daño");
-                         },
-                         [this](const DamageDealtEvent& e) {
-                             chat_history.add_message(
-                                     ChatMsgType::SYSTEM, "",
-                                     "Hiciste " + std::to_string(e.damage) + " de daño");
-                         },
+                          [this](const DamageReceivedEvent& e) {
+                              if (e.target_id != player_stats.player_id) {
+                                  return;
+                              }
+                              player_stats.hp_current = e.hp_current;
+                              player_stats.hp_max = e.hp_max;
+                          },
+                          [](const DamageDealtEvent&) {},
                          [this](const AttackDodgedEvent&) {
                              chat_history.add_message(ChatMsgType::SYSTEM, "",
                                                       "El ataque fue esquivado");
@@ -103,7 +96,20 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                              chat_history.add_message(e.type, e.sender_name, e.message);
                          },
                          [this](const EntityDiedEvent& e) {
-                             world_renderer.despawn_entity(e.entity_id);
+                             world_renderer.set_entity_alpha(e.entity_id, 128);
+                             if (e.entity_id == player_stats.player_id) {
+                                 player_is_ghost = true;
+                                 world_renderer.set_movable_alpha(128);
+                             }
+                         },
+                         [this](const PlayerRespawnedEvent& e) {
+                             world_renderer.set_entity_alpha(e.entity_id, 255);
+                             if (e.entity_id == player_stats.player_id) {
+                                 player_is_ghost = false;
+                                 player_stats.hp_current = e.hp_current;
+                                 player_stats.hp_max = e.hp_max;
+                                 world_renderer.set_movable_alpha(255);
+                             }
                          },
                          [](const auto&) {},
                 },
@@ -154,6 +160,10 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
     }
 
     uint16_t entity_id = 0;
+    if (player_is_ghost) {
+        return true;
+    }
+
     if (world_renderer.hit_test_entity(world_x, world_y, entity_id)) {
         command_queue.push(AttackCmd{entity_id});
         return true;

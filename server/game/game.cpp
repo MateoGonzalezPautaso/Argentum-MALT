@@ -112,7 +112,8 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             for (const auto& [target_id, player]: players) {
                 if (player.username == target_nick) {
                     ChatMsgEvent chat_ev{ChatMsgType::PRIVATE, sender_name, msg};
-                    return {.private_events = {chat_ev}, .broadcast_events = {}};
+                    return {.private_events = {}, .broadcast_events = {},
+                            .targeted_events = {{target_id, {chat_ev}}}};
                 }
             }
 
@@ -130,6 +131,10 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             cmd_name = text.substr(0, space_pos);
         } else {
             cmd_name = text;
+        }
+
+        if (cmd_name == "/resucitar") {
+            return handle_resurrect(player_id);
         }
 
         static const std::unordered_set<std::string> known_commands = {
@@ -233,6 +238,25 @@ bool Game::is_username_logged_in(const std::string& username) const {
             return true;
     }
     return false;
+}
+
+CommandResult Game::handle_resurrect(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end()) {
+        return {};
+    }
+
+    Player& player = it->second;
+    if (!player.is_ghost()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No estas muerto"};
+        return {.private_events = {msg}, .broadcast_events = {}};
+    }
+
+    player.resurrect();
+
+    PlayerRespawnedEvent respawn_ev{player_id, player.hp_current, player.hp_max};
+
+    return {.private_events = {}, .broadcast_events = {respawn_ev}};
 }
 
 CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {

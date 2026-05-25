@@ -30,6 +30,10 @@ void GameLoop::run() {
                 for (const ServerEvent& ev: result.private_events)
                     monitor.push_event(pcmd.player_id, ev);
 
+                for (const auto& [target_id, events]: result.targeted_events)
+                    for (const ServerEvent& ev: events)
+                        monitor.push_event(target_id, ev);
+
                 for (const ServerEvent& ev: result.broadcast_events) monitor.broadcast(ev);
             }
         } catch (const ClosedQueue&) {
