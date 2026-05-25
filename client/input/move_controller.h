@@ -51,7 +51,7 @@ public:
 
 private:
     void set_direction_rows(Direction dir);
-    void advance_walk_frame(Direction dir, uint32_t now);
+    bool advance_walk_frame(Direction dir, uint32_t now);
     void apply_movement(Direction dir, uint32_t now, bool cancel_target);
     bool get_movable_position(int& x, int& y);
     Direction compute_direction_to_target(int current_x, int current_y) const;
