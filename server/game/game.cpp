@@ -1,6 +1,10 @@
 #include "game.h"
 
+
+#include <unordered_set>
+
 #include <string>
+
 #include <utility>
 #include <variant>
 #include <vector>
@@ -41,12 +45,13 @@ Game::Game(const ServerConfig& config, PlayerPersistence& persistence):
 
 CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd) {
     return std::visit(overloaded{
-                              [&](const LoginCmd& cmd) { return handle_login(player_id, cmd); },
-                              [&](const MoveCmd& cmd) { return handle_move(player_id, cmd); },
-                              [&](const AttackCmd& cmd) { return handle_attack(player_id, cmd); },
-                              [](const auto&) { return CommandResult{}; },
-                      },
-                      cmd);
+                               [&](const LoginCmd& cmd) { return handle_login(player_id, cmd); },
+                               [&](const MoveCmd& cmd) { return handle_move(player_id, cmd); },
+                               [&](const AttackCmd& cmd) { return handle_attack(player_id, cmd); },
+                               [&](const SendChatMsgCmd& cmd) { return handle_send_chat_msg(player_id, cmd); },
+                               [](const auto&) { return CommandResult{}; },
+                       },
+                       cmd);
 }
 
 CommandResult Game::remove_player(uint16_t player_id) {
@@ -82,6 +87,72 @@ CommandResult Game::tick() {
 
 CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
     return combat_controller.melee_attack(player_id, cmd.target_id, tick_count);
+}
+
+CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCmd& cmd) {
+    auto it = players.find(player_id);
+    if (it == players.end()) {
+        return {};
+    }
+
+    const std::string& text = cmd.text;
+    const std::string& sender_name = it->second.username;
+
+    if (text.empty()) {
+        return {};
+    }
+
+    // @nick mensaje — mensaje privado
+    if (text[0] == '@') {
+        size_t space_pos = text.find(' ');
+        if (space_pos != std::string::npos) {
+            std::string target_nick = text.substr(1, space_pos - 1);
+            std::string msg = text.substr(space_pos + 1);
+
+            for (const auto& [target_id, player]: players) {
+                if (player.username == target_nick) {
+                    ChatMsgEvent chat_ev{ChatMsgType::PRIVATE, sender_name, msg};
+                    return {.private_events = {},
+                            .broadcast_events = {},
+                            .targeted_events = {{target_id, {chat_ev}}}};
+                }
+            }
+
+            ChatMsgEvent err{ChatMsgType::SYSTEM, "",
+                             "Jugador " + target_nick + " no encontrado"};
+            return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
+        }
+    }
+
+    // /comando — validar contra lista de comandos conocidos
+    if (text[0] == '/') {
+        std::string cmd_name;
+        size_t space_pos = text.find(' ');
+        if (space_pos != std::string::npos) {
+            cmd_name = text.substr(0, space_pos);
+        } else {
+            cmd_name = text;
+        }
+
+        static const std::unordered_set<std::string> known_commands = {
+                "/meditar",    "/resucitar",      "/curar",        "/depositar",
+                "/retirar",    "/listar",         "/comprar",      "/vender",
+                "/tomar",      "/tirar",          "/fundar-clan",  "/unirse",
+                "/revisar-clan", "/clan-aceptar", "/clan-rechazar", "/clan-ban",
+                "/dejar-clan", "/clan-kick",
+        };
+
+        bool recognized = known_commands.find(cmd_name) != known_commands.end();
+        std::string msg = recognized
+                                  ? "Comando " + cmd_name + " reconocido"
+                                  : "Comando " + cmd_name + " no reconocido";
+        ChatMsgEvent response{ChatMsgType::SYSTEM, "", msg};
+        return {.private_events = {response}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    // Texto plano — broadcast a todos
+    ChatMsgEvent broadcast_ev{ChatMsgType::SAY, sender_name, text};
+    return {.private_events = {}, .broadcast_events = {broadcast_ev}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {

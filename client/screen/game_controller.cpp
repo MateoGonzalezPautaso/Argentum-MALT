@@ -31,6 +31,7 @@ void GameController::render() {
     ui_renderer.render_hp_bar(player_stats.hp_current, player_stats.hp_max);
     ui_renderer.render_mp_bar(player_stats.mana_current, player_stats.mana_max);
     ui_renderer.render_exp_bar(player_stats.experience, player_stats.exp_to_next);
+    ui_renderer.render_chat_history(chat_history.get_messages());
     ui_renderer.render_chat_input();
     renderer.Present();
 }
@@ -78,19 +79,36 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                            player_stats.pos = e.pos;
                            world_renderer.set_movable_position(e.pos.x, e.pos.y);
                        },
-                       [this](const DamageReceivedEvent& e) {
-                           if (e.damage >= player_stats.hp_current) {
-                               player_stats.hp_current = 0;
-                           } else {
-                               player_stats.hp_current -= e.damage;
-                           }
-                       },
-                       [this](const EntityDiedEvent& e) {
-                           world_renderer.despawn_entity(e.entity_id);
-                       },
-                       [](const auto&) {},
-               },
-               ev);
+
+                         [this](const DamageReceivedEvent& e) {
+                             if (e.damage >= player_stats.hp_current) {
+                                 player_stats.hp_current = 0;
+                             } else {
+                                 player_stats.hp_current -= e.damage;
+                             }
+                             chat_history.add_message(
+                                     ChatMsgType::SYSTEM, "",
+                                     "Recibiste " + std::to_string(e.damage) + " de daño");
+                         },
+                         [this](const DamageDealtEvent& e) {
+                             chat_history.add_message(
+                                     ChatMsgType::SYSTEM, "",
+                                     "Hiciste " + std::to_string(e.damage) + " de daño");
+                         },
+                         [this](const AttackDodgedEvent&) {
+                             chat_history.add_message(ChatMsgType::SYSTEM, "",
+                                                      "El ataque fue esquivado");
+                         },
+                         [this](const ChatMsgEvent& e) {
+                             chat_history.add_message(e.type, e.sender_name, e.message);
+                         },
+                         [this](const EntityDiedEvent& e) {
+                             world_renderer.despawn_entity(e.entity_id);
+                         },
+                         [](const auto&) {},
+                },
+                ev);
+
 }
 
 bool GameController::handle_event(const SDL_Event& event) {
@@ -99,6 +117,7 @@ bool GameController::handle_event(const SDL_Event& event) {
     }
 
     if (chat_input.consume_event(event)) {
+        flush_pending_chat();
         return true;
     }
 
@@ -183,4 +202,12 @@ bool GameController::handle_keydown(const SDL_Event& event) {
     }
 
     return true;
+}
+
+void GameController::flush_pending_chat() {
+    if (!chat_input.has_pending_message()) {
+        return;
+    }
+    std::string text = chat_input.pop_pending_message();
+    command_queue.push(SendChatMsgCmd{std::move(text)});
 }

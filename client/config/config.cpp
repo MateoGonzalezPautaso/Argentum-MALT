@@ -142,6 +142,10 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
         config.ui.chat_input_y = toml_get_int(*tbl, "chat_input_y", config.ui.chat_input_y);
         config.ui.chat_input_w = toml_get_int(*tbl, "chat_input_w", config.ui.chat_input_w);
         config.ui.chat_input_h = toml_get_int(*tbl, "chat_input_h", config.ui.chat_input_h);
+        config.ui.chat_history_x = toml_get_int(*tbl, "chat_history_x", config.ui.chat_history_x);
+        config.ui.chat_history_y = toml_get_int(*tbl, "chat_history_y", config.ui.chat_history_y);
+        config.ui.chat_history_w = toml_get_int(*tbl, "chat_history_w", config.ui.chat_history_w);
+        config.ui.chat_history_h = toml_get_int(*tbl, "chat_history_h", config.ui.chat_history_h);
         config.ui.start_x = toml_get_int(*tbl, "start_x", config.ui.start_x);
         config.ui.start_y = toml_get_int(*tbl, "start_y", config.ui.start_y);
         config.ui.start_w = toml_get_int(*tbl, "start_w", config.ui.start_w);

@@ -8,6 +8,7 @@
 class ChatInput {
 private:
     std::string text;
+    std::string pending_message;
     bool focused = false;
 
 public:
@@ -17,6 +18,8 @@ public:
     bool set_focus(bool value);
     bool is_focused() const;
     const std::string& get_text() const;
+    bool has_pending_message() const;
+    std::string pop_pending_message();
     void clear();
 };
 

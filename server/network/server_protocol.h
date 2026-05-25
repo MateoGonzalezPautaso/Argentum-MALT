@@ -61,6 +61,7 @@ private:
     ClientCommand recv_create_character();
     ClientCommand recv_move();
     ClientCommand recv_attack();
+    ClientCommand recv_send_chat_msg();
     // TODO ...
 };
 

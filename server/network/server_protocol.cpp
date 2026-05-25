@@ -23,6 +23,8 @@ ClientCommand ServerProtocol::recv_command() {
             return recv_create_character();
         case OpCode::ATTACK:
             return recv_attack();
+        case OpCode::SEND_CHAT:
+            return recv_send_chat_msg();
         default:
             throw std::runtime_error("Unknown command opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
@@ -53,6 +55,12 @@ ClientCommand ServerProtocol::recv_create_character() {
 ClientCommand ServerProtocol::recv_attack() {
     uint16_t target_id = protocol.recv_uint16();
     return AttackCmd{target_id};
+}
+
+ClientCommand ServerProtocol::recv_send_chat_msg() {
+    SendChatMsgCmd cmd;
+    cmd.text = protocol.recv_str();
+    return cmd;
 }
 
 void ServerProtocol::send_login_payload(const LoginOkEvent& ev) {
@@ -136,6 +144,13 @@ void ServerProtocol::send_entity_died(const EntityDiedEvent& ev) {
     protocol.send_uint16(ev.entity_id);
 }
 
+void ServerProtocol::send_chat_msg(const ChatMsgEvent& ev) {
+    protocol.send_opcode(OpCode::CHAT_MSG);
+    protocol.send_uint8(static_cast<uint8_t>(ev.type));
+    protocol.send_str(ev.sender_name);
+    protocol.send_str(ev.message);
+}
+
 #include "../../common/visit.h"
 
 void ServerProtocol::send_event(const ServerEvent& ev) {
@@ -149,8 +164,9 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [this](const EntityMoveEvent& msg) { send_entity_move(msg); },
                        [this](const DamageDealtEvent& msg) { send_damage_dealt(msg); },
                        [this](const DamageReceivedEvent& msg) { send_damage_received(msg); },
-                       [this](const EntityDiedEvent& msg) { send_entity_died(msg); },
-                       [](const auto&) { throw std::runtime_error("Event type not implemented"); },
+                        [this](const EntityDiedEvent& msg) { send_entity_died(msg); },
+                        [this](const ChatMsgEvent& msg) { send_chat_msg(msg); },
+                        [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },
                ev);
 }

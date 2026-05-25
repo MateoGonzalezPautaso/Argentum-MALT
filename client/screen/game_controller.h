@@ -6,6 +6,10 @@
 
 #include "../../common/messages.h"
 #include "../../common/queue.h"
+
+#include "../input/chat_input.h"
+#include "../chat/chat_history.h"
+
 #include "../config/config.h"
 #include "../config/player_stats.h"
 #include "../input/chat_input.h"
@@ -28,6 +32,7 @@ public:
 private:
     SDL2pp::Renderer& renderer;
     ChatInput chat_input;
+    ChatHistory chat_history;
     PlayerStats player_stats;
     WorldRenderer world_renderer;
     UIRenderer ui_renderer;
@@ -40,6 +45,7 @@ private:
     bool handle_mouse_button(const SDL_Event& event);
     bool handle_mouse_motion(const SDL_Event& event);
     bool handle_keydown(const SDL_Event& event);
+    void flush_pending_chat();
 };
 
 #endif
