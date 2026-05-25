@@ -135,6 +135,7 @@ void ServerProtocol::send_damage_dealt(const DamageDealtEvent& ev) {
 
 void ServerProtocol::send_damage_received(const DamageReceivedEvent& ev) {
     protocol.send_opcode(OpCode::DAMAGE_RECEIVED);
+    protocol.send_uint16(ev.target_id);
     protocol.send_uint16(ev.attacker_id);
     protocol.send_uint32(ev.damage);
 }

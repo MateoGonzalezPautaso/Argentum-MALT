@@ -315,6 +315,7 @@ struct DamageDealtEvent {
 
 // 0x8A
 struct DamageReceivedEvent {
+    uint16_t target_id;
     uint16_t attacker_id;
     uint32_t damage;
 };

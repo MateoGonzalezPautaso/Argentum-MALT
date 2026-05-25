@@ -81,9 +81,10 @@ ServerEvent ClientProtocol::recv_event() {
             return DamageDealtEvent{target_id, damage};
         }
         case OpCode::DAMAGE_RECEIVED: {
+            uint16_t target_id = protocol.recv_uint16();
             uint16_t attacker_id = protocol.recv_uint16();
             uint32_t damage = protocol.recv_uint32();
-            return DamageReceivedEvent{attacker_id, damage};
+            return DamageReceivedEvent{target_id, attacker_id, damage};
         }
         case OpCode::ENTITY_DIED: {
             uint16_t entity_id = protocol.recv_uint16();

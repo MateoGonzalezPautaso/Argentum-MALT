@@ -80,21 +80,17 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                            world_renderer.set_movable_position(e.pos.x, e.pos.y);
                        },
 
-                         [this](const DamageReceivedEvent& e) {
-                             if (e.damage >= player_stats.hp_current) {
-                                 player_stats.hp_current = 0;
-                             } else {
-                                 player_stats.hp_current -= e.damage;
-                             }
-                             chat_history.add_message(
-                                     ChatMsgType::SYSTEM, "",
-                                     "Recibiste " + std::to_string(e.damage) + " de daño");
-                         },
-                         [this](const DamageDealtEvent& e) {
-                             chat_history.add_message(
-                                     ChatMsgType::SYSTEM, "",
-                                     "Hiciste " + std::to_string(e.damage) + " de daño");
-                         },
+                          [this](const DamageReceivedEvent& e) {
+                              if (e.target_id != player_stats.player_id) {
+                                  return;
+                              }
+                              if (e.damage >= player_stats.hp_current) {
+                                  player_stats.hp_current = 0;
+                              } else {
+                                  player_stats.hp_current -= e.damage;
+                              }
+                          },
+                          [](const DamageDealtEvent&) {},
                          [this](const AttackDodgedEvent&) {
                              chat_history.add_message(ChatMsgType::SYSTEM, "",
                                                       "El ataque fue esquivado");

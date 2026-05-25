@@ -35,23 +35,18 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
     uint32_t damage = calculate_damage();
     target.take_damage(damage);
 
-    DamageDealtEvent dealt{target_id, damage};
-    DamageReceivedEvent received{attacker_id, damage};
-    ChatMsgEvent broadcast_msg{ChatMsgType::SYSTEM, "",
-                                attacker.username + " ataco a " + target.username +
-                                        " por " + std::to_string(damage) + " de danio"};
-    std::vector<ServerEvent> broadcast = {broadcast_msg};
+    DamageReceivedEvent received{target.id, attacker.id, damage};
+    ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
+                           attacker.username + " ataco a " + target.username +
+                                   " por " + std::to_string(damage) + " de danio"};
+    std::vector<ServerEvent> broadcast = {received, chat_msg};
 
     if (target.hp_current == 0) {
         EntityDiedEvent died{target_id};
         broadcast.push_back(died);
     }
 
-    return {
-            .private_events = {dealt},
-            .broadcast_events = broadcast,
-            .targeted_events = {{target_id, {received}}},
-    };
+    return {.broadcast_events = std::move(broadcast)};
 }
 
 bool CombatController::in_range(const Player& attacker, const Player& target) const {
