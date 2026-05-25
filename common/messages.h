@@ -331,6 +331,8 @@ struct EntityDiedEvent {
 // 0x8D
 struct PlayerRespawnedEvent {
     uint16_t entity_id;
+    uint32_t hp_current;
+    uint32_t hp_max;
 };
 
 // 0x8E / 0x8F

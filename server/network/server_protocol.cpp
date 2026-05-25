@@ -148,6 +148,8 @@ void ServerProtocol::send_entity_died(const EntityDiedEvent& ev) {
 void ServerProtocol::send_player_respawned(const PlayerRespawnedEvent& ev) {
     protocol.send_opcode(OpCode::PLAYER_RESPAWNED);
     protocol.send_uint16(ev.entity_id);
+    protocol.send_uint32(ev.hp_current);
+    protocol.send_uint32(ev.hp_max);
 }
 
 void ServerProtocol::send_chat_msg(const ChatMsgEvent& ev) {

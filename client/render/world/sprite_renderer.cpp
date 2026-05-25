@@ -274,6 +274,14 @@ void SpriteRenderer::set_entity_alpha(uint16_t entity_id, uint8_t alpha) {
     }
 }
 
+void SpriteRenderer::set_movable_alpha(uint8_t alpha) {
+    for (auto& sprite: sprites) {
+        if (sprite.movable) {
+            sprite.alpha = alpha;
+        }
+    }
+}
+
 void SpriteRenderer::update_anchor_positions() {
     SpriteRender* movable = find_movable_sprite();
     if (!movable) {

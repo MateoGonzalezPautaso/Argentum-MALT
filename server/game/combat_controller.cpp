@@ -38,7 +38,7 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
     DamageReceivedEvent received{target.id, attacker.id, damage};
     ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
                            attacker.username + " ataco a " + target.username +
-                                   " por " + std::to_string(damage) + " de danio"};
+                                   " por " + std::to_string(damage) + " de daño"};
     std::vector<ServerEvent> broadcast = {received, chat_msg};
 
     if (target.hp_current == 0) {

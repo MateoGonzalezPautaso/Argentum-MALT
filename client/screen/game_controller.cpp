@@ -102,12 +102,16 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                              world_renderer.set_entity_alpha(e.entity_id, 128);
                              if (e.entity_id == player_stats.player_id) {
                                  player_is_ghost = true;
+                                 world_renderer.set_movable_alpha(128);
                              }
                          },
                          [this](const PlayerRespawnedEvent& e) {
                              world_renderer.set_entity_alpha(e.entity_id, 255);
                              if (e.entity_id == player_stats.player_id) {
                                  player_is_ghost = false;
+                                 player_stats.hp_current = e.hp_current;
+                                 player_stats.hp_max = e.hp_max;
+                                 world_renderer.set_movable_alpha(255);
                              }
                          },
                          [](const auto&) {},

@@ -143,3 +143,7 @@ void WorldRenderer::step_entity_src_x(uint16_t entity_id, int step, int frame_co
 void WorldRenderer::set_entity_alpha(uint16_t entity_id, uint8_t alpha) {
     sprite_renderer.set_entity_alpha(entity_id, alpha);
 }
+
+void WorldRenderer::set_movable_alpha(uint8_t alpha) {
+    sprite_renderer.set_movable_alpha(alpha);
+}

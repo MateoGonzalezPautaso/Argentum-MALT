@@ -253,10 +253,10 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
 
     player.resurrect();
 
-    PlayerRespawnedEvent respawn_ev{player_id};
+    PlayerRespawnedEvent respawn_ev{player_id, player.hp_current, player.hp_max};
     EntityMoveEvent move_ev{player_id, player.pos, player.dir};
 
-    return {.private_events = {respawn_ev}, .broadcast_events = {move_ev}};
+    return {.private_events = {}, .broadcast_events = {respawn_ev, move_ev}};
 }
 
 CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
