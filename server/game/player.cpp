@@ -59,9 +59,18 @@ void Player::take_damage(uint32_t damage) {
         return;
     if (damage >= hp_current) {
         hp_current = 0;
+        is_dead = true;
     } else {
         hp_current -= damage;
     }
+}
+
+bool Player::is_ghost() const { return is_dead; }
+
+void Player::resurrect() {
+    is_dead = false;
+    hp_current = hp_max;
+    mana_current = mana_max;
 }
 
 void Player::heal(uint32_t amount) {

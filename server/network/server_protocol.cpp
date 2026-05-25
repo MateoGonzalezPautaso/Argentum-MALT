@@ -141,8 +141,11 @@ void ServerProtocol::send_damage_dealt(const DamageDealtEvent& ev) {
 
 void ServerProtocol::send_damage_received(const DamageReceivedEvent& ev) {
     protocol.send_opcode(OpCode::DAMAGE_RECEIVED);
+    protocol.send_uint16(ev.target_id);
     protocol.send_uint16(ev.attacker_id);
     protocol.send_uint32(ev.damage);
+    protocol.send_uint32(ev.hp_current);
+    protocol.send_uint32(ev.hp_max);
 }
 
 void ServerProtocol::send_entity_died(const EntityDiedEvent& ev) {
@@ -150,11 +153,20 @@ void ServerProtocol::send_entity_died(const EntityDiedEvent& ev) {
     protocol.send_uint16(ev.entity_id);
 }
 
+void ServerProtocol::send_player_respawned(const PlayerRespawnedEvent& ev) {
+    protocol.send_opcode(OpCode::PLAYER_RESPAWNED);
+    protocol.send_uint16(ev.entity_id);
+    protocol.send_uint32(ev.hp_current);
+    protocol.send_uint32(ev.hp_max);
+}
+
 void ServerProtocol::send_chat_msg(const ChatMsgEvent& ev) {
     protocol.send_opcode(OpCode::CHAT_MSG);
     protocol.send_uint8(static_cast<uint8_t>(ev.type));
     protocol.send_str(ev.sender_name);
     protocol.send_str(ev.message);
+    protocol.send_uint16(ev.recipient_id);
+    protocol.send_uint16(ev.sender_id);
 }
 
 #include "../../common/visit.h"
@@ -170,8 +182,9 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [this](const EntityMoveEvent& msg) { send_entity_move(msg); },
                        [this](const DamageDealtEvent& msg) { send_damage_dealt(msg); },
                        [this](const DamageReceivedEvent& msg) { send_damage_received(msg); },
-                        [this](const EntityDiedEvent& msg) { send_entity_died(msg); },
-                        [this](const ChatMsgEvent& msg) { send_chat_msg(msg); },
+                         [this](const EntityDiedEvent& msg) { send_entity_died(msg); },
+                         [this](const PlayerRespawnedEvent& msg) { send_player_respawned(msg); },
+                         [this](const ChatMsgEvent& msg) { send_chat_msg(msg); },
                         [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },
                ev);

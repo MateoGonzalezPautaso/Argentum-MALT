@@ -26,6 +26,7 @@ private:
     uint32_t mana_max;
     uint32_t gold;
     uint32_t next_attack_tick = 0;
+    bool is_dead = false;
     BalanceConfig balance;
     bool cheat_infinite_hp = false;
     bool cheat_infinite_mana = false;
@@ -38,8 +39,10 @@ public:
     uint16_t pos_y() const { return pos.y; }
 
     bool try_attack(uint32_t current_tick, uint32_t cooldown_ticks);
+    bool is_ghost() const;
 
     void apply_move(Direction new_dir, int dx, int dy);
+    void resurrect();
     void gain_experience(uint32_t exp);
     void level_up();
     void take_damage(uint32_t damage);

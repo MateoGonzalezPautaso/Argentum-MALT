@@ -18,7 +18,6 @@ enum class OpCode : uint8_t {
     EQUIP_ITEM = 0x08,
     UNEQUIP_ITEM = 0x09,
     MEDITATE = 0x0A,
-    RESURRECT = 0x0B,
     NPC_BUY = 0x0C,
     NPC_SELL = 0x0D,
     NPC_HEAL = 0x0E,

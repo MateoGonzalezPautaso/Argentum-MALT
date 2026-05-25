@@ -34,6 +34,7 @@ private:
     ChatInput chat_input;
     ChatHistory chat_history;
     PlayerStats player_stats;
+    bool player_is_ghost = false;
     WorldRenderer world_renderer;
     UIRenderer ui_renderer;
     Queue<ClientCommand>& command_queue;

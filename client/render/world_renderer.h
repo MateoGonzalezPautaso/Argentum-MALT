@@ -37,6 +37,8 @@ public:
     void set_anchor_src_y(int y);
     void set_entity_src_y(uint16_t entity_id, int body_src_y, int head_src_y);
     void step_entity_src_x(uint16_t entity_id, int step, int frame_count);
+    void set_entity_alpha(uint16_t entity_id, uint8_t alpha);
+    void set_movable_alpha(uint8_t alpha);
     void set_show_hitboxes(bool v) { show_hitboxes_ = v; }
     bool get_show_hitboxes() const { return show_hitboxes_; }
 

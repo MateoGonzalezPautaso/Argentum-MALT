@@ -264,6 +264,24 @@ void SpriteRenderer::step_entity_src_x(uint16_t entity_id, int step, int frame_c
     }
 }
 
+void SpriteRenderer::set_entity_alpha(uint16_t entity_id, uint8_t alpha) {
+    auto it = entity_sprites.find(entity_id);
+    if (it == entity_sprites.end()) {
+        return;
+    }
+    for (auto& sprite: it->second) {
+        sprite.alpha = alpha;
+    }
+}
+
+void SpriteRenderer::set_movable_alpha(uint8_t alpha) {
+    for (auto& sprite: sprites) {
+        if (sprite.movable) {
+            sprite.alpha = alpha;
+        }
+    }
+}
+
 void SpriteRenderer::update_anchor_positions() {
     SpriteRender* movable = find_movable_sprite();
     if (!movable) {
@@ -295,6 +313,7 @@ void SpriteRenderer::render(const SDL2pp::Rect& cam) {
         SDL2pp::Rect* src;
         SDL2pp::Rect dst;
         int foot_y;
+        uint8_t alpha;
     };
     std::vector<Drawable> drawables;
 
@@ -307,7 +326,8 @@ void SpriteRenderer::render(const SDL2pp::Rect& cam) {
                          sprite.dst.GetW(), sprite.dst.GetH());
         drawables.push_back({&sprite.frames[sprite.current_frame],
                              sprite.use_src ? &sprite.src : nullptr, dst,
-                             sprite.dst.GetY() + sprite.dst.GetH()});
+                             sprite.dst.GetY() + sprite.dst.GetH(),
+                             sprite.alpha});
     }
 
     for (auto& pair: entity_sprites) {
@@ -322,7 +342,8 @@ void SpriteRenderer::render(const SDL2pp::Rect& cam) {
                              sprite.dst.GetW(), sprite.dst.GetH());
             drawables.push_back({&sprite.frames[sprite.current_frame],
                                  sprite.use_src ? &sprite.src : nullptr, dst,
-                                 sprite.dst.GetY() + sprite.dst.GetH()});
+                                 sprite.dst.GetY() + sprite.dst.GetH(),
+                                 sprite.alpha});
 
             if (sprite.movable) {
                 body_foot_y = sprite.dst.GetY() + sprite.dst.GetH();
@@ -344,10 +365,18 @@ void SpriteRenderer::render(const SDL2pp::Rect& cam) {
               [](const Drawable& a, const Drawable& b) { return a.foot_y < b.foot_y; });
 
     for (auto& d: drawables) {
+        SDL_Texture* tex = d.texture->Get();
+        if (d.alpha < 255) {
+            SDL_SetTextureAlphaMod(tex, d.alpha);
+            SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
+        }
         if (d.src) {
             renderer.Copy(*d.texture, *d.src, d.dst);
         } else {
             renderer.Copy(*d.texture, SDL2pp::NullOpt, d.dst);
+        }
+        if (d.alpha < 255) {
+            SDL_SetTextureAlphaMod(tex, 255);
         }
     }
 }

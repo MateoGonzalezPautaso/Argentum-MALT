@@ -17,7 +17,7 @@
 class ClientListMonitor {
     std::mutex mtx;
     std::map<uint16_t, std::unique_ptr<ClientHandler>> clients;
-    uint16_t next_id = 0;
+    uint16_t next_id = 1;
 
 public:
     ClientListMonitor() = default;
