@@ -8,6 +8,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <algorithm>
+#include <iterator>
 #include <utility>
 #include <vector>
 
@@ -38,9 +39,8 @@ TilePalette::TilePalette(TilemapConfig& config,
 
     std::vector<std::string> sorted_names;
     sorted_names.reserve(config_.tiles.size());
-    for (const auto& kv: config_.tiles) {
-        sorted_names.push_back(kv.first);
-    }
+    std::transform(config_.tiles.begin(), config_.tiles.end(), std::back_inserter(sorted_names),
+                   [](const auto& kv) { return kv.first; });
     std::sort(sorted_names.begin(), sorted_names.end());
 
     auto section = make_section(
@@ -63,9 +63,8 @@ TilePalette::TilePalette(TilemapConfig& config,
 
     std::vector<std::string> sorted_props;
     sorted_props.reserve(config_.props.size());
-    for (const auto& kv: config_.props) {
-        sorted_props.push_back(kv.first);
-    }
+    std::transform(config_.props.begin(), config_.props.end(), std::back_inserter(sorted_props),
+                   [](const auto& kv) { return kv.first; });
     std::sort(sorted_props.begin(), sorted_props.end());
 
     if (!sorted_props.empty()) {

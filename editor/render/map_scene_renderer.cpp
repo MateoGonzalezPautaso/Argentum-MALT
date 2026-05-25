@@ -71,7 +71,7 @@ void MapSceneRenderer::apply_prop_pos(QGraphicsPixmapItem* item, int col, int ro
 }
 
 void MapSceneRenderer::clear_grid(std::vector<std::vector<QGraphicsPixmapItem*>>& grid) {
-    for (auto& row: grid) {
+    for (const auto& row: grid) {
         for (auto* item: row) {
             if (item) {
                 scene_->removeItem(item);

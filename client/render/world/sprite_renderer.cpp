@@ -116,13 +116,11 @@ void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::s
         return;
     }
 
+    auto body_it = std::find_if(parts.begin(), parts.end(),
+                                [](const SpriteRender& p) { return p.movable; });
     SpriteRender* body = nullptr;
-    for (auto& part: parts) {
-        if (part.movable) {
-            body = &part;
-            break;
-        }
-    }
+    if (body_it != parts.end())
+        body = &(*body_it);
 
     if (body) {
         for (auto& part: parts) {
@@ -163,13 +161,11 @@ void SpriteRenderer::move_entity(uint16_t entity_id, int x, int y) {
     }
 
     auto& parts = it->second;
+    auto body_it = std::find_if(parts.begin(), parts.end(),
+                                [](const SpriteRender& p) { return p.movable; });
     SpriteRender* body = nullptr;
-    for (auto& part: parts) {
-        if (part.movable) {
-            body = &part;
-            break;
-        }
-    }
+    if (body_it != parts.end())
+        body = &(*body_it);
     if (!body) {
         return;
     }
@@ -368,13 +364,15 @@ void SpriteRenderer::tick_animations(AnimationSystem& anim) {
 }
 
 bool SpriteRenderer::hit_test_entity(int world_x, int world_y, uint16_t& out_entity_id) const {
-    for (const auto& pair: entity_sprites) {
-        for (const auto& part: pair.second) {
-            if (part.movable && point_in_rect(world_x, world_y, part.dst)) {
-                out_entity_id = pair.first;
-                return true;
-            }
-        }
+    auto hits_point = [&](const SpriteRender& part) {
+        return part.movable && point_in_rect(world_x, world_y, part.dst);
+    };
+    auto it = std::find_if(entity_sprites.begin(), entity_sprites.end(), [&](const auto& pair) {
+        return std::any_of(pair.second.begin(), pair.second.end(), hits_point);
+    });
+    if (it != entity_sprites.end()) {
+        out_entity_id = it->first;
+        return true;
     }
     return false;
 }

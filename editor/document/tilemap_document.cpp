@@ -1,6 +1,8 @@
 #include "tilemap_document.h"
 
+#include <algorithm>
 #include <fstream>
+#include <iterator>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -77,9 +79,7 @@ void TilemapDocument::save(const std::string& path) const {
     toml::array mapa_array;
     for (const auto& row: config_.mapa) {
         toml::array row_array;
-        for (const auto& cell: row) {
-            row_array.push_back(cell);
-        }
+        std::copy(row.begin(), row.end(), std::back_inserter(row_array));
         mapa_array.push_back(std::move(row_array));
     }
     tilemap_tbl.emplace("mapa", std::move(mapa_array));
@@ -109,9 +109,7 @@ void TilemapDocument::save(const std::string& path) const {
         for (const auto& [name, def]: config_.props) {
             toml::table prop_def;
             toml::array paths_arr;
-            for (const auto& p: def.paths) {
-                paths_arr.push_back(p);
-            }
+            std::copy(def.paths.begin(), def.paths.end(), std::back_inserter(paths_arr));
             prop_def.emplace("paths", std::move(paths_arr));
 
             toml::table src;
@@ -138,25 +136,18 @@ void TilemapDocument::save(const std::string& path) const {
         }
         prop_tbl.emplace("tiles", std::move(prop_tiles_tbl));
 
-        bool has_props = false;
-        for (const auto& row: config_.prop_map) {
-            for (const auto& cell: row) {
-                if (!cell.empty()) {
-                    has_props = true;
-                    break;
-                }
-            }
-            if (has_props)
-                break;
-        }
+        auto row_has_prop = [](const auto& row) {
+            return std::any_of(row.begin(), row.end(),
+                               [](const auto& cell) { return !cell.empty(); });
+        };
+        bool has_props =
+                std::any_of(config_.prop_map.begin(), config_.prop_map.end(), row_has_prop);
 
         if (has_props) {
             toml::array prop_grid;
             for (const auto& row: config_.prop_map) {
                 toml::array row_array;
-                for (const auto& cell: row) {
-                    row_array.push_back(cell);
-                }
+                std::copy(row.begin(), row.end(), std::back_inserter(row_array));
                 prop_grid.push_back(std::move(row_array));
             }
             toml::table pm;
