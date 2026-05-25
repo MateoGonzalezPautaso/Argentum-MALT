@@ -328,7 +328,9 @@ struct EntityDiedEvent {
 };
 
 // 0x8D
-struct PlayerRespawnedEvent {};
+struct PlayerRespawnedEvent {
+    uint16_t entity_id;
+};
 
 // 0x8E / 0x8F
 struct MeditationStartEvent {};

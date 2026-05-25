@@ -89,6 +89,10 @@ ServerEvent ClientProtocol::recv_event() {
             uint16_t entity_id = protocol.recv_uint16();
             return EntityDiedEvent{entity_id};
         }
+        case OpCode::PLAYER_RESPAWNED: {
+            uint16_t entity_id = protocol.recv_uint16();
+            return PlayerRespawnedEvent{entity_id};
+        }
         case OpCode::CHAT_MSG: {
             ChatMsgType type = static_cast<ChatMsgType>(protocol.recv_uint8());
             std::string sender = protocol.recv_str();

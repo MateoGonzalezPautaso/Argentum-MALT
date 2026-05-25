@@ -23,6 +23,9 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
     Player& attacker = attacker_it->second;
     Player& target = target_it->second;
 
+    if (attacker.is_ghost() || target.is_ghost())
+        return {};
+
     if (!attacker.try_attack(current_tick, config.cooldown_ticks))
         return {};
 
