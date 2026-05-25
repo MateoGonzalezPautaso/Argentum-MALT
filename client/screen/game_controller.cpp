@@ -103,7 +103,16 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                              chat_history.add_message(e.type, e.sender_name, e.message);
                          },
                          [this](const EntityDiedEvent& e) {
-                             world_renderer.despawn_entity(e.entity_id);
+                             world_renderer.set_entity_alpha(e.entity_id, 128);
+                             if (e.entity_id == player_stats.player_id) {
+                                 player_is_ghost = true;
+                             }
+                         },
+                         [this](const PlayerRespawnedEvent& e) {
+                             world_renderer.set_entity_alpha(e.entity_id, 255);
+                             if (e.entity_id == player_stats.player_id) {
+                                 player_is_ghost = false;
+                             }
                          },
                          [](const auto&) {},
                 },
@@ -154,6 +163,10 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
     }
 
     uint16_t entity_id = 0;
+    if (player_is_ghost) {
+        return true;
+    }
+
     if (world_renderer.hit_test_entity(world_x, world_y, entity_id)) {
         command_queue.push(AttackCmd{entity_id});
         return true;
