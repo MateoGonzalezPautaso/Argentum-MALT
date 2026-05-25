@@ -12,7 +12,7 @@
 #include <vector>
 
 TilePalette::TilePalette(TilemapConfig& config,
-                         std::unordered_map<std::string, QPixmap>& atlases,
+                         const std::unordered_map<std::string, QPixmap>& atlases,
                          QWidget* parent)
     : QWidget(parent), config_(config), atlases_(atlases) {
     auto* layout = new QVBoxLayout(this);
@@ -37,7 +37,6 @@ TilePalette::TilePalette(TilemapConfig& config,
     int tsz = config_.tile_size;
     int preview_size = 64;
 
-    // Collect and sort tile names
     std::vector<std::string> sorted_names;
     sorted_names.reserve(config_.tiles.size());
     for (const auto& kv : config_.tiles) {
@@ -45,7 +44,6 @@ TilePalette::TilePalette(TilemapConfig& config,
     }
     std::sort(sorted_names.begin(), sorted_names.end());
 
-    // Tiles section
     auto section = make_section("Tiles", sorted_names, preview_size,
         [this, tsz](const std::string& name) -> QPixmap {
             const auto& def = config_.tiles.at(name);
@@ -62,7 +60,6 @@ TilePalette::TilePalette(TilemapConfig& config,
     sections_.push_back(std::move(section));
     scroll_layout->addWidget(sections_.back().header->parentWidget());
 
-    // Props section
     std::vector<std::string> sorted_props;
     sorted_props.reserve(config_.props.size());
     for (const auto& kv : config_.props) {
