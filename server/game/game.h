@@ -28,6 +28,7 @@ private:
     CommandResult handle_login(uint16_t player_id, const LoginCmd& cmd);
     CommandResult handle_move(uint16_t player_id, const MoveCmd& cmd);
     CommandResult handle_attack(uint16_t player_id, const AttackCmd& cmd);
+    CommandResult handle_send_chat_msg(uint16_t player_id, const SendChatMsgCmd& cmd);
     bool is_username_logged_in(const std::string& username) const;
 
 public:
