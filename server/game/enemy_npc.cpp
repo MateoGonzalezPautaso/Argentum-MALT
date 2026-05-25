@@ -1,6 +1,6 @@
 #include "enemy_npc.h"
 
-#include "../common/item.h"
+#include "../../common/item.h"
 
 EnemyNpc::EnemyNpc(Position position, uint32_t hp_max, uint32_t damage, Rng& rng,
                    EquipableItems& equipable_items):
@@ -20,7 +20,7 @@ void EnemyNpc::take_damage(uint32_t damage_taken) {
 
 EnemyDrop EnemyNpc::get_kill_reward() {
     double random_number = rng.get_random_double(0, 99);
-    EnemyDrop enemy_drop{.gold = 0, .is_potion = false, .is_object = false};
+    EnemyDrop enemy_drop{.gold = 0, .is_potion = false, .is_object = false, .item = std::nullopt};
 
     if (random_number < 8) {
         enemy_drop.gold = get_gold_reward();

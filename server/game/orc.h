@@ -1,8 +1,8 @@
 #ifndef ORC_H
 #define ORC_H
 
-#include "../common/equipable_items.h"
-#include "../common/rng.h"
+#include "../../common/equipable_items.h"
+#include "../../common/rng.h"
 
 #include "enemy_npc.h"
 
