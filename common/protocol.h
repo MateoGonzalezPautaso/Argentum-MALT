@@ -37,6 +37,7 @@ enum class OpCode : uint8_t {
     CHEAT_INFINITE_HP = 0x1B,
     CHEAT_INFINITE_MANA = 0x1C,
     CHEAT_DIE = 0x1D,
+    SEND_CHAT = 0x1E,
     // Events (server -> client) 0x80 - 0x9B
     LOGIN_OK = 0x80,
     LOGIN_ERROR = 0x81,

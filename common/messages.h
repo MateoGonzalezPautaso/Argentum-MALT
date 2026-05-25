@@ -74,7 +74,7 @@ enum class TransactionType : uint8_t {
     HEAL = 0x05
 };
 
-enum class ChatMsgType : uint8_t { SYSTEM = 0x00, PRIVATE = 0x01, CLAN = 0x02 };
+enum class ChatMsgType : uint8_t { SYSTEM = 0x00, PRIVATE = 0x01, CLAN = 0x02, SAY = 0x03 };
 
 enum class ClanNotifType : uint8_t {
     MEMBER_ONLINE = 0x00,
@@ -203,7 +203,10 @@ struct BankWithdrawCmd {};
 struct NpcListCmd {};
 
 // 0x12
-struct PrivateMsgCmd {};
+struct PrivateMsgCmd {
+    std::string target_nick;
+    std::string message;
+};
 
 // 0x13 – 0x1A  Clanes
 struct ClanFoundCmd {};
@@ -214,6 +217,11 @@ struct ClanRejectCmd {};
 struct ClanBanCmd {};
 struct ClanKickCmd {};
 struct ClanLeaveCmd {};
+
+// 0x1E
+struct SendChatMsgCmd {
+    std::string text;
+};
 
 // 0x1B – 0x1D  Cheats
 struct CheatInfiniteHpCmd {};
@@ -228,9 +236,9 @@ using ClientCommand =
         std::variant<LoginCmd, CreateCharacterCmd, MoveCmd, AttackCmd, CastSpellCmd, PickupItemCmd,
                      DropItemCmd, EquipItemCmd, UnequipItemCmd, MeditateCmd, ResurrectCmd,
                      NpcBuyCmd, NpcSellCmd, NpcHealCmd, BankDepositCmd, BankWithdrawCmd, NpcListCmd,
-                     PrivateMsgCmd, ClanFoundCmd, ClanJoinRequestCmd, ClanReviewCmd, ClanAcceptCmd,
-                     ClanRejectCmd, ClanBanCmd, ClanKickCmd, ClanLeaveCmd, CheatInfiniteHpCmd,
-                     CheatInfiniteManaCmd, CheatDieCmd>;
+                     PrivateMsgCmd, SendChatMsgCmd, ClanFoundCmd, ClanJoinRequestCmd, ClanReviewCmd,
+                     ClanAcceptCmd, ClanRejectCmd, ClanBanCmd, ClanKickCmd, ClanLeaveCmd,
+                     CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd>;
 
 // ---------------------------------------------------------------------------
 // Eventos: Servidor -> Cliente (sección 3.2 y 5 de protocol.md)
@@ -351,7 +359,11 @@ struct TransactionOkEvent {};
 struct TransactionErrorEvent {};
 
 // 0x98
-struct ChatMsgEvent {};
+struct ChatMsgEvent {
+    ChatMsgType type;
+    std::string sender_name;
+    std::string message;
+};
 
 // 0x99
 struct ClanNotificationEvent {};
