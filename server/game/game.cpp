@@ -1,5 +1,6 @@
 #include "game.h"
 
+#include <unordered_set>
 #include <utility>
 #include <variant>
 
@@ -118,10 +119,9 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         }
     }
 
-    // /comando — placeholder, solo reconoce
+    // /comando — validar contra lista de comandos conocidos
     if (text[0] == '/') {
         std::string cmd_name;
-        std::string args;
         size_t space_pos = text.find(' ');
         if (space_pos != std::string::npos) {
             cmd_name = text.substr(0, space_pos);
@@ -129,8 +129,19 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             cmd_name = text;
         }
 
-        ChatMsgEvent response{ChatMsgType::SYSTEM, "",
-                               "Comando " + cmd_name + " reconocido"};
+        static const std::unordered_set<std::string> known_commands = {
+                "/meditar",    "/resucitar",      "/curar",        "/depositar",
+                "/retirar",    "/listar",         "/comprar",      "/vender",
+                "/tomar",      "/tirar",          "/fundar-clan",  "/unirse",
+                "/revisar-clan", "/clan-aceptar", "/clan-rechazar", "/clan-ban",
+                "/dejar-clan", "/clan-kick",
+        };
+
+        bool recognized = known_commands.find(cmd_name) != known_commands.end();
+        std::string msg = recognized
+                                  ? "Comando " + cmd_name + " reconocido"
+                                  : "Comando " + cmd_name + " no reconocido";
+        ChatMsgEvent response{ChatMsgType::SYSTEM, "", msg};
         return {.private_events = {response}, .broadcast_events = {}, .targeted_events = {}};
     }
 
