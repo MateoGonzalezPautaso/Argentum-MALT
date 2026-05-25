@@ -45,6 +45,16 @@ void ClientProtocol::send_chat_msg(const SendChatMsgCmd& cmd) {
 
 #include "../../common/visit.h"
 
+void ClientProtocol::send_cheat_infinite_hp() {
+    protocol.send_opcode(OpCode::CHEAT_INFINITE_HP);
+}
+
+void ClientProtocol::send_cheat_infinite_mana() {
+    protocol.send_opcode(OpCode::CHEAT_INFINITE_MANA);
+}
+
+void ClientProtocol::send_cheat_die() { protocol.send_opcode(OpCode::CHEAT_DIE); }
+
 void ClientProtocol::send_command(const ClientCommand& cmd) {
     std::visit(overloaded{
                        [this](const MoveCmd& msg) { send_move(msg); },
@@ -52,6 +62,9 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const CreateCharacterCmd& msg) { send_create_character(msg); },
                        [this](const AttackCmd& msg) { send_attack(msg); },
                        [this](const SendChatMsgCmd& msg) { send_chat_msg(msg); },
+                       [this](const CheatInfiniteHpCmd&) { send_cheat_infinite_hp(); },
+                       [this](const CheatInfiniteManaCmd&) { send_cheat_infinite_mana(); },
+                       [this](const CheatDieCmd&) { send_cheat_die(); },
                        [](const auto&) { throw std::runtime_error("Command not implemented"); },
                },
                cmd);

@@ -55,6 +55,8 @@ void Player::level_up() {
 }
 
 void Player::take_damage(uint32_t damage) {
+    if (cheat_infinite_hp)
+        return;
     if (damage >= hp_current) {
         hp_current = 0;
     } else {
@@ -87,6 +89,8 @@ void Player::increase_max_mana(uint32_t amount) {
 // Should check these implementations
 
 void Player::use_mana(uint32_t amount) {
+    if (cheat_infinite_mana)
+        return;
     if (amount >= mana_current) {
         mana_current = 0;
     } else {
