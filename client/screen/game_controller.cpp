@@ -93,6 +93,11 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                                                       "El ataque fue esquivado");
                          },
                          [this](const ChatMsgEvent& e) {
+                             if (e.recipient_id != 0 &&
+                                 e.recipient_id != player_stats.player_id &&
+                                 e.sender_id != player_stats.player_id) {
+                                 return;
+                             }
                              chat_history.add_message(e.type, e.sender_name, e.message);
                          },
                          [this](const EntityDiedEvent& e) {

@@ -46,7 +46,7 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
         broadcast.push_back(died);
     }
 
-    return {.broadcast_events = std::move(broadcast)};
+    return {.private_events = {}, .broadcast_events = std::move(broadcast)};
 }
 
 bool CombatController::in_range(const Player& attacker, const Player& target) const {

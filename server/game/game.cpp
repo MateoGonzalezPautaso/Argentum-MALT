@@ -111,9 +111,8 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
 
             for (const auto& [target_id, player]: players) {
                 if (player.username == target_nick) {
-                    ChatMsgEvent chat_ev{ChatMsgType::PRIVATE, sender_name, msg};
-                    return {.private_events = {}, .broadcast_events = {},
-                            .targeted_events = {{target_id, {chat_ev}}}};
+                    ChatMsgEvent chat_ev{ChatMsgType::PRIVATE, sender_name, msg, target_id, player_id};
+                    return {.private_events = {}, .broadcast_events = {chat_ev}};
                 }
             }
 

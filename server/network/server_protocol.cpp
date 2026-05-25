@@ -159,6 +159,8 @@ void ServerProtocol::send_chat_msg(const ChatMsgEvent& ev) {
     protocol.send_uint8(static_cast<uint8_t>(ev.type));
     protocol.send_str(ev.sender_name);
     protocol.send_str(ev.message);
+    protocol.send_uint16(ev.recipient_id);
+    protocol.send_uint16(ev.sender_id);
 }
 
 #include "../../common/visit.h"
