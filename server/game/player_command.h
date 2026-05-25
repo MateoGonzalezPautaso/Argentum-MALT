@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include "../common/messages.h"
+#include "../../common/messages.h"
 
 // A ClientCommand tagged with the player_id that sent it
 struct PlayerCommand {

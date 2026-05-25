@@ -4,9 +4,9 @@
 #include <cstdint>
 #include <string>
 
-#include "../common/messages.h"
+#include "../../common/messages.h"
 
-#include "config.h"
+#include "../core/config.h"
 
 class Player {
     friend class Game;

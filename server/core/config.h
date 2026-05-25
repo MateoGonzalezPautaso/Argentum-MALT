@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <string>
 
-#include "../common/config.h"
+#include "../../common/config.h"
 
 struct AttackConfig {
     int base_damage = 10;

@@ -5,7 +5,7 @@
 
 #include <sys/socket.h>
 
-#include "../common/socket.h"
+#include "../../common/socket.h"
 
 ServerProtocol::ServerProtocol(Socket&& skt): skt(std::move(skt)), protocol(this->skt) {}
 
@@ -136,7 +136,7 @@ void ServerProtocol::send_entity_died(const EntityDiedEvent& ev) {
     protocol.send_uint16(ev.entity_id);
 }
 
-#include "../common/visit.h"
+#include "../../common/visit.h"
 
 void ServerProtocol::send_event(const ServerEvent& ev) {
     std::visit(overloaded{

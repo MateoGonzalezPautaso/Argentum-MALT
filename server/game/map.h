@@ -1,7 +1,7 @@
 #ifndef SERVER_MAP_H
 #define SERVER_MAP_H
 
-#include "../common/config.h"
+#include "../../common/config.h"
 
 class Map {
 public:

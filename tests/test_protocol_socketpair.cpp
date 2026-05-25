@@ -9,7 +9,7 @@
 #include "common/socket.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "server/server_protocol.h"
+#include "server/network/server_protocol.h"
 
 /*
  * ProtocolTest is the base class for all protocol tests.

@@ -1,9 +1,9 @@
 #ifndef SENDER_H
 #define SENDER_H
 
-#include "../common/messages.h"
-#include "../common/queue.h"
-#include "../common/thread.h"
+#include "../../common/messages.h"
+#include "../../common/queue.h"
+#include "../../common/thread.h"
 
 #include "server_protocol.h"
 

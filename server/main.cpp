@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "config.h"
-#include "server.h"
+#include "core/config.h"
+#include "core/server.h"
 
 int main() try {
     ServerConfig config = load_server_config("config/server.toml");

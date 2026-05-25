@@ -5,7 +5,7 @@
 #include <map>
 #include <vector>
 
-#include "../common/messages.h"
+#include "../../common/messages.h"
 
 struct CommandResult {
     std::vector<ServerEvent> private_events;

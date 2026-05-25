@@ -4,10 +4,10 @@
 #include <cstdint>
 #include <map>
 
-#include "../common/messages.h"
+#include "../../common/messages.h"
 
 #include "command_result.h"
-#include "config.h"
+#include "../core/config.h"
 #include "player.h"
 
 class CombatController {

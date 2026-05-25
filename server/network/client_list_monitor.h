@@ -7,12 +7,12 @@
 #include <mutex>
 #include <vector>
 
-#include "../common/messages.h"
-#include "../common/queue.h"
-#include "../common/socket.h"
+#include "../../common/messages.h"
+#include "../../common/queue.h"
+#include "../../common/socket.h"
 
 #include "client_handler.h"
-#include "player_command.h"
+#include "../game/player_command.h"
 
 class ClientListMonitor {
     std::mutex mtx;

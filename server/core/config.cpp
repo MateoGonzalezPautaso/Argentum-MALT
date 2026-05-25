@@ -5,7 +5,7 @@
 
 #include <toml++/toml.h>
 
-#include "../common/config.h"
+#include "../../common/config.h"
 
 ServerConfig load_server_config(const std::string& path) {
     toml::table root = toml::parse_file(path);

@@ -1,8 +1,8 @@
 #ifndef SERVER_PROTOCOL_H_
 #define SERVER_PROTOCOL_H_
 
-#include "../common/messages.h"
-#include "../common/protocol.h"
+#include "../../common/messages.h"
+#include "../../common/protocol.h"
 
 class ServerProtocol {
 public:

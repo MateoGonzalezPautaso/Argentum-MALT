@@ -6,8 +6,8 @@
 #include "common/queue.h"
 #include "common/socket.h"
 #include "gtest/gtest.h"
-#include "server/client_handler.h"
-#include "server/player_command.h"
+#include "server/network/client_handler.h"
+#include "server/game/player_command.h"
 
 /*
  * ClientHandlerTest sets up a socketpair:

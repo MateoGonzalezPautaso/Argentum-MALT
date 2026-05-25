@@ -4,14 +4,14 @@
 #include <cstdint>
 #include <map>
 
-#include "../common/messages.h"
+#include "../../common/messages.h"
 
 #include "command_result.h"
 #include "combat_controller.h"
-#include "config.h"
+#include "../core/config.h"
 #include "map.h"
 #include "player.h"
-#include "player_persistence.h"
+#include "../persistence/player_persistence.h"
 
 class Game {
 private:
