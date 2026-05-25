@@ -84,11 +84,8 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                               if (e.target_id != player_stats.player_id) {
                                   return;
                               }
-                              if (e.damage >= player_stats.hp_current) {
-                                  player_stats.hp_current = 0;
-                              } else {
-                                  player_stats.hp_current -= e.damage;
-                              }
+                              player_stats.hp_current = e.hp_current;
+                              player_stats.hp_max = e.hp_max;
                           },
                           [](const DamageDealtEvent&) {},
                          [this](const AttackDodgedEvent&) {

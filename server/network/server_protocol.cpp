@@ -138,6 +138,8 @@ void ServerProtocol::send_damage_received(const DamageReceivedEvent& ev) {
     protocol.send_uint16(ev.target_id);
     protocol.send_uint16(ev.attacker_id);
     protocol.send_uint32(ev.damage);
+    protocol.send_uint32(ev.hp_current);
+    protocol.send_uint32(ev.hp_max);
 }
 
 void ServerProtocol::send_entity_died(const EntityDiedEvent& ev) {

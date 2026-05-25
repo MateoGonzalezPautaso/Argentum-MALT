@@ -35,7 +35,7 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
     uint32_t damage = calculate_damage();
     target.take_damage(damage);
 
-    DamageReceivedEvent received{target.id, attacker.id, damage};
+    DamageReceivedEvent received{target.id, attacker.id, damage, target.hp_current, target.hp_max};
     ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
                            attacker.username + " ataco a " + target.username +
                                    " por " + std::to_string(damage) + " de daño"};

@@ -181,9 +181,6 @@ struct UnequipItemCmd {};
 // 0x0A
 struct MeditateCmd {};
 
-// 0x0B
-struct ResurrectCmd {};
-
 // 0x0C
 struct NpcBuyCmd {};
 
@@ -234,7 +231,7 @@ struct CheatDieCmd {};
  */
 using ClientCommand =
         std::variant<LoginCmd, CreateCharacterCmd, MoveCmd, AttackCmd, CastSpellCmd, PickupItemCmd,
-                     DropItemCmd, EquipItemCmd, UnequipItemCmd, MeditateCmd, ResurrectCmd,
+                     DropItemCmd, EquipItemCmd, UnequipItemCmd, MeditateCmd,
                      NpcBuyCmd, NpcSellCmd, NpcHealCmd, BankDepositCmd, BankWithdrawCmd, NpcListCmd,
                      PrivateMsgCmd, SendChatMsgCmd, ClanFoundCmd, ClanJoinRequestCmd, ClanReviewCmd,
                      ClanAcceptCmd, ClanRejectCmd, ClanBanCmd, ClanKickCmd, ClanLeaveCmd,
@@ -318,6 +315,8 @@ struct DamageReceivedEvent {
     uint16_t target_id;
     uint16_t attacker_id;
     uint32_t damage;
+    uint32_t hp_current;
+    uint32_t hp_max;
 };
 
 // 0x8B

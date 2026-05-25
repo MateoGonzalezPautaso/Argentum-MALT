@@ -112,7 +112,8 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             for (const auto& [target_id, player]: players) {
                 if (player.username == target_nick) {
                     ChatMsgEvent chat_ev{ChatMsgType::PRIVATE, sender_name, msg};
-                    return {.private_events = {chat_ev}, .broadcast_events = {}};
+                    return {.private_events = {}, .broadcast_events = {},
+                            .targeted_events = {{target_id, {chat_ev}}}};
                 }
             }
 
@@ -254,9 +255,8 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     player.resurrect();
 
     PlayerRespawnedEvent respawn_ev{player_id, player.hp_current, player.hp_max};
-    EntityMoveEvent move_ev{player_id, player.pos, player.dir};
 
-    return {.private_events = {}, .broadcast_events = {respawn_ev, move_ev}};
+    return {.private_events = {}, .broadcast_events = {respawn_ev}};
 }
 
 CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
