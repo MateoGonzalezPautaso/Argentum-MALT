@@ -6,6 +6,7 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>
 
+#include "../chat/chat_history.h"
 #include "../config/config.h"
 
 class ChatInput;
@@ -20,6 +21,7 @@ private:
     SDL2pp::Texture exp_bar_texture;
     SDL2pp::Rect ui_frame_rect;
     SDL2pp::Rect chat_input_rect;
+    SDL2pp::Rect chat_history_rect;
     TTF_Font* chat_font = nullptr;
     TTF_Font* bar_font = nullptr;
     SDL_Color chat_color{255, 255, 255, 255};
@@ -31,6 +33,7 @@ public:
 
     void render_frame_background();
     void render_chat_input();
+    void render_chat_history(const std::vector<ChatMessage>& messages);
     void render_hp_bar(uint32_t current, uint32_t max);
     void render_mp_bar(uint32_t current, uint32_t max);
     void render_exp_bar(uint32_t current, uint32_t max);

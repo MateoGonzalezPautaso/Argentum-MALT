@@ -80,6 +80,10 @@ struct UIConfig {
     int chat_input_y = 122;
     int chat_input_w = 565;
     int chat_input_h = 20;
+    int chat_history_x = 15;
+    int chat_history_y = 35;
+    int chat_history_w = 614;
+    int chat_history_h = 81;
     int start_x = 347;
     int start_y = 568;
     int start_w = 330;

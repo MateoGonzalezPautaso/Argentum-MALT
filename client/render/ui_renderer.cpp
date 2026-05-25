@@ -19,6 +19,8 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
         ui_frame_rect(0, 0, ui_cfg.window_w, ui_cfg.window_h),
         chat_input_rect(ui_cfg.chat_input_x, ui_cfg.chat_input_y, ui_cfg.chat_input_w,
                         ui_cfg.chat_input_h),
+        chat_history_rect(ui_cfg.chat_history_x, ui_cfg.chat_history_y, ui_cfg.chat_history_w,
+                          ui_cfg.chat_history_h),
         ui_cfg(ui_cfg) {
     chat_font = TTF_OpenFont(ui_cfg.font_path.c_str(), ui_cfg.font_chat_size);
     if (!chat_font) {
@@ -110,6 +112,53 @@ void UIRenderer::render_stat_bar(SDL2pp::Texture& tex, int x, int y, int w, int 
     const int text_y = y + (h - result.h) / 2;
     SDL2pp::Rect text_dst(text_x, text_y, result.w, result.h);
     renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
+}
+
+void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages) {
+    if (!chat_font || messages.empty()) {
+        return;
+    }
+
+    int y_offset = chat_history_rect.GetY() + chat_history_rect.GetH();
+    int line_spacing = 2;
+
+    for (auto it = messages.rbegin(); it != messages.rend(); ++it) {
+        std::string display;
+        SDL_Color color = chat_color;
+
+        switch (it->type) {
+            case ChatMsgType::PRIVATE:
+                display = "[Priv] " + it->sender + ": " + it->text;
+                color = {255, 255, 0, 255};
+                break;
+            case ChatMsgType::CLAN:
+                display = "[Clan] " + it->sender + ": " + it->text;
+                color = {0, 255, 0, 255};
+                break;
+            case ChatMsgType::SYSTEM:
+                display = it->text;
+                color = {192, 192, 192, 255};
+                break;
+            default:
+                display = it->sender.empty() ? it->text : it->sender + ": " + it->text;
+                break;
+        }
+
+        auto result = texture::render_text(renderer, chat_font, display, color);
+        if (result.w == 0) {
+            continue;
+        }
+
+        y_offset -= (result.h + line_spacing);
+        if (y_offset < chat_history_rect.GetY()) {
+            break;
+        }
+
+        int clipped_w = std::min(result.w, chat_history_rect.GetW());
+        SDL2pp::Rect src_rect(0, 0, clipped_w, result.h);
+        SDL2pp::Rect dst_rect(chat_history_rect.GetX(), y_offset, clipped_w, result.h);
+        renderer.Copy(result.texture, src_rect, dst_rect);
+    }
 }
 
 void UIRenderer::render_chat_text_line(int& clipped_w) const {
