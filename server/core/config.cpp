@@ -37,8 +37,7 @@ ServerConfig load_server_config(const std::string& path) {
     }
 
     if (auto attack = root["attack"].as_table()) {
-        config.attack.base_damage =
-                toml_get_int(*attack, "base_damage", config.attack.base_damage);
+        config.attack.base_damage = toml_get_int(*attack, "base_damage", config.attack.base_damage);
         config.attack.attack_range_px =
                 toml_get_int(*attack, "attack_range_px", config.attack.attack_range_px);
         config.attack.damage_variance =

@@ -3,13 +3,13 @@
 
 #include "../../common/queue.h"
 #include "../../common/socket.h"
-
+#include "../game/player_command.h"
 #include "../network/acceptor.h"
 #include "../network/client_list_monitor.h"
+#include "../persistence/player_persistence.h"
+
 #include "config.h"
 #include "game_loop.h"
-#include "../game/player_command.h"
-#include "../persistence/player_persistence.h"
 
 class Server {
     ServerConfig config;

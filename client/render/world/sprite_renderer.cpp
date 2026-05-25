@@ -8,6 +8,7 @@
 
 #include "../geometry.h"
 #include "../texture_loader.h"
+
 #include "animation_system.h"
 
 SpriteRenderer::SpriteRenderer(SDL2pp::Renderer& renderer, TTF_Font* name_font, int window_w,
@@ -38,7 +39,8 @@ void SpriteRenderer::load_sprites(const std::vector<SpriteConfig>& sprites_confi
     }
 }
 
-SpriteRenderer::SpriteRender SpriteRenderer::build_sprite_render(const SpriteConfig& sprite_config) {
+SpriteRenderer::SpriteRender SpriteRenderer::build_sprite_render(
+        const SpriteConfig& sprite_config) {
     SpriteRender sprite;
     sprite.frames.reserve(sprite_config.paths.size());
     for (const auto& path: sprite_config.paths) {
@@ -70,14 +72,14 @@ SpriteRenderer::SpriteRender SpriteRenderer::build_sprite_render(const SpriteCon
 }
 
 int SpriteRenderer::clamp_x(int value, int sprite_w) const {
-    const int max_x = has_tilemap ? std::max(0, map_px_w - sprite_w)
-                                  : std::max(0, window_w - sprite_w);
+    const int max_x =
+            has_tilemap ? std::max(0, map_px_w - sprite_w) : std::max(0, window_w - sprite_w);
     return std::clamp(value, 0, max_x);
 }
 
 int SpriteRenderer::clamp_y(int value, int sprite_h) const {
-    const int max_y = has_tilemap ? std::max(0, map_px_h - sprite_h)
-                                  : std::max(0, window_h - sprite_h);
+    const int max_y =
+            has_tilemap ? std::max(0, map_px_h - sprite_h) : std::max(0, window_h - sprite_h);
     return std::clamp(value, 0, max_y);
 }
 
@@ -114,13 +116,11 @@ void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::s
         return;
     }
 
+    auto body_it = std::find_if(parts.begin(), parts.end(),
+                                [](const SpriteRender& p) { return p.movable; });
     SpriteRender* body = nullptr;
-    for (auto& part: parts) {
-        if (part.movable) {
-            body = &part;
-            break;
-        }
-    }
+    if (body_it != parts.end())
+        body = &(*body_it);
 
     if (body) {
         for (auto& part: parts) {
@@ -161,13 +161,11 @@ void SpriteRenderer::move_entity(uint16_t entity_id, int x, int y) {
     }
 
     auto& parts = it->second;
+    auto body_it = std::find_if(parts.begin(), parts.end(),
+                                [](const SpriteRender& p) { return p.movable; });
     SpriteRender* body = nullptr;
-    for (auto& part: parts) {
-        if (part.movable) {
-            body = &part;
-            break;
-        }
-    }
+    if (body_it != parts.end())
+        body = &(*body_it);
     if (!body) {
         return;
     }
@@ -287,10 +285,8 @@ void SpriteRenderer::update_anchor_positions() {
 }
 
 bool SpriteRenderer::is_visible(const SpriteRender& s, const SDL2pp::Rect& cam) {
-    return s.dst.GetX() + s.dst.GetW() > cam.GetX() &&
-           s.dst.GetX() < cam.GetX() + cam.GetW() &&
-           s.dst.GetY() + s.dst.GetH() > cam.GetY() &&
-           s.dst.GetY() < cam.GetY() + cam.GetH();
+    return s.dst.GetX() + s.dst.GetW() > cam.GetX() && s.dst.GetX() < cam.GetX() + cam.GetW() &&
+           s.dst.GetY() + s.dst.GetH() > cam.GetY() && s.dst.GetY() < cam.GetY() + cam.GetH();
 }
 
 void SpriteRenderer::render(const SDL2pp::Rect& cam) {
@@ -368,13 +364,15 @@ void SpriteRenderer::tick_animations(AnimationSystem& anim) {
 }
 
 bool SpriteRenderer::hit_test_entity(int world_x, int world_y, uint16_t& out_entity_id) const {
-    for (const auto& pair: entity_sprites) {
-        for (const auto& part: pair.second) {
-            if (part.movable && point_in_rect(world_x, world_y, part.dst)) {
-                out_entity_id = pair.first;
-                return true;
-            }
-        }
+    auto hits_point = [&](const SpriteRender& part) {
+        return part.movable && point_in_rect(world_x, world_y, part.dst);
+    };
+    auto it = std::find_if(entity_sprites.begin(), entity_sprites.end(), [&](const auto& pair) {
+        return std::any_of(pair.second.begin(), pair.second.end(), hits_point);
+    });
+    if (it != entity_sprites.end()) {
+        out_entity_id = it->first;
+        return true;
     }
     return false;
 }

@@ -47,8 +47,9 @@ void MoveController::apply_movement(Direction dir, uint32_t now, bool cancel_tar
     }
 
     set_direction_rows(dir);
-    advance_walk_frame(dir, now);
-    command_queue.push(MoveCmd{dir});
+    if (advance_walk_frame(dir, now)) {
+        command_queue.push(MoveCmd{dir});
+    }
 }
 
 void MoveController::set_direction_rows(Direction dir) {
@@ -56,12 +57,13 @@ void MoveController::set_direction_rows(Direction dir) {
     world_renderer.set_anchor_src_y(config.head_src_y_for(dir));
 }
 
-void MoveController::advance_walk_frame(Direction dir, uint32_t now) {
+bool MoveController::advance_walk_frame(Direction dir, uint32_t now) {
     if (now - last_walk_tick < config.walk_frame_ms) {
-        return;
+        return false;
     }
     world_renderer.step_movable_src_x(config.walk_src_step, config.walk_src_frames_for(dir));
     last_walk_tick = now;
+    return true;
 }
 
 bool MoveController::get_movable_position(int& x, int& y) {

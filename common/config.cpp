@@ -117,7 +117,7 @@ void parse_prop_config(const toml::table& root, TilemapConfig& config) {
                 }
                 PropDef def;
                 if (auto arr = (*tbl)["paths"].as_array()) {
-                    for (const auto& p : *arr) {
+                    for (const auto& p: *arr) {
                         if (auto s = p.value<std::string>()) {
                             def.paths.push_back(*s);
                         }
@@ -146,7 +146,8 @@ void parse_prop_config(const toml::table& root, TilemapConfig& config) {
             if (auto grid = (*pm)["data"].as_array()) {
                 for (const auto& row_node: *grid) {
                     const auto* row_array = row_node.as_array();
-                    if (!row_array) continue;
+                    if (!row_array)
+                        continue;
                     std::vector<std::string> row;
                     for (const auto& cell: *row_array) {
                         if (auto value = cell.value<std::string>()) {

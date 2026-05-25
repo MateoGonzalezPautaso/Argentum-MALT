@@ -1,8 +1,4 @@
 #include "main_window.h"
-#include "../render/map_scene_renderer.h"
-#include "../ui/tile_palette.h"
-#include "../ui/dialogs.h"
-#include "../io/file_manager.h"
 
 #include <QApplication>
 #include <QGraphicsScene>
@@ -20,14 +16,18 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-MainWindow::MainWindow(const std::string& config_path, QWidget* parent)
-    : QMainWindow(parent) {
+#include "../io/file_manager.h"
+#include "../render/map_scene_renderer.h"
+#include "../ui/dialogs.h"
+#include "../ui/tile_palette.h"
+
+MainWindow::MainWindow(const std::string& config_path, QWidget* parent): QMainWindow(parent) {
     try {
         doc_.load(config_path);
     } catch (const std::exception& e) {
         QMessageBox::critical(this, "Load Error",
-            QString("Failed to load %1:\n%2")
-                .arg(QString::fromStdString(config_path), e.what()));
+                              QString("Failed to load %1:\n%2")
+                                      .arg(QString::fromStdString(config_path), e.what()));
         QApplication::quit();
         return;
     }
@@ -74,9 +74,10 @@ void MainWindow::setup_ui() {
     splitter_->setStretchFactor(0, 3);
     splitter_->setStretchFactor(1, 1);
 
-    statusBar()->showMessage(
-        QString("Map: %1 x %2 tiles  |  Tile size: %3 px")
-            .arg(doc_.width()).arg(doc_.height()).arg(doc_.tile_size()));
+    statusBar()->showMessage(QString("Map: %1 x %2 tiles  |  Tile size: %3 px")
+                                     .arg(doc_.width())
+                                     .arg(doc_.height())
+                                     .arg(doc_.tile_size()));
 
     auto* toolbar = addToolBar("Map");
     toolbar->setMovable(false);
@@ -98,9 +99,8 @@ void MainWindow::setup_ui() {
     toolbar->addWidget(height_spin_);
     toolbar->addWidget(resize_btn);
 
-    connect(resize_btn, &QPushButton::clicked, this, [this]() {
-        resize_map(width_spin_->value(), height_spin_->value());
-    });
+    connect(resize_btn, &QPushButton::clicked, this,
+            [this]() { resize_map(width_spin_->value(), height_spin_->value()); });
 
     auto* file_menu = menuBar()->addMenu("&File");
 
@@ -130,22 +130,20 @@ void MainWindow::setup_ui() {
 }
 
 void MainWindow::connect_palette_signals() {
-    connect(palette_, &TilePalette::tile_selected, this,
-            [this](const std::string& name) {
-                interaction_.set_selected(name);
-                statusBar()->showMessage(
-                    QString("Selected tile: %1  |  Map: %2 x %3")
-                        .arg(QString::fromStdString(name))
-                        .arg(doc_.width()).arg(doc_.height()));
-            });
-    connect(palette_, &TilePalette::prop_selected, this,
-            [this](const std::string& name) {
-                interaction_.set_selected(name);
-                statusBar()->showMessage(
-                    QString("Selected prop: %1  |  Map: %2 x %3")
-                        .arg(QString::fromStdString(name))
-                        .arg(doc_.width()).arg(doc_.height()));
-            });
+    connect(palette_, &TilePalette::tile_selected, this, [this](const std::string& name) {
+        interaction_.set_selected(name);
+        statusBar()->showMessage(QString("Selected tile: %1  |  Map: %2 x %3")
+                                         .arg(QString::fromStdString(name))
+                                         .arg(doc_.width())
+                                         .arg(doc_.height()));
+    });
+    connect(palette_, &TilePalette::prop_selected, this, [this](const std::string& name) {
+        interaction_.set_selected(name);
+        statusBar()->showMessage(QString("Selected prop: %1  |  Map: %2 x %3")
+                                         .arg(QString::fromStdString(name))
+                                         .arg(doc_.width())
+                                         .arg(doc_.height()));
+    });
 }
 
 void MainWindow::full_rebuild() {
@@ -167,9 +165,10 @@ void MainWindow::rebuild_palette() {
 bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
     if (obj == view_->viewport() && event->type() == QEvent::MouseButtonPress) {
         auto* me = static_cast<QMouseEvent*>(event);
-        auto click = MapInteraction::resolve_click(
-            me, view_, doc_.tile_size(), doc_.height(), doc_.width());
-        if (!click.valid) return false;
+        auto click = MapInteraction::resolve_click(me, view_, doc_.tile_size(), doc_.height(),
+                                                   doc_.width());
+        if (!click.valid)
+            return false;
 
         if (click.button == Qt::LeftButton && interaction_.has_selection()) {
             const auto& name = interaction_.selected();
@@ -196,21 +195,22 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
 void MainWindow::save_map() {
     if (file_manager_->save(doc_)) {
         setWindowTitle(QString::fromStdString("Map Editor - " + doc_.path()));
-        statusBar()->showMessage(
-            QString("Saved to %1").arg(QString::fromStdString(doc_.path())), 3000);
+        statusBar()->showMessage(QString("Saved to %1").arg(QString::fromStdString(doc_.path())),
+                                 3000);
     }
 }
 
 void MainWindow::save_map_as() {
     if (file_manager_->save_as(doc_)) {
         setWindowTitle(QString::fromStdString("Map Editor - " + doc_.path()));
-        statusBar()->showMessage(
-            QString("Saved to %1").arg(QString::fromStdString(doc_.path())), 3000);
+        statusBar()->showMessage(QString("Saved to %1").arg(QString::fromStdString(doc_.path())),
+                                 3000);
     }
 }
 
 void MainWindow::open_map() {
-    if (!file_manager_->open(doc_)) return;
+    if (!file_manager_->open(doc_))
+        return;
 
     atlas_loader_.clear();
     atlas_loader_.load(doc_.config());
@@ -219,13 +219,13 @@ void MainWindow::open_map() {
     full_rebuild();
 
     setWindowTitle(QString::fromStdString("Map Editor - " + doc_.path()));
-    statusBar()->showMessage(
-        QString("Opened %1").arg(QString::fromStdString(doc_.path())), 3000);
+    statusBar()->showMessage(QString("Opened %1").arg(QString::fromStdString(doc_.path())), 3000);
 }
 
 void MainWindow::new_map() {
     auto result = show_new_map_dialog(this);
-    if (!result.accepted) return;
+    if (!result.accepted)
+        return;
 
     renderer_->clear_all();
     doc_.create_new(result.height, result.width, doc_.config());
@@ -237,7 +237,7 @@ void MainWindow::new_map() {
 
     setWindowTitle("Map Editor - Untitled");
     statusBar()->showMessage(
-        QString("New map: %1 x %2 tiles").arg(result.width).arg(result.height));
+            QString("New map: %1 x %2 tiles").arg(result.width).arg(result.height));
 }
 
 void MainWindow::resize_map(int cols, int rows) {
@@ -251,8 +251,7 @@ void MainWindow::resize_map(int cols, int rows) {
     view_->fitInView(scene_->sceneRect(), Qt::KeepAspectRatio);
 
     statusBar()->showMessage(
-        QString("Map resized to %1 x %2 tiles")
-            .arg(doc_.width()).arg(doc_.height()));
+            QString("Map resized to %1 x %2 tiles").arg(doc_.width()).arg(doc_.height()));
 }
 
 void MainWindow::toggle_walkable_overlay() {

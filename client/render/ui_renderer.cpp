@@ -4,6 +4,7 @@
 #include <string>
 
 #include "../input/chat_input.h"
+
 #include "geometry.h"
 #include "text_renderer.h"
 #include "texture_loader.h"
@@ -84,8 +85,8 @@ void UIRenderer::render_exp_bar(uint32_t current, uint32_t max) {
                     ui_cfg.exp_bar.h, current, max);
 }
 
-void UIRenderer::render_stat_bar(SDL2pp::Texture& tex, int x, int y, int w, int h,
-                                 uint32_t current, uint32_t max) const {
+void UIRenderer::render_stat_bar(SDL2pp::Texture& tex, int x, int y, int w, int h, uint32_t current,
+                                 uint32_t max) const {
     if (max == 0) {
         return;
     }

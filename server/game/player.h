@@ -5,7 +5,6 @@
 #include <string>
 
 #include "../../common/messages.h"
-
 #include "../core/config.h"
 
 class Player {

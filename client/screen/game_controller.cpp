@@ -5,10 +5,10 @@
 #include "../../common/visit.h"
 
 GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& config,
-                           Queue<ClientCommand>& command_queue):
+                               Queue<ClientCommand>& command_queue):
         renderer(renderer),
-        world_renderer(renderer, config.background, config.tilemap, config.sprites,
-                       config.viewport, config.font),
+        world_renderer(renderer, config.background, config.tilemap, config.sprites, config.viewport,
+                       config.font),
         ui_renderer(renderer, config.ui, chat_input),
         command_queue(command_queue),
         move_controller(world_renderer, this->command_queue, MoveConfig(config), SDL_GetTicks()),
@@ -39,26 +39,30 @@ void GameController::render() {
 void GameController::apply_server_event(const ServerEvent& ev) {
     std::visit(overloaded{
                        [this](const EntityMoveEvent& e) {
-                            if (e.entity_id == player_stats.player_id) {
-                                world_renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
-                            } else {
-                                world_renderer.move_entity(e.entity_id, e.entity_pos.x, e.entity_pos.y);
-                                world_renderer.set_entity_src_y(e.entity_id, move_config.body_src_y_for(e.entity_dir),
-                                                                 move_config.head_src_y_for(e.entity_dir));
-                                world_renderer.step_entity_src_x(e.entity_id, move_config.walk_src_step,
-                                                                  move_config.walk_src_frames_for(e.entity_dir));
-                            }
-                        },
-                        [this](const EntitySpawnEvent& e) {
-                            if (e.entity_id == player_stats.player_id) {
-                                world_renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
-                            } else {
-                                world_renderer.spawn_entity(e.entity_id, e.entity_pos.x, e.entity_pos.y, e.entity_name);
-                            }
-                        },
-                        [this](const EntityDespawnEvent& e) {
-                            world_renderer.despawn_entity(e.entity_id);
-                        },
+                           if (e.entity_id == player_stats.player_id) {
+                               world_renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
+                           } else {
+                               world_renderer.move_entity(e.entity_id, e.entity_pos.x,
+                                                          e.entity_pos.y);
+                               world_renderer.set_entity_src_y(
+                                       e.entity_id, move_config.body_src_y_for(e.entity_dir),
+                                       move_config.head_src_y_for(e.entity_dir));
+                               world_renderer.step_entity_src_x(
+                                       e.entity_id, move_config.walk_src_step,
+                                       move_config.walk_src_frames_for(e.entity_dir));
+                           }
+                       },
+                       [this](const EntitySpawnEvent& e) {
+                           if (e.entity_id == player_stats.player_id) {
+                               world_renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
+                           } else {
+                               world_renderer.spawn_entity(e.entity_id, e.entity_pos.x,
+                                                           e.entity_pos.y, e.entity_name);
+                           }
+                       },
+                       [this](const EntityDespawnEvent& e) {
+                           world_renderer.despawn_entity(e.entity_id);
+                       },
                        [this](const LoginOkEvent& e) {
                            player_stats.player_id = e.player_id;
                            player_stats.username = e.username;
@@ -75,6 +79,7 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                            player_stats.pos = e.pos;
                            world_renderer.set_movable_position(e.pos.x, e.pos.y);
                        },
+
                          [this](const DamageReceivedEvent& e) {
                              if (e.damage >= player_stats.hp_current) {
                                  player_stats.hp_current = 0;
@@ -103,6 +108,7 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                          [](const auto&) {},
                 },
                 ev);
+
 }
 
 bool GameController::handle_event(const SDL_Event& event) {

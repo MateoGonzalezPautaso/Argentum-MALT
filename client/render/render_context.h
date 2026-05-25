@@ -1,6 +1,8 @@
 #ifndef CLIENT_RENDER_CONTEXT_H
 #define CLIENT_RENDER_CONTEXT_H
 
+#include <string>
+
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 

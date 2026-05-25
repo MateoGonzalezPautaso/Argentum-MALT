@@ -6,8 +6,8 @@
 #include "../../common/messages.h"
 #include "../../common/queue.h"
 #include "../../common/socket.h"
-
 #include "../game/player_command.h"
+
 #include "receiver.h"
 #include "sender.h"
 #include "server_protocol.h"

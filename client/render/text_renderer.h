@@ -14,8 +14,8 @@ struct RenderedText {
     int h = 0;
 };
 
-RenderedText render_text(SDL2pp::Renderer& renderer, TTF_Font* font,
-                          const std::string& text, SDL_Color color);
+RenderedText render_text(SDL2pp::Renderer& renderer, TTF_Font* font, const std::string& text,
+                         SDL_Color color);
 
 }  // namespace texture
 

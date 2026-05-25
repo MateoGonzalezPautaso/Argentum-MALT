@@ -9,9 +9,11 @@
 
 #include "../input/chat_input.h"
 #include "../chat/chat_history.h"
+
 #include "../config/config.h"
-#include "../input/move_controller.h"
 #include "../config/player_stats.h"
+#include "../input/chat_input.h"
+#include "../input/move_controller.h"
 #include "../render/ui_renderer.h"
 #include "../render/world_renderer.h"
 

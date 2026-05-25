@@ -4,6 +4,7 @@
 #include <QPixmap>
 #include <string>
 #include <unordered_map>
+
 #include "common/config.h"
 
 class AtlasLoader {

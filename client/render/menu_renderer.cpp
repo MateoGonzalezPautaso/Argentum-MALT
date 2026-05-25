@@ -7,9 +7,8 @@
 MenuRenderer::MenuRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg):
         renderer(renderer),
         menu_background_texture(renderer, texture::load_surface(ui_cfg.asset_menu_bg)),
-        start_button(
-                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_start_default)),
-                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_start_hover))),
+        start_button(SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_start_default)),
+                     SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_start_hover))),
         settings_button(
                 SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_settings_default)),
                 SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_settings_hover))),

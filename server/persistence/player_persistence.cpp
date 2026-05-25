@@ -2,9 +2,9 @@
 
 #include <cstring>
 #include <fstream>
+#include <utility>
 
-PlayerPersistence::PlayerPersistence(const std::string& data_path,
-                                     const std::string& index_path):
+PlayerPersistence::PlayerPersistence(const std::string& data_path, const std::string& index_path):
         data_path(data_path), index_path(index_path) {
     load_index();
 }
@@ -89,8 +89,7 @@ void PlayerPersistence::save(const std::string& username, const PlayerRecord& re
         std::memcpy(merged.username, previous.username, sizeof(merged.username));
         std::memcpy(merged.password, previous.password, sizeof(merged.password));
 
-        std::ofstream data(data_path,
-                           std::ios::binary | std::ios::in | std::ios::out);
+        std::ofstream data(data_path, std::ios::binary | std::ios::in | std::ios::out);
         if (!data.is_open()) {
             return;
         }

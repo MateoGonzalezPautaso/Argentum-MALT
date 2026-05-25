@@ -1,15 +1,14 @@
 #include "combat_controller.h"
 
-#include <cstdlib>
 #include <algorithm>
+#include <cstdlib>
+#include <vector>
 
-CombatController::CombatController(const AttackConfig& config,
-                                   std::map<uint16_t, Player>& players):
-        config(config),
-        players(players) {}
+CombatController::CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players):
+        config(config), players(players) {}
 
 CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t target_id,
-                                              uint32_t current_tick) {
+                                             uint32_t current_tick) {
     auto attacker_it = players.find(attacker_id);
     if (attacker_it == players.end())
         return {};
@@ -35,7 +34,7 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
 
     DamageDealtEvent dealt{target_id, damage};
     DamageReceivedEvent received{attacker_id, damage};
-    std::vector<ServerEvent> broadcast;
+    std::vector<ServerEvent> broadcast = {received};
 
     if (target.hp_current == 0) {
         EntityDiedEvent died{target_id};
@@ -45,7 +44,6 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
     return {
             .private_events = {dealt},
             .broadcast_events = broadcast,
-            .targeted_events = {{target_id, {received}}},
     };
 }
 

@@ -5,12 +5,11 @@
 
 #include "../../common/messages.h"
 #include "../../common/queue.h"
-
 #include "../config/config.h"
+#include "../render/render_context.h"
 #include "../screen/game_controller.h"
 #include "../screen/login_controller.h"
 #include "../screen/menu_controller.h"
-#include "../render/render_context.h"
 
 enum class GameState { Menu, Login, Playing };
 
