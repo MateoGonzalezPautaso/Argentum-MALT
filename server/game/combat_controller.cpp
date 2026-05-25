@@ -35,7 +35,7 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
 
     DamageDealtEvent dealt{target_id, damage};
     DamageReceivedEvent received{attacker_id, damage};
-    std::vector<ServerEvent> broadcast;
+    std::vector<ServerEvent> broadcast = {received};
 
     if (target.hp_current == 0) {
         EntityDiedEvent died{target_id};
@@ -45,7 +45,6 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
     return {
             .private_events = {dealt},
             .broadcast_events = broadcast,
-            .targeted_events = {{target_id, {received}}},
     };
 }
 
