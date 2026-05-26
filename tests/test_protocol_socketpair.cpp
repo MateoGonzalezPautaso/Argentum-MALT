@@ -462,3 +462,67 @@ TEST_F(ProtocolTest, MultipleEventsInSequence) {
     EXPECT_TRUE(std::holds_alternative<EntitySpawnEvent>(client.recv_event()));
     EXPECT_TRUE(std::holds_alternative<EntityMoveEvent>(client.recv_event()));
 }
+
+// ─────────────────────────────────────────────────────────────
+// CLAN_NOTIFICATION event
+// ─────────────────────────────────────────────────────────────
+
+class ProtocolClanNotificationTest:
+        public ProtocolTest,
+        public ::testing::WithParamInterface<ClanNotifType> {};
+
+TEST_P(ProtocolClanNotificationTest, RoundtripAllTypes) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    ClanNotificationEvent sent{GetParam(), "player1", "TestClan"};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<ClanNotificationEvent>(ev));
+    const auto& received = std::get<ClanNotificationEvent>(ev);
+    EXPECT_EQ(received.type, sent.type);
+    EXPECT_EQ(received.username, sent.username);
+    EXPECT_EQ(received.clan_name, sent.clan_name);
+}
+
+INSTANTIATE_TEST_SUITE_P(AllClanNotifTypes, ProtocolClanNotificationTest,
+                         ::testing::Values(ClanNotifType::MEMBER_ONLINE,
+                                           ClanNotifType::MEMBER_OFFLINE,
+                                           ClanNotifType::MEMBER_ATTACKED,
+                                           ClanNotifType::JOIN_REQUEST,
+                                           ClanNotifType::JOIN_ACCEPTED,
+                                           ClanNotifType::JOIN_REJECTED,
+                                           ClanNotifType::KICKED));
+
+// ─────────────────────────────────────────────────────────────
+// CLAN_UPDATE event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, ClanUpdateRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    ClanUpdateEvent sent;
+    sent.clan_name = "TestClan";
+    sent.members.push_back({"founder", true, true});
+    sent.members.push_back({"member1", false, true});
+    sent.members.push_back({"member2", false, false});
+
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<ClanUpdateEvent>(ev));
+    const auto& received = std::get<ClanUpdateEvent>(ev);
+    EXPECT_EQ(received.clan_name, sent.clan_name);
+    ASSERT_EQ(received.members.size(), 3);
+    EXPECT_EQ(received.members[0].username, "founder");
+    EXPECT_EQ(received.members[0].is_founder, true);
+    EXPECT_EQ(received.members[0].is_online, true);
+    EXPECT_EQ(received.members[1].username, "member1");
+    EXPECT_EQ(received.members[1].is_founder, false);
+    EXPECT_EQ(received.members[1].is_online, true);
+    EXPECT_EQ(received.members[2].username, "member2");
+    EXPECT_EQ(received.members[2].is_founder, false);
+    EXPECT_EQ(received.members[2].is_online, false);
+}
