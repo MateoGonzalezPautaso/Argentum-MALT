@@ -220,20 +220,7 @@ void SpriteRenderer::set_local_player_info(Race race, PlayerClass player_class) 
 
     for (std::size_t i = 0; i < entity_part_configs.size() && i < sprites.size(); ++i) {
         const auto& config = entity_part_configs[i];
-        SpriteConfig selected = config;
-
-        if (config.movable && !config.anchor_to_movable) {
-            auto it = skin_config.body.find(class_to_skin_key(player_class));
-            if (it != skin_config.body.end() && !it->second.empty()) {
-                selected.paths = {it->second};
-            }
-        } else if (config.anchor_to_movable) {
-            auto it = skin_config.head.find(race_to_skin_key(race));
-            if (it != skin_config.head.end() && !it->second.empty()) {
-                selected.paths = {it->second};
-            }
-        }
-
+        SpriteConfig selected = resolve_entity_skin(config, race, player_class);
         sprites[i] = build_sprite_render(selected);
     }
 }
