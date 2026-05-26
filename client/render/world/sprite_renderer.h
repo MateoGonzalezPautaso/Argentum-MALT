@@ -86,6 +86,19 @@ private:
 
     static bool is_visible(const SpriteRender& s, const SDL2pp::Rect& cam);
 
+    struct Drawable {
+        SDL2pp::Texture* texture;
+        SDL2pp::Rect* src;
+        SDL2pp::Rect dst;
+        int foot_y;
+        uint8_t alpha;
+    };
+
+    void append_sprite_drawables(std::vector<SpriteRender>& src, const SDL2pp::Rect& cam,
+                                 std::vector<Drawable>& out);
+    void render_entity_names(const SDL2pp::Rect& cam);
+    void sort_and_render_drawables(std::vector<Drawable>& drawables);
+
     SDL2pp::Renderer& renderer;
     TTF_Font* name_font;
     std::vector<SpriteRender> sprites;

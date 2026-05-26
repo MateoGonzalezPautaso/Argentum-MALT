@@ -377,59 +377,58 @@ bool SpriteRenderer::is_visible(const SpriteRender& s, const SDL2pp::Rect& cam) 
 }
 
 void SpriteRenderer::render(const SDL2pp::Rect& cam) {
-    struct Drawable {
-        SDL2pp::Texture* texture;
-        SDL2pp::Rect* src;
-        SDL2pp::Rect dst;
-        int foot_y;
-        uint8_t alpha;
-    };
     std::vector<Drawable> drawables;
 
-    for (auto& sprite: sprites) {
+    append_sprite_drawables(sprites, cam, drawables);
+    for (auto& pair: entity_sprites) {
+        append_sprite_drawables(pair.second, cam, drawables);
+    }
+
+    render_entity_names(cam);
+    sort_and_render_drawables(drawables);
+}
+
+void SpriteRenderer::append_sprite_drawables(std::vector<SpriteRender>& src,
+                                             const SDL2pp::Rect& cam,
+                                             std::vector<Drawable>& out) {
+    for (auto& sprite: src) {
         if (!sprite.visible || sprite.frames.empty() || !is_visible(sprite, cam)) {
             continue;
         }
-
         SDL2pp::Rect dst(sprite.dst.GetX() - cam.GetX(), sprite.dst.GetY() - cam.GetY(),
                          sprite.dst.GetW(), sprite.dst.GetH());
-        drawables.push_back({&sprite.frames[sprite.current_frame],
-                             sprite.use_src ? &sprite.src : nullptr, dst,
-                             sprite.dst.GetY() + sprite.dst.GetH(),
-                             sprite.alpha});
+        out.push_back(Drawable{&sprite.frames[sprite.current_frame],
+                               sprite.use_src ? &sprite.src : nullptr, dst,
+                               sprite.dst.GetY() + sprite.dst.GetH(), sprite.alpha});
     }
+}
 
+void SpriteRenderer::render_entity_names(const SDL2pp::Rect& cam) {
     for (auto& pair: entity_sprites) {
         const uint16_t eid = pair.first;
+        auto name_it = entity_name_render.find(eid);
+        if (name_it == entity_name_render.end()) {
+            continue;
+        }
         int body_foot_y = 0;
         for (auto& sprite: pair.second) {
-            if (!sprite.visible || sprite.frames.empty() || !is_visible(sprite, cam)) {
-                continue;
-            }
-
-            SDL2pp::Rect dst(sprite.dst.GetX() - cam.GetX(), sprite.dst.GetY() - cam.GetY(),
-                             sprite.dst.GetW(), sprite.dst.GetH());
-            drawables.push_back({&sprite.frames[sprite.current_frame],
-                                 sprite.use_src ? &sprite.src : nullptr, dst,
-                                 sprite.dst.GetY() + sprite.dst.GetH(),
-                                 sprite.alpha});
-
             if (sprite.movable) {
                 body_foot_y = sprite.dst.GetY() + sprite.dst.GetH();
+                break;
             }
         }
-
-        auto name_it = entity_name_render.find(eid);
-        if (name_it != entity_name_render.end() && body_foot_y > 0) {
-            auto& body = pair.second[0];
-            const int name_x =
-                    body.dst.GetX() + (body.dst.GetW() - name_it->second.w) / 2 - cam.GetX();
-            const int name_y = body.dst.GetY() - name_it->second.h - 24 - cam.GetY();
-            renderer.Copy(name_it->second.texture, SDL2pp::NullOpt,
-                          SDL2pp::Rect(name_x, name_y, name_it->second.w, name_it->second.h));
+        if (body_foot_y <= 0) {
+            continue;
         }
+        auto& body = pair.second[0];
+        const int name_x = body.dst.GetX() + (body.dst.GetW() - name_it->second.w) / 2 - cam.GetX();
+        const int name_y = body.dst.GetY() - name_it->second.h - 24 - cam.GetY();
+        renderer.Copy(name_it->second.texture, SDL2pp::NullOpt,
+                      SDL2pp::Rect(name_x, name_y, name_it->second.w, name_it->second.h));
     }
+}
 
+void SpriteRenderer::sort_and_render_drawables(std::vector<Drawable>& drawables) {
     std::sort(drawables.begin(), drawables.end(),
               [](const Drawable& a, const Drawable& b) { return a.foot_y < b.foot_y; });
 
