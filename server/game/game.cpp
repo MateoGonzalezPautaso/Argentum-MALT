@@ -111,7 +111,7 @@ CommandResult Game::remove_player(uint16_t player_id) {
 
     EntityDespawnEvent despawn{.entity_id = player_id};
     players.erase(it);
-    return {.private_events = {}, .broadcast_events = {despawn}};
+    return {.private_events = {}, .broadcast_events = {despawn}, .targeted_events = {}};
 }
 
 CommandResult Game::tick() {
@@ -154,13 +154,13 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             for (const auto& [target_id, player]: players) {
                 if (player.username == target_nick) {
                     ChatMsgEvent chat_ev{ChatMsgType::PRIVATE, sender_name, msg, target_id, player_id};
-                    return {.private_events = {}, .broadcast_events = {chat_ev}};
+                    return {.private_events = {}, .broadcast_events = {chat_ev}, .targeted_events = {}};
                 }
             }
 
             ChatMsgEvent err{ChatMsgType::SYSTEM, "",
                              "Jugador " + target_nick + " no encontrado"};
-            return {.private_events = {err}, .broadcast_events = {}};
+            return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
         }
     }
 
@@ -175,26 +175,26 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         if (cmd_name == "/fundar-clan") {
             if (args.empty()) {
                 ChatMsgEvent err{ChatMsgType::SYSTEM, "", "Uso: /fundar-clan <nombre>"};
-                return {.private_events = {err}, .broadcast_events = {}};
+                return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
             }
             if (it->second.level < ClanManager::MIN_LEVEL_FOUND) {
                 ChatMsgEvent err{ChatMsgType::SYSTEM, "",
                                  "Necesitas nivel " + std::to_string(ClanManager::MIN_LEVEL_FOUND) +
                                          " para fundar un clan"};
-                return {.private_events = {err}, .broadcast_events = {}};
+                return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
             }
             ClanResult result = clan_manager.create_clan(sender_name, args);
             if (result.ok) {
                 it->second.clan_name = args;
             }
             ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
-            return {.private_events = {ev}, .broadcast_events = {}};
+            return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = {}};
         }
 
         if (cmd_name == "/unirse") {
             if (args.empty()) {
                 ChatMsgEvent err{ChatMsgType::SYSTEM, "", "Uso: /unirse <nombre del clan>"};
-                return {.private_events = {err}, .broadcast_events = {}};
+                return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
             }
             ClanResult result = clan_manager.request_join(sender_name, args);
             ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
@@ -214,13 +214,13 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
                     }
                 }
             }
-            return {.private_events = {ev}, .targeted_events = std::move(targeted)};
+            return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = std::move(targeted)};
         }
 
         if (cmd_name == "/revisar-clan") {
             if (!clan_manager.is_in_clan(sender_name)) {
                 ChatMsgEvent err{ChatMsgType::SYSTEM, "", "No perteneces a ningun clan"};
-                return {.private_events = {err}, .broadcast_events = {}};
+                return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
             }
             std::string clan_name = clan_manager.get_clan_name(sender_name);
             auto members = clan_manager.get_member_list(clan_name);
@@ -253,13 +253,13 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             }
 
             ChatMsgEvent ev{ChatMsgType::SYSTEM, "", msg};
-            return {.private_events = {ev}, .broadcast_events = {}};
+            return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = {}};
         }
 
         if (cmd_name == "/clan-aceptar") {
             if (args.empty()) {
                 ChatMsgEvent err{ChatMsgType::SYSTEM, "", "Uso: /clan-aceptar <nick>"};
-                return {.private_events = {err}, .broadcast_events = {}};
+                return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
             }
             ClanResult result = clan_manager.accept_member(sender_name, args);
             ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
@@ -290,7 +290,7 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         if (cmd_name == "/clan-rechazar") {
             if (args.empty()) {
                 ChatMsgEvent err{ChatMsgType::SYSTEM, "", "Uso: /clan-rechazar <nick>"};
-                return {.private_events = {err}, .broadcast_events = {}};
+                return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
             }
             ClanResult result = clan_manager.reject_member(sender_name, args);
             ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
@@ -305,13 +305,13 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
                     }
                 }
             }
-            return {.private_events = {ev}, .targeted_events = std::move(targeted)};
+            return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = std::move(targeted)};
         }
 
         if (cmd_name == "/clan-ban") {
             if (args.empty()) {
                 ChatMsgEvent err{ChatMsgType::SYSTEM, "", "Uso: /clan-ban <nick>"};
-                return {.private_events = {err}, .broadcast_events = {}};
+                return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
             }
             ClanResult result = clan_manager.ban_member(sender_name, args);
             ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
@@ -327,13 +327,13 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
                     }
                 }
             }
-            return {.private_events = {ev}, .targeted_events = std::move(targeted)};
+            return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = std::move(targeted)};
         }
 
         if (cmd_name == "/clan-kick") {
             if (args.empty()) {
                 ChatMsgEvent err{ChatMsgType::SYSTEM, "", "Uso: /clan-kick <nick>"};
-                return {.private_events = {err}, .broadcast_events = {}};
+                return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
             }
             ClanResult result = clan_manager.kick_member(sender_name, args);
             ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
@@ -349,7 +349,7 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
                     }
                 }
             }
-            return {.private_events = {ev}, .targeted_events = std::move(targeted)};
+            return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = std::move(targeted)};
         }
 
         if (cmd_name == "/dejar-clan") {
@@ -358,17 +358,17 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
                 it->second.clan_name.clear();
             }
             ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
-            return {.private_events = {ev}, .broadcast_events = {}};
+            return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = {}};
         }
 
         if (cmd_name == "/c" || cmd_name == "/clan") {
             if (args.empty()) {
                 ChatMsgEvent ev{ChatMsgType::SYSTEM, "", "Uso: /c <mensaje>"};
-                return {.private_events = {ev}, .broadcast_events = {}};
+                return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = {}};
             }
             if (it->second.clan_name.empty()) {
                 ChatMsgEvent ev{ChatMsgType::SYSTEM, "", "No perteneces a ningun clan"};
-                return {.private_events = {ev}, .broadcast_events = {}};
+                return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = {}};
             }
             // Send clan message to all online clan members via targeted events
             ChatMsgEvent clan_msg{ChatMsgType::CLAN, sender_name, args};
@@ -393,12 +393,12 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         // Comando no reconocido
         ChatMsgEvent ev{ChatMsgType::SYSTEM, "",
                         "Comando " + cmd_name + " no reconocido"};
-        return {.private_events = {ev}, .broadcast_events = {}};
+        return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = {}};
     }
 
     // Texto plano — broadcast a todos
     ChatMsgEvent broadcast_ev{ChatMsgType::SAY, sender_name, text};
-    return {.private_events = {}, .broadcast_events = {broadcast_ev}};
+    return {.private_events = {}, .broadcast_events = {broadcast_ev}, .targeted_events = {}};
 }
 
 CommandResult Game::notify_clan_members(const std::string& clan_name,
@@ -430,12 +430,12 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
     if (persistence.load(cmd.username, rec)) {
         if (!rec.check_password(cmd.password)) {
             LoginErrorEvent err{LoginError::INVALID_CREDENTIALS, "Invalid password"};
-            return {.private_events = {err}, .broadcast_events = {}};
+            return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
         }
 
         if (is_username_logged_in(cmd.username)) {
             LoginErrorEvent err{LoginError::ALREADY_LOGGED_IN, "This user is already logged in"};
-            return {.private_events = {err}, .broadcast_events = {}};
+            return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
         }
 
         Player player(player_id, cmd.username, Position{rec.pos_x, rec.pos_y},
@@ -511,7 +511,7 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
     }
 
     LoginErrorEvent err{LoginError::INVALID_CREDENTIALS, "Invalid username or password"};
-    return {.private_events = {err}, .broadcast_events = {}};
+    return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_cheat_infinite_hp(uint16_t player_id) {
@@ -522,7 +522,7 @@ CommandResult Game::handle_cheat_infinite_hp(uint16_t player_id) {
     bool active = it->second.cheat_infinite_hp;
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      active ? "[Cheat] Infinite HP: ON" : "[Cheat] Infinite HP: OFF"};
-    return {.private_events = {msg}, .broadcast_events = {}};
+    return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_cheat_infinite_mana(uint16_t player_id) {
@@ -533,7 +533,7 @@ CommandResult Game::handle_cheat_infinite_mana(uint16_t player_id) {
     bool active = it->second.cheat_infinite_mana;
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      active ? "[Cheat] Infinite Mana: ON" : "[Cheat] Infinite Mana: OFF"};
-    return {.private_events = {msg}, .broadcast_events = {}};
+    return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_cheat_die(uint16_t player_id) {
@@ -546,7 +546,7 @@ CommandResult Game::handle_cheat_die(uint16_t player_id) {
                             .damage = 0, .hp_current = 0, .hp_max = it->second.hp_max};
     EntityDiedEvent died{.entity_id = player_id};
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] You died!"};
-    return {.private_events = {msg}, .broadcast_events = {dmg, died}};
+    return {.private_events = {msg}, .broadcast_events = {dmg, died}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_cheat_level_up(uint16_t player_id) {
@@ -557,7 +557,7 @@ CommandResult Game::handle_cheat_level_up(uint16_t player_id) {
     player.level_up();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      "[Cheat] Nivel subido a " + std::to_string(player.level)};
-    return {.private_events = {msg}, .broadcast_events = {}};
+    return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_cheat_level_down(uint16_t player_id) {
@@ -567,7 +567,7 @@ CommandResult Game::handle_cheat_level_down(uint16_t player_id) {
     Player& player = it->second;
     if (player.level <= 1) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Ya estas en el nivel minimo"};
-        return {.private_events = {msg}, .broadcast_events = {}};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
     player.level--;
     player.hp_max = std::max(player.hp_max, static_cast<uint32_t>(player.balance.starting_hp));
@@ -576,7 +576,7 @@ CommandResult Game::handle_cheat_level_down(uint16_t player_id) {
     player.mana_current = player.mana_max;
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      "[Cheat] Nivel bajado a " + std::to_string(player.level)};
-    return {.private_events = {msg}, .broadcast_events = {}};
+    return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_meditate(uint16_t player_id) {
@@ -591,15 +591,15 @@ CommandResult Game::handle_meditate(uint16_t player_id) {
 
     if (player.player_class == PlayerClass::WARRIOR) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los guerreros no pueden meditar"};
-        return {.private_events = {msg}, .broadcast_events = {}};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
 
     if (player.is_meditating) {
         player.is_meditating = false;
-        return {.private_events = {MeditationStopEvent{}}, .broadcast_events = {}};
+        return {.private_events = {MeditationStopEvent{}}, .broadcast_events = {}, .targeted_events = {}};
     } else {
         player.is_meditating = true;
-        return {.private_events = {MeditationStartEvent{}}, .broadcast_events = {}};
+        return {.private_events = {MeditationStartEvent{}}, .broadcast_events = {}, .targeted_events = {}};
     }
 }
 
@@ -620,14 +620,14 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     Player& player = it->second;
     if (!player.is_ghost()) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "You are not dead"};
-        return {.private_events = {msg}, .broadcast_events = {}};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
 
     player.resurrect();
 
     PlayerRespawnedEvent respawn_ev{player_id, player.hp_current, player.hp_max};
 
-    return {.private_events = {}, .broadcast_events = {respawn_ev}};
+    return {.private_events = {}, .broadcast_events = {respawn_ev}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
