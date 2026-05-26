@@ -171,17 +171,7 @@ void LoginRenderer::render_text_field(const SDL2pp::Rect& rect, const std::strin
 
 void LoginRenderer::render_text_in_rect(const SDL2pp::Rect& rect, const std::string& text,
                                         SDL_Color color, int& clipped_w) const {
-    auto result = texture::render_text(renderer, field_font, text, color);
-    if (result.w == 0) {
-        clipped_w = 0;
-        return;
-    }
-    clipped_w = std::min(result.w, rect.GetW() - 8);
-    const int clipped_h = std::min(result.h, rect.GetH() - 4);
-    SDL2pp::Rect src_rect(0, 0, clipped_w, clipped_h);
-    SDL2pp::Rect dst_rect(rect.GetX() + 4, rect.GetY() + (rect.GetH() - clipped_h) / 2, clipped_w,
-                          clipped_h);
-    renderer.Copy(result.texture, src_rect, dst_rect);
+    clipped_w = texture::render_text_clipped(renderer, field_font, text, color, rect, 4, 2, true);
 }
 
 void LoginRenderer::set_error(const std::string& text) { error_text = text; }

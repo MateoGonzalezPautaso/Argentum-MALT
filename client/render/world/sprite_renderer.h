@@ -91,6 +91,7 @@ private:
     int clamp_y(int value, int sprite_h) const;
 
     static bool is_visible(const SpriteRender& s, const SDL2pp::Rect& cam);
+    static void advance_src_x(SpriteRender& sprite, int step, int frame_count);
 
     struct Drawable {
         SDL2pp::Texture* texture;

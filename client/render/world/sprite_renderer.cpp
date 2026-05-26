@@ -281,17 +281,21 @@ void SpriteRenderer::set_movable_src_y(int y) {
     sprite->src.SetY(y);
 }
 
+void SpriteRenderer::advance_src_x(SpriteRender& sprite, int step, int frame_count) {
+    if (!sprite.use_src || frame_count <= 0 || step <= 0) {
+        return;
+    }
+    const int current_index = sprite.src.GetX() / step;
+    const int next_index = (current_index + 1) % frame_count;
+    sprite.src.SetX(next_index * step);
+}
+
 void SpriteRenderer::step_movable_src_x(int step, int frame_count) {
     SpriteRender* sprite = find_movable_sprite();
-    if (!sprite || !sprite->use_src) {
+    if (!sprite) {
         return;
     }
-    if (frame_count <= 0 || step <= 0) {
-        return;
-    }
-    const int current_index = sprite->src.GetX() / step;
-    const int next_index = (current_index + 1) % frame_count;
-    sprite->src.SetX(next_index * step);
+    advance_src_x(*sprite, step, frame_count);
 }
 
 void SpriteRenderer::set_anchor_src_y(int y) {
@@ -326,12 +330,10 @@ void SpriteRenderer::step_entity_src_x(uint16_t entity_id, int step, int frame_c
         return;
     }
     for (auto& sprite: it->second) {
-        if (!sprite.movable || !sprite.use_src || frame_count <= 0 || step <= 0) {
+        if (!sprite.movable) {
             continue;
         }
-        const int current_index = sprite.src.GetX() / step;
-        const int next_index = (current_index + 1) % frame_count;
-        sprite.src.SetX(next_index * step);
+        advance_src_x(sprite, step, frame_count);
     }
 }
 

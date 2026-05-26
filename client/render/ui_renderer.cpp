@@ -163,16 +163,8 @@ void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages) {
 }
 
 void UIRenderer::render_chat_text_line(int& clipped_w) const {
-    auto result = texture::render_text(renderer, chat_font, chat_model.get_text(), chat_color);
-    if (result.w == 0) {
-        clipped_w = 0;
-        return;
-    }
-    clipped_w = std::min(result.w, chat_input_rect.GetW());
-    const int clipped_h = std::min(result.h, chat_input_rect.GetH());
-    SDL2pp::Rect src_rect(0, 0, clipped_w, clipped_h);
-    SDL2pp::Rect dst_rect(chat_input_rect.GetX(), chat_input_rect.GetY(), clipped_w, clipped_h);
-    renderer.Copy(result.texture, src_rect, dst_rect);
+    clipped_w = texture::render_text_clipped(renderer, chat_font, chat_model.get_text(),
+                                              chat_color, chat_input_rect);
 }
 
 void UIRenderer::render_chat_cursor(int x_offset) const {
