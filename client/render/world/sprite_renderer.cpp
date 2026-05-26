@@ -386,7 +386,6 @@ void SpriteRenderer::render(const SDL2pp::Rect& cam) {
         append_sprite_drawables(pair.second, cam, drawables);
     }
 
-    render_entity_names(cam);
     sort_and_render_drawables(drawables);
 }
 

@@ -43,6 +43,7 @@ public:
     void set_skin_config(const SkinConfig& skin_config);
 
     void render(const SDL2pp::Rect& cam);
+    void render_entity_names(const SDL2pp::Rect& cam);
     void tick_animations(AnimationSystem& anim);
 
     bool hit_test_entity(int world_x, int world_y, uint16_t& out_entity_id) const;
@@ -101,7 +102,6 @@ private:
 
     void append_sprite_drawables(std::vector<SpriteRender>& src, const SDL2pp::Rect& cam,
                                  std::vector<Drawable>& out);
-    void render_entity_names(const SDL2pp::Rect& cam);
     void sort_and_render_drawables(std::vector<Drawable>& drawables);
 
     SDL2pp::Renderer& renderer;

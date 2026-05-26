@@ -85,6 +85,7 @@ void WorldRenderer::render() {
     sprite_renderer.update_anchor_positions();
     sprite_renderer.render(cam);
     prop_renderer.render_front(cam, foot_y);
+    sprite_renderer.render_entity_names(cam);
 
     if (show_hitboxes_) {
         prop_renderer.render_hitboxes(cam);
