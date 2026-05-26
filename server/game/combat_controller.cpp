@@ -62,7 +62,7 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
     DamageReceivedEvent received{target.id, attacker.id, damage, target.hp_current, target.hp_max};
     ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
                            attacker.username + " ataco a " + target.username +
-                                   " por " + std::to_string(damage) + " de danio"};
+                                   " por " + std::to_string(damage) + " de daño"};
     std::vector<ServerEvent> broadcast = {received, chat_msg};
 
     if (target.hp_current == 0) {
@@ -71,6 +71,7 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
     }
 
     // Notify clan members when someone is attacked
+    std::map<uint16_t, std::vector<ServerEvent>> targeted;
     if (clan_manager && !target.clan_name.empty()) {
         ClanNotificationEvent notif{ClanNotifType::MEMBER_ATTACKED, target.username,
                                     target.clan_name};
@@ -78,12 +79,13 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
             if (pid == attacker_id || pid == target_id)
                 continue;
             if (p.clan_name == target.clan_name) {
-                broadcast.push_back(notif);
+                targeted[pid].push_back(notif);
             }
         }
     }
 
-    return {.private_events = {dealt}, .broadcast_events = std::move(broadcast)};
+    return {.private_events = {dealt}, .broadcast_events = std::move(broadcast),
+            .targeted_events = std::move(targeted)};
 }
 
 bool CombatController::in_range(const Player& attacker, const Player& target) const {

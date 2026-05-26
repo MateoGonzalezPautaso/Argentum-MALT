@@ -58,6 +58,8 @@ private:
     void handle_chat_msg(const ChatMsgEvent& e);
     void handle_entity_died(const EntityDiedEvent& e);
     void handle_player_respawned(const PlayerRespawnedEvent& e);
+    void handle_clan_notification(const ClanNotificationEvent& e);
+    void handle_clan_update(const ClanUpdateEvent& e);
 
 };
 
