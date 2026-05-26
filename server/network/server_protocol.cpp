@@ -183,6 +183,25 @@ void ServerProtocol::send_chat_msg(const ChatMsgEvent& ev) {
     protocol.send_uint16(ev.sender_id);
 }
 
+void ServerProtocol::send_clan_notification(const ClanNotificationEvent& ev) {
+    protocol.send_opcode(OpCode::CLAN_NOTIFICATION);
+    protocol.send_uint8(static_cast<uint8_t>(ev.type));
+    protocol.send_str(ev.username);
+    protocol.send_str(ev.clan_name);
+}
+
+void ServerProtocol::send_clan_update(const ClanUpdateEvent& ev) {
+    protocol.send_opcode(OpCode::CLAN_UPDATE);
+    protocol.send_str(ev.clan_name);
+    uint8_t count = static_cast<uint8_t>(ev.members.size());
+    protocol.send_uint8(count);
+    for (const auto& m: ev.members) {
+        protocol.send_str(m.username);
+        protocol.send_bool(m.is_founder);
+        protocol.send_bool(m.is_online);
+    }
+}
+
 void ServerProtocol::send_event(const ServerEvent& ev) {
     std::visit(overloaded{
                        [this](const LoginOkEvent& msg) { send_login_ok(msg); },
@@ -199,6 +218,8 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                          [this](const MeditationStartEvent&) { send_meditation_start(); },
                          [this](const MeditationStopEvent&) { send_meditation_stop(); },
                          [this](const ChatMsgEvent& msg) { send_chat_msg(msg); },
+                         [this](const ClanNotificationEvent& msg) { send_clan_notification(msg); },
+                         [this](const ClanUpdateEvent& msg) { send_clan_update(msg); },
                         [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },
                ev);

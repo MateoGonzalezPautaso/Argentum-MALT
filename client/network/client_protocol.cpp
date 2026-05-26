@@ -129,6 +129,24 @@ ServerEvent ClientProtocol::recv_event() {
             uint16_t sender_id = protocol.recv_uint16();
             return ChatMsgEvent{type, sender, message, recipient_id, sender_id};
         }
+        case OpCode::CLAN_NOTIFICATION: {
+            ClanNotifType type = static_cast<ClanNotifType>(protocol.recv_uint8());
+            std::string username = protocol.recv_str();
+            std::string clan_name = protocol.recv_str();
+            return ClanNotificationEvent{type, username, clan_name};
+        }
+        case OpCode::CLAN_UPDATE: {
+            ClanUpdateEvent ev;
+            ev.clan_name = protocol.recv_str();
+            uint8_t count = protocol.recv_uint8();
+            ev.members.resize(count);
+            for (uint8_t i = 0; i < count; ++i) {
+                ev.members[i].username = protocol.recv_str();
+                ev.members[i].is_founder = protocol.recv_bool();
+                ev.members[i].is_online = protocol.recv_bool();
+            }
+            return ev;
+        }
         default:
             throw std::runtime_error("Unknown event opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
