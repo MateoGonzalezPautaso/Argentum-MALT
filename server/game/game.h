@@ -35,6 +35,8 @@ private:
     CommandResult handle_cheat_infinite_hp(uint16_t player_id);
     CommandResult handle_cheat_infinite_mana(uint16_t player_id);
     CommandResult handle_cheat_die(uint16_t player_id);
+    CommandResult handle_cheat_level_up(uint16_t player_id);
+    CommandResult handle_cheat_level_down(uint16_t player_id);
     CommandResult handle_resurrect(uint16_t player_id);
     CommandResult handle_meditate(uint16_t player_id);
     bool is_username_logged_in(const std::string& username) const;

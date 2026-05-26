@@ -43,6 +43,8 @@ public:
     void send_cheat_infinite_hp();
     void send_cheat_infinite_mana();
     void send_cheat_die();
+    void send_cheat_level_up();
+    void send_cheat_level_down();
 
     // Envía cualquier comando usando std::visit.
     void send_command(const ClientCommand& cmd);

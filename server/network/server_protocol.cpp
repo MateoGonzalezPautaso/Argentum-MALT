@@ -37,6 +37,10 @@ ClientCommand ServerProtocol::recv_command() {
             return CheatInfiniteManaCmd{};
         case OpCode::CHEAT_DIE:
             return CheatDieCmd{};
+        case OpCode::CHEAT_LEVEL_UP:
+            return CheatLevelUpCmd{};
+        case OpCode::CHEAT_LEVEL_DOWN:
+            return CheatLevelDownCmd{};
         default:
             throw std::runtime_error("Unknown command opcode: " +
                                      std::to_string(static_cast<int>(opcode)));

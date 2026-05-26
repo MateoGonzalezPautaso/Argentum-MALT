@@ -66,6 +66,8 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                                [&](const CheatInfiniteHpCmd&) { return handle_cheat_infinite_hp(player_id); },
                                [&](const CheatInfiniteManaCmd&) { return handle_cheat_infinite_mana(player_id); },
                                [&](const CheatDieCmd&) { return handle_cheat_die(player_id); },
+                               [&](const CheatLevelUpCmd&) { return handle_cheat_level_up(player_id); },
+                               [&](const CheatLevelDownCmd&) { return handle_cheat_level_down(player_id); },
                                [](const auto&) { return CommandResult{}; },
                        },
                        cmd);
@@ -535,6 +537,36 @@ CommandResult Game::handle_cheat_die(uint16_t player_id) {
     EntityDiedEvent died{.entity_id = player_id};
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] You died!"};
     return {.private_events = {msg}, .broadcast_events = {dmg, died}};
+}
+
+CommandResult Game::handle_cheat_level_up(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+    player.level_up();
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                     "[Cheat] Nivel subido a " + std::to_string(player.level)};
+    return {.private_events = {msg}, .broadcast_events = {}};
+}
+
+CommandResult Game::handle_cheat_level_down(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+    if (player.level <= 1) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Ya estas en el nivel minimo"};
+        return {.private_events = {msg}, .broadcast_events = {}};
+    }
+    player.level--;
+    player.hp_max = std::max(player.hp_max, static_cast<uint32_t>(player.balance.starting_hp));
+    player.mana_max = std::max(player.mana_max, static_cast<uint32_t>(player.balance.starting_mana));
+    player.hp_current = player.hp_max;
+    player.mana_current = player.mana_max;
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                     "[Cheat] Nivel bajado a " + std::to_string(player.level)};
+    return {.private_events = {msg}, .broadcast_events = {}};
 }
 
 CommandResult Game::handle_meditate(uint16_t player_id) {

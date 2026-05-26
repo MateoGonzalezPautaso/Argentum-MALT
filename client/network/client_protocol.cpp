@@ -59,6 +59,10 @@ void ClientProtocol::send_cheat_infinite_mana() {
 
 void ClientProtocol::send_cheat_die() { protocol.send_opcode(OpCode::CHEAT_DIE); }
 
+void ClientProtocol::send_cheat_level_up() { protocol.send_opcode(OpCode::CHEAT_LEVEL_UP); }
+
+void ClientProtocol::send_cheat_level_down() { protocol.send_opcode(OpCode::CHEAT_LEVEL_DOWN); }
+
 void ClientProtocol::send_command(const ClientCommand& cmd) {
     std::visit(overloaded{
                        [this](const MoveCmd& msg) { send_move(msg); },
@@ -71,6 +75,8 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const CheatInfiniteHpCmd&) { send_cheat_infinite_hp(); },
                        [this](const CheatInfiniteManaCmd&) { send_cheat_infinite_mana(); },
                        [this](const CheatDieCmd&) { send_cheat_die(); },
+                       [this](const CheatLevelUpCmd&) { send_cheat_level_up(); },
+                       [this](const CheatLevelDownCmd&) { send_cheat_level_down(); },
                        [](const auto&) { throw std::runtime_error("Command not implemented"); },
                },
                cmd);
