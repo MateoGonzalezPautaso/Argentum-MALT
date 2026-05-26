@@ -28,6 +28,8 @@ private:
     uint32_t next_attack_tick = 0;
     bool is_dead = false;
     BalanceConfig balance;
+    bool cheat_infinite_hp = false;
+    bool cheat_infinite_mana = false;
 
 public:
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,

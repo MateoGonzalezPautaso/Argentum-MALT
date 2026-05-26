@@ -25,6 +25,12 @@ ClientCommand ServerProtocol::recv_command() {
             return recv_attack();
         case OpCode::SEND_CHAT:
             return recv_send_chat_msg();
+        case OpCode::CHEAT_INFINITE_HP:
+            return CheatInfiniteHpCmd{};
+        case OpCode::CHEAT_INFINITE_MANA:
+            return CheatInfiniteManaCmd{};
+        case OpCode::CHEAT_DIE:
+            return CheatDieCmd{};
         default:
             throw std::runtime_error("Unknown command opcode: " +
                                      std::to_string(static_cast<int>(opcode)));

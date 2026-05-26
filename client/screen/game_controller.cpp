@@ -195,6 +195,7 @@ bool GameController::handle_mouse_motion(const SDL_Event& event) {
 
 bool GameController::handle_keydown(const SDL_Event& event) {
     const uint32_t now = SDL_GetTicks();
+    const bool ctrl = event.key.keysym.mod & KMOD_CTRL;
 
     switch (event.key.keysym.sym) {
         case SDLK_ESCAPE:
@@ -212,7 +213,18 @@ bool GameController::handle_keydown(const SDL_Event& event) {
             move_controller.move_direction(Direction::SOUTH, now);
             break;
         case SDLK_h:
-            world_renderer.set_show_hitboxes(!world_renderer.get_show_hitboxes());
+            if (ctrl)
+                command_queue.push(CheatInfiniteHpCmd{});
+            else
+                world_renderer.set_show_hitboxes(!world_renderer.get_show_hitboxes());
+            break;
+        case SDLK_m:
+            if (ctrl)
+                command_queue.push(CheatInfiniteManaCmd{});
+            break;
+        case SDLK_k:
+            if (ctrl)
+                command_queue.push(CheatDieCmd{});
             break;
         default:
             break;

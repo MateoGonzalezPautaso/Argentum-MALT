@@ -47,6 +47,7 @@ private:
     bool handle_mouse_motion(const SDL_Event& event);
     bool handle_keydown(const SDL_Event& event);
     void flush_pending_chat();
+
 };
 
 #endif

@@ -49,6 +49,9 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                                [&](const MoveCmd& cmd) { return handle_move(player_id, cmd); },
                                [&](const AttackCmd& cmd) { return handle_attack(player_id, cmd); },
                                [&](const SendChatMsgCmd& cmd) { return handle_send_chat_msg(player_id, cmd); },
+                               [&](const CheatInfiniteHpCmd&) { return handle_cheat_infinite_hp(player_id); },
+                               [&](const CheatInfiniteManaCmd&) { return handle_cheat_infinite_mana(player_id); },
+                               [&](const CheatDieCmd&) { return handle_cheat_die(player_id); },
                                [](const auto&) { return CommandResult{}; },
                        },
                        cmd);
@@ -231,6 +234,41 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
     return {.private_events = {err}, .broadcast_events = {}};
 }
 
+CommandResult Game::handle_cheat_infinite_hp(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    it->second.cheat_infinite_hp = !it->second.cheat_infinite_hp;
+    bool active = it->second.cheat_infinite_hp;
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                     active ? "[Cheat] Infinite HP: ON" : "[Cheat] Infinite HP: OFF"};
+    return {.private_events = {msg}, .broadcast_events = {}};
+}
+
+CommandResult Game::handle_cheat_infinite_mana(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    it->second.cheat_infinite_mana = !it->second.cheat_infinite_mana;
+    bool active = it->second.cheat_infinite_mana;
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                     active ? "[Cheat] Infinite Mana: ON" : "[Cheat] Infinite Mana: OFF"};
+    return {.private_events = {msg}, .broadcast_events = {}};
+}
+
+CommandResult Game::handle_cheat_die(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    it->second.hp_current = 0;
+    it->second.is_dead = true;
+    DamageReceivedEvent dmg{.target_id = player_id, .attacker_id = player_id,
+                            .damage = 0, .hp_current = 0, .hp_max = it->second.hp_max};
+    EntityDiedEvent died{.entity_id = player_id};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] You died!"};
+    return {.private_events = {msg}, .broadcast_events = {dmg, died}};
+}
+
 bool Game::is_username_logged_in(const std::string& username) const {
     for (const auto& [id, player]: players) {
         if (player.username == username)
@@ -247,7 +285,7 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
 
     Player& player = it->second;
     if (!player.is_ghost()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No estas muerto"};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "You are not dead"};
         return {.private_events = {msg}, .broadcast_events = {}};
     }
 
