@@ -78,6 +78,11 @@ private:
     };
 
     SpriteRender build_sprite_render(const SpriteConfig& sprite_config);
+    SpriteConfig resolve_entity_skin(const SpriteConfig& config, Race race,
+                                     PlayerClass player_class) const;
+    std::vector<SpriteRender> build_entity_parts(int x, int y, Race race, PlayerClass player_class);
+    void position_anchored_parts(std::vector<SpriteRender>& parts);
+    void create_entity_name_label(uint16_t entity_id, const std::string& name);
     SpriteRender* find_movable_sprite();
     const SpriteRender* find_movable_sprite() const;
 

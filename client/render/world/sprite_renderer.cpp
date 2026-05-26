@@ -119,28 +119,30 @@ std::string race_to_skin_key(Race race) {
 
 }  // namespace
 
-void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::string& name,
-                                  Race race, PlayerClass player_class) {
-    if (entity_part_configs.empty()) {
-        return;
+SpriteConfig SpriteRenderer::resolve_entity_skin(const SpriteConfig& config, Race race,
+                                                  PlayerClass player_class) const {
+    SpriteConfig selected = config;
+    if (config.movable && !config.anchor_to_movable) {
+        auto it = skin_config.body.find(class_to_skin_key(player_class));
+        if (it != skin_config.body.end() && !it->second.empty()) {
+            selected.paths = {it->second};
+        }
+    } else if (config.anchor_to_movable) {
+        auto it = skin_config.head.find(race_to_skin_key(race));
+        if (it != skin_config.head.end() && !it->second.empty()) {
+            selected.paths = {it->second};
+        }
     }
+    return selected;
+}
 
+std::vector<SpriteRenderer::SpriteRender> SpriteRenderer::build_entity_parts(
+        int x, int y, Race race, PlayerClass player_class) {
     std::vector<SpriteRender> parts;
     parts.reserve(entity_part_configs.size());
 
     for (const auto& config: entity_part_configs) {
-        SpriteConfig selected = config;
-        if (config.movable && !config.anchor_to_movable) {
-            auto it = skin_config.body.find(class_to_skin_key(player_class));
-            if (it != skin_config.body.end() && !it->second.empty()) {
-                selected.paths = {it->second};
-            }
-        } else if (config.anchor_to_movable) {
-            auto it = skin_config.head.find(race_to_skin_key(race));
-            if (it != skin_config.head.end() && !it->second.empty()) {
-                selected.paths = {it->second};
-            }
-        }
+        SpriteConfig selected = resolve_entity_skin(config, race, player_class);
         SpriteRender part = build_sprite_render(selected);
         if (part.frames.empty()) {
             continue;
@@ -151,42 +153,55 @@ void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::s
         }
         parts.push_back(std::move(part));
     }
+    return parts;
+}
 
+void SpriteRenderer::position_anchored_parts(std::vector<SpriteRender>& parts) {
+    auto body_it = std::find_if(parts.begin(), parts.end(),
+                                [](const SpriteRender& p) { return p.movable; });
+    if (body_it == parts.end()) {
+        return;
+    }
+    SpriteRender& body = *body_it;
+    for (auto& part: parts) {
+        if (!part.anchor_to_movable) {
+            continue;
+        }
+        const int desired_x = body.dst.GetX() + part.anchor_offset_x;
+        const int desired_y = body.dst.GetY() + part.anchor_offset_y;
+        part.dst.SetX(clamp_x(desired_x, part.dst.GetW()));
+        part.dst.SetY(clamp_y(desired_y, part.dst.GetH()));
+    }
+}
+
+void SpriteRenderer::create_entity_name_label(uint16_t entity_id, const std::string& name) {
+    if (name.empty() || !name_font) {
+        return;
+    }
+    SDL_Color white = {255, 255, 255, 255};
+    SDL_Surface* surface = TTF_RenderUTF8_Blended(name_font, name.c_str(), white);
+    if (!surface) {
+        return;
+    }
+    SDL2pp::Surface wrapped(surface);
+    int text_w = 0, text_h = 0;
+    TTF_SizeUTF8(name_font, name.c_str(), &text_w, &text_h);
+    entity_name_render.emplace(entity_id,
+                               EntityNameRender{SDL2pp::Texture(renderer, wrapped), text_w, text_h});
+}
+
+void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::string& name,
+                                  Race race, PlayerClass player_class) {
+    if (entity_part_configs.empty()) {
+        return;
+    }
+    auto parts = build_entity_parts(x, y, race, player_class);
     if (parts.empty()) {
         return;
     }
-
-    auto body_it = std::find_if(parts.begin(), parts.end(),
-                                [](const SpriteRender& p) { return p.movable; });
-    SpriteRender* body = nullptr;
-    if (body_it != parts.end())
-        body = &(*body_it);
-
-    if (body) {
-        for (auto& part: parts) {
-            if (part.anchor_to_movable) {
-                const int desired_x = body->dst.GetX() + part.anchor_offset_x;
-                const int desired_y = body->dst.GetY() + part.anchor_offset_y;
-                part.dst.SetX(clamp_x(desired_x, part.dst.GetW()));
-                part.dst.SetY(clamp_y(desired_y, part.dst.GetH()));
-            }
-        }
-    }
-
+    position_anchored_parts(parts);
     entity_sprites[entity_id] = std::move(parts);
-
-    if (!name.empty() && name_font) {
-        SDL_Color white = {255, 255, 255, 255};
-        SDL_Surface* surface = TTF_RenderUTF8_Blended(name_font, name.c_str(), white);
-        if (surface) {
-            SDL2pp::Surface wrapped(surface);
-            int text_w = 0, text_h = 0;
-            TTF_SizeUTF8(name_font, name.c_str(), &text_w, &text_h);
-            entity_name_render.emplace(
-                    entity_id,
-                    EntityNameRender{SDL2pp::Texture(renderer, wrapped), text_w, text_h});
-        }
-    }
+    create_entity_name_label(entity_id, name);
 }
 
 void SpriteRenderer::despawn_entity(uint16_t entity_id) {
