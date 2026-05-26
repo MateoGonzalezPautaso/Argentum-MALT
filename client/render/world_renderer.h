@@ -19,13 +19,15 @@ class WorldRenderer {
 public:
     WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig& background,
                   const TilemapConfig& tilemap, const std::vector<SpriteConfig>& sprites_config,
-                  const ViewportConfig& viewport_cfg, const FontConfig& font_cfg);
+                  const ViewportConfig& viewport_cfg, const FontConfig& font_cfg,
+                  const SkinConfig& skin_config = {});
     ~WorldRenderer();
 
     void render();
 
     void set_movable_position(int x, int y);
-    void spawn_entity(uint16_t entity_id, int x, int y, const std::string& name);
+    void spawn_entity(uint16_t entity_id, int x, int y, const std::string& name,
+                      Race race = static_cast<Race>(0), PlayerClass player_class = static_cast<PlayerClass>(0));
     void despawn_entity(uint16_t entity_id);
     void move_entity(uint16_t entity_id, int x, int y);
     bool get_movable_position(int& x, int& y) const;
@@ -39,6 +41,7 @@ public:
     void step_entity_src_x(uint16_t entity_id, int step, int frame_count);
     void set_entity_alpha(uint16_t entity_id, uint8_t alpha);
     void set_movable_alpha(uint8_t alpha);
+    void set_local_player_info(Race race, PlayerClass player_class);
     void set_show_hitboxes(bool v) { show_hitboxes_ = v; }
     bool get_show_hitboxes() const { return show_hitboxes_; }
 

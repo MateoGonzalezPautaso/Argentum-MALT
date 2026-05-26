@@ -1,8 +1,8 @@
 #ifndef SMALL_SPIDER_H
 #define SMALL_SPIDER_H
 
-#include "../common/equipable_items.h"
-#include "../common/rng.h"
+#include "../../common/equipable_items.h"
+#include "../../common/rng.h"
 
 #include "enemy_npc.h"
 

@@ -2,6 +2,7 @@
 #define CLIENT_CONFIG_H
 
 #include <cstdint>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -115,11 +116,17 @@ struct UIConfig {
     std::string asset_exp_bar = "assets/interface/en_barraexperiencia.bmp";
 };
 
+struct SkinConfig {
+    std::map<std::string, std::string> body;
+    std::map<std::string, std::string> head;
+};
+
 struct ClientConfig {
     WindowConfig window;
     BackgroundConfig background;
     TilemapConfig tilemap;
     std::vector<SpriteConfig> sprites;
+    SkinConfig skins;
     FontConfig font;
     ViewportConfig viewport;
     UIConfig ui;
