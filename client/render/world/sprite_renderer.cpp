@@ -95,42 +95,18 @@ void SpriteRenderer::set_movable_position(int x, int y) {
     sprite->dst.SetY(clamp_y(y, sprite->dst.GetH()));
 }
 
-namespace {
-
-std::string class_to_skin_key(PlayerClass pc) {
-    switch (pc) {
-        case PlayerClass::MAGE:    return "mage";
-        case PlayerClass::CLERIC:  return "cleric";
-        case PlayerClass::PALADIN: return "paladin";
-        case PlayerClass::WARRIOR: return "warrior";
-    }
-    return "";
-}
-
-std::string race_to_skin_key(Race race) {
-    switch (race) {
-        case Race::HUMAN: return "human";
-        case Race::ELF:   return "elf";
-        case Race::DWARF: return "dwarf";
-        case Race::GNOME: return "gnome";
-    }
-    return "";
-}
-
-}  // namespace
-
 SpriteConfig SpriteRenderer::resolve_entity_skin(const SpriteConfig& config, Race race,
                                                   PlayerClass player_class) const {
     SpriteConfig selected = config;
     if (config.movable && !config.anchor_to_movable) {
-        auto it = skin_config.body.find(class_to_skin_key(player_class));
-        if (it != skin_config.body.end() && !it->second.empty()) {
-            selected.paths = {it->second};
+        std::string path = skin_config.body_path_for(player_class);
+        if (!path.empty()) {
+            selected.paths = {std::move(path)};
         }
     } else if (config.anchor_to_movable) {
-        auto it = skin_config.head.find(race_to_skin_key(race));
-        if (it != skin_config.head.end() && !it->second.empty()) {
-            selected.paths = {it->second};
+        std::string path = skin_config.head_path_for(race);
+        if (!path.empty()) {
+            selected.paths = {std::move(path)};
         }
     }
     return selected;

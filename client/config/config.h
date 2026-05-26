@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "../../common/config.h"
+#include "../../common/messages.h"
 
 struct WindowConfig {
     int width = 960;
@@ -72,6 +73,12 @@ struct PortraitConfig {
     int h = 85;
     int lvl_x = 731;
     int lvl_y = 131;
+    int head_src_w = 27;
+    int head_src_h = 40;
+    int body_src_w = 27;
+    int body_shoulder_h = 15;
+    int anchor_y = -20;
+    float zoom = 1.9f;
 };
 
 struct UIConfig {
@@ -130,6 +137,37 @@ struct UIConfig {
 struct SkinConfig {
     std::map<std::string, std::string> body;
     std::map<std::string, std::string> head;
+
+    std::string head_path_for(Race race) const {
+        auto it = head.find(race_to_skin_key(race));
+        return it != head.end() ? it->second : "";
+    }
+
+    std::string body_path_for(PlayerClass pc) const {
+        auto it = body.find(class_to_skin_key(pc));
+        return it != body.end() ? it->second : "";
+    }
+
+private:
+    static std::string class_to_skin_key(PlayerClass pc) {
+        switch (pc) {
+            case PlayerClass::MAGE:    return "mage";
+            case PlayerClass::CLERIC:  return "cleric";
+            case PlayerClass::PALADIN: return "paladin";
+            case PlayerClass::WARRIOR: return "warrior";
+        }
+        return "";
+    }
+
+    static std::string race_to_skin_key(Race race) {
+        switch (race) {
+            case Race::HUMAN: return "human";
+            case Race::ELF:   return "elf";
+            case Race::DWARF: return "dwarf";
+            case Race::GNOME: return "gnome";
+        }
+        return "";
+    }
 };
 
 struct ClientConfig {

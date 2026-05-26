@@ -9,26 +9,6 @@
 #include "text_renderer.h"
 #include "texture_loader.h"
 
-static std::string class_to_skin_key(PlayerClass pc) {
-    switch (pc) {
-        case PlayerClass::MAGE:    return "mage";
-        case PlayerClass::CLERIC:  return "cleric";
-        case PlayerClass::PALADIN: return "paladin";
-        case PlayerClass::WARRIOR: return "warrior";
-    }
-    return "";
-}
-
-static std::string race_to_skin_key(Race race) {
-    switch (race) {
-        case Race::HUMAN: return "human";
-        case Race::ELF:   return "elf";
-        case Race::DWARF: return "dwarf";
-        case Race::GNOME: return "gnome";
-    }
-    return "";
-}
-
 UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
                        const SkinConfig& skin_config, const ChatInput& chat_model):
         renderer(renderer),
@@ -154,45 +134,27 @@ void UIRenderer::render_gold(uint32_t gold) {
 }
 
 void UIRenderer::render_portrait(Race race, PlayerClass player_class, uint8_t level) {
-    std::string race_key = race_to_skin_key(race);
-    std::string class_key = class_to_skin_key(player_class);
-
     const auto& pt = ui_cfg.portrait;
 
-    std::string head_path;
-    auto it_head = skin_config.head.find(race_key);
-    if (it_head != skin_config.head.end()) {
-        head_path = it_head->second;
-    }
+    std::string head_path = skin_config.head_path_for(race);
+    std::string body_path = skin_config.body_path_for(player_class);
 
-    std::string body_path;
-    auto it_body = skin_config.body.find(class_key);
-    if (it_body != skin_config.body.end()) {
-        body_path = it_body->second;
-    }
+    const float scale = pt.h * pt.zoom / pt.head_src_h;
 
-    const int head_src_w = 27;
-    const int head_src_h = 40;
-    const int body_src_w = 27;
-    const int body_shoulder_h = 15;
-    const int anchor_y = -20;
-
-    const float scale = pt.h * 1.9f / head_src_h;
-
-    const int head_dst_w = static_cast<int>(head_src_w * scale);
-    const int head_dst_h = static_cast<int>(head_src_h * scale);
-    const int body_dst_w = static_cast<int>(body_src_w * scale);
-    const int body_dst_h = static_cast<int>(body_shoulder_h * scale);
+    const int head_dst_w = static_cast<int>(pt.head_src_w * scale);
+    const int head_dst_h = static_cast<int>(pt.head_src_h * scale);
+    const int body_dst_w = static_cast<int>(pt.body_src_w * scale);
+    const int body_dst_h = static_cast<int>(pt.body_shoulder_h * scale);
 
     const int head_x = pt.x + (pt.w - head_dst_w) / 2;
     const int body_x = head_x;
     const int body_y = pt.y + pt.h - body_dst_h;
-    const int head_y = body_y + static_cast<int>(anchor_y * scale);
+    const int head_y = body_y + static_cast<int>(pt.anchor_y * scale);
 
     if (!head_path.empty()) {
         SDL2pp::Surface surf = texture::load_surface(head_path);
         SDL2pp::Texture tex(renderer, surf);
-        SDL2pp::Rect src(0, 0, head_src_w, head_src_h);
+        SDL2pp::Rect src(0, 0, pt.head_src_w, pt.head_src_h);
         SDL2pp::Rect dst(head_x, head_y, head_dst_w, head_dst_h);
         renderer.Copy(tex, src, dst);
     }
@@ -200,7 +162,7 @@ void UIRenderer::render_portrait(Race race, PlayerClass player_class, uint8_t le
     if (!body_path.empty()) {
         SDL2pp::Surface surf = texture::load_surface(body_path);
         SDL2pp::Texture tex(renderer, surf);
-        SDL2pp::Rect src(0, 0, body_src_w, body_shoulder_h);
+        SDL2pp::Rect src(0, 0, pt.body_src_w, pt.body_shoulder_h);
         SDL2pp::Rect dst(body_x, body_y, body_dst_w, body_dst_h);
         renderer.Copy(tex, src, dst);
     }

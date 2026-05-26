@@ -77,6 +77,12 @@ w = 88
 h = 85
 lvl_x = 731
 lvl_y = 131
+head_src_w = 27
+head_src_h = 40
+body_src_w = 27
+body_shoulder_h = 15
+anchor_y = -20
+zoom = 1.9
 
 [ui.exp_bar]
 x = 790

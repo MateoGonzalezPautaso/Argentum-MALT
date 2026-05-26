@@ -173,6 +173,12 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
             config.ui.portrait.h = toml_get_int(*pt, "h", config.ui.portrait.h);
             config.ui.portrait.lvl_x = toml_get_int(*pt, "lvl_x", config.ui.portrait.lvl_x);
             config.ui.portrait.lvl_y = toml_get_int(*pt, "lvl_y", config.ui.portrait.lvl_y);
+            config.ui.portrait.head_src_w = toml_get_int(*pt, "head_src_w", config.ui.portrait.head_src_w);
+            config.ui.portrait.head_src_h = toml_get_int(*pt, "head_src_h", config.ui.portrait.head_src_h);
+            config.ui.portrait.body_src_w = toml_get_int(*pt, "body_src_w", config.ui.portrait.body_src_w);
+            config.ui.portrait.body_shoulder_h = toml_get_int(*pt, "body_shoulder_h", config.ui.portrait.body_shoulder_h);
+            config.ui.portrait.anchor_y = toml_get_int(*pt, "anchor_y", config.ui.portrait.anchor_y);
+            config.ui.portrait.zoom = static_cast<float>(toml_get_double(*pt, "zoom", config.ui.portrait.zoom));
         }
     }
 }
