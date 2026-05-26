@@ -1,8 +1,8 @@
 #ifndef WEAK_GOBLIN_H
 #define WEAK_GOBLIN_H
 
-#include "../common/equipable_items.h"
-#include "../common/rng.h"
+#include "../../common/equipable_items.h"
+#include "../../common/rng.h"
 
 #include "enemy_npc.h"
 

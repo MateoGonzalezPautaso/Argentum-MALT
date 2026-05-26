@@ -3,9 +3,9 @@
 
 #include <optional>
 
-#include "../common/equipable_items.h"
-#include "../common/messages.h"
-#include "../common/rng.h"
+#include "../../common/equipable_items.h"
+#include "../../common/messages.h"
+#include "../../common/rng.h"
 
 struct EnemyDrop {
     uint32_t gold;

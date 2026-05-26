@@ -1,6 +1,6 @@
 #include "enemy_npc.h"
 
-#include "../common/item.h"
+#include "../../common/item.h"
 
 EnemyNpc::EnemyNpc(Position position, uint32_t hp_max, uint32_t damage, Rng& rng,
                    EquipableItems& equipable_items):
