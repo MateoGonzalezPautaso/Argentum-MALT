@@ -33,6 +33,7 @@ void GameController::render() {
     renderer.Clear();
     ui_renderer.render_frame_background();
     world_renderer.render();
+    ui_renderer.render_gold(player_stats.gold);
     ui_renderer.render_hp_bar(player_stats.hp_current, player_stats.hp_max);
     ui_renderer.render_mp_bar(player_stats.mana_current, player_stats.mana_max);
     ui_renderer.render_exp_bar(player_stats.experience, player_stats.exp_to_next);

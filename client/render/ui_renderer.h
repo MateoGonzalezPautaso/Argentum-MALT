@@ -37,6 +37,7 @@ public:
     void render_hp_bar(uint32_t current, uint32_t max);
     void render_mp_bar(uint32_t current, uint32_t max);
     void render_exp_bar(uint32_t current, uint32_t max);
+    void render_gold(uint32_t gold);
     bool is_chat_input_hit(int x, int y) const;
 
 private:

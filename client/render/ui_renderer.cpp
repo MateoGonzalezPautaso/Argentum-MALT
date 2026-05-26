@@ -115,6 +115,23 @@ void UIRenderer::render_stat_bar(SDL2pp::Texture& tex, int x, int y, int w, int 
     renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
 }
 
+void UIRenderer::render_gold(uint32_t gold) {
+    if (!bar_font) {
+        return;
+    }
+
+    const auto& gr = ui_cfg.gold_rect;
+    std::string text = std::to_string(gold);
+    auto result = texture::render_text(renderer, bar_font, text, chat_color);
+    if (result.w == 0) {
+        return;
+    }
+    const int text_x = gr.x + (gr.w - result.w) / 2;
+    const int text_y = gr.y + (gr.h - result.h) / 2;
+    SDL2pp::Rect text_dst(text_x, text_y, result.w, result.h);
+    renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
+}
+
 void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages) {
     if (!chat_font || messages.empty()) {
         return;

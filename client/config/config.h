@@ -77,6 +77,7 @@ struct UIConfig {
     StatBarConfig hp_bar;
     StatBarConfig mp_bar{790, 629, 217, 17};
     StatBarConfig exp_bar{790, 657, 217, 17};
+    StatBarConfig gold_rect{790, 559, 97, 17};
     int chat_input_x = 41;
     int chat_input_y = 122;
     int chat_input_w = 565;

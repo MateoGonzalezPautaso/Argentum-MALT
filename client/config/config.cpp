@@ -162,6 +162,8 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
                    config.ui.mp_bar);
     parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{}, "exp_bar",
                    config.ui.exp_bar);
+    parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{}, "gold_rect",
+                   config.ui.gold_rect);
 }
 
 void parse_assets_config(const toml::table& root, ClientConfig& config) {
