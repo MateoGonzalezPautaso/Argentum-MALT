@@ -6,6 +6,8 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>
 
+#include "../../common/messages.h"
+
 #include "../chat/chat_history.h"
 #include "../config/config.h"
 
@@ -15,6 +17,7 @@ class UIRenderer {
 private:
     SDL2pp::Renderer& renderer;
     const ChatInput& chat_model;
+    const SkinConfig& skin_config;
     SDL2pp::Texture ui_frame_texture;
     SDL2pp::Texture hp_bar_texture;
     SDL2pp::Texture mp_bar_texture;
@@ -28,7 +31,8 @@ private:
     UIConfig ui_cfg;
 
 public:
-    UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg, const ChatInput& chat_model);
+    UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg, const SkinConfig& skin_config,
+               const ChatInput& chat_model);
     ~UIRenderer();
 
     void render_frame_background();
@@ -38,6 +42,7 @@ public:
     void render_mp_bar(uint32_t current, uint32_t max);
     void render_exp_bar(uint32_t current, uint32_t max);
     void render_gold(uint32_t gold);
+    void render_portrait(Race race, PlayerClass player_class, uint8_t level);
     bool is_chat_input_hit(int x, int y) const;
 
 private:

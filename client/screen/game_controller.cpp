@@ -9,7 +9,7 @@ GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& c
         renderer(renderer),
         world_renderer(renderer, config.background, config.tilemap, config.sprites, config.viewport,
                        config.font, config.skins),
-        ui_renderer(renderer, config.ui, chat_input),
+        ui_renderer(renderer, config.ui, config.skins, chat_input),
         command_queue(command_queue),
         move_controller(this->command_queue, MoveConfig(config), SDL_GetTicks()),
         move_config(config),
@@ -33,6 +33,7 @@ void GameController::render() {
     renderer.Clear();
     ui_renderer.render_frame_background();
     world_renderer.render();
+    ui_renderer.render_portrait(player_stats.race, player_stats.player_class, player_stats.level);
     ui_renderer.render_gold(player_stats.gold);
     ui_renderer.render_hp_bar(player_stats.hp_current, player_stats.hp_max);
     ui_renderer.render_mp_bar(player_stats.mana_current, player_stats.mana_max);

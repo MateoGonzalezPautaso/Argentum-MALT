@@ -70,6 +70,14 @@ y = 559
 w = 97
 h = 17
 
+[ui.portrait]
+x = 643
+y = 46
+w = 88
+h = 85
+lvl_x = 731
+lvl_y = 131
+
 [ui.exp_bar]
 x = 790
 y = 657

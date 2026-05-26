@@ -164,6 +164,17 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
                    config.ui.exp_bar);
     parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{}, "gold_rect",
                    config.ui.gold_rect);
+
+    if (auto portrait = root["ui"].as_table()) {
+        if (auto pt = (*portrait)["portrait"].as_table()) {
+            config.ui.portrait.x = toml_get_int(*pt, "x", config.ui.portrait.x);
+            config.ui.portrait.y = toml_get_int(*pt, "y", config.ui.portrait.y);
+            config.ui.portrait.w = toml_get_int(*pt, "w", config.ui.portrait.w);
+            config.ui.portrait.h = toml_get_int(*pt, "h", config.ui.portrait.h);
+            config.ui.portrait.lvl_x = toml_get_int(*pt, "lvl_x", config.ui.portrait.lvl_x);
+            config.ui.portrait.lvl_y = toml_get_int(*pt, "lvl_y", config.ui.portrait.lvl_y);
+        }
+    }
 }
 
 void parse_assets_config(const toml::table& root, ClientConfig& config) {

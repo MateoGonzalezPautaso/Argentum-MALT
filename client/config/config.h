@@ -65,6 +65,15 @@ struct StatBarConfig {
     int h = 17;
 };
 
+struct PortraitConfig {
+    int x = 643;
+    int y = 46;
+    int w = 88;
+    int h = 85;
+    int lvl_x = 731;
+    int lvl_y = 131;
+};
+
 struct UIConfig {
     int window_w = 1024;
     int window_h = 768;
@@ -78,6 +87,7 @@ struct UIConfig {
     StatBarConfig mp_bar{790, 629, 217, 17};
     StatBarConfig exp_bar{790, 657, 217, 17};
     StatBarConfig gold_rect{790, 559, 97, 17};
+    PortraitConfig portrait;
     int chat_input_x = 41;
     int chat_input_y = 122;
     int chat_input_w = 565;
