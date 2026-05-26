@@ -238,5 +238,12 @@ void GameController::flush_pending_chat() {
         return;
     }
     std::string text = chat_input.pop_pending_message();
-    command_queue.push(SendChatMsgCmd{std::move(text)});
+
+    if (text == "/resucitar") {
+        command_queue.push(ResurrectCmd{});
+    } else if (text == "/meditar") {
+        command_queue.push(MeditateCmd{});
+    } else {
+        command_queue.push(SendChatMsgCmd{std::move(text)});
+    }
 }

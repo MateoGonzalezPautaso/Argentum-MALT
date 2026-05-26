@@ -72,6 +72,7 @@
 | `0x1B` | `CHEAT_INFINITE_HP`     | Cheat: vida infinita (toggle)          |
 | `0x1C` | `CHEAT_INFINITE_MANA`   | Cheat: maná infinito (toggle)          |
 | `0x1D` | `CHEAT_DIE`             | Cheat: morir instantáneamente          |
+| `0x1E` | `SEND_CHAT`             | Envía mensaje de texto al chat         |
 
 ### 3.2 Servidor → Cliente (`0x80` – `0x9B`)
 
@@ -644,9 +645,9 @@ Cliente                                 Servidor
    |                                        | valida credenciales
    |<------ LOGIN_OK (0x80) ----------------|
    |<------ MAP_INFO (0x84) ----------------|
-   |<------ INVENTORY_UPDATE (0xB0) --------|
-   |<------ EQUIP_UPDATE (0xB1) ------------|
-   |<------ GOLD_UPDATE (0xB2) -------------|
+   |<------ INVENTORY_UPDATE (0x90) --------|
+   |<------ EQUIP_UPDATE (0x91) ------------|
+   |<------ GOLD_UPDATE (0x92) -------------|
    |        (ENTITY_SPAWN x N cercanos)     |
    |             ... juego ...              |
    |                                        |
@@ -663,9 +664,9 @@ Cliente                                 Servidor
    |                                        | valida nombre único
    |<-- CHARACTER_CREATED (0x82) -----------|  (mismo payload que LOGIN_OK)
    |<-- MAP_INFO (0x84) --------------------|
-   |<-- INVENTORY_UPDATE (0xB0) ------------|  (inventario vacío)
-   |<-- EQUIP_UPDATE (0xB1) ----------------|  (sin equipamiento)
-   |<-- GOLD_UPDATE (0xB2) ---------------- |  (oro inicial = 0)
+   |<-- INVENTORY_UPDATE (0x90) ------------|  (inventario vacío)
+   |<-- EQUIP_UPDATE (0x91) ----------------|  (sin equipamiento)
+   |<-- GOLD_UPDATE (0x92) ---------------- |  (oro inicial = 0)
 ```
 
 ### 6.3 Flujo de combate melee
@@ -821,4 +822,4 @@ Todos los `uint16_t` y `uint32_t` deben ser convertidos al enviar (`htons`, `hto
 
 ### Cheats
 - Solo disponibles en builds de Debug o si el servidor tiene `enable_cheats = true` en el TOML.
-- En build Release con cheats deshabilitados, el servidor ignora silenciosamente los mensajes `0x60`–`0x62`.
+- En build Release con cheats deshabilitados, el servidor ignora silenciosamente los mensajes `0x1B`–`0x1D`.

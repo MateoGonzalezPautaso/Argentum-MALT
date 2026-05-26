@@ -74,7 +74,7 @@ void Player::resurrect() {
 }
 
 void Player::heal(uint32_t amount) {
-    uint32_t total = static_cast<uint64_t>(hp_current) + amount;
+    uint64_t total = static_cast<uint64_t>(hp_current) + amount;
     hp_current = static_cast<uint32_t>(std::min<uint64_t>(total, hp_max));
 }
 

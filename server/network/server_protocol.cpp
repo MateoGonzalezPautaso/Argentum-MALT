@@ -6,6 +6,8 @@
 #include <sys/socket.h>
 
 #include "../../common/socket.h"
+#include "../../common/visit.h"
+
 
 ServerProtocol::ServerProtocol(Socket&& skt): skt(std::move(skt)), protocol(this->skt) {}
 
@@ -25,6 +27,10 @@ ClientCommand ServerProtocol::recv_command() {
             return recv_attack();
         case OpCode::SEND_CHAT:
             return recv_send_chat_msg();
+        case OpCode::MEDITATE:
+            return MeditateCmd{};
+        case OpCode::RESURRECT:
+            return ResurrectCmd{};
         case OpCode::CHEAT_INFINITE_HP:
             return CheatInfiniteHpCmd{};
         case OpCode::CHEAT_INFINITE_MANA:
@@ -160,6 +166,14 @@ void ServerProtocol::send_player_respawned(const PlayerRespawnedEvent& ev) {
     protocol.send_uint32(ev.hp_max);
 }
 
+void ServerProtocol::send_meditation_start() {
+    protocol.send_opcode(OpCode::MEDITATION_START);
+}
+
+void ServerProtocol::send_meditation_stop() {
+    protocol.send_opcode(OpCode::MEDITATION_STOP);
+}
+
 void ServerProtocol::send_chat_msg(const ChatMsgEvent& ev) {
     protocol.send_opcode(OpCode::CHAT_MSG);
     protocol.send_uint8(static_cast<uint8_t>(ev.type));
@@ -168,8 +182,6 @@ void ServerProtocol::send_chat_msg(const ChatMsgEvent& ev) {
     protocol.send_uint16(ev.recipient_id);
     protocol.send_uint16(ev.sender_id);
 }
-
-#include "../../common/visit.h"
 
 void ServerProtocol::send_event(const ServerEvent& ev) {
     std::visit(overloaded{
@@ -184,6 +196,8 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [this](const DamageReceivedEvent& msg) { send_damage_received(msg); },
                          [this](const EntityDiedEvent& msg) { send_entity_died(msg); },
                          [this](const PlayerRespawnedEvent& msg) { send_player_respawned(msg); },
+                         [this](const MeditationStartEvent&) { send_meditation_start(); },
+                         [this](const MeditationStopEvent&) { send_meditation_stop(); },
                          [this](const ChatMsgEvent& msg) { send_chat_msg(msg); },
                         [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },

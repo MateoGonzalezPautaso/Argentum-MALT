@@ -49,6 +49,8 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                                [&](const MoveCmd& cmd) { return handle_move(player_id, cmd); },
                                [&](const AttackCmd& cmd) { return handle_attack(player_id, cmd); },
                                [&](const SendChatMsgCmd& cmd) { return handle_send_chat_msg(player_id, cmd); },
+                               [&](const MeditateCmd&) { return handle_meditate(player_id); },
+                               [&](const ResurrectCmd&) { return handle_resurrect(player_id); },
                                [&](const CheatInfiniteHpCmd&) { return handle_cheat_infinite_hp(player_id); },
                                [&](const CheatInfiniteManaCmd&) { return handle_cheat_infinite_mana(player_id); },
                                [&](const CheatDieCmd&) { return handle_cheat_die(player_id); },
@@ -89,6 +91,9 @@ CommandResult Game::tick() {
 }
 
 CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
+    auto it = players.find(player_id);
+    if (it != players.end())
+        it->second.is_meditating = false;
     return combat_controller.melee_attack(player_id, cmd.target_id, tick_count);
 }
 
@@ -103,6 +108,12 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
 
     if (text.empty()) {
         return {};
+    }
+
+    // Cualquier acción cancela la meditación
+    auto sender_it = players.find(player_id);
+    if (sender_it != players.end() && sender_it->second.is_meditating) {
+        sender_it->second.is_meditating = false;
     }
 
     // @nick mensaje — mensaje privado
@@ -133,10 +144,6 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             cmd_name = text.substr(0, space_pos);
         } else {
             cmd_name = text;
-        }
-
-        if (cmd_name == "/resucitar") {
-            return handle_resurrect(player_id);
         }
 
         static const std::unordered_set<std::string> known_commands = {
@@ -269,6 +276,30 @@ CommandResult Game::handle_cheat_die(uint16_t player_id) {
     return {.private_events = {msg}, .broadcast_events = {dmg, died}};
 }
 
+CommandResult Game::handle_meditate(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+
+    Player& player = it->second;
+
+    if (player.is_ghost())
+        return {};
+
+    if (player.player_class == PlayerClass::WARRIOR) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los guerreros no pueden meditar"};
+        return {.private_events = {msg}, .broadcast_events = {}};
+    }
+
+    if (player.is_meditating) {
+        player.is_meditating = false;
+        return {.private_events = {MeditationStopEvent{}}, .broadcast_events = {}};
+    } else {
+        player.is_meditating = true;
+        return {.private_events = {MeditationStartEvent{}}, .broadcast_events = {}};
+    }
+}
+
 bool Game::is_username_logged_in(const std::string& username) const {
     for (const auto& [id, player]: players) {
         if (player.username == username)
@@ -302,6 +333,7 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
         return {};
 
     Player& player = it->second;
+    player.is_meditating = false;
 
     auto [dx, dy] = direction_to_delta(cmd.direction, move_step);
 

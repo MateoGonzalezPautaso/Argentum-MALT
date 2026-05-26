@@ -45,6 +45,10 @@ void ClientProtocol::send_chat_msg(const SendChatMsgCmd& cmd) {
 
 #include "../../common/visit.h"
 
+void ClientProtocol::send_meditate() { protocol.send_opcode(OpCode::MEDITATE); }
+
+void ClientProtocol::send_resurrect() { protocol.send_opcode(OpCode::RESURRECT); }
+
 void ClientProtocol::send_cheat_infinite_hp() {
     protocol.send_opcode(OpCode::CHEAT_INFINITE_HP);
 }
@@ -62,6 +66,8 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const CreateCharacterCmd& msg) { send_create_character(msg); },
                        [this](const AttackCmd& msg) { send_attack(msg); },
                        [this](const SendChatMsgCmd& msg) { send_chat_msg(msg); },
+                       [this](const MeditateCmd&) { send_meditate(); },
+                       [this](const ResurrectCmd&) { send_resurrect(); },
                        [this](const CheatInfiniteHpCmd&) { send_cheat_infinite_hp(); },
                        [this](const CheatInfiniteManaCmd&) { send_cheat_infinite_mana(); },
                        [this](const CheatDieCmd&) { send_cheat_die(); },
@@ -111,6 +117,10 @@ ServerEvent ClientProtocol::recv_event() {
             uint32_t hp_max = protocol.recv_uint32();
             return PlayerRespawnedEvent{entity_id, hp_current, hp_max};
         }
+        case OpCode::MEDITATION_START:
+            return MeditationStartEvent{};
+        case OpCode::MEDITATION_STOP:
+            return MeditationStopEvent{};
         case OpCode::CHAT_MSG: {
             ChatMsgType type = static_cast<ChatMsgType>(protocol.recv_uint8());
             std::string sender = protocol.recv_str();

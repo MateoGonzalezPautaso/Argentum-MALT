@@ -21,6 +21,7 @@ public:
     void send_equip_item(const EquipItemCmd& cmd);
     void send_unequip_item(const UnequipItemCmd& cmd);
     void send_meditate();
+    void send_resurrect();
     void send_npc_buy(const NpcBuyCmd& cmd);
     void send_npc_sell(const NpcSellCmd& cmd);
     void send_npc_heal(const NpcHealCmd& cmd);

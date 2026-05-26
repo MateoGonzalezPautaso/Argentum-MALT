@@ -181,6 +181,9 @@ struct UnequipItemCmd {};
 // 0x0A
 struct MeditateCmd {};
 
+// 0x0B
+struct ResurrectCmd {};
+
 // 0x0C
 struct NpcBuyCmd {};
 
@@ -231,7 +234,7 @@ struct CheatDieCmd {};
  */
 using ClientCommand =
         std::variant<LoginCmd, CreateCharacterCmd, MoveCmd, AttackCmd, CastSpellCmd, PickupItemCmd,
-                     DropItemCmd, EquipItemCmd, UnequipItemCmd, MeditateCmd,
+                     DropItemCmd, EquipItemCmd, UnequipItemCmd, MeditateCmd, ResurrectCmd,
                      NpcBuyCmd, NpcSellCmd, NpcHealCmd, BankDepositCmd, BankWithdrawCmd, NpcListCmd,
                      PrivateMsgCmd, SendChatMsgCmd, ClanFoundCmd, ClanJoinRequestCmd, ClanReviewCmd,
                      ClanAcceptCmd, ClanRejectCmd, ClanBanCmd, ClanKickCmd, ClanLeaveCmd,

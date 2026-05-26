@@ -27,6 +27,7 @@ private:
     uint32_t gold;
     uint32_t next_attack_tick = 0;
     bool is_dead = false;
+    bool is_meditating = false;
     BalanceConfig balance;
     bool cheat_infinite_hp = false;
     bool cheat_infinite_mana = false;
