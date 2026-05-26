@@ -37,7 +37,7 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
         attacker.clan_name == target.clan_name) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                          "No puedes atacar a un miembro de tu clan"};
-        return {.private_events = {msg}, .broadcast_events = {}};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
 
     if (!attacker.try_attack(current_tick, config.cooldown_ticks))

@@ -660,5 +660,5 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
             .entity_pos = player.pos,
             .entity_dir = player.dir,
     };
-    return {.private_events = {}, .broadcast_events = {move}};
+    return {.private_events = {}, .broadcast_events = {move}, .targeted_events = {}};
 }
