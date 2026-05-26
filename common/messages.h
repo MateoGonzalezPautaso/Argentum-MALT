@@ -375,10 +375,17 @@ struct ChatMsgEvent {
 };
 
 // 0x99
-struct ClanNotificationEvent {};
+struct ClanNotificationEvent {
+    ClanNotifType type;
+    std::string username;
+    std::string clan_name;
+};
 
 // 0x9A
-struct ClanUpdateEvent {};
+struct ClanUpdateEvent {
+    std::string clan_name;
+    std::vector<ClanMember> members;
+};
 
 // 0x9B
 struct ServerMsgEvent {};
