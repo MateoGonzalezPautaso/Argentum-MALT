@@ -38,90 +38,102 @@ void GameController::render() {
 
 void GameController::apply_server_event(const ServerEvent& ev) {
     std::visit(overloaded{
-                       [this](const EntityMoveEvent& e) {
-                           if (e.entity_id == player_stats.player_id) {
-                               world_renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
-                           } else {
-                               world_renderer.move_entity(e.entity_id, e.entity_pos.x,
-                                                          e.entity_pos.y);
-                               world_renderer.set_entity_src_y(
-                                       e.entity_id, move_config.body_src_y_for(e.entity_dir),
-                                       move_config.head_src_y_for(e.entity_dir));
-                               world_renderer.step_entity_src_x(
-                                       e.entity_id, move_config.walk_src_step,
-                                       move_config.walk_src_frames_for(e.entity_dir));
-                           }
-                       },
-                        [this](const EntitySpawnEvent& e) {
-                            if (e.entity_id == player_stats.player_id) {
-                                world_renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
-                            } else {
-                                world_renderer.spawn_entity(e.entity_id, e.entity_pos.x,
-                                                            e.entity_pos.y, e.entity_name,
-                                                            e.entity_race, e.entity_class);
-                            }
-                        },
-                        [this](const LoginOkEvent& e) {
-                            player_stats.player_id = e.player_id;
-                            player_stats.username = e.username;
-                            player_stats.race = e.race;
-                            player_stats.player_class = e.player_class;
-                            player_stats.level = e.level;
-                            player_stats.experience = e.experience;
-                            player_stats.exp_to_next = e.exp_to_next;
-                            player_stats.hp_current = e.hp_current;
-                            player_stats.hp_max = e.hp_max;
-                            player_stats.mana_current = e.mana_current;
-                            player_stats.mana_max = e.mana_max;
-                            player_stats.gold = e.gold;
-                            player_stats.pos = e.pos;
-                            world_renderer.set_movable_position(e.pos.x, e.pos.y);
-                            world_renderer.set_local_player_info(e.race, e.player_class);
-                        },
-                        [this](const EntityDespawnEvent& e) {
-                            world_renderer.despawn_entity(e.entity_id);
-                        },
+                       [this](const EntityMoveEvent& e) { handle_entity_move(e); },
+                       [this](const EntitySpawnEvent& e) { handle_entity_spawn(e); },
+                       [this](const LoginOkEvent& e) { handle_login_ok(e); },
+                       [this](const EntityDespawnEvent& e) { handle_entity_despawn(e); },
+                       [this](const DamageReceivedEvent& e) { handle_damage_received(e); },
+                       [](const DamageDealtEvent&) {},
+                       [this](const AttackDodgedEvent& e) { handle_attack_dodged(e); },
+                       [this](const ChatMsgEvent& e) { handle_chat_msg(e); },
+                       [this](const EntityDiedEvent& e) { handle_entity_died(e); },
+                       [this](const PlayerRespawnedEvent& e) { handle_player_respawned(e); },
+                       [](const auto&) {},
+               },
+               ev);
+}
 
-                           [this](const DamageReceivedEvent& e) {
-                              if (e.target_id != player_stats.player_id) {
-                                  return;
-                              }
-                              player_stats.hp_current = e.hp_current;
-                              player_stats.hp_max = e.hp_max;
-                          },
-                          [](const DamageDealtEvent&) {},
-                         [this](const AttackDodgedEvent&) {
-                             chat_history.add_message(ChatMsgType::SYSTEM, "",
-                                                      "El ataque fue esquivado");
-                         },
-                         [this](const ChatMsgEvent& e) {
-                             if (e.recipient_id != 0 &&
-                                 e.recipient_id != player_stats.player_id &&
-                                 e.sender_id != player_stats.player_id) {
-                                 return;
-                             }
-                             chat_history.add_message(e.type, e.sender_name, e.message);
-                         },
-                         [this](const EntityDiedEvent& e) {
-                             world_renderer.set_entity_alpha(e.entity_id, 128);
-                             if (e.entity_id == player_stats.player_id) {
-                                 player_is_ghost = true;
-                                 world_renderer.set_movable_alpha(128);
-                             }
-                         },
-                         [this](const PlayerRespawnedEvent& e) {
-                             world_renderer.set_entity_alpha(e.entity_id, 255);
-                             if (e.entity_id == player_stats.player_id) {
-                                 player_is_ghost = false;
-                                 player_stats.hp_current = e.hp_current;
-                                 player_stats.hp_max = e.hp_max;
-                                 world_renderer.set_movable_alpha(255);
-                             }
-                         },
-                         [](const auto&) {},
-                },
-                ev);
+void GameController::handle_entity_move(const EntityMoveEvent& e) {
+    if (e.entity_id == player_stats.player_id) {
+        world_renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
+        return;
+    }
+    world_renderer.move_entity(e.entity_id, e.entity_pos.x, e.entity_pos.y);
+    world_renderer.set_entity_src_y(e.entity_id, move_config.body_src_y_for(e.entity_dir),
+                                    move_config.head_src_y_for(e.entity_dir));
+    world_renderer.step_entity_src_x(e.entity_id, move_config.walk_src_step,
+                                     move_config.walk_src_frames_for(e.entity_dir));
+}
 
+void GameController::handle_entity_spawn(const EntitySpawnEvent& e) {
+    if (e.entity_id == player_stats.player_id) {
+        world_renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
+        return;
+    }
+    world_renderer.spawn_entity(e.entity_id, e.entity_pos.x, e.entity_pos.y, e.entity_name,
+                                e.entity_race, e.entity_class);
+}
+
+void GameController::handle_login_ok(const LoginOkEvent& e) {
+    player_stats.player_id = e.player_id;
+    player_stats.username = e.username;
+    player_stats.race = e.race;
+    player_stats.player_class = e.player_class;
+    player_stats.level = e.level;
+    player_stats.experience = e.experience;
+    player_stats.exp_to_next = e.exp_to_next;
+    player_stats.hp_current = e.hp_current;
+    player_stats.hp_max = e.hp_max;
+    player_stats.mana_current = e.mana_current;
+    player_stats.mana_max = e.mana_max;
+    player_stats.gold = e.gold;
+    player_stats.pos = e.pos;
+    world_renderer.set_movable_position(e.pos.x, e.pos.y);
+    world_renderer.set_local_player_info(e.race, e.player_class);
+}
+
+void GameController::handle_entity_despawn(const EntityDespawnEvent& e) {
+    world_renderer.despawn_entity(e.entity_id);
+}
+
+void GameController::handle_damage_received(const DamageReceivedEvent& e) {
+    if (e.target_id != player_stats.player_id) {
+        return;
+    }
+    player_stats.hp_current = e.hp_current;
+    player_stats.hp_max = e.hp_max;
+}
+
+void GameController::handle_attack_dodged(const AttackDodgedEvent&) {
+    chat_history.add_message(ChatMsgType::SYSTEM, "", "El ataque fue esquivado");
+}
+
+void GameController::handle_chat_msg(const ChatMsgEvent& e) {
+    if (e.recipient_id != 0 && e.recipient_id != player_stats.player_id &&
+        e.sender_id != player_stats.player_id) {
+        return;
+    }
+    chat_history.add_message(e.type, e.sender_name, e.message);
+}
+
+void GameController::handle_entity_died(const EntityDiedEvent& e) {
+    world_renderer.set_entity_alpha(e.entity_id, 128);
+    if (e.entity_id != player_stats.player_id) {
+        return;
+    }
+    player_is_ghost = true;
+    world_renderer.set_movable_alpha(128);
+}
+
+void GameController::handle_player_respawned(const PlayerRespawnedEvent& e) {
+    world_renderer.set_entity_alpha(e.entity_id, 255);
+    if (e.entity_id != player_stats.player_id) {
+        return;
+    }
+    player_is_ghost = false;
+    player_stats.hp_current = e.hp_current;
+    player_stats.hp_max = e.hp_max;
+    world_renderer.set_movable_alpha(255);
 }
 
 bool GameController::handle_event(const SDL_Event& event) {

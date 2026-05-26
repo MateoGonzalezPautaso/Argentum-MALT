@@ -48,6 +48,16 @@ private:
     bool handle_keydown(const SDL_Event& event);
     void flush_pending_chat();
 
+    void handle_entity_move(const EntityMoveEvent& e);
+    void handle_entity_spawn(const EntitySpawnEvent& e);
+    void handle_entity_despawn(const EntityDespawnEvent& e);
+    void handle_login_ok(const LoginOkEvent& e);
+    void handle_damage_received(const DamageReceivedEvent& e);
+    void handle_attack_dodged(const AttackDodgedEvent& e);
+    void handle_chat_msg(const ChatMsgEvent& e);
+    void handle_entity_died(const EntityDiedEvent& e);
+    void handle_player_respawned(const PlayerRespawnedEvent& e);
+
 };
 
 #endif
