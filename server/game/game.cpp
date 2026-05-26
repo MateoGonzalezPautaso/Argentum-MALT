@@ -51,7 +51,9 @@ Game::Game(const ServerConfig& config, PlayerPersistence& persistence,
         sprite_width(config.sprite_width),
         sprite_height(config.sprite_height),
         balance(config.balance),
-        combat_controller(config.attack, players) {}
+        combat_controller(config.attack, players) {
+    combat_controller.set_clan_manager(clan_manager);
+}
 
 CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd) {
     return std::visit(overloaded{
