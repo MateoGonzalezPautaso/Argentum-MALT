@@ -11,7 +11,7 @@ GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& c
                        config.font, config.skins),
         ui_renderer(renderer, config.ui, chat_input),
         command_queue(command_queue),
-        move_controller(world_renderer, this->command_queue, MoveConfig(config), SDL_GetTicks()),
+        move_controller(this->command_queue, MoveConfig(config), SDL_GetTicks()),
         move_config(config),
         hand_cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND)),
         arrow_cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW)) {}
@@ -21,7 +21,12 @@ GameController::~GameController() {
     SDL_FreeCursor(arrow_cursor);
 }
 
-void GameController::tick() { move_controller.tick(SDL_GetTicks()); }
+void GameController::tick() {
+    uint32_t now = SDL_GetTicks();
+    if (auto dir = move_controller.tick(now)) {
+        apply_movement_visual(*dir, true);
+    }
+}
 
 void GameController::render() {
     renderer.SetDrawColor(0, 0, 0, 255);
@@ -55,6 +60,7 @@ void GameController::apply_server_event(const ServerEvent& ev) {
 
 void GameController::handle_entity_move(const EntityMoveEvent& e) {
     if (e.entity_id == player_stats.player_id) {
+        move_controller.set_position(e.entity_pos.x, e.entity_pos.y);
         world_renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
         return;
     }
@@ -67,6 +73,7 @@ void GameController::handle_entity_move(const EntityMoveEvent& e) {
 
 void GameController::handle_entity_spawn(const EntitySpawnEvent& e) {
     if (e.entity_id == player_stats.player_id) {
+        move_controller.set_position(e.entity_pos.x, e.entity_pos.y);
         world_renderer.set_movable_position(e.entity_pos.x, e.entity_pos.y);
         return;
     }
@@ -88,6 +95,7 @@ void GameController::handle_login_ok(const LoginOkEvent& e) {
     player_stats.mana_max = e.mana_max;
     player_stats.gold = e.gold;
     player_stats.pos = e.pos;
+    move_controller.set_position(e.pos.x, e.pos.y);
     world_renderer.set_movable_position(e.pos.x, e.pos.y);
     world_renderer.set_local_player_info(e.race, e.player_class);
 }
@@ -134,6 +142,15 @@ void GameController::handle_player_respawned(const PlayerRespawnedEvent& e) {
     player_stats.hp_current = e.hp_current;
     player_stats.hp_max = e.hp_max;
     world_renderer.set_movable_alpha(255);
+}
+
+void GameController::apply_movement_visual(Direction dir, bool advance_frame) {
+    world_renderer.set_movable_src_y(move_config.body_src_y_for(dir));
+    world_renderer.set_anchor_src_y(move_config.head_src_y_for(dir));
+    if (advance_frame) {
+        world_renderer.step_movable_src_x(move_config.walk_src_step,
+                                           move_config.walk_src_frames_for(dir));
+    }
 }
 
 bool GameController::handle_event(const SDL_Event& event) {
@@ -213,16 +230,20 @@ bool GameController::handle_keydown(const SDL_Event& event) {
         case SDLK_ESCAPE:
             return false;
         case SDLK_LEFT:
-            move_controller.move_direction(Direction::WEST, now);
+            apply_movement_visual(Direction::WEST,
+                                  move_controller.move_direction(Direction::WEST, now).has_value());
             break;
         case SDLK_RIGHT:
-            move_controller.move_direction(Direction::EAST, now);
+            apply_movement_visual(Direction::EAST,
+                                  move_controller.move_direction(Direction::EAST, now).has_value());
             break;
         case SDLK_UP:
-            move_controller.move_direction(Direction::NORTH, now);
+            apply_movement_visual(Direction::NORTH,
+                                  move_controller.move_direction(Direction::NORTH, now).has_value());
             break;
         case SDLK_DOWN:
-            move_controller.move_direction(Direction::SOUTH, now);
+            apply_movement_visual(Direction::SOUTH,
+                                  move_controller.move_direction(Direction::SOUTH, now).has_value());
             break;
         case SDLK_h:
             if (ctrl)

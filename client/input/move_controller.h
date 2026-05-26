@@ -2,13 +2,13 @@
 #define MOVE_CONTROLLER_H
 
 #include <cstdint>
+#include <optional>
 #include <unordered_map>
 
 #include "../../common/messages.h"
 #include "../../common/queue.h"
 
 struct ClientConfig;
-class WorldRenderer;
 
 struct DirectionData {
     int body_src_y;
@@ -33,29 +33,33 @@ struct MoveConfig {
 
 class MoveController {
 private:
-    WorldRenderer& world_renderer;
     Queue<ClientCommand>& command_queue;
     MoveConfig config;
     uint32_t last_walk_tick = 0;
     bool has_target = false;
     int target_x = 0;
     int target_y = 0;
+    int pos_x = 0;
+    int pos_y = 0;
+    Direction current_dir_ = Direction::SOUTH;
 
 public:
-    MoveController(WorldRenderer& world_renderer, Queue<ClientCommand>& command_queue,
-                   const MoveConfig& config, uint32_t initial_ticks);
+    MoveController(Queue<ClientCommand>& command_queue, const MoveConfig& config,
+                   uint32_t initial_ticks);
 
-    void tick(uint32_t now);
+    std::optional<Direction> tick(uint32_t now);
+    std::optional<Direction> move_direction(Direction dir, uint32_t now);
     void set_move_target(int x, int y);
-    void move_direction(Direction dir, uint32_t now);
+    void set_position(int x, int y);
+
+    int position_x() const { return pos_x; }
+    int position_y() const { return pos_y; }
+    Direction current_dir() const { return current_dir_; }
 
 private:
-    void set_direction_rows(Direction dir);
-    bool advance_walk_frame(Direction dir, uint32_t now);
-    void apply_movement(Direction dir, uint32_t now, bool cancel_target);
-    bool get_movable_position(int& x, int& y);
+    bool can_walk(uint32_t now);
     Direction compute_direction_to_target(int current_x, int current_y) const;
-    void move_toward_target(uint32_t now);
+    std::optional<Direction> move_toward_target(uint32_t now);
 };
 
-#endif  // MOVE_CONTROLLER_H
+#endif
