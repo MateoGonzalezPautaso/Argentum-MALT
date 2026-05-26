@@ -9,6 +9,7 @@
 #include "../core/config.h"
 #include "../persistence/player_persistence.h"
 
+#include "clan_manager.h"
 #include "combat_controller.h"
 #include "command_result.h"
 #include "map.h"
@@ -18,6 +19,7 @@ class Game {
 private:
     std::map<uint16_t, Player> players;
     PlayerPersistence& persistence;
+    ClanManager clan_manager;
     Map map;
     int move_step;
     int sprite_width;
@@ -37,8 +39,14 @@ private:
     CommandResult handle_meditate(uint16_t player_id);
     bool is_username_logged_in(const std::string& username) const;
 
+    CommandResult notify_clan_members(const std::string& clan_name,
+                                      const ClanNotificationEvent& notif,
+                                      uint16_t exclude_id = 0);
+    void update_player_clan_status(uint16_t player_id);
+
 public:
-    explicit Game(const ServerConfig& config, PlayerPersistence& persistence);
+    explicit Game(const ServerConfig& config, PlayerPersistence& persistence,
+                  ClanPersistence& clan_persistence);
 
     CommandResult process_command(uint16_t player_id, const ClientCommand& cmd);
     CommandResult remove_player(uint16_t player_id);

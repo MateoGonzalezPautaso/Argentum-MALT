@@ -32,10 +32,20 @@ Delta direction_to_delta(Direction dir, int step) {
     return {0, 0};
 }
 
+std::string trim(const std::string& s) {
+    size_t start = s.find_first_not_of(' ');
+    if (start == std::string::npos)
+        return {};
+    size_t end = s.find_last_not_of(' ');
+    return s.substr(start, end - start + 1);
+}
+
 }  // namespace
 
-Game::Game(const ServerConfig& config, PlayerPersistence& persistence):
+Game::Game(const ServerConfig& config, PlayerPersistence& persistence,
+           ClanPersistence& clan_persistence):
         persistence(persistence),
+        clan_manager(clan_persistence),
         map(config.tilemap),
         move_step(config.move_step),
         sprite_width(config.sprite_width),
@@ -80,6 +90,22 @@ CommandResult Game::remove_player(uint16_t player_id) {
     rec.gold = it->second.gold;
     persistence.save(it->second.username, rec);
 
+    // Notify clan members of logout
+    if (!it->second.clan_name.empty()) {
+        ClanNotificationEvent notif{ClanNotifType::MEMBER_OFFLINE, it->second.username,
+                                    it->second.clan_name};
+        EntityDespawnEvent despawn{.entity_id = player_id};
+        players.erase(it);
+        CommandResult result;
+        result.broadcast_events.push_back(despawn);
+        auto clan_result = notify_clan_members(notif.clan_name, notif, player_id);
+        for (auto& ev: clan_result.private_events)
+            result.private_events.push_back(std::move(ev));
+        for (auto& ev: clan_result.broadcast_events)
+            result.broadcast_events.push_back(std::move(ev));
+        return result;
+    }
+
     EntityDespawnEvent despawn{.entity_id = player_id};
     players.erase(it);
     return {.private_events = {}, .broadcast_events = {despawn}};
@@ -111,9 +137,8 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
     }
 
     // Cualquier acción cancela la meditación
-    auto sender_it = players.find(player_id);
-    if (sender_it != players.end() && sender_it->second.is_meditating) {
-        sender_it->second.is_meditating = false;
+    if (it->second.is_meditating) {
+        it->second.is_meditating = false;
     }
 
     // @nick mensaje — mensaje privado
@@ -136,35 +161,256 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         }
     }
 
-    // /comando — validar contra lista de comandos conocidos
+    // /comandos
     if (text[0] == '/') {
-        std::string cmd_name;
         size_t space_pos = text.find(' ');
-        if (space_pos != std::string::npos) {
-            cmd_name = text.substr(0, space_pos);
-        } else {
-            cmd_name = text;
+        std::string cmd_name = text.substr(0, space_pos);
+        std::string args = (space_pos != std::string::npos) ? trim(text.substr(space_pos + 1)) : "";
+
+        // ---- Comandos de clan ----
+
+        if (cmd_name == "/fundar-clan") {
+            if (args.empty()) {
+                ChatMsgEvent err{ChatMsgType::SYSTEM, "", "Uso: /fundar-clan <nombre>"};
+                return {.private_events = {err}, .broadcast_events = {}};
+            }
+            if (it->second.level < ClanManager::MIN_LEVEL_FOUND) {
+                ChatMsgEvent err{ChatMsgType::SYSTEM, "",
+                                 "Necesitas nivel " + std::to_string(ClanManager::MIN_LEVEL_FOUND) +
+                                         " para fundar un clan"};
+                return {.private_events = {err}, .broadcast_events = {}};
+            }
+            ClanResult result = clan_manager.create_clan(sender_name, args);
+            if (result.ok) {
+                it->second.clan_name = args;
+            }
+            ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
+            return {.private_events = {ev}, .broadcast_events = {}};
         }
 
-        static const std::unordered_set<std::string> known_commands = {
-                "/meditar",    "/resucitar",      "/curar",        "/depositar",
-                "/retirar",    "/listar",         "/comprar",      "/vender",
-                "/tomar",      "/tirar",          "/fundar-clan",  "/unirse",
-                "/revisar-clan", "/clan-aceptar", "/clan-rechazar", "/clan-ban",
-                "/dejar-clan", "/clan-kick",
-        };
+        if (cmd_name == "/unirse") {
+            if (args.empty()) {
+                ChatMsgEvent err{ChatMsgType::SYSTEM, "", "Uso: /unirse <nombre del clan>"};
+                return {.private_events = {err}, .broadcast_events = {}};
+            }
+            ClanResult result = clan_manager.request_join(sender_name, args);
+            ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
+            std::vector<ServerEvent> broadcast;
+            // Notify the founder about the join request
+            if (result.ok) {
+                auto members = clan_manager.get_member_list(args);
+                for (const auto& m: members) {
+                    if (m.is_founder) {
+                        ClanNotificationEvent notif{ClanNotifType::JOIN_REQUEST, sender_name, args};
+                        for (const auto& [target_id, p]: players) {
+                            if (p.username == m.username) {
+                                broadcast.push_back(notif);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+            return {.private_events = {ev}, .broadcast_events = std::move(broadcast)};
+        }
 
-        bool recognized = known_commands.find(cmd_name) != known_commands.end();
-        std::string msg = recognized
-                                  ? "Comando " + cmd_name + " reconocido"
-                                  : "Comando " + cmd_name + " no reconocido";
-        ChatMsgEvent response{ChatMsgType::SYSTEM, "", msg};
-        return {.private_events = {response}, .broadcast_events = {}};
+        if (cmd_name == "/revisar-clan") {
+            if (!clan_manager.is_in_clan(sender_name)) {
+                ChatMsgEvent err{ChatMsgType::SYSTEM, "", "No perteneces a ningun clan"};
+                return {.private_events = {err}, .broadcast_events = {}};
+            }
+            std::string clan_name = clan_manager.get_clan_name(sender_name);
+            auto members = clan_manager.get_member_list(clan_name);
+            // Update online status
+            for (auto& m: members) {
+                m.is_online = false;
+                for (const auto& [pid, p]: players) {
+                    if (p.username == m.username) {
+                        m.is_online = true;
+                        break;
+                    }
+                }
+            }
+            auto requests = clan_manager.get_pending_requests(clan_name);
+
+            std::string msg = "--- Clan: " + clan_name + " ---\nMiembros:";
+            for (const auto& m: members) {
+                msg += "\n  " + m.username;
+                if (m.is_founder)
+                    msg += " (fundador)";
+                msg += m.is_online ? " [En linea]" : " [Desconectado]";
+            }
+            if (!requests.empty()) {
+                msg += "\nPedidos pendientes:";
+                for (const auto& r: requests) {
+                    msg += "\n  " + r;
+                }
+            } else {
+                msg += "\nNo hay pedidos pendientes";
+            }
+
+            ChatMsgEvent ev{ChatMsgType::SYSTEM, "", msg};
+            return {.private_events = {ev}, .broadcast_events = {}};
+        }
+
+        if (cmd_name == "/clan-aceptar") {
+            if (args.empty()) {
+                ChatMsgEvent err{ChatMsgType::SYSTEM, "", "Uso: /clan-aceptar <nick>"};
+                return {.private_events = {err}, .broadcast_events = {}};
+            }
+            ClanResult result = clan_manager.accept_member(sender_name, args);
+            ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
+            std::vector<ServerEvent> broadcast;
+            if (result.ok) {
+                std::string clan_name = clan_manager.get_clan_name(sender_name);
+                // Update the accepted player's clan_name if they're online
+                for (auto& [pid, p]: players) {
+                    if (p.username == args) {
+                        p.clan_name = clan_name;
+                        ClanNotificationEvent notif{ClanNotifType::JOIN_ACCEPTED, sender_name,
+                                                    clan_name};
+                        broadcast.push_back(notif);
+                        break;
+                    }
+                }
+                // Notify other clan members
+                ClanNotificationEvent notif{ClanNotifType::MEMBER_ONLINE, args, clan_name};
+                auto nresult = notify_clan_members(clan_name, notif, player_id);
+                for (auto& be: nresult.broadcast_events)
+                    broadcast.push_back(std::move(be));
+            }
+            return {.private_events = {ev}, .broadcast_events = std::move(broadcast)};
+        }
+
+        if (cmd_name == "/clan-rechazar") {
+            if (args.empty()) {
+                ChatMsgEvent err{ChatMsgType::SYSTEM, "", "Uso: /clan-rechazar <nick>"};
+                return {.private_events = {err}, .broadcast_events = {}};
+            }
+            ClanResult result = clan_manager.reject_member(sender_name, args);
+            ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
+            std::vector<ServerEvent> broadcast;
+            if (result.ok) {
+                std::string clan_name = clan_manager.get_clan_name(sender_name);
+                ClanNotificationEvent notif{ClanNotifType::JOIN_REJECTED, args, clan_name};
+                for (const auto& [pid, p]: players) {
+                    if (p.username == args) {
+                        broadcast.push_back(notif);
+                        break;
+                    }
+                }
+            }
+            return {.private_events = {ev}, .broadcast_events = std::move(broadcast)};
+        }
+
+        if (cmd_name == "/clan-ban") {
+            if (args.empty()) {
+                ChatMsgEvent err{ChatMsgType::SYSTEM, "", "Uso: /clan-ban <nick>"};
+                return {.private_events = {err}, .broadcast_events = {}};
+            }
+            ClanResult result = clan_manager.ban_member(sender_name, args);
+            ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
+            std::vector<ServerEvent> broadcast;
+            if (result.ok) {
+                std::string clan_name = clan_manager.get_clan_name(sender_name);
+                // Update kicked player's clan status
+                for (auto& [pid, p]: players) {
+                    if (p.username == args) {
+                        p.clan_name.clear();
+                        ClanNotificationEvent notif{ClanNotifType::KICKED, args, clan_name};
+                        broadcast.push_back(notif);
+                        break;
+                    }
+                }
+            }
+            return {.private_events = {ev}, .broadcast_events = std::move(broadcast)};
+        }
+
+        if (cmd_name == "/clan-kick") {
+            if (args.empty()) {
+                ChatMsgEvent err{ChatMsgType::SYSTEM, "", "Uso: /clan-kick <nick>"};
+                return {.private_events = {err}, .broadcast_events = {}};
+            }
+            ClanResult result = clan_manager.kick_member(sender_name, args);
+            ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
+            std::vector<ServerEvent> broadcast;
+            if (result.ok) {
+                std::string clan_name = clan_manager.get_clan_name(sender_name);
+                for (auto& [pid, p]: players) {
+                    if (p.username == args) {
+                        p.clan_name.clear();
+                        ClanNotificationEvent notif{ClanNotifType::KICKED, args, clan_name};
+                        broadcast.push_back(notif);
+                        break;
+                    }
+                }
+            }
+            return {.private_events = {ev}, .broadcast_events = std::move(broadcast)};
+        }
+
+        if (cmd_name == "/dejar-clan") {
+            ClanResult result = clan_manager.leave_clan(sender_name);
+            if (result.ok) {
+                it->second.clan_name.clear();
+            }
+            ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
+            return {.private_events = {ev}, .broadcast_events = {}};
+        }
+
+        if (cmd_name == "/c" || cmd_name == "/clan") {
+            if (args.empty()) {
+                ChatMsgEvent ev{ChatMsgType::SYSTEM, "", "Uso: /c <mensaje>"};
+                return {.private_events = {ev}, .broadcast_events = {}};
+            }
+            if (it->second.clan_name.empty()) {
+                ChatMsgEvent ev{ChatMsgType::SYSTEM, "", "No perteneces a ningun clan"};
+                return {.private_events = {ev}, .broadcast_events = {}};
+            }
+            // Send clan message to all online clan members
+            ChatMsgEvent clan_msg{ChatMsgType::CLAN, sender_name, args};
+            std::string clan_name = it->second.clan_name;
+            std::vector<ServerEvent> broadcast;
+            for (const auto& [pid, p]: players) {
+                if (p.clan_name == clan_name) {
+                    broadcast.push_back(clan_msg);
+                }
+            }
+            return {.private_events = {}, .broadcast_events = std::move(broadcast)};
+        }
+
+        // Comando no reconocido
+        ChatMsgEvent ev{ChatMsgType::SYSTEM, "",
+                        "Comando " + cmd_name + " no reconocido"};
+        return {.private_events = {ev}, .broadcast_events = {}};
     }
 
     // Texto plano — broadcast a todos
     ChatMsgEvent broadcast_ev{ChatMsgType::SAY, sender_name, text};
     return {.private_events = {}, .broadcast_events = {broadcast_ev}};
+}
+
+CommandResult Game::notify_clan_members(const std::string& clan_name,
+                                        const ClanNotificationEvent& notif,
+                                        uint16_t exclude_id) {
+    CommandResult result;
+    for (const auto& [pid, p]: players) {
+        if (pid == exclude_id)
+            continue;
+        if (p.clan_name == clan_name) {
+            result.broadcast_events.push_back(notif);
+        }
+    }
+    return result;
+}
+
+void Game::update_player_clan_status(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return;
+
+    std::string clan_name = clan_manager.get_clan_name(it->second.username);
+    it->second.clan_name = clan_name;
 }
 
 CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
@@ -191,6 +437,10 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
         player.mana_current = rec.mana_current;
         player.mana_max = rec.mana_max;
         player.gold = rec.gold;
+
+        // Set clan membership
+        std::string clan_name = clan_manager.get_clan_name(cmd.username);
+        player.clan_name = clan_name;
 
         auto it = players.emplace(player_id, std::move(player)).first;
         const Player& p = it->second;
@@ -234,6 +484,15 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
                     .entity_class = existing_player.player_class,
             });
         }
+
+        // Notify clan members of login
+        if (!clan_name.empty()) {
+            ClanNotificationEvent notif{ClanNotifType::MEMBER_ONLINE, cmd.username, clan_name};
+            auto clan_result = notify_clan_members(clan_name, notif, player_id);
+            for (auto& ev: clan_result.broadcast_events)
+                private_events.push_back(std::move(ev));
+        }
+
         return {.private_events = std::move(private_events), .broadcast_events = {spawn}};
     }
 

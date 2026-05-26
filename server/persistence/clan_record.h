@@ -6,11 +6,11 @@
 #include <string>
 
 struct ClanRecord {
-    static constexpr std::size_t NAME_MAX = 32;
+    static constexpr std::size_t CLAN_NAME_MAX = 32;
     static constexpr std::size_t USERNAME_MAX = 32;
     static constexpr std::size_t MAX_MEMBERS = 16;
 
-    char clan_name[NAME_MAX];
+    char clan_name[CLAN_NAME_MAX];
     char founder_username[USERNAME_MAX];
     uint8_t member_count;
     char members[MAX_MEMBERS][USERNAME_MAX];

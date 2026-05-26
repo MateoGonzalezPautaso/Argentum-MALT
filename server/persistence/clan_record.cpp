@@ -12,8 +12,8 @@ ClanRecord::ClanRecord() {
 }
 
 void ClanRecord::set_clan_name(const std::string& name) {
-    std::strncpy(clan_name, name.c_str(), NAME_MAX - 1);
-    clan_name[NAME_MAX - 1] = '\0';
+    std::strncpy(clan_name, name.c_str(), CLAN_NAME_MAX - 1);
+    clan_name[CLAN_NAME_MAX - 1] = '\0';
 }
 
 std::string ClanRecord::get_clan_name() const {
