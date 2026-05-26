@@ -65,14 +65,17 @@ std::optional<LoginOkEvent> Client::run_login() {
         if (engine.try_submit_login(username, password)) {
             protocol.send_command(LoginCmd{username, password});
 
-            ServerEvent response = protocol.recv_event();
+            while (true) {
+                ServerEvent response = protocol.recv_event();
 
-            if (std::holds_alternative<LoginOkEvent>(response)) {
-                return std::get<LoginOkEvent>(response);
-            }
+                if (std::holds_alternative<LoginOkEvent>(response)) {
+                    return std::get<LoginOkEvent>(response);
+                }
 
-            if (std::holds_alternative<LoginErrorEvent>(response)) {
-                engine.handle_login_error(std::get<LoginErrorEvent>(response).message);
+                if (std::holds_alternative<LoginErrorEvent>(response)) {
+                    engine.handle_login_error(std::get<LoginErrorEvent>(response).message);
+                    break;
+                }
             }
         }
 
