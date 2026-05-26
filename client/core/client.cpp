@@ -48,6 +48,10 @@ std::optional<LoginOkEvent> Client::run_login() {
     GameState state = GameState::Login;
     bool running = true;
     uint32_t last_tick = SDL_GetTicks();
+    bool login_sent = false;
+
+    ServerEvent discard;
+    while (event_queue.try_pop(discard));
 
     while (running && state == GameState::Login) {
         running = engine.dispatch_event(state);
@@ -60,21 +64,24 @@ std::optional<LoginOkEvent> Client::run_login() {
             return std::nullopt;
         }
 
-        std::string username;
-        std::string password;
-        if (engine.try_submit_login(username, password)) {
-            protocol.send_command(LoginCmd{username, password});
+        if (!login_sent) {
+            std::string username;
+            std::string password;
+            if (engine.try_submit_login(username, password)) {
+                command_queue.push(LoginCmd{username, password});
+                login_sent = true;
+            }
+        }
 
-            while (true) {
-                ServerEvent response = protocol.recv_event();
-
-                if (std::holds_alternative<LoginOkEvent>(response)) {
-                    return std::get<LoginOkEvent>(response);
+        if (login_sent) {
+            ServerEvent ev;
+            while (event_queue.try_pop(ev)) {
+                if (std::holds_alternative<LoginOkEvent>(ev)) {
+                    return std::get<LoginOkEvent>(ev);
                 }
-
-                if (std::holds_alternative<LoginErrorEvent>(response)) {
-                    engine.handle_login_error(std::get<LoginErrorEvent>(response).message);
-                    break;
+                if (std::holds_alternative<LoginErrorEvent>(ev)) {
+                    engine.handle_login_error(std::get<LoginErrorEvent>(ev).message);
+                    login_sent = false;
                 }
             }
         }
@@ -114,8 +121,12 @@ void Client::shutdown() {
 }
 
 void Client::run() {
+    sender.start();
+    receiver.start();
+
     while (true) {
         if (!run_menu()) {
+            shutdown();
             return;
         }
 
@@ -131,9 +142,6 @@ void Client::run() {
 
         break;
     }
-
-    sender.start();
-    receiver.start();
 
     game_loop();
 
