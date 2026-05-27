@@ -55,6 +55,8 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                        [this](const ChatMsgEvent& e) { handle_chat_msg(e); },
                        [this](const EntityDiedEvent& e) { handle_entity_died(e); },
                        [this](const PlayerRespawnedEvent& e) { handle_player_respawned(e); },
+                       [this](const ClanNotificationEvent& e) { handle_clan_notification(e); },
+                       [this](const ClanUpdateEvent& e) { handle_clan_update(e); },
                        [](const auto&) {},
                },
                ev);
@@ -124,6 +126,50 @@ void GameController::handle_chat_msg(const ChatMsgEvent& e) {
         return;
     }
     chat_history.add_message(e.type, e.sender_name, e.message);
+}
+
+void GameController::handle_clan_notification(const ClanNotificationEvent& e) {
+    switch (e.type) {
+        case ClanNotifType::MEMBER_ONLINE:
+            chat_history.add_message(ChatMsgType::SYSTEM, "",
+                                     "[Clan] " + e.username + " esta en linea");
+            break;
+        case ClanNotifType::MEMBER_OFFLINE:
+            chat_history.add_message(ChatMsgType::SYSTEM, "",
+                                     "[Clan] " + e.username + " se desconecto");
+            break;
+        case ClanNotifType::MEMBER_ATTACKED:
+            chat_history.add_message(ChatMsgType::SYSTEM, "",
+                                     "[Clan] " + e.username + " esta siendo atacado!");
+            break;
+        case ClanNotifType::JOIN_REQUEST:
+            chat_history.add_message(ChatMsgType::SYSTEM, "",
+                                     "[Clan] " + e.username + " quiere unirse al clan");
+            break;
+        case ClanNotifType::JOIN_ACCEPTED:
+            chat_history.add_message(ChatMsgType::SYSTEM, "",
+                                     "[Clan] Has sido aceptado en " + e.clan_name);
+            break;
+        case ClanNotifType::JOIN_REJECTED:
+            chat_history.add_message(ChatMsgType::SYSTEM, "",
+                                     "[Clan] Has sido rechazado de " + e.clan_name);
+            break;
+        case ClanNotifType::KICKED:
+            chat_history.add_message(ChatMsgType::SYSTEM, "",
+                                     "[Clan] Has sido expulsado de " + e.clan_name);
+            break;
+    }
+}
+
+void GameController::handle_clan_update(const ClanUpdateEvent& e) {
+    std::string msg = "--- Clan: " + e.clan_name + " ---";
+    for (const auto& m: e.members) {
+        msg += "\n  " + m.username;
+        if (m.is_founder)
+            msg += " (fundador)";
+        msg += m.is_online ? " [En linea]" : " [Desconectado]";
+    }
+    chat_history.add_message(ChatMsgType::SYSTEM, "", msg);
 }
 
 void GameController::handle_entity_died(const EntityDiedEvent& e) {
@@ -261,6 +307,14 @@ bool GameController::handle_keydown(const SDL_Event& event) {
             if (ctrl)
                 command_queue.push(CheatDieCmd{});
             break;
+        case SDLK_v:
+            if (ctrl)
+                command_queue.push(CheatLevelUpCmd{});
+            break;
+        case SDLK_b:
+            if (ctrl)
+                command_queue.push(CheatLevelDownCmd{});
+            break;
         default:
             break;
     }
@@ -274,11 +328,5 @@ void GameController::flush_pending_chat() {
     }
     std::string text = chat_input.pop_pending_message();
 
-    if (text == "/resucitar") {
-        command_queue.push(ResurrectCmd{});
-    } else if (text == "/meditar") {
-        command_queue.push(MeditateCmd{});
-    } else {
-        command_queue.push(SendChatMsgCmd{std::move(text)});
-    }
+    command_queue.push(SendChatMsgCmd{std::move(text)});
 }

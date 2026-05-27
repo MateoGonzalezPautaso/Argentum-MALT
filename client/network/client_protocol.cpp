@@ -59,6 +59,10 @@ void ClientProtocol::send_cheat_infinite_mana() {
 
 void ClientProtocol::send_cheat_die() { protocol.send_opcode(OpCode::CHEAT_DIE); }
 
+void ClientProtocol::send_cheat_level_up() { protocol.send_opcode(OpCode::CHEAT_LEVEL_UP); }
+
+void ClientProtocol::send_cheat_level_down() { protocol.send_opcode(OpCode::CHEAT_LEVEL_DOWN); }
+
 void ClientProtocol::send_command(const ClientCommand& cmd) {
     std::visit(overloaded{
                        [this](const MoveCmd& msg) { send_move(msg); },
@@ -71,6 +75,8 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const CheatInfiniteHpCmd&) { send_cheat_infinite_hp(); },
                        [this](const CheatInfiniteManaCmd&) { send_cheat_infinite_mana(); },
                        [this](const CheatDieCmd&) { send_cheat_die(); },
+                       [this](const CheatLevelUpCmd&) { send_cheat_level_up(); },
+                       [this](const CheatLevelDownCmd&) { send_cheat_level_down(); },
                        [](const auto&) { throw std::runtime_error("Command not implemented"); },
                },
                cmd);
@@ -128,6 +134,24 @@ ServerEvent ClientProtocol::recv_event() {
             uint16_t recipient_id = protocol.recv_uint16();
             uint16_t sender_id = protocol.recv_uint16();
             return ChatMsgEvent{type, sender, message, recipient_id, sender_id};
+        }
+        case OpCode::CLAN_NOTIFICATION: {
+            ClanNotifType type = static_cast<ClanNotifType>(protocol.recv_uint8());
+            std::string username = protocol.recv_str();
+            std::string clan_name = protocol.recv_str();
+            return ClanNotificationEvent{type, username, clan_name};
+        }
+        case OpCode::CLAN_UPDATE: {
+            ClanUpdateEvent ev;
+            ev.clan_name = protocol.recv_str();
+            uint8_t count = protocol.recv_uint8();
+            ev.members.resize(count);
+            for (uint8_t i = 0; i < count; ++i) {
+                ev.members[i].username = protocol.recv_str();
+                ev.members[i].is_founder = protocol.recv_bool();
+                ev.members[i].is_online = protocol.recv_bool();
+            }
+            return ev;
         }
         default:
             throw std::runtime_error("Unknown event opcode: " +

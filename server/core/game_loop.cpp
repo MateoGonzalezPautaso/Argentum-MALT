@@ -4,9 +4,10 @@
 #include <thread>
 
 GameLoop::GameLoop(const ServerConfig& config, Queue<PlayerCommand>& input_queue,
-                   ClientListMonitor& monitor, PlayerPersistence& persistence):
+                   ClientListMonitor& monitor, PlayerPersistence& persistence,
+                   ClanPersistence& clan_persistence):
         tick_rate_hz(config.tick_rate_hz),
-        game(config, persistence),
+        game(config, persistence, clan_persistence),
         input_queue(input_queue),
         monitor(monitor) {}
 
@@ -29,6 +30,10 @@ void GameLoop::run() {
 
                 for (const ServerEvent& ev: result.private_events)
                     monitor.push_event(pcmd.player_id, ev);
+
+                for (const auto& [target_id, events]: result.targeted_events)
+                    for (const ServerEvent& ev: events)
+                        monitor.push_event(target_id, ev);
 
                 for (const ServerEvent& ev: result.broadcast_events) monitor.broadcast(ev);
             }

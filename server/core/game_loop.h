@@ -6,6 +6,7 @@
 #include "../game/game.h"
 #include "../game/player_command.h"
 #include "../network/client_list_monitor.h"
+#include "../persistence/clan_persistence.h"
 #include "../persistence/player_persistence.h"
 
 #include "config.h"
@@ -18,7 +19,8 @@ class GameLoop: public Thread {
 
 public:
     GameLoop(const ServerConfig& config, Queue<PlayerCommand>& input_queue,
-             ClientListMonitor& monitor, PlayerPersistence& persistence);
+             ClientListMonitor& monitor, PlayerPersistence& persistence,
+             ClanPersistence& clan_persistence);
 
     void run() override;
 };

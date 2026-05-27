@@ -6,6 +6,7 @@
 #include "../game/player_command.h"
 #include "../network/acceptor.h"
 #include "../network/client_list_monitor.h"
+#include "../persistence/clan_persistence.h"
 #include "../persistence/player_persistence.h"
 
 #include "config.h"
@@ -17,6 +18,7 @@ class Server {
     Queue<PlayerCommand> input_queue;
     ClientListMonitor monitor;
     PlayerPersistence persistence;
+    ClanPersistence clan_persistence;
     Acceptor acceptor;
     GameLoop game_loop;
 

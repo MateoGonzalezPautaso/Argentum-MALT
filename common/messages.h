@@ -223,10 +223,12 @@ struct SendChatMsgCmd {
     std::string text;
 };
 
-// 0x1B – 0x1D  Cheats
+// 0x1B – 0x1D, 0x1F-0x20  Cheats
 struct CheatInfiniteHpCmd {};
 struct CheatInfiniteManaCmd {};
 struct CheatDieCmd {};
+struct CheatLevelUpCmd {};
+struct CheatLevelDownCmd {};
 
 /*
  * ClientCommand es la variante que engloba todos los comandos.
@@ -238,7 +240,8 @@ using ClientCommand =
                      NpcBuyCmd, NpcSellCmd, NpcHealCmd, BankDepositCmd, BankWithdrawCmd, NpcListCmd,
                      PrivateMsgCmd, SendChatMsgCmd, ClanFoundCmd, ClanJoinRequestCmd, ClanReviewCmd,
                      ClanAcceptCmd, ClanRejectCmd, ClanBanCmd, ClanKickCmd, ClanLeaveCmd,
-                     CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd>;
+                     CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd,
+                     CheatLevelUpCmd, CheatLevelDownCmd>;
 
 // ---------------------------------------------------------------------------
 // Eventos: Servidor -> Cliente (sección 3.2 y 5 de protocol.md)
@@ -375,10 +378,17 @@ struct ChatMsgEvent {
 };
 
 // 0x99
-struct ClanNotificationEvent {};
+struct ClanNotificationEvent {
+    ClanNotifType type;
+    std::string username;
+    std::string clan_name;
+};
 
 // 0x9A
-struct ClanUpdateEvent {};
+struct ClanUpdateEvent {
+    std::string clan_name;
+    std::vector<ClanMember> members;
+};
 
 // 0x9B
 struct ServerMsgEvent {};

@@ -31,6 +31,7 @@ private:
     BalanceConfig balance;
     bool cheat_infinite_hp = false;
     bool cheat_infinite_mana = false;
+    std::string clan_name;
 
 public:
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
