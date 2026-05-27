@@ -32,7 +32,25 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
     if (attacker.is_ghost() || target.is_ghost())
         return {};
 
-    // Anti-friendly-fire: clan members cannot attack each other
+
+    if (attacker.level <= 12) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                         "No puedes atacar siendo newbie"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+    if (target.level <= 12) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                         "No puedes atacar a un jugador newbie"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    int level_diff = std::abs(static_cast<int>(attacker.level) - static_cast<int>(target.level));
+    if (level_diff > 10) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                         "No puedes atacar a un jugador con diferencia de niveles mayor a 10"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
     if (clan_manager && !attacker.clan_name.empty() && !target.clan_name.empty() &&
         attacker.clan_name == target.clan_name) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
