@@ -40,6 +40,11 @@ public:
     uint16_t pos_x() const { return pos.x; }
     uint16_t pos_y() const { return pos.y; }
 
+    uint8_t get_level() const { return level; }
+    const std::string& get_username() const { return username; }
+    const std::string& get_clan_name() const { return clan_name; }
+    void set_clan_name(const std::string& name) { clan_name = name; }
+
     bool try_attack(uint32_t current_tick, uint32_t cooldown_ticks);
     bool is_ghost() const;
 
