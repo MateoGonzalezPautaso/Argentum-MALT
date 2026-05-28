@@ -81,8 +81,10 @@ void Player::heal(uint32_t amount) {
 void Player::gain_gold(uint32_t amount) {
     uint64_t max_gold = static_cast<uint64_t>(balance.gold_cap_base *
                                               std::pow(level, balance.gold_cap_exponent));
+    // Players can hold up to 150% of OroMax; the excess 50% is "at risk" on death
+    uint64_t hard_cap = max_gold + max_gold / 2;
     uint64_t total = static_cast<uint64_t>(gold) + amount;
-    gold = static_cast<uint32_t>(std::min<uint64_t>(total, max_gold));
+    gold = static_cast<uint32_t>(std::min<uint64_t>(total, hard_cap));
 }
 
 void Player::increase_max_hp(uint32_t amount) {
