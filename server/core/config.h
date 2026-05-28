@@ -17,6 +17,8 @@ struct BalanceConfig {
     int starting_hp = 100;
     int starting_mana = 50;
     int starting_gold = 0;
+    int starting_pos_x = 100;
+    int starting_pos_y = 100;
     int max_level = 100;
     int hp_per_level = 10;
     int mana_per_level = 5;
