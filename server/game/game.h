@@ -31,6 +31,7 @@ private:
     uint32_t tick_count = 0;
 
     CommandResult handle_login(uint16_t player_id, const LoginCmd& cmd);
+    CommandResult handle_create_character(uint16_t player_id, const CreateCharacterCmd& cmd);
     CommandResult handle_move(uint16_t player_id, const MoveCmd& cmd);
     CommandResult handle_attack(uint16_t player_id, const AttackCmd& cmd);
     CommandResult handle_send_chat_msg(uint16_t player_id, const SendChatMsgCmd& cmd);
@@ -42,6 +43,9 @@ private:
     CommandResult handle_resurrect(uint16_t player_id);
     CommandResult handle_meditate(uint16_t player_id);
     bool is_username_logged_in(const std::string& username) const;
+    LoginOkEvent make_login_ok(const Player& p) const;
+    EntitySpawnEvent make_entity_spawn(const Player& p) const;
+    std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id) const;
 
 public:
     explicit Game(const ServerConfig& config, PlayerPersistence& persistence,
