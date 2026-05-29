@@ -63,6 +63,11 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*attack, "clan_bonus_max", config.attack.clan_bonus_max);
     }
 
+    if (auto inventory = root["inventory"].as_table()) {
+        config.inventory.max_slots =
+                toml_get_int(*inventory, "max_slots", config.inventory.max_slots);
+    }
+
     if (auto clan = root["clan"].as_table()) {
         config.clan.max_members = toml_get_int(*clan, "max_members", config.clan.max_members);
         config.clan.min_level_found =
