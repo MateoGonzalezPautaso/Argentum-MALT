@@ -77,25 +77,25 @@ CommandResult Game::remove_player(uint16_t player_id) {
         return {};
 
     PlayerRecord rec;
-    rec.set_username(it->second.username);
-    rec.pos_x = it->second.pos.x;
-    rec.pos_y = it->second.pos.y;
-    rec.dir = static_cast<uint8_t>(it->second.dir);
-    rec.race = static_cast<uint8_t>(it->second.race);
-    rec.player_class = static_cast<uint8_t>(it->second.player_class);
-    rec.level = it->second.level;
-    rec.experience = it->second.experience;
-    rec.hp_current = it->second.hp_current;
-    rec.hp_max = it->second.hp_max;
-    rec.mana_current = it->second.mana_current;
-    rec.mana_max = it->second.mana_max;
-    rec.gold = it->second.gold;
-    persistence.save(it->second.username, rec);
+    rec.set_username(it->second.get_username());
+    rec.pos_x = it->second.pos_x();
+    rec.pos_y = it->second.pos_y();
+    rec.dir = static_cast<uint8_t>(it->second.get_dir());
+    rec.race = static_cast<uint8_t>(it->second.get_race());
+    rec.player_class = static_cast<uint8_t>(it->second.get_player_class());
+    rec.level = it->second.get_level();
+    rec.experience = it->second.get_experience();
+    rec.hp_current = it->second.get_hp_current();
+    rec.hp_max = it->second.get_hp_max();
+    rec.mana_current = it->second.get_mana_current();
+    rec.mana_max = it->second.get_mana_max();
+    rec.gold = it->second.get_gold();
+    persistence.save(it->second.get_username(), rec);
 
     // Notify clan members of logout
-    if (!it->second.clan_name.empty()) {
-        ClanNotificationEvent notif{ClanNotifType::MEMBER_OFFLINE, it->second.username,
-                                    it->second.clan_name};
+    if (!it->second.get_clan_name().empty()) {
+        ClanNotificationEvent notif{ClanNotifType::MEMBER_OFFLINE, it->second.get_username(),
+                                    it->second.get_clan_name()};
         EntityDespawnEvent despawn{.entity_id = player_id};
         players.erase(it);
         CommandResult result;
@@ -120,7 +120,7 @@ CommandResult Game::tick() {
 CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
     auto it = players.find(player_id);
     if (it != players.end())
-        it->second.is_meditating = false;
+        it->second.set_meditating(false);
     return combat_controller.melee_attack(player_id, cmd.target_id, tick_count);
 }
 
@@ -133,9 +133,9 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
     if (text.empty())
         return {};
 
-    it->second.is_meditating = false;
+    it->second.set_meditating(false);
 
-    const std::string& sender_name = it->second.username;
+    const std::string& sender_name = it->second.get_username();
 
     if (text[0] == '@') {
         size_t space_pos = text.find(' ');
@@ -143,7 +143,7 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             std::string target_nick = text.substr(1, space_pos - 1);
             std::string msg = text.substr(space_pos + 1);
             for (const auto& [target_id, player]: players) {
-                if (player.username == target_nick) {
+                if (player.get_username() == target_nick) {
                     ChatMsgEvent chat_ev{ChatMsgType::PRIVATE, sender_name, msg,
                                         target_id, player_id};
                     std::map<uint16_t, std::vector<ServerEvent>> targeted;
@@ -193,59 +193,55 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
 
         Player player(player_id, cmd.username, Position{rec.pos_x, rec.pos_y},
                       static_cast<Direction>(rec.dir), static_cast<Race>(rec.race),
-                      static_cast<PlayerClass>(rec.player_class), balance);
-        player.level = rec.level;
-        player.experience = rec.experience;
-        player.hp_current = rec.hp_current;
-        player.hp_max = rec.hp_max;
-        player.mana_current = rec.mana_current;
-        player.mana_max = rec.mana_max;
-        player.gold = rec.gold;
+                      static_cast<PlayerClass>(rec.player_class), balance,
+                      rec.level, rec.experience,
+                      rec.hp_current, rec.hp_max,
+                      rec.mana_current, rec.mana_max,
+                      rec.gold);
 
         // Set clan membership
         std::string clan_name = clan_manager.get_clan_name(cmd.username);
-        player.clan_name = clan_name;
+        player.set_clan_name(clan_name);
 
         auto it = players.emplace(player_id, std::move(player)).first;
         const Player& p = it->second;
 
         LoginOkEvent login_ok{
-                .player_id = p.id,
-                .username = p.username,
-                .race = p.race,
-                .player_class = p.player_class,
-                .level = p.level,
-                .experience = p.experience,
+                .player_id = p.get_id(),
+                .username = p.get_username(),
+                .race = p.get_race(),
+                .player_class = p.get_player_class(),
+                .level = p.get_level(),
+                .experience = p.get_experience(),
                 .exp_to_next = p.exp_to_next_level(),
-                .hp_current = p.hp_current,
-                .hp_max = p.hp_max,
-                .mana_current = p.mana_current,
-                .mana_max = p.mana_max,
-                .gold = p.gold,
-                .pos = p.pos,
+                .hp_current = p.get_hp_current(),
+                .hp_max = p.get_hp_max(),
+                .mana_current = p.get_mana_current(),
+                .mana_max = p.get_mana_max(),
+                .gold = p.get_gold(),
+                .pos = p.get_pos(),
         };
         EntitySpawnEvent spawn{
-                .entity_id = p.id,
+                .entity_id = p.get_id(),
                 .entity_type = EntityType::PLAYER,
-                .entity_pos = p.pos,
-                .entity_dir = p.dir,
-                .entity_name = p.username,
-                .entity_race = p.race,
-                .entity_class = p.player_class,
+                .entity_pos = p.get_pos(),
+                .entity_dir = p.get_dir(),
+                .entity_name = p.get_username(),
+                .entity_race = p.get_race(),
+                .entity_class = p.get_player_class(),
         };
         std::vector<ServerEvent> private_events = {login_ok};
         for (const auto& [existing_id, existing_player]: players) {
-            if (existing_id == p.id) {
+            if (existing_id == p.get_id())
                 continue;
-            }
             private_events.push_back(EntitySpawnEvent{
-                    .entity_id = existing_player.id,
+                    .entity_id = existing_player.get_id(),
                     .entity_type = EntityType::PLAYER,
-                    .entity_pos = existing_player.pos,
-                    .entity_dir = existing_player.dir,
-                    .entity_name = existing_player.username,
-                    .entity_race = existing_player.race,
-                    .entity_class = existing_player.player_class,
+                    .entity_pos = existing_player.get_pos(),
+                    .entity_dir = existing_player.get_dir(),
+                    .entity_name = existing_player.get_username(),
+                    .entity_race = existing_player.get_race(),
+                    .entity_class = existing_player.get_player_class(),
             });
         }
 
@@ -271,8 +267,7 @@ CommandResult Game::handle_cheat_infinite_hp(uint16_t player_id) {
     auto it = players.find(player_id);
     if (it == players.end())
         return {};
-    it->second.cheat_infinite_hp = !it->second.cheat_infinite_hp;
-    bool active = it->second.cheat_infinite_hp;
+    bool active = it->second.toggle_cheat_infinite_hp();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      active ? "[Cheat] Infinite HP: ON" : "[Cheat] Infinite HP: OFF"};
     return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
@@ -282,8 +277,7 @@ CommandResult Game::handle_cheat_infinite_mana(uint16_t player_id) {
     auto it = players.find(player_id);
     if (it == players.end())
         return {};
-    it->second.cheat_infinite_mana = !it->second.cheat_infinite_mana;
-    bool active = it->second.cheat_infinite_mana;
+    bool active = it->second.toggle_cheat_infinite_mana();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      active ? "[Cheat] Infinite Mana: ON" : "[Cheat] Infinite Mana: OFF"};
     return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
@@ -293,10 +287,9 @@ CommandResult Game::handle_cheat_die(uint16_t player_id) {
     auto it = players.find(player_id);
     if (it == players.end())
         return {};
-    it->second.hp_current = 0;
-    it->second.is_dead = true;
+    it->second.kill();
     DamageReceivedEvent dmg{.target_id = player_id, .attacker_id = player_id,
-                            .damage = 0, .hp_current = 0, .hp_max = it->second.hp_max};
+                            .damage = 0, .hp_current = 0, .hp_max = it->second.get_hp_max()};
     EntityDiedEvent died{.entity_id = player_id};
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] You died!"};
     return {.private_events = {msg}, .broadcast_events = {dmg, died}, .targeted_events = {}};
@@ -309,7 +302,7 @@ CommandResult Game::handle_cheat_level_up(uint16_t player_id) {
     Player& player = it->second;
     player.level_up();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     "[Cheat] Nivel subido a " + std::to_string(player.level)};
+                     "[Cheat] Nivel subido a " + std::to_string(player.get_level())};
     return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
 }
 
@@ -318,17 +311,13 @@ CommandResult Game::handle_cheat_level_down(uint16_t player_id) {
     if (it == players.end())
         return {};
     Player& player = it->second;
-    if (player.level <= 1) {
+    if (player.get_level() <= 1) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Ya estas en el nivel minimo"};
         return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
-    player.level--;
-    player.hp_max = std::max(player.hp_max, static_cast<uint32_t>(player.balance.starting_hp));
-    player.mana_max = std::max(player.mana_max, static_cast<uint32_t>(player.balance.starting_mana));
-    player.hp_current = player.hp_max;
-    player.mana_current = player.mana_max;
+    player.level_down();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     "[Cheat] Nivel bajado a " + std::to_string(player.level)};
+                     "[Cheat] Nivel bajado a " + std::to_string(player.get_level())};
     return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
 }
 
@@ -342,23 +331,23 @@ CommandResult Game::handle_meditate(uint16_t player_id) {
     if (player.is_ghost())
         return {};
 
-    if (player.player_class == PlayerClass::WARRIOR) {
+    if (player.get_player_class() == PlayerClass::WARRIOR) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los guerreros no pueden meditar"};
         return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
 
-    if (player.is_meditating) {
-        player.is_meditating = false;
+    if (player.get_is_meditating()) {
+        player.set_meditating(false);
         return {.private_events = {MeditationStopEvent{}}, .broadcast_events = {}, .targeted_events = {}};
     } else {
-        player.is_meditating = true;
+        player.set_meditating(true);
         return {.private_events = {MeditationStartEvent{}}, .broadcast_events = {}, .targeted_events = {}};
     }
 }
 
 bool Game::is_username_logged_in(const std::string& username) const {
     for (const auto& [id, player]: players) {
-        if (player.username == username)
+        if (player.get_username() == username)
             return true;
     }
     return false;
@@ -378,7 +367,7 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
 
     player.resurrect();
 
-    PlayerRespawnedEvent respawn_ev{player_id, player.hp_current, player.hp_max};
+    PlayerRespawnedEvent respawn_ev{player_id, player.get_hp_current(), player.get_hp_max()};
 
     return {.private_events = {}, .broadcast_events = {respawn_ev}, .targeted_events = {}};
 }
@@ -389,12 +378,12 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
         return {};
 
     Player& player = it->second;
-    player.is_meditating = false;
+    player.set_meditating(false);
 
     auto [dx, dy] = direction_to_delta(cmd.direction, move_step);
 
-    const int current_x = static_cast<int>(player.pos.x);
-    const int current_y = static_cast<int>(player.pos.y);
+    const int current_x = static_cast<int>(player.pos_x());
+    const int current_y = static_cast<int>(player.pos_y());
     const int new_x = map.clamp_x(current_x + dx, sprite_width);
     const int new_y = map.clamp_y(current_y + dy, sprite_height);
 
@@ -409,9 +398,9 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
     player.apply_move(cmd.direction, final_dx, final_dy);
 
     EntityMoveEvent move{
-            .entity_id = player.id,
-            .entity_pos = player.pos,
-            .entity_dir = player.dir,
+            .entity_id = player.get_id(),
+            .entity_pos = player.get_pos(),
+            .entity_dir = player.get_dir(),
     };
     return {.private_events = {}, .broadcast_events = {move}, .targeted_events = {}};
 }
