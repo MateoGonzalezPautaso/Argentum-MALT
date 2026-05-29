@@ -8,7 +8,7 @@
 
 Client::Client(const ClientConfig& cfg):
         config(cfg),
-        skt("127.0.0.1", "1234"),
+        skt(cfg.network.host.c_str(), cfg.network.port.c_str()),
         protocol(std::move(skt)),
         engine(config, command_queue),
         sender(protocol, command_queue),

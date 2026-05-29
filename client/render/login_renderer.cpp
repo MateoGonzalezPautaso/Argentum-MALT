@@ -109,13 +109,13 @@ void LoginRenderer::init_layout() {
         TTF_SizeUTF8(title_font, ui_cfg.title_text.c_str(), &title_w, &title_h);
     }
     const int title_x = std::max(0, (ui_cfg.window_w - title_w) / 2);
-    const int title_y = logo_y + logo_h + 20;
+    const int title_y = logo_y + logo_h + ui_cfg.login_title_spacing;
     title_rect = SDL2pp::Rect(title_x, title_y, title_w, title_h);
 
     const int field_x = std::max(0, (ui_cfg.window_w - ui_cfg.login_field_w) / 2);
-    const int field_start_y = title_y + title_h + 30;
+    const int field_start_y = title_y + title_h + ui_cfg.login_field_spacing;
     const int username_y = field_start_y;
-    const int password_y = username_y + ui_cfg.login_field_h + 16;
+    const int password_y = username_y + ui_cfg.login_field_h + ui_cfg.login_field_gap;
 
     username_field_rect =
             SDL2pp::Rect(field_x, username_y, ui_cfg.login_field_w, ui_cfg.login_field_h);
@@ -125,12 +125,12 @@ void LoginRenderer::init_layout() {
     const int button_w = connect_button.default_tex.GetWidth();
     const int button_h = connect_button.default_tex.GetHeight();
     const int button_x = std::max(0, (ui_cfg.window_w - button_w) / 2);
-    const int button_y = password_y + ui_cfg.login_field_h + 30;
+    const int button_y = password_y + ui_cfg.login_field_h + ui_cfg.login_button_spacing;
     connect_button.set_position(button_x, button_y, button_w, button_h);
 
     const int back_w = back_button.default_tex.GetWidth();
     const int back_h = back_button.default_tex.GetHeight();
-    back_button.set_position(10, 10, back_w, back_h);
+    back_button.set_position(ui_cfg.back_button_x, ui_cfg.back_button_y, back_w, back_h);
 }
 
 void LoginRenderer::render_text_field(const SDL2pp::Rect& rect, const std::string& text,
@@ -161,10 +161,11 @@ void LoginRenderer::render_text_field(const SDL2pp::Rect& rect, const std::strin
         render_text_in_rect(rect, placeholder, placeholder_color, clipped_w);
     }
 
-    if (focused && (SDL_GetTicks() / 500U) % 2U == 0U) {
-        const int cursor_x = rect.GetX() + 4 + clipped_w;
+    if (focused && (SDL_GetTicks() / ui_cfg.cursor_blink_ms) % 2U == 0U) {
+        const int cursor_x = rect.GetX() + ui_cfg.cursor_padding + clipped_w;
         renderer.SetDrawColor(255, 255, 255, 255);
-        SDL2pp::Rect cursor_rect(cursor_x, rect.GetY() + 4, 2, rect.GetH() - 8);
+        SDL2pp::Rect cursor_rect(cursor_x, rect.GetY() + ui_cfg.cursor_padding,
+                                 ui_cfg.cursor_width, rect.GetH() - ui_cfg.cursor_height_shrink);
         renderer.FillRect(cursor_rect);
     }
 }
@@ -189,7 +190,7 @@ void LoginRenderer::render_error() const {
     }
 
     const int x = std::max(0, (ui_cfg.window_w - result.w) / 2);
-    const int y = connect_button.rect.GetY() + connect_button.rect.GetH() + 10;
+    const int y = connect_button.rect.GetY() + connect_button.rect.GetH() + ui_cfg.error_spacing;
     SDL2pp::Rect dst(x, y, result.w, result.h);
     renderer.Copy(result.texture, SDL2pp::NullOpt, dst);
 }

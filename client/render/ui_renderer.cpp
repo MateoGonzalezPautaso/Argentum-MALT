@@ -186,7 +186,7 @@ void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages) {
     }
 
     int y_offset = chat_history_rect.GetY() + chat_history_rect.GetH();
-    int line_spacing = 2;
+    int line_spacing = ui_cfg.chat_line_spacing;
 
     for (auto it = messages.rbegin(); it != messages.rend(); ++it) {
         std::string display;
