@@ -45,6 +45,13 @@ public:
     const std::string& get_clan_name() const { return clan_name; }
     void set_clan_name(const std::string& name) { clan_name = name; }
 
+    uint32_t get_hp_current() const { return hp_current; }
+    uint32_t get_hp_max() const { return hp_max; }
+    uint32_t get_mana_current() const { return mana_current; }
+    uint32_t get_mana_max() const { return mana_max; }
+    uint32_t get_gold() const { return gold; }
+    uint32_t get_experience() const { return experience; }
+
     bool try_attack(uint32_t current_tick, uint32_t cooldown_ticks);
     bool is_ghost() const;
 
