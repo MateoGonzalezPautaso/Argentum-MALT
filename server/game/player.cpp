@@ -20,6 +20,27 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         gold(balance.starting_gold),
         balance(balance) {}
 
+Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
+               PlayerClass player_class, const BalanceConfig& balance,
+               uint8_t level, uint32_t experience,
+               uint32_t hp_current, uint32_t hp_max,
+               uint32_t mana_current, uint32_t mana_max,
+               uint32_t gold):
+        id(id),
+        username(username),
+        pos(pos),
+        dir(dir),
+        race(race),
+        player_class(player_class),
+        level(level),
+        experience(experience),
+        hp_current(hp_current),
+        hp_max(hp_max),
+        mana_current(mana_current),
+        mana_max(mana_max),
+        gold(gold),
+        balance(balance) {}
+
 bool Player::try_attack(uint32_t current_tick, uint32_t cooldown_ticks) {
     if (current_tick < next_attack_tick)
         return false;
@@ -115,6 +136,16 @@ void Player::spend_gold(uint32_t amount) {
     } else {
         gold -= amount;
     }
+}
+
+void Player::level_down() {
+    if (level <= 1)
+        return;
+    --level;
+    hp_max = std::max(hp_max, static_cast<uint32_t>(balance.starting_hp));
+    mana_max = std::max(mana_max, static_cast<uint32_t>(balance.starting_mana));
+    hp_current = hp_max;
+    mana_current = mana_max;
 }
 
 uint32_t Player::exp_to_next_level() const {
