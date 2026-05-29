@@ -42,7 +42,7 @@ std::string trim(const std::string& s) {
 Game::Game(const ServerConfig& config, PlayerPersistence& persistence,
            ClanPersistence& clan_persistence):
         persistence(persistence),
-        clan_manager(clan_persistence),
+        clan_manager(clan_persistence, config.clan),
         clan_handler(clan_manager, players),
         map(config.tilemap),
         move_step(config.move_step),

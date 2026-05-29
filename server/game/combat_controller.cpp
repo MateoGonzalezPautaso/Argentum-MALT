@@ -33,17 +33,17 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
         return {};
 
 
-    if (attacker.get_level() <= 12) {
+    if (attacker.get_level() <= config.newbie_level) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar siendo newbie"};
         return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
-    if (target.get_level() <= 12) {
+    if (target.get_level() <= config.newbie_level) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar a un jugador newbie"};
         return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
 
     int level_diff = std::abs(static_cast<int>(attacker.get_level()) - static_cast<int>(target.get_level()));
-    if (level_diff > 10) {
+    if (level_diff > config.max_level_diff) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                          "No puedes atacar a un jugador con diferencia de niveles mayor a 10"};
         return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
@@ -67,7 +67,7 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
     int nearby_allies = 0;
     if (clan_manager && !attacker.get_clan_name().empty()) {
         nearby_allies = count_nearby_clan_members(attacker);
-        double bonus = std::min(CLAN_BONUS_PER_MEMBER * nearby_allies, CLAN_BONUS_MAX);
+        double bonus = std::min(config.clan_bonus_per_member * nearby_allies, config.clan_bonus_max);
         damage = static_cast<uint32_t>(std::round(damage * (1.0 + bonus)));
     }
 
@@ -135,7 +135,7 @@ int CombatController::count_nearby_clan_members(const Player& player) const {
         const int dx = static_cast<int>(p.pos_x()) - static_cast<int>(player.pos_x());
         const int dy = static_cast<int>(p.pos_y()) - static_cast<int>(player.pos_y());
         const int dist_sq = dx * dx + dy * dy;
-        if (dist_sq <= CLAN_BONUS_RANGE_PX * CLAN_BONUS_RANGE_PX) {
+        if (dist_sq <= config.clan_bonus_range_px * config.clan_bonus_range_px) {
             ++count;
         }
     }

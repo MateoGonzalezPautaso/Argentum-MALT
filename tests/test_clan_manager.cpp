@@ -17,7 +17,7 @@ protected:
         data_path = base + ".dat";
         index_path = base + ".idx";
         persistence = new ClanPersistence(data_path, index_path);
-        manager = new ClanManager(*persistence);
+        manager = new ClanManager(*persistence, ClanConfig{});
     }
 
     void TearDown() override {

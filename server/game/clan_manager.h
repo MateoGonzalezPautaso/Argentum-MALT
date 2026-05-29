@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "../../common/messages.h"
+#include "../core/config.h"
 #include "../persistence/clan_persistence.h"
 
 struct ClanResult {
@@ -16,10 +17,9 @@ struct ClanResult {
 
 class ClanManager {
 public:
-    static constexpr size_t MAX_MEMBERS = 16;
-    static constexpr uint8_t MIN_LEVEL_FOUND = 6;
+    ClanManager(ClanPersistence& persistence, const ClanConfig& config);
 
-    explicit ClanManager(ClanPersistence& persistence);
+    int min_level_found() const { return config.min_level_found; }
 
     ClanResult create_clan(const std::string& founder_username, const std::string& clan_name);
     ClanResult request_join(const std::string& applicant_username, const std::string& clan_name);
@@ -49,6 +49,7 @@ private:
     std::map<std::string, ClanData> clans;
     std::map<std::string, std::string> player_to_clan;
     ClanPersistence& persistence;
+    ClanConfig config;
 
     ClanData* find_clan_by_member(const std::string& username);
     const ClanData* find_clan_by_name(const std::string& clan_name) const;

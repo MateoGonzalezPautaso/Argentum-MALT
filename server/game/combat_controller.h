@@ -17,10 +17,6 @@ class ClanManager;
 
 class CombatController {
 public:
-    static constexpr int CLAN_BONUS_RANGE_PX = 200;
-    static constexpr double CLAN_BONUS_PER_MEMBER = 0.05;
-    static constexpr double CLAN_BONUS_MAX = 0.25;
-
     CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players);
 
     void set_clan_manager(ClanManager& mgr);

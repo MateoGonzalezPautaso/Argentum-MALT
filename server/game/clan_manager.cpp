@@ -3,7 +3,8 @@
 #include <algorithm>
 #include <utility>
 
-ClanManager::ClanManager(ClanPersistence& persistence): persistence(persistence) {
+ClanManager::ClanManager(ClanPersistence& persistence, const ClanConfig& config):
+        persistence(persistence), config(config) {
     auto loaded = persistence.load_all();
     for (auto& cd: loaded) {
         ClanData clan;
@@ -67,8 +68,8 @@ ClanResult ClanManager::request_join(const std::string& applicant_username,
         return {false, "Estas baneado de este clan"};
     }
 
-    if (clan.members.size() >= MAX_MEMBERS) {
-        return {false, "El clan esta lleno (maximo " + std::to_string(MAX_MEMBERS) + " miembros)"};
+    if (static_cast<int>(clan.members.size()) >= config.max_members) {
+        return {false, "El clan esta lleno (maximo " + std::to_string(config.max_members) + " miembros)"};
     }
 
     auto& requests = clan.join_requests;
@@ -97,7 +98,7 @@ ClanResult ClanManager::accept_member(const std::string& founder_username,
         return {false, target_username + " no tiene un pedido pendiente"};
     }
 
-    if (clan->members.size() >= MAX_MEMBERS) {
+    if (static_cast<int>(clan->members.size()) >= config.max_members) {
         return {false, "El clan esta lleno"};
     }
 

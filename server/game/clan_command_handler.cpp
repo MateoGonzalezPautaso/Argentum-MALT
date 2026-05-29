@@ -52,8 +52,8 @@ CommandResult ClanCommandHandler::handle_found_clan(uint16_t player_id, const st
     if (it == players.end())
         return {};
 
-    if (it->second.get_level() < ClanManager::MIN_LEVEL_FOUND) {
-        return system_msg("Necesitas nivel " + std::to_string(ClanManager::MIN_LEVEL_FOUND) +
+    if (it->second.get_level() < clan_manager.min_level_found()) {
+        return system_msg("Necesitas nivel " + std::to_string(clan_manager.min_level_found()) +
                           " para fundar un clan");
     }
 
