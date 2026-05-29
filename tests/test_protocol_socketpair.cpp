@@ -71,7 +71,7 @@ INSTANTIATE_TEST_SUITE_P(AllDirections, ProtocolMoveTest,
                                            Direction::WEST));
 
 // ─────────────────────────────────────────────────────────────
-// MOVE — raw byte verification
+// MOVE - raw byte verification
 // ─────────────────────────────────────────────────────────────
 
 // Verifies the exact binary format of the MOVE message
@@ -93,7 +93,7 @@ TEST_F(ProtocolTest, SendMoveCheckRawBytes) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// MOVE — unknown opcode throws
+// MOVE - unknown opcode throws
 // ─────────────────────────────────────────────────────────────
 
 // The server must throw std::runtime_error when it receives an opcode that
@@ -526,3 +526,196 @@ TEST_F(ProtocolTest, ClanUpdateRoundtrip) {
     EXPECT_EQ(received.members[2].is_founder, false);
     EXPECT_EQ(received.members[2].is_online, false);
 }
+
+// ─────────────────────────────────────────────────────────────
+// ATTACK command
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, AttackRoundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    AttackCmd sent{.target_id = 42};
+    client.send_command(sent);
+
+    ClientCommand cmd = server.recv_command();
+    ASSERT_TRUE(std::holds_alternative<AttackCmd>(cmd));
+    EXPECT_EQ(std::get<AttackCmd>(cmd).target_id, sent.target_id);
+}
+
+// ─────────────────────────────────────────────────────────────
+// SEND_CHAT_MSG command
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, SendChatMsgRoundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    SendChatMsgCmd sent{.text = "hola mundo"};
+    client.send_command(sent);
+
+    ClientCommand cmd = server.recv_command();
+    ASSERT_TRUE(std::holds_alternative<SendChatMsgCmd>(cmd));
+    EXPECT_EQ(std::get<SendChatMsgCmd>(cmd).text, sent.text);
+}
+
+TEST_F(ProtocolTest, SendChatMsgEmptyTextRoundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    client.send_command(SendChatMsgCmd{.text = ""});
+
+    ClientCommand cmd = server.recv_command();
+    ASSERT_TRUE(std::holds_alternative<SendChatMsgCmd>(cmd));
+    EXPECT_EQ(std::get<SendChatMsgCmd>(cmd).text, "");
+}
+
+// ─────────────────────────────────────────────────────────────
+// Zero-field commands (opcode-only)
+// ─────────────────────────────────────────────────────────────
+
+class ZeroFieldCommandTest: public ProtocolTest,
+                             public ::testing::WithParamInterface<ClientCommand> {};
+
+TEST_P(ZeroFieldCommandTest, Roundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    client.send_command(GetParam());
+    ClientCommand received = server.recv_command();
+    EXPECT_EQ(received.index(), GetParam().index());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        ZeroFieldCommands, ZeroFieldCommandTest,
+        ::testing::Values(ClientCommand{MeditateCmd{}}, ClientCommand{ResurrectCmd{}},
+                          ClientCommand{CheatInfiniteHpCmd{}}, ClientCommand{CheatInfiniteManaCmd{}},
+                          ClientCommand{CheatDieCmd{}}, ClientCommand{CheatLevelUpCmd{}},
+                          ClientCommand{CheatLevelDownCmd{}}));
+
+// ─────────────────────────────────────────────────────────────
+// DAMAGE_DEALT event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, DamageDealtRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    DamageDealtEvent sent{.target_id = 7, .damage = 42};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<DamageDealtEvent>(ev));
+    const auto& received = std::get<DamageDealtEvent>(ev);
+    EXPECT_EQ(received.target_id, sent.target_id);
+    EXPECT_EQ(received.damage, sent.damage);
+}
+
+// ─────────────────────────────────────────────────────────────
+// DAMAGE_RECEIVED event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, DamageReceivedRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    DamageReceivedEvent sent{.target_id = 3, .attacker_id = 5, .damage = 25,
+                              .hp_current = 75, .hp_max = 100};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<DamageReceivedEvent>(ev));
+    const auto& received = std::get<DamageReceivedEvent>(ev);
+    EXPECT_EQ(received.target_id, sent.target_id);
+    EXPECT_EQ(received.attacker_id, sent.attacker_id);
+    EXPECT_EQ(received.damage, sent.damage);
+    EXPECT_EQ(received.hp_current, sent.hp_current);
+    EXPECT_EQ(received.hp_max, sent.hp_max);
+}
+
+// ─────────────────────────────────────────────────────────────
+// ENTITY_DIED event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, EntityDiedRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    EntityDiedEvent sent{.entity_id = 99};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<EntityDiedEvent>(ev));
+    EXPECT_EQ(std::get<EntityDiedEvent>(ev).entity_id, sent.entity_id);
+}
+
+// ─────────────────────────────────────────────────────────────
+// PLAYER_RESPAWNED event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, PlayerRespawnedRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    PlayerRespawnedEvent sent{.entity_id = 12, .hp_current = 80, .hp_max = 100};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<PlayerRespawnedEvent>(ev));
+    const auto& received = std::get<PlayerRespawnedEvent>(ev);
+    EXPECT_EQ(received.entity_id, sent.entity_id);
+    EXPECT_EQ(received.hp_current, sent.hp_current);
+    EXPECT_EQ(received.hp_max, sent.hp_max);
+}
+
+// ─────────────────────────────────────────────────────────────
+// MEDITATION_START / MEDITATION_STOP events
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, MeditationStartRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    server.send_event(MeditationStartEvent{});
+
+    ServerEvent ev = client.recv_event();
+    EXPECT_TRUE(std::holds_alternative<MeditationStartEvent>(ev));
+}
+
+TEST_F(ProtocolTest, MeditationStopRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    server.send_event(MeditationStopEvent{});
+
+    ServerEvent ev = client.recv_event();
+    EXPECT_TRUE(std::holds_alternative<MeditationStopEvent>(ev));
+}
+
+// ─────────────────────────────────────────────────────────────
+// CHAT_MSG event - all types
+// ─────────────────────────────────────────────────────────────
+
+class ProtocolChatMsgTest: public ProtocolTest,
+                            public ::testing::WithParamInterface<ChatMsgType> {};
+
+TEST_P(ProtocolChatMsgTest, RoundtripAllTypes) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    ChatMsgEvent sent{GetParam(), "sender", "hello", 2, 1};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<ChatMsgEvent>(ev));
+    const auto& received = std::get<ChatMsgEvent>(ev);
+    EXPECT_EQ(received.type, sent.type);
+    EXPECT_EQ(received.sender_name, sent.sender_name);
+    EXPECT_EQ(received.message, sent.message);
+    EXPECT_EQ(received.recipient_id, sent.recipient_id);
+    EXPECT_EQ(received.sender_id, sent.sender_id);
+}
+
+INSTANTIATE_TEST_SUITE_P(AllChatTypes, ProtocolChatMsgTest,
+                          ::testing::Values(ChatMsgType::SAY, ChatMsgType::PRIVATE,
+                                            ChatMsgType::CLAN, ChatMsgType::SYSTEM));
