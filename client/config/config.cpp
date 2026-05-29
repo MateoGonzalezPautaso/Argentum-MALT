@@ -25,6 +25,13 @@ std::vector<std::string> parse_paths(const toml::table& tbl) {
     return paths;
 }
 
+void parse_network_config(const toml::table& root, ClientConfig& config) {
+    if (auto tbl = root["network"].as_table()) {
+        config.network.host = toml_get_string(*tbl, "host", config.network.host);
+        config.network.port = toml_get_string(*tbl, "port", config.network.port);
+    }
+}
+
 void parse_window_config(const toml::table& root, ClientConfig& config) {
     if (auto window = root["window"].as_table()) {
         config.window.width = toml_get_int(*window, "width", config.window.width);
@@ -154,6 +161,25 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
         config.ui.settings_y = toml_get_int(*tbl, "settings_y", config.ui.settings_y);
         config.ui.settings_w = toml_get_int(*tbl, "settings_w", config.ui.settings_w);
         config.ui.settings_h = toml_get_int(*tbl, "settings_h", config.ui.settings_h);
+        config.ui.login_title_spacing =
+                toml_get_int(*tbl, "login_title_spacing", config.ui.login_title_spacing);
+        config.ui.login_field_spacing =
+                toml_get_int(*tbl, "login_field_spacing", config.ui.login_field_spacing);
+        config.ui.login_field_gap =
+                toml_get_int(*tbl, "login_field_gap", config.ui.login_field_gap);
+        config.ui.login_button_spacing =
+                toml_get_int(*tbl, "login_button_spacing", config.ui.login_button_spacing);
+        config.ui.back_button_x = toml_get_int(*tbl, "back_button_x", config.ui.back_button_x);
+        config.ui.back_button_y = toml_get_int(*tbl, "back_button_y", config.ui.back_button_y);
+        config.ui.error_spacing = toml_get_int(*tbl, "error_spacing", config.ui.error_spacing);
+        config.ui.cursor_blink_ms =
+                toml_get_uint32(*tbl, "cursor_blink_ms", config.ui.cursor_blink_ms);
+        config.ui.cursor_width = toml_get_int(*tbl, "cursor_width", config.ui.cursor_width);
+        config.ui.cursor_padding = toml_get_int(*tbl, "cursor_padding", config.ui.cursor_padding);
+        config.ui.cursor_height_shrink =
+                toml_get_int(*tbl, "cursor_height_shrink", config.ui.cursor_height_shrink);
+        config.ui.chat_line_spacing =
+                toml_get_int(*tbl, "chat_line_spacing", config.ui.chat_line_spacing);
     }
 
     parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{}, "hp_bar",
@@ -272,6 +298,7 @@ ClientConfig load_client_config(const std::string& path) {
     toml::table root = toml::parse_file(path);
     ClientConfig config;
 
+    parse_network_config(root, config);
     parse_window_config(root, config);
     parse_background_config(root, config);
     parse_sprite_configs(root, config);

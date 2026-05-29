@@ -9,6 +9,11 @@
 #include "../../common/config.h"
 #include "../../common/messages.h"
 
+struct NetworkConfig {
+    std::string host = "127.0.0.1";
+    std::string port = "1234";
+};
+
 struct WindowConfig {
     int width = 960;
     int height = 540;
@@ -132,6 +137,19 @@ struct UIConfig {
     std::string asset_hp_bar = "assets/interface/en_barradevida.bmp";
     std::string asset_mp_bar = "assets/interface/en_barrademana.bmp";
     std::string asset_exp_bar = "assets/interface/en_barraexperiencia.bmp";
+
+    int login_title_spacing = 20;
+    int login_field_spacing = 30;
+    int login_field_gap = 16;
+    int login_button_spacing = 30;
+    int back_button_x = 10;
+    int back_button_y = 10;
+    int error_spacing = 10;
+    uint32_t cursor_blink_ms = 500;
+    int cursor_width = 2;
+    int cursor_padding = 4;
+    int cursor_height_shrink = 8;
+    int chat_line_spacing = 2;
 };
 
 struct SkinConfig {
@@ -171,6 +189,7 @@ private:
 };
 
 struct ClientConfig {
+    NetworkConfig network;
     WindowConfig window;
     BackgroundConfig background;
     TilemapConfig tilemap;
