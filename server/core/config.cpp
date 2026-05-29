@@ -44,6 +44,24 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_int(*attack, "damage_variance", config.attack.damage_variance);
         config.attack.cooldown_ticks =
                 toml_get_int(*attack, "cooldown_ticks", config.attack.cooldown_ticks);
+        config.attack.xp_per_level_kill =
+                toml_get_int(*attack, "xp_per_level_kill", config.attack.xp_per_level_kill);
+        config.attack.newbie_level =
+                toml_get_int(*attack, "newbie_level", config.attack.newbie_level);
+        config.attack.max_level_diff =
+                toml_get_int(*attack, "max_level_diff", config.attack.max_level_diff);
+        config.attack.clan_bonus_range_px =
+                toml_get_int(*attack, "clan_bonus_range_px", config.attack.clan_bonus_range_px);
+        config.attack.clan_bonus_per_member =
+                toml_get_double(*attack, "clan_bonus_per_member", config.attack.clan_bonus_per_member);
+        config.attack.clan_bonus_max =
+                toml_get_double(*attack, "clan_bonus_max", config.attack.clan_bonus_max);
+    }
+
+    if (auto clan = root["clan"].as_table()) {
+        config.clan.max_members = toml_get_int(*clan, "max_members", config.clan.max_members);
+        config.clan.min_level_found =
+                toml_get_int(*clan, "min_level_found", config.clan.min_level_found);
     }
 
     if (auto balance = root["balance"].as_table()) {

@@ -11,6 +11,17 @@ struct AttackConfig {
     int attack_range_px = 30;
     int damage_variance = 5;
     int cooldown_ticks = 10;
+    int xp_per_level_kill = 100;
+    int newbie_level = 12;
+    int max_level_diff = 10;
+    int clan_bonus_range_px = 200;
+    double clan_bonus_per_member = 0.05;
+    double clan_bonus_max = 0.25;
+};
+
+struct ClanConfig {
+    int max_members = 16;
+    int min_level_found = 6;
 };
 
 struct BalanceConfig {
@@ -38,6 +49,7 @@ struct ServerConfig {
     int sprite_height = 48;
     BalanceConfig balance;
     AttackConfig attack;
+    ClanConfig clan;
 };
 
 ServerConfig load_server_config(const std::string& path);
