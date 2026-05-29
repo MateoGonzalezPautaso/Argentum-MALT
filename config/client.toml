@@ -1,3 +1,7 @@
+[network]
+host = "127.0.0.1"
+port = "1234"
+
 [window]
 width = 1024
 height = 768
@@ -51,6 +55,18 @@ settings_x = 688
 settings_y = 335
 settings_w = 270
 settings_h = 45
+login_title_spacing = 20
+login_field_spacing = 30
+login_field_gap = 16
+login_button_spacing = 30
+back_button_x = 10
+back_button_y = 10
+error_spacing = 10
+cursor_blink_ms = 500
+cursor_width = 2
+cursor_padding = 4
+cursor_height_shrink = 8
+chat_line_spacing = 2
 
 [ui.hp_bar]
 x = 790
