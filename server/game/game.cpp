@@ -56,6 +56,7 @@ Game::Game(const ServerConfig& config, PlayerPersistence& persistence,
 CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd) {
     return std::visit(overloaded{
                                [&](const LoginCmd& cmd) { return handle_login(player_id, cmd); },
+                               [&](const CreateCharacterCmd& cmd) { return handle_create_character(player_id, cmd); },
                                [&](const MoveCmd& cmd) { return handle_move(player_id, cmd); },
                                [&](const AttackCmd& cmd) { return handle_attack(player_id, cmd); },
                                [&](const SendChatMsgCmd& cmd) { return handle_send_chat_msg(player_id, cmd); },
@@ -76,21 +77,7 @@ CommandResult Game::remove_player(uint16_t player_id) {
     if (it == players.end())
         return {};
 
-    PlayerRecord rec;
-    rec.set_username(it->second.get_username());
-    rec.pos_x = it->second.pos_x();
-    rec.pos_y = it->second.pos_y();
-    rec.dir = static_cast<uint8_t>(it->second.get_dir());
-    rec.race = static_cast<uint8_t>(it->second.get_race());
-    rec.player_class = static_cast<uint8_t>(it->second.get_player_class());
-    rec.level = it->second.get_level();
-    rec.experience = it->second.get_experience();
-    rec.hp_current = it->second.get_hp_current();
-    rec.hp_max = it->second.get_hp_max();
-    rec.mana_current = it->second.get_mana_current();
-    rec.mana_max = it->second.get_mana_max();
-    rec.gold = it->second.get_gold();
-    persistence.save(it->second.get_username(), rec);
+    persistence.save(it->second);
 
     // Notify clan members of logout
     if (!it->second.get_clan_name().empty()) {
@@ -206,44 +193,10 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
         auto it = players.emplace(player_id, std::move(player)).first;
         const Player& p = it->second;
 
-        LoginOkEvent login_ok{
-                .player_id = p.get_id(),
-                .username = p.get_username(),
-                .race = p.get_race(),
-                .player_class = p.get_player_class(),
-                .level = p.get_level(),
-                .experience = p.get_experience(),
-                .exp_to_next = p.exp_to_next_level(),
-                .hp_current = p.get_hp_current(),
-                .hp_max = p.get_hp_max(),
-                .mana_current = p.get_mana_current(),
-                .mana_max = p.get_mana_max(),
-                .gold = p.get_gold(),
-                .pos = p.get_pos(),
-        };
-        EntitySpawnEvent spawn{
-                .entity_id = p.get_id(),
-                .entity_type = EntityType::PLAYER,
-                .entity_pos = p.get_pos(),
-                .entity_dir = p.get_dir(),
-                .entity_name = p.get_username(),
-                .entity_race = p.get_race(),
-                .entity_class = p.get_player_class(),
-        };
-        std::vector<ServerEvent> private_events = {login_ok};
-        for (const auto& [existing_id, existing_player]: players) {
-            if (existing_id == p.get_id())
-                continue;
-            private_events.push_back(EntitySpawnEvent{
-                    .entity_id = existing_player.get_id(),
-                    .entity_type = EntityType::PLAYER,
-                    .entity_pos = existing_player.get_pos(),
-                    .entity_dir = existing_player.get_dir(),
-                    .entity_name = existing_player.get_username(),
-                    .entity_race = existing_player.get_race(),
-                    .entity_class = existing_player.get_player_class(),
-            });
-        }
+        EntitySpawnEvent spawn = make_entity_spawn(p);
+        std::vector<ServerEvent> private_events = {make_login_ok(p)};
+        auto existing = make_existing_spawns(p.get_id());
+        private_events.insert(private_events.end(), existing.begin(), existing.end());
 
         // Notify clan members of login
         CommandResult login_result;
@@ -261,6 +214,57 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
 
     LoginErrorEvent err{LoginError::INVALID_CREDENTIALS, "Invalid username or password"};
     return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
+}
+
+CommandResult Game::handle_create_character(uint16_t player_id, const CreateCharacterCmd& cmd) {
+    if (cmd.username.empty()) {
+        CharacterErrorEvent err{CharacterError::INVALID_USERNAME, "El nombre de usuario no puede estar vacio"};
+        return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    PlayerRecord existing;
+    if (persistence.load(cmd.username, existing)) {
+        CharacterErrorEvent err{CharacterError::USERNAME_TAKEN, "El usuario " + cmd.username + " ya existe"};
+        return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    if (is_username_logged_in(cmd.username)) {
+        CharacterErrorEvent err{CharacterError::USERNAME_TAKEN, "El usuario " + cmd.username + " ya esta en juego"};
+        return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    PlayerRecord rec;
+    rec.set_username(cmd.username);
+    rec.set_password(cmd.password);
+    rec.race = static_cast<uint8_t>(cmd.race);
+    rec.player_class = static_cast<uint8_t>(cmd.player_class);
+    rec.level = 1;
+    rec.experience = 0;
+    rec.pos_x = static_cast<uint16_t>(balance.starting_pos_x);
+    rec.pos_y = static_cast<uint16_t>(balance.starting_pos_y);
+    rec.dir = static_cast<uint8_t>(Direction::SOUTH);
+    rec.hp_current = static_cast<uint32_t>(balance.starting_hp);
+    rec.hp_max = static_cast<uint32_t>(balance.starting_hp);
+    rec.mana_current = static_cast<uint32_t>(balance.starting_mana);
+    rec.mana_max = static_cast<uint32_t>(balance.starting_mana);
+    rec.gold = static_cast<uint32_t>(balance.starting_gold);
+    persistence.save(cmd.username, rec);
+
+    Player player(player_id, cmd.username,
+                  Position{rec.pos_x, rec.pos_y},
+                  Direction::SOUTH, cmd.race, cmd.player_class, balance);
+    auto it = players.emplace(player_id, std::move(player)).first;
+    const Player& p = it->second;
+
+    CharacterCreatedEvent created{make_login_ok(p)};
+    EntitySpawnEvent spawn = make_entity_spawn(p);
+    std::vector<ServerEvent> private_events = {created};
+    auto other_spawns = make_existing_spawns(p.get_id());
+    private_events.insert(private_events.end(), other_spawns.begin(), other_spawns.end());
+
+    return {.private_events = std::move(private_events),
+            .broadcast_events = {spawn},
+            .targeted_events = {}};
 }
 
 CommandResult Game::handle_cheat_infinite_hp(uint16_t player_id) {
@@ -342,6 +346,53 @@ CommandResult Game::handle_meditate(uint16_t player_id) {
     } else {
         player.set_meditating(true);
         return {.private_events = {MeditationStartEvent{}}, .broadcast_events = {}, .targeted_events = {}};
+    }
+}
+
+LoginOkEvent Game::make_login_ok(const Player& p) const {
+    return LoginOkEvent{
+            .player_id = p.get_id(),
+            .username = p.get_username(),
+            .race = p.get_race(),
+            .player_class = p.get_player_class(),
+            .level = p.get_level(),
+            .experience = p.get_experience(),
+            .exp_to_next = p.exp_to_next_level(),
+            .hp_current = p.get_hp_current(),
+            .hp_max = p.get_hp_max(),
+            .mana_current = p.get_mana_current(),
+            .mana_max = p.get_mana_max(),
+            .gold = p.get_gold(),
+            .pos = p.get_pos(),
+    };
+}
+
+EntitySpawnEvent Game::make_entity_spawn(const Player& p) const {
+    return EntitySpawnEvent{
+            .entity_id = p.get_id(),
+            .entity_type = EntityType::PLAYER,
+            .entity_pos = p.get_pos(),
+            .entity_dir = p.get_dir(),
+            .entity_name = p.get_username(),
+            .entity_race = p.get_race(),
+            .entity_class = p.get_player_class(),
+    };
+}
+
+std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id) const {
+    std::vector<ServerEvent> spawns;
+    for (const auto& [id, player]: players) {
+        if (id == exclude_id)
+            continue;
+        spawns.push_back(make_entity_spawn(player));
+    }
+    return spawns;
+}
+
+
+void Game::save_all_players() {
+    for (const auto& [id, player]: players) {
+        persistence.save(player);
     }
 }
 

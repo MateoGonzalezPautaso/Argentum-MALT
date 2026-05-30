@@ -120,6 +120,53 @@ void Client::shutdown() {
     receiver.join();
 }
 
+std::optional<LoginOkEvent> Client::run_create_character() {
+    GameState state = GameState::CreateCharacter;
+    bool running = true;
+    uint32_t last_tick = SDL_GetTicks();
+    bool cmd_sent = false;
+
+    ServerEvent discard;
+    while (event_queue.try_pop(discard))
+        ;
+
+    while (running && state == GameState::CreateCharacter) {
+        running = engine.dispatch_event(state);
+        if (!running)
+            break;
+
+        if (state == GameState::Login) {
+            engine.reset_create_char_state();
+            return std::nullopt;
+        }
+
+        if (!cmd_sent) {
+            std::string username, password;
+            Race race;
+            PlayerClass player_class;
+            if (engine.try_submit_create_character(username, password, race, player_class)) {
+                command_queue.push(CreateCharacterCmd{username, password, race, player_class});
+                cmd_sent = true;
+            }
+        }
+
+        if (cmd_sent) {
+            ServerEvent ev;
+            while (event_queue.try_pop(ev)) {
+                if (std::holds_alternative<CharacterCreatedEvent>(ev))
+                    return std::get<CharacterCreatedEvent>(ev).data;
+                if (std::holds_alternative<CharacterErrorEvent>(ev)) {
+                    engine.handle_create_char_error(std::get<CharacterErrorEvent>(ev).message);
+                    cmd_sent = false;
+                }
+            }
+        }
+
+        frame_sync(last_tick, [&] { engine.render_create_char_frame(); });
+    }
+    return std::nullopt;
+}
+
 void Client::run() {
     sender.start();
     receiver.start();
@@ -130,20 +177,30 @@ void Client::run() {
             return;
         }
 
-        auto login_result = run_login();
-        if (!login_result) {
-            engine.reset_login_state();
-            continue;
+        std::optional<LoginOkEvent> auth_result;
+        while (!auth_result) {
+            auto login = run_login();
+            if (login) {
+                auth_result = login;
+            } else if (engine.wants_create_character()) {
+                engine.reset_create_char_state();
+                auto created = run_create_character();
+                if (created)
+                    auth_result = created;
+                // if nullopt (back pressed), loop back to run_login
+            } else {
+                engine.reset_login_state();
+                break;  // back to menu
+            }
         }
 
-        std::cout << "Logged in as " << login_result->username << std::endl;
-
-        engine.apply_server_event(*login_result);
-
-        break;
+        if (auth_result) {
+            std::cout << "Logged in as " << auth_result->username << std::endl;
+            engine.apply_server_event(*auth_result);
+            break;
+        }
     }
 
     game_loop();
-
     shutdown();
 }

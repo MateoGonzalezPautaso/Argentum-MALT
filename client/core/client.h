@@ -28,6 +28,7 @@ private:
 
     bool run_menu();
     std::optional<LoginOkEvent> run_login();
+    std::optional<LoginOkEvent> run_create_character();
     void game_loop();
     void shutdown();
 
