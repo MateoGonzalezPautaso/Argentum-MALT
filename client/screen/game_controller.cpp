@@ -41,6 +41,7 @@ void GameController::render() {
     ui_renderer.render_exp_bar(player_stats.experience, player_stats.exp_to_next);
     ui_renderer.render_chat_history(chat_history.get_messages());
     ui_renderer.render_chat_input();
+    ui_renderer.render_inventory(player_stats.inventory);
     renderer.Present();
 }
 

@@ -10,6 +10,7 @@
 
 #include "../chat/chat_history.h"
 #include "../config/config.h"
+#include "inventory_renderer.h"
 
 class ChatInput;
 
@@ -29,6 +30,7 @@ private:
     TTF_Font* bar_font = nullptr;
     SDL_Color chat_color{255, 255, 255, 255};
     UIConfig ui_cfg;
+    InventoryRenderer inventory_renderer;
 
 public:
     UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg, const SkinConfig& skin_config,
@@ -43,6 +45,7 @@ public:
     void render_exp_bar(uint32_t current, uint32_t max);
     void render_gold(uint32_t gold);
     void render_portrait(Race race, PlayerClass player_class, uint8_t level);
+    void render_inventory(const std::vector<InventorySlot>& slots);
     bool is_chat_input_hit(int x, int y) const;
 
 private:

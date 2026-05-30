@@ -23,7 +23,8 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
                         ui_cfg.chat_input_h),
         chat_history_rect(ui_cfg.chat_history_x, ui_cfg.chat_history_y, ui_cfg.chat_history_w,
                           ui_cfg.chat_history_h),
-        ui_cfg(ui_cfg) {
+        ui_cfg(ui_cfg),
+        inventory_renderer(renderer, bar_font, ui_cfg.inventory_panel) {
     chat_font = TTF_OpenFont(ui_cfg.font_path.c_str(), ui_cfg.font_chat_size);
     if (!chat_font) {
         throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
@@ -32,6 +33,7 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
     if (!bar_font) {
         throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
     }
+    inventory_renderer.set_font(bar_font);
 }
 
 UIRenderer::~UIRenderer() {
@@ -178,6 +180,10 @@ void UIRenderer::render_portrait(Race race, PlayerClass player_class, uint8_t le
             renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
         }
     }
+}
+
+void UIRenderer::render_inventory(const std::vector<InventorySlot>& slots) {
+    inventory_renderer.render(slots);
 }
 
 void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages) {
