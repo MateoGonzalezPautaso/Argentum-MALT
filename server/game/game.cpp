@@ -40,9 +40,9 @@ std::string trim(const std::string& s) {
 
 }  // namespace
 
-Game::Game(const ServerConfig& config, PlayerPersistence& persistence,
+Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
            ClanPersistence& clan_persistence):
-        persistence(persistence),
+        player_data_service(player_data_service),
         clan_manager(clan_persistence, config.clan),
         clan_handler(clan_manager, players),
         tilemap_configs(config.tilemap_configs),
@@ -102,7 +102,7 @@ CommandResult Game::remove_player(uint16_t player_id) {
     std::string map_name = it->second.get_current_map();
     std::string clan_name = it->second.get_clan_name();
     std::string username = it->second.get_username();
-    persistence.save(it->second);
+    player_data_service.save_player(it->second);
 
     EntityDespawnEvent despawn{.entity_id = player_id};
 
@@ -282,7 +282,9 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
 CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
     PlayerRecord rec;
 
-    if (persistence.load(cmd.username, rec)) {
+    if (player_data_service.player_exists(cmd.username)) {
+        rec = player_data_service.load_record(cmd.username);
+
         if (!rec.check_password(cmd.password)) {
             LoginErrorEvent err{LoginError::INVALID_CREDENTIALS, "Invalid password"};
             return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
@@ -293,27 +295,25 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
             return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
         }
 
-        Player player(player_id, cmd.username, Position{rec.pos_x, rec.pos_y},
-                      static_cast<Direction>(rec.dir), static_cast<Race>(rec.race),
-                       static_cast<PlayerClass>(rec.player_class), balance,
-                       rec.level, rec.experience,
-                       rec.hp_current, rec.hp_max,
-                       rec.mana_current, rec.mana_max,
-                       rec.gold);
-
-        player.set_current_map(rec.get_current_map());
-        if (maps.find(player.get_current_map()) == maps.end())
-            player.set_current_map("main");
+        auto player_opt = player_data_service.load_player(player_id, cmd.username, rec);
+        if (!player_opt.has_value()) {
+            LoginErrorEvent err{LoginError::INVALID_CREDENTIALS, "Failed to load player"};
+            return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
+        }
 
         // Set clan membership
         std::string clan_name = clan_manager.get_clan_name(cmd.username);
-        player.set_clan_name(clan_name);
+        player_opt->set_clan_name(clan_name);
 
-        auto it = players.emplace(player_id, std::move(player)).first;
+        auto it = players.emplace(player_id, std::move(*player_opt)).first;
         const Player& p = it->second;
 
         EntitySpawnEvent spawn = make_entity_spawn(p);
         std::vector<ServerEvent> private_events = {make_login_ok(p)};
+
+        // TODO: send inventory after protocol serialization is implemented
+        // InventoryUpdateEvent inv_event{p.get_inventory().dump_slots()};
+        // private_events.push_back(inv_event);
 
         if (p.get_current_map() != "main") {
             private_events.push_back(MapTransitionEvent{

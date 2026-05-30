@@ -8,19 +8,19 @@
 
 #include "../../common/messages.h"
 #include "../core/config.h"
-#include "../persistence/player_persistence.h"
-
+#include "../persistence/clan_persistence.h"
 #include "clan_command_handler.h"
 #include "clan_manager.h"
 #include "combat_controller.h"
 #include "command_result.h"
 #include "map.h"
 #include "player.h"
+#include "player_data_service.h"
 
 class Game {
 private:
     std::map<uint16_t, Player> players;
-    PlayerPersistence& persistence;
+    PlayerDataService& player_data_service;
     ClanManager clan_manager;
     ClanCommandHandler clan_handler;
     std::unordered_map<std::string, TilemapConfig> tilemap_configs;
@@ -77,7 +77,7 @@ private:
 public:
     std::string get_player_map_name(uint16_t player_id) const;
     std::vector<uint16_t> get_player_ids_on_map(const std::string& map_name) const;
-    explicit Game(const ServerConfig& config, PlayerPersistence& persistence,
+    explicit Game(const ServerConfig& config, PlayerDataService& player_data_service,
                   ClanPersistence& clan_persistence);
 
     CommandResult process_command(uint16_t player_id, const ClientCommand& cmd);

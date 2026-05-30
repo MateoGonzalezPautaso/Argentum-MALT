@@ -4,10 +4,10 @@
 #include "../../common/queue.h"
 #include "../../common/socket.h"
 #include "../game/player_command.h"
+#include "../game/player_data_service.h"
 #include "../network/acceptor.h"
 #include "../network/client_list_monitor.h"
 #include "../persistence/clan_persistence.h"
-#include "../persistence/player_persistence.h"
 
 #include "config.h"
 #include "game_loop.h"
@@ -17,7 +17,7 @@ class Server {
     Socket listener;
     Queue<PlayerCommand> input_queue;
     ClientListMonitor monitor;
-    PlayerPersistence persistence;
+    PlayerDataService player_data_service;
     ClanPersistence clan_persistence;
     Acceptor acceptor;
     GameLoop game_loop;

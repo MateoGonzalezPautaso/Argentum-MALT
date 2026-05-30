@@ -6,6 +6,7 @@
 
 #include "../../common/messages.h"
 #include "../core/config.h"
+#include "inventory.h"
 
 class Player {
 private:
@@ -31,20 +32,21 @@ private:
     bool cheat_fast_velocity = false;
     std::string clan_name;
     std::string current_map = "main";
+    Inventory inventory;
 
     uint32_t calculate_hp_max() const;
     uint32_t calculate_mana_max() const;
 
 public:
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
-           PlayerClass player_class, const BalanceConfig& balance);
+           PlayerClass player_class, const BalanceConfig& balance, uint8_t inv_capacity);
 
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
            PlayerClass player_class, const BalanceConfig& balance,
            uint8_t level, uint32_t experience,
            uint32_t hp_current, uint32_t hp_max,
            uint32_t mana_current, uint32_t mana_max,
-           uint32_t gold);
+           uint32_t gold, uint8_t inv_capacity);
 
     uint16_t get_id() const { return id; }
     const std::string& get_username() const { return username; }
@@ -98,6 +100,9 @@ public:
 
     void increase_max_hp(uint32_t amount);
     void increase_max_mana(uint32_t amount);
+
+    Inventory& get_inventory() { return inventory; }
+    const Inventory& get_inventory() const { return inventory; }
 };
 
 #endif  // PLAYER_H

@@ -4,7 +4,7 @@
 #include <cmath>
 
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
-               PlayerClass player_class, const BalanceConfig& balance):
+               PlayerClass player_class, const BalanceConfig& balance, uint8_t inv_capacity):
         id(id),
         username(username),
         pos(pos),
@@ -18,7 +18,8 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         mana_current(0),
         mana_max(0),
         gold(balance.starting_gold),
-        balance(balance) {
+        balance(balance),
+        inventory(inv_capacity) {
     hp_max = calculate_hp_max();
     hp_current = hp_max;
     mana_max = calculate_mana_max();
@@ -30,7 +31,7 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
                uint8_t level, uint32_t experience,
                uint32_t hp_current, uint32_t hp_max,
                uint32_t mana_current, uint32_t mana_max,
-               uint32_t gold):
+               uint32_t gold, uint8_t inv_capacity):
         id(id),
         username(username),
         pos(pos),
@@ -44,7 +45,8 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         mana_current(mana_current),
         mana_max(mana_max),
         gold(gold),
-        balance(balance) {}
+        balance(balance),
+        inventory(inv_capacity) {}
 
 bool Player::try_attack(uint32_t current_tick, uint32_t cooldown_ticks) {
     if (current_tick < next_attack_tick)
