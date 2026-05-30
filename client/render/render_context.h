@@ -6,6 +6,16 @@
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 
+struct TTFGuard {
+    TTFGuard();
+    ~TTFGuard();
+};
+
+struct ImageGuard {
+    explicit ImageGuard(int flags);
+    ~ImageGuard();
+};
+
 class RenderContext {
 public:
     RenderContext(const std::string& title, int window_w, int window_h, int logical_w = 1024,
@@ -19,6 +29,8 @@ public:
 
 private:
     SDL2pp::SDL sdl;
+    TTFGuard ttf;
+    ImageGuard img;
     SDL2pp::Window window;
     SDL2pp::Renderer sdl_renderer;
     int logical_w;
