@@ -311,9 +311,9 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
         EntitySpawnEvent spawn = make_entity_spawn(p);
         std::vector<ServerEvent> private_events = {make_login_ok(p)};
 
-        // TODO: send inventory after protocol serialization is implemented
-        // InventoryUpdateEvent inv_event{p.get_inventory().dump_slots()};
-        // private_events.push_back(inv_event);
+        // Send inventory after login
+        InventoryUpdateEvent inv_event{p.get_inventory().dump_slots()};
+        private_events.push_back(inv_event);
 
         if (p.get_current_map() != "main") {
             private_events.push_back(MapTransitionEvent{
