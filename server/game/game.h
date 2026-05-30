@@ -53,6 +53,7 @@ public:
 
     CommandResult process_command(uint16_t player_id, const ClientCommand& cmd);
     CommandResult remove_player(uint16_t player_id);
+    void save_all_players();
     CommandResult tick();
 };
 

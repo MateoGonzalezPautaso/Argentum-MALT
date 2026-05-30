@@ -20,6 +20,10 @@ LoginRenderer::LoginRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
                 SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_connect_hover))),
         back_button(SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_back_default)),
                     SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_back_hover))),
+        new_account_button(
+                SDL2pp::Texture(renderer,
+                                texture::load_surface(ui_cfg.asset_new_account_default)),
+                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_new_account_hover))),
         background_rect(0, 0, ui_cfg.window_w, ui_cfg.window_h),
         logo_rect(0, 0, 0, 0),
         title_rect(0, 0, 0, 0),
@@ -68,6 +72,7 @@ void LoginRenderer::render() {
 
     connect_button.render(renderer);
     back_button.render(renderer);
+    new_account_button.render(renderer);
 
     render_error();
 
@@ -87,6 +92,14 @@ bool LoginRenderer::is_connect_button_hit(int x, int y) const {
 }
 
 bool LoginRenderer::is_back_button_hit(int x, int y) const { return back_button.is_hit(x, y); }
+
+bool LoginRenderer::is_new_account_hit(int x, int y) const {
+    return new_account_button.is_hit(x, y);
+}
+
+void LoginRenderer::set_new_account_button_hovered(int x, int y) {
+    new_account_button.hovered = new_account_button.is_hit(x, y);
+}
 
 void LoginRenderer::set_connect_button_hovered(int x, int y) {
     connect_button.hovered = connect_button.is_hit(x, y);
@@ -131,6 +144,12 @@ void LoginRenderer::init_layout() {
     const int back_w = back_button.default_tex.GetWidth();
     const int back_h = back_button.default_tex.GetHeight();
     back_button.set_position(ui_cfg.back_button_x, ui_cfg.back_button_y, back_w, back_h);
+
+    const int na_w = new_account_button.default_tex.GetWidth();
+    const int na_h = new_account_button.default_tex.GetHeight();
+    const int na_x = std::max(0, (ui_cfg.window_w - na_w) / 2);
+    const int na_y = button_y + button_h + ui_cfg.error_spacing;
+    new_account_button.set_position(na_x, na_y, na_w, na_h);
 }
 
 void LoginRenderer::render_text_field(const SDL2pp::Rect& rect, const std::string& text,
@@ -190,7 +209,7 @@ void LoginRenderer::render_error() const {
     }
 
     const int x = std::max(0, (ui_cfg.window_w - result.w) / 2);
-    const int y = connect_button.rect.GetY() + connect_button.rect.GetH() + ui_cfg.error_spacing;
+    const int y = new_account_button.rect.GetY() + new_account_button.rect.GetH() + ui_cfg.error_spacing;
     SDL2pp::Rect dst(x, y, result.w, result.h);
     renderer.Copy(result.texture, SDL2pp::NullOpt, dst);
 }

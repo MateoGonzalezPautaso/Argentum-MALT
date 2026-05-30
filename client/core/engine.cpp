@@ -5,6 +5,7 @@ Engine::Engine(const ClientConfig& config, Queue<ClientCommand>& command_queue):
                    config.viewport.logical_w, config.viewport.logical_h),
         menu_ctrl(render_ctx.renderer(), config.ui),
         login_ctrl(render_ctx.renderer(), config.ui),
+        create_char_ctrl(render_ctx.renderer(), config.ui),
         game_controller(render_ctx.renderer(), config, command_queue) {}
 
 bool Engine::dispatch_event(GameState& state) {
@@ -21,6 +22,9 @@ bool Engine::dispatch_event(GameState& state) {
                 break;
             case GameState::Login:
                 dispatch_login_event(event, state);
+                break;
+            case GameState::CreateCharacter:
+                dispatch_create_char_event(event, state);
                 break;
             case GameState::Playing:
                 if (!game_controller.handle_event(event))
@@ -58,10 +62,32 @@ void Engine::dispatch_login_event(const SDL_Event& event, GameState& state) {
         return;
     }
     login_ctrl.handle_event(event);
+    if (login_ctrl.wants_create_character()) {
+        create_char_requested = true;
+        login_ctrl.reset_create_char_request();
+        state = GameState::CreateCharacter;
+    }
+}
+
+void Engine::dispatch_create_char_event(const SDL_Event& event, GameState& state) {
+    if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
+        state = GameState::Login;
+        return;
+    }
+    if (event.type == SDL_MOUSEMOTION) {
+        create_char_ctrl.handle_mouse_motion(event.motion.x, event.motion.y);
+        return;
+    }
+    create_char_ctrl.handle_event(event);
+    if (create_char_ctrl.is_back_requested()) {
+        create_char_ctrl.reset_back();
+        state = GameState::Login;
+    }
 }
 
 void Engine::render_menu_frame() { menu_ctrl.render(); }
 void Engine::render_login_frame() { login_ctrl.render(); }
+void Engine::render_create_char_frame() { create_char_ctrl.render(); }
 void Engine::render_game_frame() { game_controller.render(); }
 
 void Engine::tick_game() { game_controller.tick(); }
@@ -85,3 +111,28 @@ void Engine::handle_login_error(const std::string& msg) {
 }
 
 void Engine::reset_login_state() { login_ctrl.clear_error(); }
+
+bool Engine::try_submit_create_character(std::string& username, std::string& password,
+                                         Race& race, PlayerClass& player_class) {
+    if (!create_char_ctrl.is_submitted())
+        return false;
+    create_char_ctrl.clear_error();
+    username = create_char_ctrl.username_text();
+    password = create_char_ctrl.password_text();
+    race = create_char_ctrl.selected_race();
+    player_class = create_char_ctrl.selected_class();
+    create_char_ctrl.reset_submitted();
+    return true;
+}
+
+void Engine::handle_create_char_error(const std::string& msg) {
+    create_char_ctrl.reset_fields();
+    create_char_ctrl.set_error(msg);
+}
+
+void Engine::reset_create_char_state() {
+    create_char_ctrl.clear_error();
+    create_char_requested = false;
+}
+
+bool Engine::wants_create_character() const { return create_char_requested; }

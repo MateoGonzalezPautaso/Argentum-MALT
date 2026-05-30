@@ -63,4 +63,6 @@ void GameLoop::run() {
 
         std::this_thread::sleep_until(next_tick);
     }
+
+    game.save_all_players();
 }

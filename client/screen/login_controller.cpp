@@ -39,6 +39,8 @@ void LoginController::handle_event(const SDL_Event& event) {
             login_password.set_focus(true);
         } else if (login_renderer.is_connect_button_hit(x, y)) {
             login_submitted = true;
+        } else if (login_renderer.is_new_account_hit(x, y)) {
+            create_char_requested = true;
         } else {
             login_username.set_focus(false);
             login_password.set_focus(false);
@@ -49,6 +51,7 @@ void LoginController::handle_event(const SDL_Event& event) {
 void LoginController::handle_mouse_motion(int x, int y) {
     login_renderer.set_connect_button_hovered(x, y);
     login_renderer.set_back_button_hovered(x, y);
+    login_renderer.set_new_account_button_hovered(x, y);
 }
 
 void LoginController::reset_fields() {

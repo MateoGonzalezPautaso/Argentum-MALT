@@ -133,6 +133,8 @@ struct UIConfig {
     std::string asset_connect_hover = "assets/interface/en_boton-conectar-over.bmp";
     std::string asset_back_default = "assets/interface/en_boton-volver-default.bmp";
     std::string asset_back_hover = "assets/interface/en_boton-volver-over.bmp";
+    std::string asset_new_account_default = "assets/interface/en_boton-crear-pj-default.bmp";
+    std::string asset_new_account_hover = "assets/interface/en_boton-crear-pj-over.bmp";
     std::string asset_ui_frame = "assets/interface/en_ventanaprincipal_edit.bmp";
     std::string asset_hp_bar = "assets/interface/en_barradevida.bmp";
     std::string asset_mp_bar = "assets/interface/en_barrademana.bmp";

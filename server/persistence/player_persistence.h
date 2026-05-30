@@ -7,6 +7,8 @@
 
 #include "player_record.h"
 
+class Player;
+
 class PlayerPersistence {
 public:
     PlayerPersistence(const std::string& data_path, const std::string& index_path);
@@ -17,6 +19,9 @@ public:
     // Saves the record. If the username already exists, overwrites it in place;
     // otherwise appends a new record.
     void save(const std::string& username, const PlayerRecord& record);
+
+    // Converts a live Player to a PlayerRecord and saves it, preserving credentials.
+    void save(const Player& player);
 
 private:
     std::string data_path;

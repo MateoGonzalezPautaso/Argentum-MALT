@@ -25,6 +25,7 @@ private:
     SDL2pp::Texture logo_texture;
     Button connect_button;
     Button back_button;
+    Button new_account_button;
 
     SDL2pp::Rect background_rect;
     SDL2pp::Rect logo_rect;
@@ -53,9 +54,12 @@ public:
 
     void set_connect_button_hovered(int x, int y);
     void set_back_button_hovered(int x, int y);
+    void set_new_account_button_hovered(int x, int y);
 
     void set_error(const std::string& text);
     void clear_error();
+
+    bool is_new_account_hit(int x, int y) const;
 
 private:
     void init_layout();

@@ -77,21 +77,7 @@ CommandResult Game::remove_player(uint16_t player_id) {
     if (it == players.end())
         return {};
 
-    PlayerRecord rec;
-    rec.set_username(it->second.get_username());
-    rec.pos_x = it->second.pos_x();
-    rec.pos_y = it->second.pos_y();
-    rec.dir = static_cast<uint8_t>(it->second.get_dir());
-    rec.race = static_cast<uint8_t>(it->second.get_race());
-    rec.player_class = static_cast<uint8_t>(it->second.get_player_class());
-    rec.level = it->second.get_level();
-    rec.experience = it->second.get_experience();
-    rec.hp_current = it->second.get_hp_current();
-    rec.hp_max = it->second.get_hp_max();
-    rec.mana_current = it->second.get_mana_current();
-    rec.mana_max = it->second.get_mana_max();
-    rec.gold = it->second.get_gold();
-    persistence.save(it->second.get_username(), rec);
+    persistence.save(it->second);
 
     // Notify clan members of logout
     if (!it->second.get_clan_name().empty()) {
@@ -401,6 +387,13 @@ std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id) const {
         spawns.push_back(make_entity_spawn(player));
     }
     return spawns;
+}
+
+
+void Game::save_all_players() {
+    for (const auto& [id, player]: players) {
+        persistence.save(player);
+    }
 }
 
 bool Game::is_username_logged_in(const std::string& username) const {

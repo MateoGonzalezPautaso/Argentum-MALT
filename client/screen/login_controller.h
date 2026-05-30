@@ -24,6 +24,9 @@ public:
     const std::string& username_text() const;
     const std::string& password_text() const;
 
+    bool wants_create_character() const { return create_char_requested; }
+    void reset_create_char_request() { create_char_requested = false; }
+
     void render();
 
 private:
@@ -31,6 +34,7 @@ private:
     ChatInput login_password;
     int login_active_field = 0;
     bool login_submitted = false;
+    bool create_char_requested = false;
     LoginRenderer login_renderer;
 };
 

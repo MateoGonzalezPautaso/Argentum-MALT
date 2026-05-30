@@ -4,6 +4,8 @@
 #include <fstream>
 #include <utility>
 
+#include "../game/player.h"
+
 PlayerPersistence::PlayerPersistence(const std::string& data_path, const std::string& index_path):
         data_path(data_path), index_path(index_path) {
     load_index();
@@ -97,11 +99,14 @@ void PlayerPersistence::save(const std::string& username, const PlayerRecord& re
         data.write(reinterpret_cast<const char*>(&merged), sizeof(PlayerRecord));
     } else {
         // Append new record at the end
-        std::ofstream data(data_path,
-                           std::ios::binary | std::ios::app | std::ios::in | std::ios::out);
+        std::fstream data(data_path, std::ios::binary | std::ios::in | std::ios::out);
         if (!data.is_open()) {
-            return;
+            std::ofstream create(data_path, std::ios::binary);
+            data.open(data_path, std::ios::binary | std::ios::in | std::ios::out);
+            if (!data.is_open())
+                return;
         }
+        data.seekp(0, std::ios::end);
         uint32_t offset = static_cast<uint32_t>(data.tellp());
         data.write(reinterpret_cast<const char*>(&record), sizeof(PlayerRecord));
         data.flush();
@@ -109,4 +114,22 @@ void PlayerPersistence::save(const std::string& username, const PlayerRecord& re
         index.emplace(username, offset);
         save_index();
     }
+}
+
+void PlayerPersistence::save(const Player& player) {
+    PlayerRecord rec;
+    load(player.get_username(), rec);
+    rec.pos_x = player.pos_x();
+    rec.pos_y = player.pos_y();
+    rec.dir = static_cast<uint8_t>(player.get_dir());
+    rec.race = static_cast<uint8_t>(player.get_race());
+    rec.player_class = static_cast<uint8_t>(player.get_player_class());
+    rec.level = player.get_level();
+    rec.experience = player.get_experience();
+    rec.hp_current = player.get_hp_current();
+    rec.hp_max = player.get_hp_max();
+    rec.mana_current = player.get_mana_current();
+    rec.mana_max = player.get_mana_max();
+    rec.gold = player.get_gold();
+    save(player.get_username(), rec);
 }
