@@ -112,6 +112,20 @@ ServerEvent ClientProtocol::recv_event() {
         case OpCode::PLAYER_RESPAWNED:  return recv_player_respawned();
         case OpCode::MEDITATION_START:  return MeditationStartEvent{};
         case OpCode::MEDITATION_STOP:   return MeditationStopEvent{};
+        case OpCode::INVENTORY_UPDATE: {
+            uint8_t count = protocol.recv_uint8();
+            std::vector<InventorySlot> slots;
+            slots.reserve(count);
+            for (uint8_t i = 0; i < count; ++i) {
+                InventorySlot slot;
+                slot.slot_index = protocol.recv_uint8();
+                slot.item_type = static_cast<ItemType>(protocol.recv_uint8());
+                slot.item_name = protocol.recv_str();
+                slot.sprite_id = protocol.recv_uint8();
+                slots.push_back(std::move(slot));
+            }
+            return InventoryUpdateEvent{std::move(slots)};
+        }
         case OpCode::CHAT_MSG:          return recv_chat_msg();
         case OpCode::CLAN_NOTIFICATION: return recv_clan_notification();
         case OpCode::CLAN_UPDATE:       return recv_clan_update();
