@@ -1,0 +1,65 @@
+#include "player_data_service.h"
+
+PlayerDataService::PlayerDataService(const std::string& data_dir, const ServerConfig& config):
+        player_persistence(data_dir + "/players.dat", data_dir + "/players.idx"),
+        inventory_persistence(data_dir + "/inventory.dat", data_dir + "/inventory.idx",
+                              static_cast<uint8_t>(config.inventory.max_slots)),
+        balance(config.balance),
+        inv_capacity(static_cast<uint8_t>(config.inventory.max_slots)) {}
+
+bool PlayerDataService::player_exists(const std::string& username) {
+    PlayerRecord dummy;
+    return player_persistence.load(username, dummy);
+}
+
+PlayerRecord PlayerDataService::load_record(const std::string& username) {
+    PlayerRecord rec;
+    player_persistence.load(username, rec);
+    return rec;
+}
+
+std::optional<Player> PlayerDataService::load_player(uint16_t player_id,
+                                                     const std::string& username,
+                                                     const PlayerRecord& rec) {
+    Player player(player_id, username, Position{rec.pos_x, rec.pos_y},
+                  static_cast<Direction>(rec.dir), static_cast<Race>(rec.race),
+                  static_cast<PlayerClass>(rec.player_class), balance,
+                  rec.level, rec.experience,
+                  rec.hp_current, rec.hp_max,
+                  rec.mana_current, rec.mana_max,
+                  rec.gold, inv_capacity);
+
+    std::vector<InventorySlotRecord> inv_records;
+    if (inventory_persistence.load(username, inv_records)) {
+        player.get_inventory().from_records(inv_records);
+    } else {
+        inventory_persistence.save(username, player.get_inventory().to_records());
+    }
+
+    return player;
+}
+
+void PlayerDataService::save_player(const Player& player) {
+    PlayerRecord rec;
+    rec.set_username(player.get_username());
+    rec.pos_x = player.pos_x();
+    rec.pos_y = player.pos_y();
+    rec.dir = static_cast<uint8_t>(player.get_dir());
+    rec.race = static_cast<uint8_t>(player.get_race());
+    rec.player_class = static_cast<uint8_t>(player.get_player_class());
+    rec.level = player.get_level();
+    rec.experience = player.get_experience();
+    rec.hp_current = player.get_hp_current();
+    rec.hp_max = player.get_hp_max();
+    rec.mana_current = player.get_mana_current();
+    rec.mana_max = player.get_mana_max();
+    rec.gold = player.get_gold();
+    player_persistence.save(player.get_username(), rec);
+
+    inventory_persistence.save(player.get_username(), player.get_inventory().to_records());
+}
+
+void PlayerDataService::save_new_player(const std::string& username,
+                                        const PlayerRecord& record) {
+    player_persistence.save(username, record);
+}
