@@ -18,8 +18,12 @@ void ClientHandler::push_event(const ServerEvent& ev) { output_queue.push(ev); }
 void ClientHandler::stop() {
     // Close output_queue first, unblocks Sender if it's waiting on queue.pop().
     output_queue.close();
-    // Shutdown the socket, unblocks Receiver if it's waiting on recv_command().
-    protocol.shutdown();
+    try {
+        // Shutdown the socket, unblocks Receiver if it's waiting on recv_command().
+        protocol.shutdown();
+    } catch (const std::exception&) {
+        // Socket may already be closed if the client disconnected first.
+    }
 }
 
 void ClientHandler::join() {
