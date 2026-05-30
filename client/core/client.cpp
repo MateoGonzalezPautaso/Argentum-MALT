@@ -116,7 +116,9 @@ void Client::shutdown() {
     command_queue.close();
     sender.join();
 
-    protocol.shutdown();
+    try {
+        protocol.shutdown();
+    } catch (...) {}
     receiver.join();
 }
 
