@@ -67,6 +67,7 @@ private:
     void handle_clan_update(const ClanUpdateEvent& e);
     void handle_map_transition(const MapTransitionEvent& e);
     void handle_heal_received(const HealReceivedEvent& e);
+    void handle_inventory_update(const InventoryUpdateEvent& e);
 
 };
 

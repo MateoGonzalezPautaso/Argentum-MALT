@@ -60,6 +60,7 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                        [this](const ClanUpdateEvent& e) { handle_clan_update(e); },
                         [this](const MapTransitionEvent& e) { handle_map_transition(e); },
                         [this](const HealReceivedEvent& e) { handle_heal_received(e); },
+                        [this](const InventoryUpdateEvent& e) { handle_inventory_update(e); },
                         [](const auto&) {},
                },
                ev);
@@ -207,6 +208,10 @@ void GameController::handle_clan_update(const ClanUpdateEvent& e) {
         msg += m.is_online ? " [En linea]" : " [Desconectado]";
     }
     chat_history.add_message(ChatMsgType::SYSTEM, "", msg);
+}
+
+void GameController::handle_inventory_update(const InventoryUpdateEvent& e) {
+    player_stats.inventory = e.slots;
 }
 
 void GameController::handle_entity_died(const EntityDiedEvent& e) {

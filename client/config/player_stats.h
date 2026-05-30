@@ -20,6 +20,7 @@ struct PlayerStats {
     uint32_t mana_max = 0;
     uint32_t gold = 0;
     Position pos;
+    std::vector<InventorySlot> inventory;
 };
 
 #endif  // CLIENT_PLAYER_STATS_H
