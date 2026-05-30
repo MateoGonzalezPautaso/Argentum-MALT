@@ -9,7 +9,7 @@
 // Dungeon variant
 class WarriorSkeleton: public EnemyNpc {
 public:
-    WarriorSkeleton(Position position, Rng& rng, EquipableItems& equipable_items);
+    WarriorSkeleton(Position position, Rng& rng, EquipableItems& equipable_items, uint32_t level);
 };
 
 #endif

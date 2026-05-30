@@ -14,7 +14,6 @@ struct EnemyDrop {
     std::optional<Item> item;
 };
 
-
 class EnemyNpc {
 private:
     Position position;
@@ -23,17 +22,20 @@ private:
     uint32_t damage;
     Rng& rng;
     EquipableItems& equipable_items;
+    uint32_t level;
 
     uint32_t get_gold_reward();
     Item get_potion();
 
 public:
     EnemyNpc(Position position, uint32_t hp_max, uint32_t damage, Rng& rng,
-             EquipableItems& equipable_items);
+             EquipableItems& equipable_items, uint32_t level);
     void take_damage(uint32_t damage_taken);
     bool is_dead();
     EnemyDrop get_kill_reward();
     uint32_t get_damage() const;
+    uint32_t get_level() const;
+    uint32_t get_hp_max() const;
 };
 
 #endif

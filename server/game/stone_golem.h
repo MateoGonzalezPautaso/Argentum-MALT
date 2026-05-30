@@ -9,7 +9,7 @@
 // Dungeon boss
 class StoneGolem: public EnemyNpc {
 public:
-    StoneGolem(Position position, Rng& rng, EquipableItems& equipable_items);
+    StoneGolem(Position position, Rng& rng, EquipableItems& equipable_items, uint32_t level);
 };
 
 #endif

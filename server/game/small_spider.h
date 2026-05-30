@@ -9,7 +9,7 @@
 // Very weak, enemy for newbies
 class SmallSpider: public EnemyNpc {
 public:
-    SmallSpider(Position position, Rng& rng, EquipableItems& equipable_items);
+    SmallSpider(Position position, Rng& rng, EquipableItems& equipable_items, uint32_t level);
 };
 
 #endif

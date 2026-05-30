@@ -9,7 +9,7 @@
 // Game's hardest enemy
 class IronGolem: public EnemyNpc {
 public:
-    IronGolem(Position position, Rng& rng, EquipableItems& equipable_items);
+    IronGolem(Position position, Rng& rng, EquipableItems& equipable_items, uint32_t level);
 };
 
 #endif

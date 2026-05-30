@@ -9,7 +9,7 @@
 // Appear in intermediate zones
 class BasicSkeleton: public EnemyNpc {
 public:
-    BasicSkeleton(Position position, Rng& rng, EquipableItems& equipable_items);
+    BasicSkeleton(Position position, Rng& rng, EquipableItems& equipable_items, uint32_t level);
 };
 
 #endif

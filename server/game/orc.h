@@ -9,7 +9,7 @@
 // Open world's strong enemy
 class Orc: public EnemyNpc {
 public:
-    Orc(Position position, Rng& rng, EquipableItems& equipable_items);
+    Orc(Position position, Rng& rng, EquipableItems& equipable_items, uint32_t level);
 };
 
 #endif

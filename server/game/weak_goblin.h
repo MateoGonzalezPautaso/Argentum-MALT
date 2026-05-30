@@ -9,7 +9,7 @@
 // Initial enemy
 class WeakGoblin: public EnemyNpc {
 public:
-    WeakGoblin(Position position, Rng& rng, EquipableItems& equipable_items);
+    WeakGoblin(Position position, Rng& rng, EquipableItems& equipable_items, uint32_t level);
 };
 
 #endif

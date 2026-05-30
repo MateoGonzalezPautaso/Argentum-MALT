@@ -8,7 +8,7 @@
 
 class Zombie: public EnemyNpc {
 public:
-    Zombie(Position position, Rng& rng, EquipableItems& equipable_items);
+    Zombie(Position position, Rng& rng, EquipableItems& equipable_items, uint32_t level);
 };
 
 #endif

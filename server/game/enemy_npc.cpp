@@ -3,12 +3,13 @@
 #include "../../common/item.h"
 
 EnemyNpc::EnemyNpc(Position position, uint32_t hp_max, uint32_t damage, Rng& rng,
-                   EquipableItems& equipable_items):
+                   EquipableItems& equipable_items, uint32_t level):
         rng(rng), equipable_items(equipable_items) {
     this->position = position;
     hp_current = hp_max;
     this->hp_max = hp_max;
     this->damage = damage;
+    this->level = level;
 }
 
 void EnemyNpc::take_damage(uint32_t damage_taken) {
@@ -51,3 +52,7 @@ Item EnemyNpc::get_potion() {
     else
         return Item("Health potion", ItemType::HEALTH_POTION, 0, 0, 0, 0, 0);
 }
+
+uint32_t EnemyNpc::get_level() const { return level; }
+
+uint32_t EnemyNpc::get_hp_max() const { return hp_max; }

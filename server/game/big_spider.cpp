@@ -1,7 +1,8 @@
 #include "big_spider.h"
 
-#define MAX_HP_BIG_SPIDER 400
+#define MAX_HP_BIG_SPIDER 325
 #define DAMAGE_BIG_SPIDER 17
 
-BigSpider::BigSpider(Position position, Rng& rng, EquipableItems& equipable_items):
-        EnemyNpc(position, MAX_HP_BIG_SPIDER, DAMAGE_BIG_SPIDER, rng, equipable_items) {}
+BigSpider::BigSpider(Position position, Rng& rng, EquipableItems& equipable_items, uint32_t level):
+        EnemyNpc(position, MAX_HP_BIG_SPIDER * level, DAMAGE_BIG_SPIDER * level, rng,
+                 equipable_items, level) {}
