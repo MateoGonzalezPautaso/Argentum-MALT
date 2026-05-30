@@ -88,6 +88,13 @@ struct PortraitConfig {
     float zoom = 1.9f;
 };
 
+struct InventoryPanelConfig {
+    int x = 782, y = 202;
+    int cols = 4;
+    int slot_w = 50, slot_h = 50;
+    int gap = 4;
+};
+
 struct UIConfig {
     int window_w = 1024;
     int window_h = 768;
@@ -154,6 +161,7 @@ struct UIConfig {
     int cursor_padding = 4;
     int cursor_height_shrink = 8;
     int chat_line_spacing = 2;
+    InventoryPanelConfig inventory_panel;
 };
 
 struct SkinConfig {
