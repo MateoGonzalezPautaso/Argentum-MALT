@@ -274,18 +274,22 @@ bool GameController::handle_keydown(const SDL_Event& event) {
         case SDLK_ESCAPE:
             return false;
         case SDLK_LEFT:
+            move_controller.cancel_move_target();
             apply_movement_visual(Direction::WEST,
                                   move_controller.move_direction(Direction::WEST, now).has_value());
             break;
         case SDLK_RIGHT:
+            move_controller.cancel_move_target();
             apply_movement_visual(Direction::EAST,
                                   move_controller.move_direction(Direction::EAST, now).has_value());
             break;
         case SDLK_UP:
+            move_controller.cancel_move_target();
             apply_movement_visual(Direction::NORTH,
                                   move_controller.move_direction(Direction::NORTH, now).has_value());
             break;
         case SDLK_DOWN:
+            move_controller.cancel_move_target();
             apply_movement_visual(Direction::SOUTH,
                                   move_controller.move_direction(Direction::SOUTH, now).has_value());
             break;

@@ -50,6 +50,7 @@ public:
     std::optional<Direction> tick(uint32_t now);
     std::optional<Direction> move_direction(Direction dir, uint32_t now);
     void set_move_target(int x, int y);
+    void cancel_move_target();
     void set_position(int x, int y);
 
     int position_x() const { return pos_x; }

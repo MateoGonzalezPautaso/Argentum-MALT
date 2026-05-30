@@ -47,7 +47,13 @@ void MoveController::set_move_target(int x, int y) {
     has_target = true;
 }
 
+void MoveController::cancel_move_target() {
+    has_target = false;
+}
+
 void MoveController::set_position(int x, int y) {
+    if (has_target && x == pos_x && y == pos_y)
+        has_target = false;
     pos_x = x;
     pos_y = y;
 }
