@@ -352,7 +352,9 @@ struct MeditationStartEvent {};
 struct MeditationStopEvent {};
 
 // 0x90
-struct InventoryUpdateEvent {};
+struct InventoryUpdateEvent {
+    std::vector<InventorySlot> slots;
+};
 
 // 0x91
 struct EquipUpdateEvent {};
