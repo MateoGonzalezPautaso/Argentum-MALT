@@ -232,6 +232,17 @@ void ServerProtocol::send_heal_received(const HealReceivedEvent& ev) {
     protocol.send_uint32(ev.mana_current);
 }
 
+void ServerProtocol::send_inventory_update(const InventoryUpdateEvent& ev) {
+    protocol.send_opcode(OpCode::INVENTORY_UPDATE);
+    protocol.send_uint8(static_cast<uint8_t>(ev.slots.size()));
+    for (const auto& slot : ev.slots) {
+        protocol.send_uint8(slot.slot_index);
+        protocol.send_uint8(static_cast<uint8_t>(slot.item_type));
+        protocol.send_str(slot.item_name);
+        protocol.send_uint8(slot.sprite_id);
+    }
+}
+
 void ServerProtocol::send_event(const ServerEvent& ev) {
     std::visit(overloaded{
                        [this](const LoginOkEvent& msg) { send_login_ok(msg); },
@@ -252,6 +263,7 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                          [this](const ClanUpdateEvent& msg) { send_clan_update(msg); },
                          [this](const MapTransitionEvent& msg) { send_map_transition(msg); },
                          [this](const HealReceivedEvent& msg) { send_heal_received(msg); },
+                         [this](const InventoryUpdateEvent& msg) { send_inventory_update(msg); },
                         [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },
                ev);
