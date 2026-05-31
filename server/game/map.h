@@ -9,7 +9,9 @@ public:
 
     int width_px() const { return map_px_w; }
     int height_px() const { return map_px_h; }
-    int tile_size() const { return tilemap.tile_size; }
+    int tile_size() const { return tilemap_->tile_size; }
+
+    const TilemapConfig& config() const { return *tilemap_; }
 
     int clamp_x(int x, int entity_w) const;
     int clamp_y(int y, int entity_h) const;
@@ -17,7 +19,7 @@ public:
     bool is_walkable(int foot_x, int foot_y) const;
 
 private:
-    const TilemapConfig& tilemap;
+    const TilemapConfig* tilemap_;
     int map_px_w;
     int map_px_h;
 };

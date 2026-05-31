@@ -309,10 +309,10 @@ ClientConfig load_client_config(const std::string& path) {
     parse_skin_config(root, config);
     parse_movement_config(root, config);
 
-    {
-        toml::table tilemap_tbl = toml::parse_file("config/common_tilemap.toml");
-        parse_tilemap_config(tilemap_tbl, config.tilemap);
-        parse_prop_config(tilemap_tbl, config.tilemap);
+    config.tilemap_configs = load_all_map_configs("config/map_list.toml");
+
+    if (!config.tilemap_configs.empty()) {
+        config.tilemap = config.tilemap_configs.begin()->second;
     }
 
     return config;
