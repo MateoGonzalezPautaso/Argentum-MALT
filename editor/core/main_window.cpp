@@ -1,12 +1,15 @@
 #include "main_window.h"
 
 #include <QApplication>
+#include <QGraphicsRectItem>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QMouseEvent>
+#include <QPen>
 #include <QPushButton>
 #include <QShowEvent>
 #include <QSpinBox>
@@ -163,7 +166,10 @@ void MainWindow::rebuild_palette() {
 }
 
 bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
-    if (obj == view_->viewport() && event->type() == QEvent::MouseButtonPress) {
+    if (obj != view_->viewport())
+        return QMainWindow::eventFilter(obj, event);
+
+    if (event->type() == QEvent::MouseButtonPress) {
         auto* me = static_cast<QMouseEvent*>(event);
         auto click = MapInteraction::resolve_click(me, view_, doc_.tile_size(), doc_.height(),
                                                    doc_.width());
@@ -171,14 +177,10 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
             return false;
 
         if (click.button == Qt::LeftButton && interaction_.has_selection()) {
-            const auto& name = interaction_.selected();
-            if (doc_.is_prop(name)) {
-                doc_.set_prop(click.row, click.col, name);
-                renderer_->update_prop(click.row, click.col, name, doc_);
-            } else {
-                doc_.set_tile(click.row, click.col, name);
-                renderer_->update_tile(click.row, click.col, name, doc_, show_walkable_overlay_);
-            }
+            dragging_ = true;
+            drag_start_row_ = click.row;
+            drag_start_col_ = click.col;
+            place_tile_or_prop(click.row, click.col, interaction_.selected());
             return true;
         }
         if (click.button == Qt::RightButton) {
@@ -192,7 +194,89 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
             return true;
         }
     }
+
+    if (event->type() == QEvent::MouseMove && dragging_) {
+        auto* me = static_cast<QMouseEvent*>(event);
+        QPointF scene_pos = view_->mapToScene(me->pos());
+        int tsz = doc_.tile_size();
+        int cur_row = static_cast<int>(scene_pos.y()) / tsz;
+        int cur_col = static_cast<int>(scene_pos.x()) / tsz;
+
+        if (cur_row >= 0 && cur_row < doc_.height() && cur_col >= 0 && cur_col < doc_.width()) {
+            update_drag_preview(drag_start_row_, drag_start_col_, cur_row, cur_col);
+        }
+        return true;
+    }
+
+    if (event->type() == QEvent::MouseButtonRelease && dragging_) {
+        auto* me = static_cast<QMouseEvent*>(event);
+        if (me->button() != Qt::LeftButton)
+            return false;
+
+        auto click = MapInteraction::resolve_click(me, view_, doc_.tile_size(), doc_.height(),
+                                                   doc_.width());
+        dragging_ = false;
+        destroy_drag_preview();
+
+        if (click.valid && interaction_.has_selection() &&
+            (click.row != drag_start_row_ || click.col != drag_start_col_)) {
+            fill_rect(drag_start_row_, drag_start_col_, click.row, click.col,
+                      interaction_.selected());
+        }
+
+        drag_start_row_ = -1;
+        drag_start_col_ = -1;
+        return true;
+    }
+
     return QMainWindow::eventFilter(obj, event);
+}
+
+void MainWindow::place_tile_or_prop(int row, int col, const std::string& name) {
+    if (doc_.is_prop(name)) {
+        doc_.set_prop(row, col, name);
+        renderer_->update_prop(row, col, name, doc_);
+    } else {
+        doc_.set_tile(row, col, name);
+        renderer_->update_tile(row, col, name, doc_, show_walkable_overlay_);
+    }
+}
+
+void MainWindow::fill_rect(int r1, int c1, int r2, int c2, const std::string& name) {
+    int r_min = std::min(r1, r2);
+    int r_max = std::max(r1, r2);
+    int c_min = std::min(c1, c2);
+    int c_max = std::max(c1, c2);
+
+    for (int r = r_min; r <= r_max; ++r) {
+        for (int c = c_min; c <= c_max; ++c) {
+            place_tile_or_prop(r, c, name);
+        }
+    }
+}
+
+void MainWindow::update_drag_preview(int r1, int c1, int r2, int c2) {
+    int tsz = doc_.tile_size();
+    int r_min = std::min(r1, r2);
+    int r_max = std::max(r1, r2);
+    int c_min = std::min(c1, c2);
+    int c_max = std::max(c1, c2);
+
+    if (!drag_preview_) {
+        drag_preview_ = scene_->addRect(0, 0, 0, 0, QPen(QColor(255, 255, 255, 180), 2, Qt::DashLine),
+                                        QBrush(QColor(100, 200, 255, 40)));
+    }
+
+    drag_preview_->setRect(c_min * tsz, r_min * tsz,
+                           (c_max - c_min + 1) * tsz, (r_max - r_min + 1) * tsz);
+}
+
+void MainWindow::destroy_drag_preview() {
+    if (drag_preview_) {
+        scene_->removeItem(drag_preview_);
+        delete drag_preview_;
+        drag_preview_ = nullptr;
+    }
 }
 
 void MainWindow::save_map() {
@@ -230,6 +314,8 @@ void MainWindow::new_map() {
     if (!result.accepted)
         return;
 
+    dragging_ = false;
+    drag_preview_ = nullptr;
     renderer_->clear_all();
     doc_.create_new(result.height, result.width, doc_.config());
     atlas_loader_.clear();
@@ -244,6 +330,8 @@ void MainWindow::new_map() {
 }
 
 void MainWindow::resize_map(int cols, int rows) {
+    dragging_ = false;
+    drag_preview_ = nullptr;
     renderer_->clear_all();
     doc_.resize(rows, cols, "");
     renderer_->render_all(doc_, show_walkable_overlay_);

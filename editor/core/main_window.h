@@ -8,6 +8,7 @@
 #include "../input/map_interaction.h"
 #include "../render/atlas_loader.h"
 
+class QGraphicsRectItem;
 class QGraphicsScene;
 class QGraphicsView;
 class QSplitter;
@@ -39,6 +40,11 @@ private:
     void resize_map(int cols, int rows);
     void toggle_walkable_overlay();
 
+    void place_tile_or_prop(int row, int col, const std::string& name);
+    void fill_rect(int r1, int c1, int r2, int c2, const std::string& name);
+    void update_drag_preview(int r1, int c1, int r2, int c2);
+    void destroy_drag_preview();
+
     TilemapDocument doc_;
     AtlasLoader atlas_loader_;
     MapInteraction interaction_;
@@ -54,6 +60,11 @@ private:
 
     bool first_show_ = true;
     bool show_walkable_overlay_ = true;
+
+    bool dragging_ = false;
+    int drag_start_row_ = -1;
+    int drag_start_col_ = -1;
+    QGraphicsRectItem* drag_preview_ = nullptr;
 };
 
 #endif
