@@ -108,16 +108,19 @@ void TilemapDocument::save(const std::string& path) const {
         toml::table prop_tiles_tbl;
         for (const auto& [name, def]: config_.props) {
             toml::table prop_def;
-            toml::array paths_arr;
-            for (const auto& val: def.paths) paths_arr.push_back(val);
-            prop_def.emplace("paths", std::move(paths_arr));
 
-            toml::table src;
-            src.emplace("x", def.src_x);
-            src.emplace("y", def.src_y);
-            src.emplace("w", def.src_w);
-            src.emplace("h", def.src_h);
-            prop_def.emplace("src", std::move(src));
+            if (!def.paths.empty()) {
+                toml::array paths_arr;
+                for (const auto& val: def.paths) paths_arr.push_back(val);
+                prop_def.emplace("paths", std::move(paths_arr));
+
+                toml::table src;
+                src.emplace("x", def.src_x);
+                src.emplace("y", def.src_y);
+                src.emplace("w", def.src_w);
+                src.emplace("h", def.src_h);
+                prop_def.emplace("src", std::move(src));
+            }
 
             prop_def.emplace("width", def.width);
             prop_def.emplace("height", def.height);
@@ -131,6 +134,21 @@ void TilemapDocument::save(const std::string& path) const {
                 hb.emplace("w", def.hitbox.w);
                 hb.emplace("h", def.hitbox.h);
                 prop_def.emplace("hitbox", std::move(hb));
+            }
+            if (!def.parts.empty()) {
+                toml::array parts_arr;
+                for (const auto& part: def.parts) {
+                    toml::table part_def;
+                    part_def.emplace("path", part.path);
+                    part_def.emplace("src_x", part.src_x);
+                    part_def.emplace("src_y", part.src_y);
+                    part_def.emplace("src_w", part.src_w);
+                    part_def.emplace("src_h", part.src_h);
+                    part_def.emplace("offset_x", part.offset_x);
+                    part_def.emplace("offset_y", part.offset_y);
+                    parts_arr.push_back(std::move(part_def));
+                }
+                prop_def.emplace("parts", std::move(parts_arr));
             }
             prop_tiles_tbl.emplace(name, std::move(prop_def));
         }

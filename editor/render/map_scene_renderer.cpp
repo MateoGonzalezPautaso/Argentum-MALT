@@ -31,20 +31,33 @@ QPixmap MapSceneRenderer::prop_pixmap(const TilemapDocument& doc, const std::str
         return {};
 
     const auto& def = prop_it->second;
-    if (def.paths.empty())
-        return {};
-
-    const QPixmap* atlas = atlases_->get(def.paths[0]);
-    if (!atlas)
-        return {};
-
-    QPixmap frame = atlas->copy(QRect(def.src_x, def.src_y, def.src_w, def.src_h));
-
     int tsz = doc.tile_size();
     int display_w = def.width > 0 ? def.width : tsz;
     int display_h = def.height > 0 ? def.height : tsz;
 
-    return frame.scaled(display_w, display_h, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    if (!def.paths.empty()) {
+        const QPixmap* atlas = atlases_->get(def.paths[0]);
+        if (!atlas)
+            return {};
+        QPixmap frame = atlas->copy(QRect(def.src_x, def.src_y, def.src_w, def.src_h));
+        return frame.scaled(display_w, display_h, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    }
+
+    if (def.parts.empty())
+        return {};
+
+    QPixmap composite(display_w, display_h);
+    composite.fill(Qt::transparent);
+    QPainter p(&composite);
+    for (const auto& part : def.parts) {
+        const QPixmap* atlas = atlases_->get(part.path);
+        if (!atlas)
+            continue;
+        QPixmap frame = atlas->copy(QRect(part.src_x, part.src_y, part.src_w, part.src_h));
+        p.drawPixmap(part.offset_x, part.offset_y, part.src_w, part.src_h, frame);
+    }
+    p.end();
+    return composite;
 }
 
 void MapSceneRenderer::add_non_walkable_indicator(QGraphicsPixmapItem* item, int tsz) {

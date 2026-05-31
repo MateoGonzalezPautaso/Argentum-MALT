@@ -4,6 +4,7 @@
 #include <QGridLayout>
 #include <QIcon>
 #include <QLabel>
+#include <QPainter>
 #include <QScrollArea>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -70,14 +71,32 @@ TilePalette::TilePalette(TilemapConfig& config,
     if (!sorted_props.empty()) {
         auto props_section = make_section(
                 "Props", sorted_props, preview_size,
-                [this, tsz](const std::string& name) -> QPixmap {
+                [this](const std::string& name) -> QPixmap {
                     const auto& def = config_.props.at(name);
-                    if (def.paths.empty())
+                    if (!def.paths.empty()) {
+                        auto it = atlases_.find(def.paths[0]);
+                        if (it == atlases_.end() || it->second.isNull())
+                            return {};
+                        return it->second.copy(QRect(def.src_x, def.src_y,
+                                                     def.src_w, def.src_h));
+                    }
+                    if (def.parts.empty())
                         return {};
-                    auto it = atlases_.find(def.paths[0]);
-                    if (it == atlases_.end() || it->second.isNull())
-                        return {};
-                    return it->second.copy(QRect(def.src_x, def.src_y, def.src_w, def.src_h));
+                    QPixmap composite(def.width > 0 ? def.width : 32,
+                                      def.height > 0 ? def.height : 32);
+                    composite.fill(Qt::transparent);
+                    QPainter p(&composite);
+                    for (const auto& part : def.parts) {
+                        auto it = atlases_.find(part.path);
+                        if (it == atlases_.end() || it->second.isNull())
+                            continue;
+                        QPixmap frame = it->second.copy(QRect(part.src_x, part.src_y,
+                                                               part.src_w, part.src_h));
+                        p.drawPixmap(part.offset_x, part.offset_y,
+                                     part.src_w, part.src_h, frame);
+                    }
+                    p.end();
+                    return composite;
                 },
                 [this](const std::string& name) {
                     selected_tile_ = name;

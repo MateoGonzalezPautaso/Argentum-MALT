@@ -14,6 +14,9 @@ void AtlasLoader::load(const TilemapConfig& config) {
         if (!def.paths.empty()) {
             load_if_missing(def.paths[0]);
         }
+        for (const auto& part: def.parts) {
+            load_if_missing(part.path);
+        }
     }
 }
 
