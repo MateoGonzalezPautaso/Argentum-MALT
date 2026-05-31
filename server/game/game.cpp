@@ -54,6 +54,8 @@ Game::Game(const ServerConfig& config, PlayerPersistence& persistence,
     for (const auto& [name, tc] : tilemap_configs) {
         maps.emplace(name, Map(tc));
     }
+        combat_controller(config.attack, players),
+        tick_rate_hz(config.tick_rate_hz) {
     combat_controller.set_clan_manager(clan_manager);
 }
 
@@ -124,9 +126,62 @@ CommandResult Game::remove_player(uint16_t player_id) {
     return result;
 }
 
+double Game::recovery_rate_for(Race race) const {
+    const auto& r = balance.race_recovery;
+    switch (race) {
+        case Race::HUMAN: return r.human;
+        case Race::ELF:   return r.elf;
+        case Race::DWARF: return r.dwarf;
+        case Race::GNOME: return r.gnome;
+    }
+    return r.human;
+}
+
+CommandResult Game::apply_regen() {
+    CommandResult result;
+    const double dt = 1.0 / tick_rate_hz;
+
+    for (auto& [id, player]: players) {
+        if (player.is_ghost())
+            continue;
+
+        bool changed = false;
+        double rate = recovery_rate_for(player.get_race());
+
+        // rate is in HP/second, but tick() runs 20 times per second. 
+        // Each tick only represents dt = 1/20 = 0.05 seconds, 
+        // so the per-tick gain is 1.0 * 0.05 = 0.05 HP
+        hp_regen_accum[id] += rate * dt;
+        if (hp_regen_accum[id] >= 1.0 && player.get_hp_current() < player.get_hp_max()) {
+            uint32_t gain = static_cast<uint32_t>(hp_regen_accum[id]);
+            player.heal(gain);
+            hp_regen_accum[id] -= gain;
+            changed = true;
+        } else if (hp_regen_accum[id] >= 1.0) {
+            hp_regen_accum[id] = 0.0;
+        }
+
+        mana_regen_accum[id] += rate * dt;
+        if (mana_regen_accum[id] >= 1.0 && player.get_mana_current() < player.get_mana_max()) {
+            uint32_t gain = static_cast<uint32_t>(mana_regen_accum[id]);
+            player.restore_mana(gain);
+            mana_regen_accum[id] -= gain;
+            changed = true;
+        } else if (mana_regen_accum[id] >= 1.0) {
+            mana_regen_accum[id] = 0.0;
+        }
+
+        if (changed) {
+            HealReceivedEvent ev{id, player.get_hp_current(), player.get_mana_current()};
+            result.broadcast_events.push_back(ev);
+        }
+    }
+    return result;
+}
+
 CommandResult Game::tick() {
     ++tick_count;
-    return {};
+    return apply_regen();
 }
 
 CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {

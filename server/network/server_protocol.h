@@ -38,6 +38,7 @@ public:
     void send_clan_update(const ClanUpdateEvent& ev);
     void send_server_msg(const ServerMsgEvent& ev);
     void send_map_transition(const MapTransitionEvent& ev);
+    void send_heal_received(const HealReceivedEvent& ev);
 
     // Envía cualquier evento usando std::visit.
     void send_event(const ServerEvent& ev);

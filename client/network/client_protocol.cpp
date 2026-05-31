@@ -165,6 +165,13 @@ ServerEvent ClientProtocol::recv_event() {
             ev.pos_x = protocol.recv_uint16();
             ev.pos_y = protocol.recv_uint16();
             return ev;
+        case OpCode::HEAL_RECEIVED: {
+            uint16_t player_id = protocol.recv_uint16();
+            uint32_t hp_current = protocol.recv_uint32();
+            uint32_t hp_max = protocol.recv_uint32();
+            uint32_t mana_current = protocol.recv_uint32();
+            uint32_t mana_max = protocol.recv_uint32();
+            return HealReceivedEvent{player_id, hp_current, hp_max, mana_current, mana_max};
         }
         default:
             throw std::runtime_error("Unknown event opcode: " +

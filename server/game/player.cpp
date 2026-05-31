@@ -120,6 +120,11 @@ void Player::increase_max_mana(uint32_t amount) {
 
 // Should check these implementations
 
+void Player::restore_mana(uint32_t amount) {
+    uint64_t total = static_cast<uint64_t>(mana_current) + amount;
+    mana_current = static_cast<uint32_t>(std::min<uint64_t>(total, mana_max));
+}
+
 void Player::use_mana(uint32_t amount) {
     if (cheat_infinite_mana)
         return;

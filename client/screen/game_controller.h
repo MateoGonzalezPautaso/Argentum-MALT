@@ -66,6 +66,7 @@ private:
     void handle_clan_notification(const ClanNotificationEvent& e);
     void handle_clan_update(const ClanUpdateEvent& e);
     void handle_map_transition(const MapTransitionEvent& e);
+    void handle_heal_received(const HealReceivedEvent& e);
 
 };
 

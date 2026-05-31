@@ -39,3 +39,9 @@ level_exp_base = 1000
 level_exp_exponent = 1.8
 gold_cap_base = 100
 gold_cap_exponent = 1.1
+
+[recovery_rates]
+human = 1.0
+elf = 1.5
+dwarf = 0.8
+gnome = 1.2

@@ -25,6 +25,13 @@ struct ClanConfig {
     int min_level_found = 6;
 };
 
+struct RaceRecoveryConfig {
+    double human = 1.0;
+    double elf = 1.5;
+    double dwarf = 0.8;
+    double gnome = 1.2;
+};
+
 struct BalanceConfig {
     int starting_hp = 100;
     int starting_mana = 50;
@@ -39,6 +46,7 @@ struct BalanceConfig {
     double level_exp_exponent = 1.8;
     int gold_cap_base = 100;
     double gold_cap_exponent = 1.1;
+    RaceRecoveryConfig race_recovery;
 };
 
 struct ServerConfig {

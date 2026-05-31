@@ -31,6 +31,12 @@ private:
     BalanceConfig balance;
     CombatController combat_controller;
     uint32_t tick_count = 0;
+    int tick_rate_hz;
+    std::unordered_map<uint16_t, double> hp_regen_accum;
+    std::unordered_map<uint16_t, double> mana_regen_accum;
+
+    double recovery_rate_for(Race race) const;
+    CommandResult apply_regen();
 
     CommandResult handle_login(uint16_t player_id, const LoginCmd& cmd);
     CommandResult handle_create_character(uint16_t player_id, const CreateCharacterCmd& cmd);

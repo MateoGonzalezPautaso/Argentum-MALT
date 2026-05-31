@@ -70,7 +70,8 @@ enum class OpCode : uint8_t {
     CLAN_NOTIFICATION = 0x99,
     CLAN_UPDATE = 0x9A,
     SERVER_MSG = 0x9B,
-    MAP_TRANSITION = 0x9C,
+    HEAL_RECEIVED = 0x9C,
+    MAP_TRANSITION = 0x9D,
 };
 
 class Protocol {

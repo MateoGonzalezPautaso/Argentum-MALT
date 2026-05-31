@@ -402,6 +402,10 @@ struct MapTransitionEvent {
     std::string map_name;
     uint16_t pos_x;
     uint16_t pos_y;
+struct HealReceivedEvent {
+    uint16_t player_id;
+    uint32_t hp_current;
+    uint32_t mana_current;
 };
 
 /*
@@ -416,6 +420,6 @@ using ServerEvent =
                      MeditationStopEvent, InventoryUpdateEvent, EquipUpdateEvent, GoldUpdateEvent,
                      ItemDroppedEvent, ItemPickedEvent, NpcItemListEvent, TransactionOkEvent,
                      TransactionErrorEvent, ChatMsgEvent, ClanNotificationEvent, ClanUpdateEvent,
-                     ServerMsgEvent, MapTransitionEvent>;
+                     ServerMsgEvent, MapTransitionEvent, HealReceivedEvent>;
 
 #endif  // MESSAGES_H_

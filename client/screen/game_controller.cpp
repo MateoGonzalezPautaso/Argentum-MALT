@@ -60,6 +60,8 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                        [this](const ClanUpdateEvent& e) { handle_clan_update(e); },
                        [this](const MapTransitionEvent& e) { handle_map_transition(e); },
                         [](const auto&) {},
+                       [this](const HealReceivedEvent& e) { handle_heal_received(e); },
+                       [](const auto&) {},
                },
                ev);
 }
@@ -226,6 +228,15 @@ void GameController::handle_player_respawned(const PlayerRespawnedEvent& e) {
     player_stats.hp_current = e.hp_current;
     player_stats.hp_max = e.hp_max;
     world_renderer.set_movable_alpha(255);
+}
+
+void GameController::handle_heal_received(const HealReceivedEvent& e) {
+    if (e.player_id != player_stats.player_id)
+        return;
+    player_stats.hp_current = e.hp_current;
+    player_stats.hp_max = e.hp_max;
+    player_stats.mana_current = e.mana_current;
+    player_stats.mana_max = e.mana_max;
 }
 
 void GameController::apply_movement_visual(Direction dir, bool advance_frame) {
