@@ -1,14 +1,14 @@
 [prop.prop_map]
 data = [
     [ '', 'arbol6', '', '', '', 'arbol4', 'arbol9', '', '', '', '', '', '', 'banderita', '' ],
-    [ '', '', '', 'tienda2', '', '', '', '', '', 'arbol13', '', '', '', 'arbol11', '' ],
+    [ '', '', '', 'tienda2', 'comerciante', '', '', '', '', 'arbol13', '', '', '', 'arbol11', '' ],
     [ '', 'pozo', '', '', '', 'arbol1', 'windmill', 'arbol16', '', '', '', '', '', '', '' ],
     [ '', '', '', '', '', 'carretilla', '', '', '', '', '', '', '', '', '' ],
     [ '', '', '', '', '', '', '', '', 'tienda1', '', '', '', '', '', '' ],
     [ 'arbol5', '', '', '', '', '', '', '', '', '', '', '', '', '', '' ],
     [ '', '', '', '', '', '', '', '', 'arbol11', '', 'arbol1', '', '', '', '' ],
     [ '', 'arbol16', 'arbol8', '', '', '', '', '', '', '', '', '', '', 'barriles', '' ],
-    [ '', '', '', '', '', 'sacerdote', '', '', 'arbol10', '', '', '', '', '', '' ],
+    [ 'comerciante', '', '', '', '', 'sacerdote', '', '', 'arbol10', '', '', '', '', '', '' ],
     [ 'arbol14', '', '', 'arbol16', '', '', '', '', '', '', '', '', '', '', '' ]
 ]
 
@@ -351,6 +351,34 @@ width = 217
     w = 417
     x = 0
     y = 0
+
+[prop.tiles.comerciante]
+height = 68
+width = 27
+
+    [prop.tiles.comerciante.hitbox]
+    h = 20
+    w = 30
+    x = 0
+    y = 55
+
+    [[prop.tiles.comerciante.parts]]
+    offset_x = 0
+    offset_y = 20
+    path = 'assets/Graficos/1358.png'
+    src_h = 48
+    src_w = 27
+    src_x = 0
+    src_y = 0
+
+    [[prop.tiles.comerciante.parts]]
+    offset_x = 0
+    offset_y = 0
+    path = 'assets/Graficos/420.png'
+    src_h = 64
+    src_w = 27
+    src_x = 0
+    src_y = 0
 
 [prop.tiles.pozo]
 height = 120
