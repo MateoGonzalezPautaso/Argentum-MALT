@@ -227,6 +227,15 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
 
         EntitySpawnEvent spawn = make_entity_spawn(p);
         std::vector<ServerEvent> private_events = {make_login_ok(p)};
+
+        if (p.get_current_map() != "main") {
+            private_events.push_back(MapTransitionEvent{
+                .map_name = p.get_current_map(),
+                .pos_x = p.pos_x(),
+                .pos_y = p.pos_y(),
+            });
+        }
+
         auto existing = make_existing_spawns(p.get_id(), p.get_current_map());
         private_events.insert(private_events.end(), existing.begin(), existing.end());
 
