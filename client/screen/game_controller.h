@@ -36,6 +36,7 @@ private:
     ChatHistory chat_history;
     PlayerStats player_stats;
     bool player_is_ghost = false;
+    std::string current_map_name = "main";
     WorldRenderer world_renderer;
     UIRenderer ui_renderer;
     Queue<ClientCommand>& command_queue;
@@ -57,6 +58,8 @@ private:
     void handle_damage_received(const DamageReceivedEvent& e);
     void handle_attack_dodged(const AttackDodgedEvent& e);
     void interact_with_prop(const std::string& prop_name);
+    bool is_clickable_prop(const std::string& prop_name) const;
+    bool is_transition_prop(const std::string& prop_name) const;
     void handle_chat_msg(const ChatMsgEvent& e);
     void handle_entity_died(const EntityDiedEvent& e);
     void handle_player_respawned(const PlayerRespawnedEvent& e);

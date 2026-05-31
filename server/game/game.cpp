@@ -609,6 +609,8 @@ void Game::do_transition(Player& player, CommandResult& result, const PropDef& p
     player.set_pos(static_cast<uint16_t>(spawn_x),
                    static_cast<uint16_t>(spawn_y));
 
+    persistence.save(player);
+
     result.private_events.push_back(MapTransitionEvent{
         .map_name = prop.transition_map,
         .pos_x = static_cast<uint16_t>(spawn_x),

@@ -135,9 +135,25 @@ void GameController::interact_with_prop(const std::string& prop_name) {
         chat_history.add_message(ChatMsgType::SYSTEM, "", "Banquero: El que deposita dolares, recibira dolares...");
     } else if (prop_name == "sanadora") {
         chat_history.add_message(ChatMsgType::SYSTEM, "", "Sanadora: Dejame ver esa herida.");
-    } else {
+    } else if (is_transition_prop(prop_name)) {
         command_queue.push(ChangeMapCmd{prop_name});
     }
+}
+
+bool GameController::is_clickable_prop(const std::string& prop_name) const {
+    return prop_name == "sacerdote" || prop_name == "comerciante" ||
+           prop_name == "banquero" || prop_name == "sanadora" ||
+           is_transition_prop(prop_name);
+}
+
+bool GameController::is_transition_prop(const std::string& prop_name) const {
+    auto map_it = config.tilemap_configs.find(current_map_name);
+    if (map_it == config.tilemap_configs.end())
+        return false;
+    auto prop_it = map_it->second.props.find(prop_name);
+    if (prop_it == map_it->second.props.end())
+        return false;
+    return !prop_it->second.transition_map.empty();
 }
 
 void GameController::handle_attack_dodged(const AttackDodgedEvent&) {
@@ -288,10 +304,11 @@ bool GameController::handle_mouse_motion(const SDL_Event& event) {
     int world_y = 0;
     uint16_t entity_id = 0;
     std::string prop_name;
-    if (world_renderer.screen_to_world(event.motion.x, event.motion.y, world_x, world_y) &&
-        (world_renderer.hit_test_entity(world_x, world_y, entity_id) ||
-         world_renderer.hit_test_prop(world_x, world_y, prop_name))) {
-        SDL_SetCursor(hand_cursor);
+    if (world_renderer.screen_to_world(event.motion.x, event.motion.y, world_x, world_y)) {
+        bool show_hand = world_renderer.hit_test_entity(world_x, world_y, entity_id);
+        if (!show_hand && world_renderer.hit_test_prop(world_x, world_y, prop_name))
+            show_hand = is_clickable_prop(prop_name);
+        SDL_SetCursor(show_hand ? hand_cursor : arrow_cursor);
     } else {
         SDL_SetCursor(arrow_cursor);
     }
@@ -359,6 +376,7 @@ void GameController::handle_map_transition(const MapTransitionEvent& e) {
     if (it == config.tilemap_configs.end())
         return;
 
+    current_map_name = e.map_name;
     world_renderer.clear_entities();
     world_renderer.load_map(it->second);
     world_renderer.set_movable_position(e.pos_x, e.pos_y);
