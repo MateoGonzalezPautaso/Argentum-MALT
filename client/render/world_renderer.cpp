@@ -143,6 +143,10 @@ bool WorldRenderer::hit_test_entity(int world_x, int world_y, uint16_t& out_enti
     return sprite_renderer.hit_test_entity(world_x, world_y, out_entity_id);
 }
 
+bool WorldRenderer::hit_test_prop(int world_x, int world_y, std::string& out_prop_name) const {
+    return prop_renderer.hit_test_prop(world_x, world_y, out_prop_name);
+}
+
 void WorldRenderer::set_movable_src_y(int y) { sprite_renderer.set_movable_src_y(y); }
 
 void WorldRenderer::step_movable_src_x(int step, int frame_count) {

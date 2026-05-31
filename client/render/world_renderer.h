@@ -36,6 +36,7 @@ public:
     void get_camera_offset(int& x, int& y) const;
     bool screen_to_world(int screen_x, int screen_y, int& world_x, int& world_y) const;
     bool hit_test_entity(int world_x, int world_y, uint16_t& out_entity_id) const;
+    bool hit_test_prop(int world_x, int world_y, std::string& out_prop_name) const;
     void set_movable_src_y(int y);
     void step_movable_src_x(int step, int frame_count);
     void set_anchor_src_y(int y);

@@ -124,6 +124,18 @@ void GameController::handle_damage_received(const DamageReceivedEvent& e) {
     world_renderer.trigger_damage_overlay_at(wx, wy);
 }
 
+void GameController::interact_with_prop(const std::string& prop_name) {
+    if (prop_name == "sacerdote") {
+        chat_history.add_message(ChatMsgType::SYSTEM, "", "Sacerdote: ¡SHALOM!");
+    } else if (prop_name == "comerciante") {
+        chat_history.add_message(ChatMsgType::SYSTEM, "", "Comerciante: Pasa, todo lo que ves esta en venta.");
+    } else if (prop_name == "banquero") {
+        chat_history.add_message(ChatMsgType::SYSTEM, "", "Banquero: El que deposita dolares, recibira dolares...");
+    } else if (prop_name == "sanadora") {
+        chat_history.add_message(ChatMsgType::SYSTEM, "", "Sanadora: Dejame ver esa herida.");
+    }
+}
+
 void GameController::handle_attack_dodged(const AttackDodgedEvent&) {
     chat_history.add_message(ChatMsgType::SYSTEM, "", "El ataque fue esquivado");
 }
@@ -257,6 +269,12 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
         return true;
     }
 
+    std::string prop_name;
+    if (world_renderer.hit_test_prop(world_x, world_y, prop_name)) {
+        interact_with_prop(prop_name);
+        return true;
+    }
+
     move_controller.set_move_target(world_x, world_y);
     return true;
 }
@@ -265,8 +283,10 @@ bool GameController::handle_mouse_motion(const SDL_Event& event) {
     int world_x = 0;
     int world_y = 0;
     uint16_t entity_id = 0;
+    std::string prop_name;
     if (world_renderer.screen_to_world(event.motion.x, event.motion.y, world_x, world_y) &&
-        world_renderer.hit_test_entity(world_x, world_y, entity_id)) {
+        (world_renderer.hit_test_entity(world_x, world_y, entity_id) ||
+         world_renderer.hit_test_prop(world_x, world_y, prop_name))) {
         SDL_SetCursor(hand_cursor);
     } else {
         SDL_SetCursor(arrow_cursor);

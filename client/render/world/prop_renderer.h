@@ -20,6 +20,7 @@ public:
     void render_front(const SDL2pp::Rect& cam, int player_foot_y);
     void render_hitboxes(const SDL2pp::Rect& cam);
     void tick_animations(AnimationSystem& anim);
+    bool hit_test_prop(int world_x, int world_y, std::string& out_prop_name) const;
     bool has_props() const { return !prop_tiles_.empty() && has_tilemap_; }
 
 private:
@@ -37,6 +38,7 @@ private:
     };
 
     struct PropRender {
+        std::string name;
         std::vector<SDL2pp::Texture> frames;
         SDL2pp::Rect src;
         int display_w = 0;
@@ -49,6 +51,8 @@ private:
         int hitbox_y = 0;
         int hitbox_w = 0;
         int hitbox_h = 0;
+        int tile_col = 0;
+        int tile_row = 0;
         std::vector<PropPart> parts;
     };
 

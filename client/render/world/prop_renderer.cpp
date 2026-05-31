@@ -18,21 +18,32 @@ void PropRenderer::load(const TilemapConfig& tilemap, int tile_size) {
     tile_size_ = tile_size;
 
     auto tsz = static_cast<std::size_t>(tile_size_);
-    for (const auto& row: tilemap.prop_map) {
+    for (std::size_t ri = 0; ri < tilemap.prop_map.size(); ++ri) {
+        const auto& row = tilemap.prop_map[ri];
         std::vector<PropRender> prop_row;
         prop_row.reserve(row.size());
-        for (const auto& name: row) {
+        for (std::size_t ci = 0; ci < row.size(); ++ci) {
+            const auto& name = row[ci];
             if (name.empty()) {
-                prop_row.push_back({});
+                PropRender empty_pr;
+                empty_pr.tile_col = static_cast<int>(ci);
+                empty_pr.tile_row = static_cast<int>(ri);
+                prop_row.push_back(std::move(empty_pr));
                 continue;
             }
             auto it = tilemap.props.find(name);
             if (it == tilemap.props.end()) {
-                prop_row.push_back({});
+                PropRender empty_pr;
+                empty_pr.tile_col = static_cast<int>(ci);
+                empty_pr.tile_row = static_cast<int>(ri);
+                prop_row.push_back(std::move(empty_pr));
                 continue;
             }
             const PropDef& def = it->second;
             PropRender pr;
+            pr.name = name;
+            pr.tile_col = static_cast<int>(ci);
+            pr.tile_row = static_cast<int>(ri);
             pr.src = SDL2pp::Rect(def.src_x, def.src_y, def.src_w, def.src_h);
             pr.display_w = def.width > 0 ? def.width : static_cast<int>(tsz);
             pr.display_h = def.height > 0 ? def.height : static_cast<int>(tsz);
@@ -111,6 +122,25 @@ void PropRenderer::render_conditional(const SDL2pp::Rect& cam, int player_foot_y
             }
         }
     }
+}
+
+bool PropRenderer::hit_test_prop(int world_x, int world_y, std::string& out_prop_name) const {
+    for (int ri = static_cast<int>(prop_tiles_.size()) - 1; ri >= 0; --ri) {
+        for (int ci = static_cast<int>(prop_tiles_[static_cast<std::size_t>(ri)].size()) - 1; ci >= 0; --ci) {
+            const auto& prop = prop_tiles_[static_cast<std::size_t>(ri)][static_cast<std::size_t>(ci)];
+            if (prop.frames.empty() && prop.parts.empty())
+                continue;
+            int prop_world_x = ci * tile_size_;
+            int prop_world_y = (ri + 1) * tile_size_ - prop.display_h;
+            SDL2pp::Rect rect(prop_world_x, prop_world_y, prop.display_w, prop.display_h);
+            if (world_x >= rect.GetX() && world_x < rect.GetX() + rect.GetW() &&
+                world_y >= rect.GetY() && world_y < rect.GetY() + rect.GetH()) {
+                out_prop_name = prop.name;
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 void PropRenderer::render_behind(const SDL2pp::Rect& cam, int player_foot_y) {
