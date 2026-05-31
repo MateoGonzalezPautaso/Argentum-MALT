@@ -194,6 +194,13 @@ void ServerProtocol::send_clan_notification(const ClanNotificationEvent& ev) {
     protocol.send_str(ev.clan_name);
 }
 
+void ServerProtocol::send_map_transition(const MapTransitionEvent& ev) {
+    protocol.send_opcode(OpCode::MAP_TRANSITION);
+    protocol.send_str(ev.map_name);
+    protocol.send_uint16(ev.pos_x);
+    protocol.send_uint16(ev.pos_y);
+}
+
 void ServerProtocol::send_clan_update(const ClanUpdateEvent& ev) {
     protocol.send_opcode(OpCode::CLAN_UPDATE);
     protocol.send_str(ev.clan_name);
@@ -224,6 +231,7 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                          [this](const ChatMsgEvent& msg) { send_chat_msg(msg); },
                          [this](const ClanNotificationEvent& msg) { send_clan_notification(msg); },
                          [this](const ClanUpdateEvent& msg) { send_clan_update(msg); },
+                         [this](const MapTransitionEvent& msg) { send_map_transition(msg); },
                         [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },
                ev);

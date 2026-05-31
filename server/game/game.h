@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <map>
 #include <string>
+#include <unordered_map>
 
 #include "../../common/messages.h"
 #include "../core/config.h"
@@ -22,7 +23,8 @@ private:
     PlayerPersistence& persistence;
     ClanManager clan_manager;
     ClanCommandHandler clan_handler;
-    Map map;
+    std::unordered_map<std::string, TilemapConfig> tilemap_configs;
+    std::unordered_map<std::string, Map> maps;
     int move_step;
     int sprite_width;
     int sprite_height;
@@ -46,6 +48,12 @@ private:
     LoginOkEvent make_login_ok(const Player& p) const;
     EntitySpawnEvent make_entity_spawn(const Player& p) const;
     std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id) const;
+    std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id, const std::string& map_name) const;
+    Map& player_map(const Player& p);
+    const Map& player_map(const Player& p) const;
+    std::string get_player_map_name(uint16_t player_id) const;
+    std::vector<uint16_t> get_player_ids_on_map(const std::string& map_name) const;
+    bool try_map_transition(Player& player, CommandResult& result);
 
 public:
     explicit Game(const ServerConfig& config, PlayerPersistence& persistence,

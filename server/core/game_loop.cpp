@@ -35,7 +35,17 @@ void GameLoop::run() {
                     for (const ServerEvent& ev: events)
                         monitor.push_event(target_id, ev);
 
-                for (const ServerEvent& ev: result.broadcast_events) monitor.broadcast(ev);
+                for (const ServerEvent& ev: result.broadcast_events)
+                    monitor.broadcast(ev);
+
+                // Send map_events to all players on the same map as the command originator
+                std::string origin_map = game.get_player_map_name(pcmd.player_id);
+                for (uint16_t pid: game.get_player_ids_on_map(origin_map)) {
+                    if (pid == pcmd.player_id)
+                        continue;
+                    for (const ServerEvent& ev: result.map_events)
+                        monitor.push_event(pid, ev);
+                }
             }
         } catch (const ClosedQueue&) {
             break;
@@ -43,11 +53,18 @@ void GameLoop::run() {
 
         // Tick game
         CommandResult tick_result = game.tick();
+        for (const auto& [target_id, events]: tick_result.targeted_events)
+            for (const ServerEvent& ev: events)
+                monitor.push_event(target_id, ev);
         for (const ServerEvent& ev: tick_result.broadcast_events) monitor.broadcast(ev);
+        // tick_result.map_events has no originator, skip for now
 
         // Remove clients whose sender/receiver threads have exited
         for (uint16_t dead_id: monitor.clean_dead()) {
             CommandResult despawn = game.remove_player(dead_id);
+            for (const auto& [target_id, events]: despawn.targeted_events)
+                for (const ServerEvent& ev: events)
+                    monitor.push_event(target_id, ev);
             for (const ServerEvent& ev: despawn.broadcast_events) monitor.broadcast(ev);
         }
 

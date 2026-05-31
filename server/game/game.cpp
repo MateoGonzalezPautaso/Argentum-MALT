@@ -45,13 +45,30 @@ Game::Game(const ServerConfig& config, PlayerPersistence& persistence,
         persistence(persistence),
         clan_manager(clan_persistence, config.clan),
         clan_handler(clan_manager, players),
-        map(config.tilemap),
+        tilemap_configs(config.tilemap_configs),
         move_step(config.move_step),
         sprite_width(config.sprite_width),
         sprite_height(config.sprite_height),
         balance(config.balance),
         combat_controller(config.attack, players) {
+    for (const auto& [name, tc] : tilemap_configs) {
+        maps.emplace(name, Map(tc));
+    }
     combat_controller.set_clan_manager(clan_manager);
+}
+
+Map& Game::player_map(const Player& p) {
+    auto it = maps.find(p.get_current_map());
+    if (it == maps.end())
+        return maps.begin()->second;
+    return it->second;
+}
+
+const Map& Game::player_map(const Player& p) const {
+    auto it = maps.find(p.get_current_map());
+    if (it == maps.end())
+        return maps.begin()->second;
+    return it->second;
 }
 
 CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd) {
@@ -78,26 +95,32 @@ CommandResult Game::remove_player(uint16_t player_id) {
     if (it == players.end())
         return {};
 
+    std::string map_name = it->second.get_current_map();
+    std::string clan_name = it->second.get_clan_name();
+    std::string username = it->second.get_username();
     persistence.save(it->second);
 
+    EntityDespawnEvent despawn{.entity_id = player_id};
+
+    // Send despawn to all players on the same map
+    CommandResult result;
+    for (uint16_t pid : get_player_ids_on_map(map_name)) {
+        if (pid == player_id) continue;
+        result.targeted_events[pid].push_back(despawn);
+    }
+
+    players.erase(it);
+
     // Notify clan members of logout
-    if (!it->second.get_clan_name().empty()) {
-        ClanNotificationEvent notif{ClanNotifType::MEMBER_OFFLINE, it->second.get_username(),
-                                    it->second.get_clan_name()};
-        EntityDespawnEvent despawn{.entity_id = player_id};
-        players.erase(it);
-        CommandResult result;
-        result.broadcast_events.push_back(despawn);
+    if (!clan_name.empty()) {
+        ClanNotificationEvent notif{ClanNotifType::MEMBER_OFFLINE, username, clan_name};
         auto clan_result = clan_handler.notify_clan_members(notif.clan_name, notif, player_id);
         for (auto& ev: clan_result.targeted_events)
             for (auto& se: ev.second)
                 result.targeted_events[ev.first].push_back(std::move(se));
-        return result;
     }
 
-    EntityDespawnEvent despawn{.entity_id = player_id};
-    players.erase(it);
-    return {.private_events = {}, .broadcast_events = {despawn}, .targeted_events = {}};
+    return result;
 }
 
 CommandResult Game::tick() {
@@ -109,7 +132,10 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
     auto it = players.find(player_id);
     if (it != players.end())
         it->second.set_meditating(false);
-    return combat_controller.melee_attack(player_id, cmd.target_id, tick_count);
+    CommandResult result = combat_controller.melee_attack(player_id, cmd.target_id, tick_count);
+    // Convert combat broadcasts to per-map events
+    result.map_events = std::move(result.broadcast_events);
+    return result;
 }
 
 CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCmd& cmd) {
@@ -196,13 +222,13 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
 
         EntitySpawnEvent spawn = make_entity_spawn(p);
         std::vector<ServerEvent> private_events = {make_login_ok(p)};
-        auto existing = make_existing_spawns(p.get_id());
+        auto existing = make_existing_spawns(p.get_id(), p.get_current_map());
         private_events.insert(private_events.end(), existing.begin(), existing.end());
 
         // Notify clan members of login
         CommandResult login_result;
         login_result.private_events = std::move(private_events);
-        login_result.broadcast_events = {spawn};
+        login_result.map_events = {spawn};
 
         if (!clan_name.empty()) {
             ClanNotificationEvent notif{ClanNotifType::MEMBER_ONLINE, cmd.username, clan_name};
@@ -260,11 +286,11 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     CharacterCreatedEvent created{make_login_ok(p)};
     EntitySpawnEvent spawn = make_entity_spawn(p);
     std::vector<ServerEvent> private_events = {created};
-    auto other_spawns = make_existing_spawns(p.get_id());
+    auto other_spawns = make_existing_spawns(p.get_id(), p.get_current_map());
     private_events.insert(private_events.end(), other_spawns.begin(), other_spawns.end());
 
     return {.private_events = std::move(private_events),
-            .broadcast_events = {spawn},
+            .map_events = {spawn},
             .targeted_events = {}};
 }
 
@@ -297,7 +323,7 @@ CommandResult Game::handle_cheat_die(uint16_t player_id) {
                             .damage = 0, .hp_current = 0, .hp_max = it->second.get_hp_max()};
     EntityDiedEvent died{.entity_id = player_id};
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] You died!"};
-    return {.private_events = {msg}, .broadcast_events = {dmg, died}, .targeted_events = {}};
+    return {.private_events = {msg}, .map_events = {dmg, died}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_cheat_level_up(uint16_t player_id) {
@@ -390,6 +416,33 @@ std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id) const {
     return spawns;
 }
 
+std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id, const std::string& map_name) const {
+    std::vector<ServerEvent> spawns;
+    for (const auto& [id, player]: players) {
+        if (id == exclude_id)
+            continue;
+        if (player.get_current_map() != map_name)
+            continue;
+        spawns.push_back(make_entity_spawn(player));
+    }
+    return spawns;
+}
+
+std::string Game::get_player_map_name(uint16_t player_id) const {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return "main";
+    return it->second.get_current_map();
+}
+
+std::vector<uint16_t> Game::get_player_ids_on_map(const std::string& map_name) const {
+    std::vector<uint16_t> ids;
+    for (const auto& [id, player]: players) {
+        if (player.get_current_map() == map_name)
+            ids.push_back(id);
+    }
+    return ids;
+}
 
 void Game::save_all_players() {
     for (const auto& [id, player]: players) {
@@ -421,7 +474,7 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
 
     PlayerRespawnedEvent respawn_ev{player_id, player.get_hp_current(), player.get_hp_max()};
 
-    return {.private_events = {}, .broadcast_events = {respawn_ev}, .targeted_events = {}};
+    return {.private_events = {}, .map_events = {respawn_ev}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
@@ -432,18 +485,22 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
     Player& player = it->second;
     player.set_meditating(false);
 
+    Map& cur_map = player_map(player);
+
     auto [dx, dy] = direction_to_delta(cmd.direction, move_step);
 
     const int current_x = static_cast<int>(player.pos_x());
     const int current_y = static_cast<int>(player.pos_y());
-    const int new_x = map.clamp_x(current_x + dx, sprite_width);
-    const int new_y = map.clamp_y(current_y + dy, sprite_height);
+    const int new_x = cur_map.clamp_x(current_x + dx, sprite_width);
+    const int new_y = cur_map.clamp_y(current_y + dy, sprite_height);
 
-    if (!map.is_walkable(new_x + sprite_width / 2, new_y + sprite_height))
+    if (!cur_map.is_walkable(new_x + sprite_width / 2, new_y + sprite_height))
         return {};
 
     for (const auto& [other_id, other]: players) {
         if (other_id == player_id)
+            continue;
+        if (other.get_current_map() != player.get_current_map())
             continue;
         const int ox = static_cast<int>(other.pos_x());
         const int oy = static_cast<int>(other.pos_y());
@@ -464,10 +521,89 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
 
     player.apply_move(cmd.direction, final_dx, final_dy);
 
+    CommandResult result;
+
+    if (try_map_transition(player, result))
+        return result;
+
     EntityMoveEvent move{
             .entity_id = player.get_id(),
             .entity_pos = player.get_pos(),
             .entity_dir = player.get_dir(),
     };
-    return {.private_events = {}, .broadcast_events = {move}, .targeted_events = {}};
+    result.map_events = {move};
+    return result;
+}
+
+bool Game::try_map_transition(Player& player, CommandResult& result) {
+    const std::string old_map_name = player.get_current_map();
+    const TilemapConfig& cfg = maps.at(old_map_name).config();
+    const int foot_x = static_cast<int>(player.pos_x()) + sprite_width / 2;
+    const int foot_y = static_cast<int>(player.pos_y()) + sprite_height;
+
+    for (std::size_t r = 0; r < cfg.prop_map.size(); ++r) {
+        for (std::size_t c = 0; c < cfg.prop_map[r].size(); ++c) {
+            const auto& prop_name = cfg.prop_map[r][c];
+            if (prop_name.empty()) continue;
+
+            auto prop_it = cfg.props.find(prop_name);
+            if (prop_it == cfg.props.end()) continue;
+
+            const auto& prop = prop_it->second;
+            if (prop.transition_map.empty()) continue;
+
+            int prop_x = static_cast<int>(c) * cfg.tile_size;
+            int prop_y = (static_cast<int>(r) + 1) * cfg.tile_size - prop.height;
+
+            int hb_left = prop_x + prop.hitbox.x;
+            int hb_top = prop_y + prop.hitbox.y;
+            int hb_right = hb_left + prop.hitbox.w;
+            int hb_bottom = hb_top + prop.hitbox.h;
+
+            if (foot_x >= hb_left && foot_x < hb_right &&
+                foot_y >= hb_top && foot_y < hb_bottom) {
+
+                auto dest_it = maps.find(prop.transition_map);
+                if (dest_it == maps.end()) continue;
+
+                // Despawn on old map
+                EntityDespawnEvent despawn{.entity_id = player.get_id()};
+                for (uint16_t pid : get_player_ids_on_map(old_map_name)) {
+                    if (pid == player.get_id()) continue;
+                    result.targeted_events[pid].push_back(despawn);
+                }
+
+                int spawn_x = prop.transition_x;
+                int spawn_y = prop.transition_y;
+                if (spawn_x == 0 && spawn_y == 0) {
+                    spawn_x = cfg.tile_size * 2;
+                    spawn_y = cfg.tile_size * 2;
+                }
+
+                player.set_current_map(prop.transition_map);
+                player.set_pos(static_cast<uint16_t>(spawn_x),
+                               static_cast<uint16_t>(spawn_y));
+
+                result.private_events.push_back(MapTransitionEvent{
+                    .map_name = prop.transition_map,
+                    .pos_x = static_cast<uint16_t>(spawn_x),
+                    .pos_y = static_cast<uint16_t>(spawn_y),
+                });
+
+                // Send existing spawns on new map to the player
+                std::vector<ServerEvent> others = make_existing_spawns(player.get_id());
+                result.private_events.insert(result.private_events.end(), others.begin(), others.end());
+
+                // Spawn player on new map for other players there
+                EntitySpawnEvent spawn = make_entity_spawn(player);
+                for (uint16_t pid : get_player_ids_on_map(prop.transition_map)) {
+                    if (pid == player.get_id()) continue;
+                    result.targeted_events[pid].push_back(spawn);
+                }
+
+                return true;
+            }
+        }
+    }
+    return false;
 }

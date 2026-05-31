@@ -153,6 +153,13 @@ ServerEvent ClientProtocol::recv_event() {
             }
             return ev;
         }
+        case OpCode::MAP_TRANSITION: {
+            MapTransitionEvent ev;
+            ev.map_name = protocol.recv_str();
+            ev.pos_x = protocol.recv_uint16();
+            ev.pos_y = protocol.recv_uint16();
+            return ev;
+        }
         default:
             throw std::runtime_error("Unknown event opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
