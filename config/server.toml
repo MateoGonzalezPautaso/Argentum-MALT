@@ -26,13 +26,11 @@ max_members = 16
 min_level_found = 6
 
 [balance]
-starting_hp = 100
 starting_mana = 50
 starting_gold = 0
 starting_pos_x = 100
 starting_pos_y = 100
 max_level = 100
-hp_per_level = 10
 mana_per_level = 5
 gold_per_level = 100
 level_exp_base = 1000
@@ -45,3 +43,21 @@ human = 1.0
 elf = 1.5
 dwarf = 0.8
 gnome = 1.2
+
+[constitution]
+human = 20
+elf = 15
+dwarf = 25
+gnome = 20
+
+[race_hp_factor]
+human = 1.0
+elf = 0.8
+dwarf = 1.2
+gnome = 1.0
+
+[class_hp_factor]
+warrior = 2.0
+paladin = 1.5
+cleric = 1.2
+mage = 0.8
