@@ -50,12 +50,11 @@ Game::Game(const ServerConfig& config, PlayerPersistence& persistence,
         sprite_width(config.sprite_width),
         sprite_height(config.sprite_height),
         balance(config.balance),
-        combat_controller(config.attack, players) {
+        combat_controller(config.attack, players),
+        tick_rate_hz(config.tick_rate_hz) {
     for (const auto& [name, tc] : tilemap_configs) {
         maps.emplace(name, Map(tc));
     }
-        combat_controller(config.attack, players),
-        tick_rate_hz(config.tick_rate_hz) {
     combat_controller.set_clan_manager(clan_manager);
 }
 

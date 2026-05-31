@@ -402,6 +402,8 @@ struct MapTransitionEvent {
     std::string map_name;
     uint16_t pos_x;
     uint16_t pos_y;
+};
+
 struct HealReceivedEvent {
     uint16_t player_id;
     uint32_t hp_current;
