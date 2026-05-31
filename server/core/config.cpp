@@ -92,5 +92,16 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*balance, "gold_cap_exponent", config.balance.gold_cap_exponent);
     }
 
+    if (auto recovery = root["recovery_rates"].as_table()) {
+        config.balance.race_recovery.human =
+                toml_get_double(*recovery, "human", config.balance.race_recovery.human);
+        config.balance.race_recovery.elf =
+                toml_get_double(*recovery, "elf", config.balance.race_recovery.elf);
+        config.balance.race_recovery.dwarf =
+                toml_get_double(*recovery, "dwarf", config.balance.race_recovery.dwarf);
+        config.balance.race_recovery.gnome =
+                toml_get_double(*recovery, "gnome", config.balance.race_recovery.gnome);
+    }
+
     return config;
 }
