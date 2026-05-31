@@ -447,7 +447,13 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
             continue;
         const int ox = static_cast<int>(other.pos_x());
         const int oy = static_cast<int>(other.pos_y());
-        if (std::abs(new_x - ox) < sprite_width && std::abs(new_y - oy) < sprite_height)
+        const int hw = sprite_width / 2;
+        const int hh = sprite_height / 2;
+        bool already_overlapping = (std::abs(current_x - ox) < hw &&
+                                    std::abs(current_y - oy) < hh);
+        if (already_overlapping)
+            continue;
+        if (std::abs(new_x - ox) < hw && std::abs(new_y - oy) < hh)
             return {};
     }
 
