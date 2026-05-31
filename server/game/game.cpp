@@ -577,40 +577,54 @@ void Game::do_transition(Player& player, CommandResult& result, const PropDef& p
     auto dest_it = maps.find(prop.transition_map);
     if (dest_it == maps.end()) return;
 
-    // Despawn on old map
-    EntityDespawnEvent despawn{.entity_id = player.get_id()};
-    for (uint16_t pid : get_player_ids_on_map(old_map_name)) {
-        if (pid == player.get_id()) continue;
-        result.targeted_events[pid].push_back(despawn);
-    }
+    Position spawn = compute_spawn_position(dest_it->second.config(), prop);
 
-    const TilemapConfig& cfg = dest_it->second.config();
-    int spawn_x = prop.transition_x;
-    int spawn_y = prop.transition_y;
-    if (spawn_x == 0 && spawn_y == 0) {
-        spawn_x = cfg.tile_size * 2;
-        spawn_y = cfg.tile_size * 2;
-    }
+    despawn_player(result, player.get_id(), old_map_name);
 
     player.set_current_map(prop.transition_map);
-    player.set_pos(static_cast<uint16_t>(spawn_x),
-                   static_cast<uint16_t>(spawn_y));
+    player.set_pos(spawn.x, spawn.y);
 
     persistence.save(player);
 
+    notify_player_transition(result, player, prop.transition_map, spawn);
+    notify_others_spawn(result, player, prop.transition_map);
+}
+
+Position Game::compute_spawn_position(const TilemapConfig& dest_cfg, const PropDef& prop) const {
+    int x = prop.transition_x;
+    int y = prop.transition_y;
+    if (x == 0 && y == 0) {
+        x = dest_cfg.tile_size * 2;
+        y = dest_cfg.tile_size * 2;
+    }
+    return {static_cast<uint16_t>(x), static_cast<uint16_t>(y)};
+}
+
+void Game::despawn_player(CommandResult& result, uint16_t player_id,
+                           const std::string& old_map_name) const {
+    EntityDespawnEvent despawn{.entity_id = player_id};
+    for (uint16_t pid : get_player_ids_on_map(old_map_name)) {
+        if (pid == player_id) continue;
+        result.targeted_events[pid].push_back(despawn);
+    }
+}
+
+void Game::notify_player_transition(CommandResult& result, const Player& player,
+                                     const std::string& map_name, Position spawn) const {
     result.private_events.push_back(MapTransitionEvent{
-        .map_name = prop.transition_map,
-        .pos_x = static_cast<uint16_t>(spawn_x),
-        .pos_y = static_cast<uint16_t>(spawn_y),
+        .map_name = map_name,
+        .pos_x = spawn.x,
+        .pos_y = spawn.y,
     });
 
-    // Send existing spawns on new map to the player
-    std::vector<ServerEvent> others = make_existing_spawns(player.get_id(), prop.transition_map);
+    std::vector<ServerEvent> others = make_existing_spawns(player.get_id(), map_name);
     result.private_events.insert(result.private_events.end(), others.begin(), others.end());
+}
 
-    // Spawn player on new map for other players there
+void Game::notify_others_spawn(CommandResult& result, const Player& player,
+                                const std::string& map_name) const {
     EntitySpawnEvent spawn = make_entity_spawn(player);
-    for (uint16_t pid : get_player_ids_on_map(prop.transition_map)) {
+    for (uint16_t pid : get_player_ids_on_map(map_name)) {
         if (pid == player.get_id()) continue;
         result.targeted_events[pid].push_back(spawn);
     }

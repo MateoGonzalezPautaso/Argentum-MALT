@@ -56,6 +56,14 @@ private:
     void do_transition(Player& player, CommandResult& result, const PropDef& prop,
                        const std::string& old_map_name);
 
+    Position compute_spawn_position(const TilemapConfig& dest_cfg, const PropDef& prop) const;
+    void despawn_player(CommandResult& result, uint16_t player_id,
+                        const std::string& old_map_name) const;
+    void notify_player_transition(CommandResult& result, const Player& player,
+                                  const std::string& map_name, Position spawn) const;
+    void notify_others_spawn(CommandResult& result, const Player& player,
+                             const std::string& map_name) const;
+
 public:
     std::string get_player_map_name(uint16_t player_id) const;
     std::vector<uint16_t> get_player_ids_on_map(const std::string& map_name) const;
