@@ -8,7 +8,7 @@ data = [
     [ 'arbol5', '', '', '', '', '', '', '', '', '', '', '', '', '', '' ],
     [ '', '', '', '', '', '', '', '', 'arbol11', '', 'arbol1', '', '', '', '' ],
     [ '', 'arbol16', 'arbol8', '', '', '', '', '', '', '', '', '', '', 'barriles', '' ],
-    [ '', '', '', '', '', '', '', '', 'arbol10', '', '', '', '', '', '' ],
+    [ '', '', '', '', '', 'sacerdote', '', '', 'arbol10', '', '', '', '', '', '' ],
     [ 'arbol14', '', '', 'arbol16', '', '', '', '', '', '', '', '', '', '', '' ]
 ]
 
@@ -368,6 +368,28 @@ width = 120
     w = 154
     x = 382
     y = 16
+
+[prop.tiles.sacerdote]
+height = 68
+width = 27
+
+    [[prop.tiles.sacerdote.parts]]
+    offset_x = 0
+    offset_y = 20
+    path = 'assets/Graficos/1254.png'
+    src_h = 48
+    src_w = 27
+    src_x = 0
+    src_y = 0
+
+    [[prop.tiles.sacerdote.parts]]
+    offset_x = 0
+    offset_y = 0
+    path = 'assets/Graficos/432.png'
+    src_h = 64
+    src_w = 27
+    src_x = 324
+    src_y = 0
 
 [prop.tiles.tienda1]
 height = 130

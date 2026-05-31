@@ -48,6 +48,19 @@ void PropRenderer::load(const TilemapConfig& tilemap, int tile_size) {
             for (const auto& path: def.paths) {
                 pr.frames.emplace_back(renderer, texture::load_surface(path));
             }
+
+            for (const auto& part_def: def.parts) {
+                PropPart pp;
+                pp.src = SDL2pp::Rect(part_def.src_x, part_def.src_y,
+                                      part_def.src_w, part_def.src_h);
+                pp.offset_x = part_def.offset_x;
+                pp.offset_y = part_def.offset_y;
+                pp.display_w = part_def.src_w;
+                pp.display_h = part_def.src_h;
+                pp.frames.emplace_back(renderer, texture::load_surface(part_def.path));
+                pr.parts.push_back(std::move(pp));
+            }
+
             prop_row.push_back(std::move(pr));
         }
         prop_tiles_.push_back(std::move(prop_row));
@@ -80,13 +93,22 @@ void PropRenderer::render_conditional(const SDL2pp::Rect& cam, int player_foot_y
             if (col < 0)
                 continue;
             auto& prop = prop_row[static_cast<std::size_t>(col)];
-            if (prop.frames.empty())
+            if (prop.frames.empty() && prop.parts.empty())
                 continue;
 
             SDL2pp::Rect dst(col * tile_size_ - cam.GetX(),
                              (row + 1) * tile_size_ - cam.GetY() - prop.display_h, prop.display_w,
                              prop.display_h);
-            renderer.Copy(prop.frames[prop.current_frame], prop.src, dst);
+            if (prop.parts.empty()) {
+                renderer.Copy(prop.frames[prop.current_frame], prop.src, dst);
+            } else {
+                for (auto& part : prop.parts) {
+                    SDL2pp::Rect part_dst(dst.GetX() + part.offset_x,
+                                          dst.GetY() + part.offset_y,
+                                          part.display_w, part.display_h);
+                    renderer.Copy(part.frames[part.current_frame], part.src, part_dst);
+                }
+            }
         }
     }
 }
@@ -123,7 +145,7 @@ void PropRenderer::render_hitboxes(const SDL2pp::Rect& cam) {
             if (col < 0)
                 continue;
             auto& prop = prop_row[static_cast<std::size_t>(col)];
-            if (prop.frames.empty() || prop.hitbox_w <= 0 || prop.hitbox_h <= 0)
+            if ((prop.frames.empty() && prop.parts.empty()) || prop.hitbox_w <= 0 || prop.hitbox_h <= 0)
                 continue;
 
             const int prop_screen_x = col * tile_size_ - cam.GetX();
@@ -140,6 +162,9 @@ void PropRenderer::tick_animations(AnimationSystem& anim) {
     for (auto& row: prop_tiles_) {
         for (auto& prop: row) {
             anim.tick(prop);
+            for (auto& part: prop.parts) {
+                anim.tick(part);
+            }
         }
     }
 }

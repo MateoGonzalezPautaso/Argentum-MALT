@@ -23,6 +23,19 @@ public:
     bool has_props() const { return !prop_tiles_.empty() && has_tilemap_; }
 
 private:
+    struct PropPart {
+        std::vector<SDL2pp::Texture> frames;
+        SDL2pp::Rect src;
+        int offset_x = 0;
+        int offset_y = 0;
+        int display_w = 0;
+        int display_h = 0;
+        uint32_t frame_ms = 0;
+        std::size_t current_frame = 0;
+        uint32_t last_ticks = 0;
+        bool animated = false;
+    };
+
     struct PropRender {
         std::vector<SDL2pp::Texture> frames;
         SDL2pp::Rect src;
@@ -36,6 +49,7 @@ private:
         int hitbox_y = 0;
         int hitbox_w = 0;
         int hitbox_h = 0;
+        std::vector<PropPart> parts;
     };
 
     void render_conditional(const SDL2pp::Rect& cam, int player_foot_y, bool behind);

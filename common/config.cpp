@@ -138,6 +138,23 @@ void parse_prop_config(const toml::table& root, TilemapConfig& config) {
                     def.hitbox.w = toml_get_int(*hb, "w", def.hitbox.w);
                     def.hitbox.h = toml_get_int(*hb, "h", def.hitbox.h);
                 }
+                if (auto parts_arr = (*tbl)["parts"].as_array()) {
+                    for (const auto& part_node: *parts_arr) {
+                        const auto* part_tbl = part_node.as_table();
+                        if (!part_tbl) {
+                            continue;
+                        }
+                        PropPartDef part;
+                        part.path = toml_get_string(*part_tbl, "path", std::string());
+                        part.src_x = toml_get_int(*part_tbl, "src_x", 0);
+                        part.src_y = toml_get_int(*part_tbl, "src_y", 0);
+                        part.src_w = toml_get_int(*part_tbl, "src_w", 0);
+                        part.src_h = toml_get_int(*part_tbl, "src_h", 0);
+                        part.offset_x = toml_get_int(*part_tbl, "offset_x", 0);
+                        part.offset_y = toml_get_int(*part_tbl, "offset_y", 0);
+                        def.parts.push_back(std::move(part));
+                    }
+                }
                 config.props.emplace(key, def);
             }
         }
