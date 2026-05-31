@@ -206,6 +206,15 @@ void ServerProtocol::send_clan_update(const ClanUpdateEvent& ev) {
     }
 }
 
+void ServerProtocol::send_heal_received(const HealReceivedEvent& ev) {
+    protocol.send_opcode(OpCode::HEAL_RECEIVED);
+    protocol.send_uint16(ev.player_id);
+    protocol.send_uint32(ev.hp_current);
+    protocol.send_uint32(ev.hp_max);
+    protocol.send_uint32(ev.mana_current);
+    protocol.send_uint32(ev.mana_max);
+}
+
 void ServerProtocol::send_event(const ServerEvent& ev) {
     std::visit(overloaded{
                        [this](const LoginOkEvent& msg) { send_login_ok(msg); },
@@ -224,6 +233,7 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                          [this](const ChatMsgEvent& msg) { send_chat_msg(msg); },
                          [this](const ClanNotificationEvent& msg) { send_clan_notification(msg); },
                          [this](const ClanUpdateEvent& msg) { send_clan_update(msg); },
+                         [this](const HealReceivedEvent& msg) { send_heal_received(msg); },
                         [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },
                ev);
