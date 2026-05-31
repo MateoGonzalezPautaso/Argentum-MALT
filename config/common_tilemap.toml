@@ -29,7 +29,7 @@ data = [
         ''
     ],
     [ '', 'arbol16', '', '', '', '', '', '', '', '', '', '', '', 'barriles', '', '', '', '', '', '' ],
-    [ '', '', '', '', '', '', '', '', 'arbol10', '', '', '', '', '', '', '', '', '', '', '' ],
+    [ '', '', '', 'banco', '', 'banquero', '', '', 'arbol10', '', '', '', '', '', '', '', '', '', '', '' ],
     [ 'arbol14', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '' ],
     [ '', 'arbol9', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'entrada_dungeon', '', '', '' ],
     [ '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '' ],
@@ -355,6 +355,52 @@ width = 128
     w = 128
     x = 2
     y = 733
+
+[prop.tiles.banco]
+height = 231
+width = 330
+
+    [prop.tiles.banco.hitbox]
+    h = 77
+    w = 330
+    x = 0
+    y = 154
+
+    [[prop.tiles.banco.parts]]
+    offset_x = 14
+    offset_y = 279
+    path = 'assets/Graficos/5001.png'
+    src_h = 330
+    src_w = 131
+    src_x = 31
+    src_y = 23
+
+    [[prop.tiles.banco.parts]]
+    offset_x = 145
+    offset_y = 279
+    path = 'assets/Graficos/5001.png'
+    src_h = 323
+    src_w = 223
+    src_x = 224
+    src_y = 27
+
+    [[prop.tiles.banco.parts]]
+    offset_x = 368
+    offset_y = 279
+    path = 'assets/Graficos/5001.png'
+    src_h = 331
+    src_w = 133
+    src_x = 509
+    src_y = 22
+
+    [[prop.tiles.banco.parts]]
+    offset_x = 0
+    offset_y = 250
+    path = 'assets/Graficos/5001.png'
+    src_h = 279
+    src_w = 515
+    src_x = 14
+    src_y = 384
 
 [prop.tiles.banderita]
 height = 90
