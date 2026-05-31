@@ -428,6 +428,69 @@ void SpriteRenderer::sort_and_render_drawables(std::vector<Drawable>& drawables)
     }
 }
 
+void SpriteRenderer::load_damage_overlay() {
+    overlays.resize(3);
+    for (auto& ov : overlays) {
+        ov.frames.reserve(5);
+        for (int i = 400; i <= 404; ++i) {
+            std::string path = "assets/Graficos/" + std::to_string(i) + ".png";
+            SDL2pp::Surface surface = texture::load_surface(path);
+            ov.frames.emplace_back(renderer, surface);
+        }
+        ov.frame_ms = 70;
+        ov.dst.SetW(32);
+        ov.dst.SetH(32);
+    }
+}
+
+void SpriteRenderer::trigger_damage_overlay_at(int world_x, int world_y) {
+    for (auto& ov : overlays) {
+        if (ov.active) continue;
+        ov.dst.SetX(world_x - ov.dst.GetW() / 2);
+        ov.dst.SetY(world_y - ov.dst.GetH() / 2);
+        ov.current_frame = 0;
+        ov.last_ticks = SDL_GetTicks();
+        ov.active = true;
+        return;
+    }
+}
+
+bool SpriteRenderer::get_entity_world_position(uint16_t entity_id, int& x, int& y) const {
+    auto it = entity_sprites.find(entity_id);
+    if (it == entity_sprites.end()) return false;
+    for (const auto& part : it->second) {
+        if (part.movable) {
+            x = part.dst.GetX() + part.dst.GetW() / 2;
+            y = part.dst.GetY() + part.dst.GetH() / 2;
+            return true;
+        }
+    }
+    return false;
+}
+
+void SpriteRenderer::tick_overlays(AnimationSystem& anim) {
+    (void)anim;
+    uint32_t now = SDL_GetTicks();
+    for (auto& ov : overlays) {
+        if (!ov.active) continue;
+        if (now - ov.last_ticks < ov.frame_ms) continue;
+        ov.last_ticks = now;
+        ov.current_frame++;
+        if (ov.current_frame >= ov.frames.size()) {
+            ov.active = false;
+        }
+    }
+}
+
+void SpriteRenderer::render_overlays(const SDL2pp::Rect& cam) {
+    for (auto& ov : overlays) {
+        if (!ov.active) continue;
+        SDL2pp::Rect dst(ov.dst.GetX() - cam.GetX(), ov.dst.GetY() - cam.GetY(),
+                         ov.dst.GetW(), ov.dst.GetH());
+        renderer.Copy(ov.frames[ov.current_frame], SDL2pp::NullOpt, dst);
+    }
+}
+
 void SpriteRenderer::tick_animations(AnimationSystem& anim) {
     for (auto& sprite: sprites) {
         anim.tick(sprite);

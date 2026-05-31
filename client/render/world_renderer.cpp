@@ -43,6 +43,7 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig&
     }
 
     sprite_renderer.load_sprites(sprites_config);
+    sprite_renderer.load_damage_overlay();
     sprite_renderer.set_skin_config(skin_config);
 
     if (sprite_renderer.empty()) {
@@ -81,9 +82,11 @@ void WorldRenderer::render() {
     const uint32_t now = SDL_GetTicks();
     anim_system.set_now(now);
     sprite_renderer.tick_animations(anim_system);
+    sprite_renderer.tick_overlays(anim_system);
     prop_renderer.tick_animations(anim_system);
     sprite_renderer.update_anchor_positions();
     sprite_renderer.render(cam);
+    sprite_renderer.render_overlays(cam);
     prop_renderer.render_front(cam, foot_y);
     sprite_renderer.render_entity_names(cam);
 
@@ -117,6 +120,14 @@ void WorldRenderer::move_entity(uint16_t entity_id, int x, int y) {
 
 bool WorldRenderer::get_movable_position(int& x, int& y) const {
     return sprite_renderer.get_movable_position(x, y);
+}
+
+int WorldRenderer::movable_w() const {
+    return sprite_renderer.movable_w();
+}
+
+int WorldRenderer::movable_h() const {
+    return sprite_renderer.movable_h();
 }
 
 void WorldRenderer::get_camera_offset(int& x, int& y) const {
@@ -154,4 +165,12 @@ void WorldRenderer::set_entity_alpha(uint16_t entity_id, uint8_t alpha) {
 
 void WorldRenderer::set_movable_alpha(uint8_t alpha) {
     sprite_renderer.set_movable_alpha(alpha);
+}
+
+void WorldRenderer::trigger_damage_overlay_at(int world_x, int world_y) {
+    sprite_renderer.trigger_damage_overlay_at(world_x, world_y);
+}
+
+bool WorldRenderer::get_entity_world_position(uint16_t entity_id, int& x, int& y) const {
+    return sprite_renderer.get_entity_world_position(entity_id, x, y);
 }

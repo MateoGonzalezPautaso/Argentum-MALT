@@ -31,6 +31,8 @@ public:
     void despawn_entity(uint16_t entity_id);
     void move_entity(uint16_t entity_id, int x, int y);
     bool get_movable_position(int& x, int& y) const;
+    int movable_w() const;
+    int movable_h() const;
     void get_camera_offset(int& x, int& y) const;
     bool screen_to_world(int screen_x, int screen_y, int& world_x, int& world_y) const;
     bool hit_test_entity(int world_x, int world_y, uint16_t& out_entity_id) const;
@@ -42,6 +44,8 @@ public:
     void set_entity_alpha(uint16_t entity_id, uint8_t alpha);
     void set_movable_alpha(uint8_t alpha);
     void set_local_player_info(Race race, PlayerClass player_class);
+    void trigger_damage_overlay_at(int world_x, int world_y);
+    bool get_entity_world_position(uint16_t entity_id, int& x, int& y) const;
     void set_show_hitboxes(bool v) { show_hitboxes_ = v; }
     bool get_show_hitboxes() const { return show_hitboxes_; }
 

@@ -109,11 +109,19 @@ void GameController::handle_entity_despawn(const EntityDespawnEvent& e) {
 }
 
 void GameController::handle_damage_received(const DamageReceivedEvent& e) {
-    if (e.target_id != player_stats.player_id) {
+    if (e.target_id == player_stats.player_id) {
+        player_stats.hp_current = e.hp_current;
+        player_stats.hp_max = e.hp_max;
+    }
+    int wx, wy;
+    if (e.target_id == player_stats.player_id) {
+        world_renderer.get_movable_position(wx, wy);
+        wx += world_renderer.movable_w() / 2;
+        wy += world_renderer.movable_h() / 2;
+    } else if (!world_renderer.get_entity_world_position(e.target_id, wx, wy)) {
         return;
     }
-    player_stats.hp_current = e.hp_current;
-    player_stats.hp_max = e.hp_max;
+    world_renderer.trigger_damage_overlay_at(wx, wy);
 }
 
 void GameController::handle_attack_dodged(const AttackDodgedEvent&) {

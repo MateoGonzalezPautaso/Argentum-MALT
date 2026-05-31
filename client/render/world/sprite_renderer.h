@@ -14,6 +14,16 @@
 
 class AnimationSystem;
 
+struct OverlayEffect {
+    std::vector<SDL2pp::Texture> frames;
+    SDL2pp::Rect dst;
+    bool animated = true;
+    uint32_t frame_ms = 70;
+    std::size_t current_frame = 0;
+    uint32_t last_ticks = 0;
+    bool active = false;
+};
+
 class SpriteRenderer {
 public:
     SpriteRenderer(SDL2pp::Renderer& renderer, TTF_Font* name_font, int window_w, int window_h,
@@ -47,6 +57,12 @@ public:
     void tick_animations(AnimationSystem& anim);
 
     bool hit_test_entity(int world_x, int world_y, uint16_t& out_entity_id) const;
+
+    void load_damage_overlay();
+    void trigger_damage_overlay_at(int world_x, int world_y);
+    bool get_entity_world_position(uint16_t entity_id, int& x, int& y) const;
+    void tick_overlays(AnimationSystem& anim);
+    void render_overlays(const SDL2pp::Rect& cam);
 
     bool empty() const { return sprites.empty(); }
     int movable_x() const;
@@ -112,6 +128,7 @@ private:
     std::unordered_map<uint16_t, std::vector<SpriteRender>> entity_sprites;
     std::unordered_map<uint16_t, EntityNameRender> entity_name_render;
     SkinConfig skin_config;
+    std::vector<OverlayEffect> overlays;
     int window_w;
     int window_h;
     bool has_tilemap;
