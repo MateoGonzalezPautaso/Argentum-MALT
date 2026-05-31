@@ -207,11 +207,13 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
 
         Player player(player_id, cmd.username, Position{rec.pos_x, rec.pos_y},
                       static_cast<Direction>(rec.dir), static_cast<Race>(rec.race),
-                      static_cast<PlayerClass>(rec.player_class), balance,
-                      rec.level, rec.experience,
-                      rec.hp_current, rec.hp_max,
-                      rec.mana_current, rec.mana_max,
-                      rec.gold);
+                       static_cast<PlayerClass>(rec.player_class), balance,
+                       rec.level, rec.experience,
+                       rec.hp_current, rec.hp_max,
+                       rec.mana_current, rec.mana_max,
+                       rec.gold);
+
+        player.set_current_map(rec.get_current_map());
 
         // Set clan membership
         std::string clan_name = clan_manager.get_clan_name(cmd.username);

@@ -15,6 +15,18 @@ PlayerRecord::PlayerRecord() {
     mana_current = 0;
     mana_max = 0;
     gold = 0;
+    std::memset(current_map, 0, sizeof(current_map));
+}
+
+void PlayerRecord::set_current_map(const std::string& name) {
+    std::strncpy(current_map, name.c_str(), MAP_NAME_MAX - 1);
+    current_map[MAP_NAME_MAX - 1] = '\0';
+}
+
+std::string PlayerRecord::get_current_map() const {
+    if (current_map[0] == '\0')
+        return "main";
+    return std::string(current_map, std::strlen(current_map));
 }
 
 void PlayerRecord::set_username(const std::string& name) {

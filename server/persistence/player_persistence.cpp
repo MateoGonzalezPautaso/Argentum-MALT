@@ -131,5 +131,6 @@ void PlayerPersistence::save(const Player& player) {
     rec.mana_current = player.get_mana_current();
     rec.mana_max = player.get_mana_max();
     rec.gold = player.get_gold();
+    rec.set_current_map(player.get_current_map());
     save(player.get_username(), rec);
 }
