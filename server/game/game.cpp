@@ -147,8 +147,7 @@ CommandResult Game::apply_regen() {
         }
 
         if (changed) {
-            HealReceivedEvent ev{id, player.get_hp_current(), player.get_hp_max(),
-                                 player.get_mana_current(), player.get_mana_max()};
+            HealReceivedEvent ev{id, player.get_hp_current(), player.get_mana_current()};
             result.broadcast_events.push_back(ev);
         }
     }

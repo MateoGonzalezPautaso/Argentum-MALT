@@ -210,9 +210,7 @@ void ServerProtocol::send_heal_received(const HealReceivedEvent& ev) {
     protocol.send_opcode(OpCode::HEAL_RECEIVED);
     protocol.send_uint16(ev.player_id);
     protocol.send_uint32(ev.hp_current);
-    protocol.send_uint32(ev.hp_max);
     protocol.send_uint32(ev.mana_current);
-    protocol.send_uint32(ev.mana_max);
 }
 
 void ServerProtocol::send_event(const ServerEvent& ev) {

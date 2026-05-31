@@ -397,9 +397,7 @@ struct ServerMsgEvent {};
 struct HealReceivedEvent {
     uint16_t player_id;
     uint32_t hp_current;
-    uint32_t hp_max;
     uint32_t mana_current;
-    uint32_t mana_max;
 };
 
 /*
