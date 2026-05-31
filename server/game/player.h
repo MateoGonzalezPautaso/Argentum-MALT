@@ -78,6 +78,7 @@ public:
     void level_up();
     void take_damage(uint32_t damage);
     void heal(uint32_t amount);
+    void restore_mana(uint32_t amount);
     void use_mana(uint32_t amount);
     void gain_gold(uint32_t amount);
     void spend_gold(uint32_t amount);
