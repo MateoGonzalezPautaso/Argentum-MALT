@@ -182,10 +182,13 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
             return true;
         }
         if (click.button == Qt::RightButton) {
-            doc_.set_tile(click.row, click.col, "");
-            doc_.set_prop(click.row, click.col, "");
-            renderer_->update_tile(click.row, click.col, "", doc_, show_walkable_overlay_);
-            renderer_->update_prop(click.row, click.col, "", doc_);
+            if (!doc_.prop_name(click.row, click.col).empty()) {
+                doc_.set_prop(click.row, click.col, "");
+                renderer_->update_prop(click.row, click.col, "", doc_);
+            } else {
+                doc_.set_tile(click.row, click.col, "");
+                renderer_->update_tile(click.row, click.col, "", doc_, show_walkable_overlay_);
+            }
             return true;
         }
     }
