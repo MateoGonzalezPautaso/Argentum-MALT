@@ -393,6 +393,15 @@ struct ClanUpdateEvent {
 // 0x9B
 struct ServerMsgEvent {};
 
+// 0x9C
+struct HealReceivedEvent {
+    uint16_t player_id;
+    uint32_t hp_current;
+    uint32_t hp_max;
+    uint32_t mana_current;
+    uint32_t mana_max;
+};
+
 /*
  * ServerEvent es la variante que engloba todos los eventos.
  * El cliente hace std::visit sobre esta variante para renderizar/actualizar estado.
@@ -405,6 +414,6 @@ using ServerEvent =
                      MeditationStopEvent, InventoryUpdateEvent, EquipUpdateEvent, GoldUpdateEvent,
                      ItemDroppedEvent, ItemPickedEvent, NpcItemListEvent, TransactionOkEvent,
                      TransactionErrorEvent, ChatMsgEvent, ClanNotificationEvent, ClanUpdateEvent,
-                     ServerMsgEvent>;
+                     ServerMsgEvent, HealReceivedEvent>;
 
 #endif  // MESSAGES_H_
