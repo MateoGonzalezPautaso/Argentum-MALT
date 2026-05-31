@@ -4,11 +4,11 @@ data = [
     [ '', '', '', 'tienda2', 'comerciante', '', '', '', '', 'arbol13', '', '', '', 'arbol11', '' ],
     [ '', 'pozo', '', '', '', 'arbol1', 'windmill', 'arbol16', '', '', '', '', '', '', '' ],
     [ '', '', '', '', '', 'carretilla', '', '', '', '', '', '', '', '', '' ],
-    [ '', '', '', '', '', '', '', '', 'tienda1', '', '', '', '', '', '' ],
+    [ '', '', '', '', '', '', '', 'banquero', 'tienda1', '', '', '', '', '', '' ],
     [ 'arbol5', '', '', '', '', '', '', '', '', '', '', '', '', '', '' ],
     [ '', '', '', '', '', '', '', '', 'arbol11', '', 'arbol1', '', '', '', '' ],
     [ '', 'arbol16', 'arbol8', '', '', '', '', '', '', '', '', '', '', 'barriles', '' ],
-    [ 'comerciante', '', '', '', '', 'sacerdote', '', '', 'arbol10', '', '', '', '', '', '' ],
+    [ 'comerciante', 'banquero', '', '', '', 'sacerdote', '', '', 'arbol10', '', '', '', '', '', '' ],
     [ 'arbol14', '', '', 'arbol16', '', '', '', '', '', '', '', '', '', '', '' ]
 ]
 
@@ -300,6 +300,34 @@ width = 70
     w = 88
     x = 896
     y = 268
+
+[prop.tiles.banquero]
+height = 68
+width = 27
+
+    [prop.tiles.banquero.hitbox]
+    h = 20
+    w = 30
+    x = 0
+    y = 55
+
+    [[prop.tiles.banquero.parts]]
+    offset_x = 0
+    offset_y = 20
+    path = 'assets/Graficos/1689.png'
+    src_h = 48
+    src_w = 27
+    src_x = 0
+    src_y = 0
+
+    [[prop.tiles.banquero.parts]]
+    offset_x = 0
+    offset_y = 0
+    path = 'assets/Graficos/420.png'
+    src_h = 64
+    src_w = 27
+    src_x = 27
+    src_y = 256
 
 [prop.tiles.barriles]
 height = 90
