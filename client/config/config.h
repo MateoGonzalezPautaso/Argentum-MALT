@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "../../common/config.h"
@@ -195,6 +196,7 @@ struct ClientConfig {
     WindowConfig window;
     BackgroundConfig background;
     TilemapConfig tilemap;
+    std::unordered_map<std::string, TilemapConfig> tilemap_configs;
     std::vector<SpriteConfig> sprites;
     SkinConfig skins;
     FontConfig font;

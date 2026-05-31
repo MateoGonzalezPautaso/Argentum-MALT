@@ -23,7 +23,8 @@ private:
     PlayerPersistence& persistence;
     ClanManager clan_manager;
     ClanCommandHandler clan_handler;
-    Map map;
+    std::unordered_map<std::string, TilemapConfig> tilemap_configs;
+    std::unordered_map<std::string, Map> maps;
     int move_step;
     int sprite_width;
     int sprite_height;
@@ -47,14 +48,31 @@ private:
     CommandResult handle_cheat_die(uint16_t player_id);
     CommandResult handle_cheat_level_up(uint16_t player_id);
     CommandResult handle_cheat_level_down(uint16_t player_id);
+    CommandResult handle_change_map(uint16_t player_id, const ChangeMapCmd& cmd);
     CommandResult handle_resurrect(uint16_t player_id);
     CommandResult handle_meditate(uint16_t player_id);
     bool is_username_logged_in(const std::string& username) const;
     LoginOkEvent make_login_ok(const Player& p) const;
     EntitySpawnEvent make_entity_spawn(const Player& p) const;
     std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id) const;
+    std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id, const std::string& map_name) const;
+    Map& player_map(const Player& p);
+    const Map& player_map(const Player& p) const;
+    bool try_map_transition(Player& player, CommandResult& result);
+    void do_transition(Player& player, CommandResult& result, const PropDef& prop,
+                       const std::string& old_map_name);
+
+    Position compute_spawn_position(const TilemapConfig& dest_cfg, const PropDef& prop) const;
+    void despawn_player(CommandResult& result, uint16_t player_id,
+                        const std::string& old_map_name) const;
+    void notify_player_transition(CommandResult& result, const Player& player,
+                                  const std::string& map_name, Position spawn) const;
+    void notify_others_spawn(CommandResult& result, const Player& player,
+                             const std::string& map_name) const;
 
 public:
+    std::string get_player_map_name(uint16_t player_id) const;
+    std::vector<uint16_t> get_player_ids_on_map(const std::string& map_name) const;
     explicit Game(const ServerConfig& config, PlayerPersistence& persistence,
                   ClanPersistence& clan_persistence);
 

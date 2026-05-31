@@ -51,6 +51,25 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig&
     }
 }
 
+void WorldRenderer::load_map(const TilemapConfig& tilemap) {
+    tilemap_renderer.load(tilemap);
+
+    const bool has_tm = tilemap_renderer.is_loaded();
+    const int mpw = tilemap_renderer.pixel_width();
+    const int mph = tilemap_renderer.pixel_height();
+
+    camera.reconfigure(mpw, mph, has_tm);
+    sprite_renderer.set_map_bounds(has_tm, mpw, mph);
+
+    if (has_tm) {
+        prop_renderer.load(tilemap, tilemap_renderer.tile_size());
+    }
+}
+
+void WorldRenderer::clear_entities() {
+    sprite_renderer.clear_all_entities();
+}
+
 WorldRenderer::~WorldRenderer() {
     if (name_font) {
         TTF_CloseFont(name_font);

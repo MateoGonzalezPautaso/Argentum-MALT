@@ -37,6 +37,7 @@ public:
     void send_clan_notification(const ClanNotificationEvent& ev);
     void send_clan_update(const ClanUpdateEvent& ev);
     void send_server_msg(const ServerMsgEvent& ev);
+    void send_map_transition(const MapTransitionEvent& ev);
     void send_heal_received(const HealReceivedEvent& ev);
 
     // Envía cualquier evento usando std::visit.
@@ -63,6 +64,7 @@ private:
     ClientCommand recv_move();
     ClientCommand recv_attack();
     ClientCommand recv_send_chat_msg();
+    ClientCommand recv_change_map();
     // TODO ...
 };
 

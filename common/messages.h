@@ -230,6 +230,10 @@ struct CheatDieCmd {};
 struct CheatLevelUpCmd {};
 struct CheatLevelDownCmd {};
 
+struct ChangeMapCmd {
+    std::string prop_name;
+};
+
 /*
  * ClientCommand es la variante que engloba todos los comandos.
  * El GameLoop hace std::visit sobre esta variante para despacharlos.
@@ -241,7 +245,7 @@ using ClientCommand =
                      PrivateMsgCmd, SendChatMsgCmd, ClanFoundCmd, ClanJoinRequestCmd, ClanReviewCmd,
                      ClanAcceptCmd, ClanRejectCmd, ClanBanCmd, ClanKickCmd, ClanLeaveCmd,
                      CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd,
-                     CheatLevelUpCmd, CheatLevelDownCmd>;
+                     CheatLevelUpCmd, CheatLevelDownCmd, ChangeMapCmd>;
 
 // ---------------------------------------------------------------------------
 // Eventos: Servidor -> Cliente (sección 3.2 y 5 de protocol.md)
@@ -394,6 +398,10 @@ struct ClanUpdateEvent {
 struct ServerMsgEvent {};
 
 // 0x9C
+struct MapTransitionEvent {
+    std::string map_name;
+    uint16_t pos_x;
+    uint16_t pos_y;
 struct HealReceivedEvent {
     uint16_t player_id;
     uint32_t hp_current;
@@ -412,6 +420,6 @@ using ServerEvent =
                      MeditationStopEvent, InventoryUpdateEvent, EquipUpdateEvent, GoldUpdateEvent,
                      ItemDroppedEvent, ItemPickedEvent, NpcItemListEvent, TransactionOkEvent,
                      TransactionErrorEvent, ChatMsgEvent, ClanNotificationEvent, ClanUpdateEvent,
-                     ServerMsgEvent, HealReceivedEvent>;
+                     ServerMsgEvent, MapTransitionEvent, HealReceivedEvent>;
 
 #endif  // MESSAGES_H_

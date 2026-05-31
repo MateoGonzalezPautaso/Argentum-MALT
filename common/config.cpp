@@ -155,6 +155,9 @@ void parse_prop_config(const toml::table& root, TilemapConfig& config) {
                         def.parts.push_back(std::move(part));
                     }
                 }
+                def.transition_map = toml_get_string(*tbl, "transition_map", std::string());
+                def.transition_x = toml_get_int(*tbl, "transition_x", def.transition_x);
+                def.transition_y = toml_get_int(*tbl, "transition_y", def.transition_y);
                 config.props.emplace(key, def);
             }
         }
@@ -178,4 +181,28 @@ void parse_prop_config(const toml::table& root, TilemapConfig& config) {
             }
         }
     }
+}
+
+std::unordered_map<std::string, TilemapConfig> load_all_map_configs(const std::string& map_list_path) {
+    toml::table root = toml::parse_file(map_list_path);
+    std::unordered_map<std::string, TilemapConfig> result;
+
+    if (auto maps = root["maps"].as_array()) {
+        for (const auto& entry: *maps) {
+            const auto* tbl = entry.as_table();
+            if (!tbl) continue;
+
+            std::string name = toml_get_string(*tbl, "name", std::string());
+            std::string path = toml_get_string(*tbl, "path", std::string());
+            if (name.empty() || path.empty()) continue;
+
+            toml::table map_root = toml::parse_file(path);
+            TilemapConfig cfg;
+            parse_tilemap_config(map_root, cfg);
+            parse_prop_config(map_root, cfg);
+            result.emplace(name, std::move(cfg));
+        }
+    }
+
+    return result;
 }

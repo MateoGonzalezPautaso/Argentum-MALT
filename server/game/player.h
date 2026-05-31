@@ -29,6 +29,7 @@ private:
     bool cheat_infinite_hp = false;
     bool cheat_infinite_mana = false;
     std::string clan_name;
+    std::string current_map = "main";
 
 public:
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
@@ -61,6 +62,9 @@ public:
     const std::string& get_clan_name() const { return clan_name; }
     void set_clan_name(const std::string& name) { clan_name = name; }
 
+    const std::string& get_current_map() const { return current_map; }
+    void set_current_map(const std::string& m) { current_map = m; }
+
     bool get_is_meditating() const { return is_meditating; }
     void set_meditating(bool val) { is_meditating = val; }
 
@@ -73,6 +77,7 @@ public:
     bool is_ghost() const;
 
     void apply_move(Direction new_dir, int dx, int dy);
+    void set_pos(uint16_t x, uint16_t y) { pos = {x, y}; }
     void resurrect();
     void gain_experience(uint32_t exp);
     void level_up();

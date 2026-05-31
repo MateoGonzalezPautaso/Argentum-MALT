@@ -43,6 +43,9 @@ struct PropDef {
     uint32_t frame_ms = 0;
     HitboxDef hitbox;
     std::vector<PropPartDef> parts;
+    std::string transition_map;
+    int transition_x = 0;
+    int transition_y = 0;
 };
 
 struct TilemapConfig {
@@ -63,5 +66,6 @@ double toml_get_double(const toml::table& tbl, const char* key, double fallback)
 std::vector<std::vector<std::string>> parse_map_grid(const toml::table& tbl);
 void parse_tilemap_config(const toml::table& root, TilemapConfig& config);
 void parse_prop_config(const toml::table& root, TilemapConfig& config);
+std::unordered_map<std::string, TilemapConfig> load_all_map_configs(const std::string& map_list_path);
 
 #endif  // COMMON_CONFIG_H

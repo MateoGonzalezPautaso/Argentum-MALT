@@ -40,6 +40,7 @@ enum class OpCode : uint8_t {
     SEND_CHAT = 0x1E,
     CHEAT_LEVEL_UP = 0x1F,
     CHEAT_LEVEL_DOWN = 0x20,
+    CHANGE_MAP = 0x21,
     // Events (server -> client) 0x80 - 0x9B
     LOGIN_OK = 0x80,
     LOGIN_ERROR = 0x81,
@@ -70,6 +71,7 @@ enum class OpCode : uint8_t {
     CLAN_UPDATE = 0x9A,
     SERVER_MSG = 0x9B,
     HEAL_RECEIVED = 0x9C,
+    MAP_TRANSITION = 0x9D,
 };
 
 class Protocol {

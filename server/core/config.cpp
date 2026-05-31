@@ -17,14 +17,17 @@ ServerConfig load_server_config(const std::string& path) {
         config.tick_rate_hz = toml_get_int(*server, "tick_rate_hz", config.tick_rate_hz);
     }
 
-    {
-        toml::table tilemap_tbl = toml::parse_file("config/common_tilemap.toml");
-        parse_tilemap_config(tilemap_tbl, config.tilemap);
-        parse_prop_config(tilemap_tbl, config.tilemap);
+    config.tilemap_configs = load_all_map_configs("config/map_list.toml");
+
+    if (config.tilemap_configs.empty()) {
+        throw std::runtime_error("server config requires at least one map in map_list.toml");
     }
 
-    if (config.tilemap.mapa.empty()) {
-        throw std::runtime_error("server config requires a tilemap with 'mapa'");
+    auto main_it = config.tilemap_configs.find("main");
+    if (main_it != config.tilemap_configs.end()) {
+        config.tilemap = main_it->second;
+    } else {
+        config.tilemap = config.tilemap_configs.begin()->second;
     }
 
     if (auto movement = root["movement"].as_table()) {

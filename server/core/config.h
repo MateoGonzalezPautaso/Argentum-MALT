@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 
 #include "../../common/config.h"
 
@@ -52,6 +53,7 @@ struct ServerConfig {
     uint16_t port = 1234;
     int tick_rate_hz = 20;
     TilemapConfig tilemap;
+    std::unordered_map<std::string, TilemapConfig> tilemap_configs;
     int move_step = 4;
     int sprite_width = 27;
     int sprite_height = 48;
