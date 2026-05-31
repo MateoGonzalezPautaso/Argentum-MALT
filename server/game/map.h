@@ -2,6 +2,7 @@
 #define SERVER_MAP_H
 
 #include "../../common/config.h"
+#include "prop_grid.h"
 
 class Map {
 public:
@@ -12,6 +13,7 @@ public:
     int tile_size() const { return tilemap_->tile_size; }
 
     const TilemapConfig& config() const { return *tilemap_; }
+    const PropGrid& prop_grid() const { return prop_grid_; }
 
     int clamp_x(int x, int entity_w) const;
     int clamp_y(int y, int entity_h) const;
@@ -20,6 +22,7 @@ public:
 
 private:
     const TilemapConfig* tilemap_;
+    PropGrid prop_grid_;
     int map_px_w;
     int map_px_h;
 };

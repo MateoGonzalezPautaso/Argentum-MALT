@@ -560,38 +560,16 @@ bool Game::try_map_transition(Player& player, CommandResult& result) {
     auto map_it = maps.find(old_map_name);
     if (map_it == maps.end())
         return false;
-    const TilemapConfig& cfg = map_it->second.config();
+
     const int foot_x = static_cast<int>(player.pos_x()) + sprite_width / 2;
     const int foot_y = static_cast<int>(player.pos_y()) + sprite_height;
 
-    for (std::size_t r = 0; r < cfg.prop_map.size(); ++r) {
-        for (std::size_t c = 0; c < cfg.prop_map[r].size(); ++c) {
-            const auto& prop_name = cfg.prop_map[r][c];
-            if (prop_name.empty()) continue;
+    const PropDef* prop = map_it->second.prop_grid().find_transition_at(foot_x, foot_y);
+    if (!prop)
+        return false;
 
-            auto prop_it = cfg.props.find(prop_name);
-            if (prop_it == cfg.props.end()) continue;
-
-            const auto& prop = prop_it->second;
-            if (prop.transition_map.empty()) continue;
-
-            int prop_x = static_cast<int>(c) * cfg.tile_size;
-            int prop_y = (static_cast<int>(r) + 1) * cfg.tile_size - prop.height;
-
-            int hb_left = prop_x + prop.hitbox.x;
-            int hb_top = prop_y + prop.hitbox.y;
-            int hb_right = hb_left + prop.hitbox.w;
-            int hb_bottom = hb_top + prop.hitbox.h;
-
-            if (foot_x >= hb_left && foot_x < hb_right &&
-                foot_y >= hb_top && foot_y < hb_bottom) {
-
-                do_transition(player, result, prop, old_map_name);
-                return true;
-            }
-        }
-    }
-    return false;
+    do_transition(player, result, *prop, old_map_name);
+    return true;
 }
 
 void Game::do_transition(Player& player, CommandResult& result, const PropDef& prop,
@@ -627,7 +605,7 @@ void Game::do_transition(Player& player, CommandResult& result, const PropDef& p
     });
 
     // Send existing spawns on new map to the player
-    std::vector<ServerEvent> others = make_existing_spawns(player.get_id());
+    std::vector<ServerEvent> others = make_existing_spawns(player.get_id(), prop.transition_map);
     result.private_events.insert(result.private_events.end(), others.begin(), others.end());
 
     // Spawn player on new map for other players there
@@ -651,7 +629,6 @@ CommandResult Game::handle_change_map(uint16_t player_id, const ChangeMapCmd& cm
 
     const TilemapConfig& cfg = map_it->second.config();
 
-    // Find the prop definition
     auto prop_it = cfg.props.find(cmd.prop_name);
     if (prop_it == cfg.props.end())
         return {};
@@ -660,27 +637,11 @@ CommandResult Game::handle_change_map(uint16_t player_id, const ChangeMapCmd& cm
     if (prop.transition_map.empty())
         return {};
 
-    // Validate player is within interaction range (3 tiles) of any placement of this prop
     const int range = cfg.tile_size * 3;
     const int px = static_cast<int>(player.pos_x());
     const int py = static_cast<int>(player.pos_y());
-    bool in_range = false;
 
-    for (std::size_t r = 0; r < cfg.prop_map.size() && !in_range; ++r) {
-        for (std::size_t c = 0; c < cfg.prop_map[r].size() && !in_range; ++c) {
-            if (cfg.prop_map[r][c] != cmd.prop_name) continue;
-
-            int prop_x = static_cast<int>(c) * cfg.tile_size;
-            int prop_y = (static_cast<int>(r) + 1) * cfg.tile_size - prop.height;
-            int center_x = prop_x + prop.width / 2;
-            int center_y = prop_y + prop.height / 2;
-
-            if (std::abs(px - center_x) < range && std::abs(py - center_y) < range)
-                in_range = true;
-        }
-    }
-
-    if (!in_range)
+    if (!map_it->second.prop_grid().is_in_range_of(cmd.prop_name, px, py, range))
         return {};
 
     CommandResult result;
