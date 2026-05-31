@@ -373,6 +373,12 @@ width = 120
 height = 68
 width = 27
 
+    [prop.tiles.sacerdote.hitbox]
+    h = 20
+    w = 30
+    x = 0
+    y = 55
+
     [[prop.tiles.sacerdote.parts]]
     offset_x = 0
     offset_y = 20
