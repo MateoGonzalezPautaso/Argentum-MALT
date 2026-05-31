@@ -84,8 +84,9 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                                [&](const CheatInfiniteManaCmd&) { return handle_cheat_infinite_mana(player_id); },
                                [&](const CheatDieCmd&) { return handle_cheat_die(player_id); },
                                [&](const CheatLevelUpCmd&) { return handle_cheat_level_up(player_id); },
-                               [&](const CheatLevelDownCmd&) { return handle_cheat_level_down(player_id); },
-                               [](const auto&) { return CommandResult{}; },
+                                [&](const CheatLevelDownCmd&) { return handle_cheat_level_down(player_id); },
+                                [&](const ChangeMapCmd& cmd) { return handle_change_map(player_id, cmd); },
+                                [](const auto&) { return CommandResult{}; },
                        },
                        cmd);
 }
@@ -214,6 +215,8 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
                        rec.gold);
 
         player.set_current_map(rec.get_current_map());
+        if (maps.find(player.get_current_map()) == maps.end())
+            player.set_current_map("main");
 
         // Set clan membership
         std::string clan_name = clan_manager.get_clan_name(cmd.username);
@@ -545,7 +548,10 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
 
 bool Game::try_map_transition(Player& player, CommandResult& result) {
     const std::string old_map_name = player.get_current_map();
-    const TilemapConfig& cfg = maps.at(old_map_name).config();
+    auto map_it = maps.find(old_map_name);
+    if (map_it == maps.end())
+        return false;
+    const TilemapConfig& cfg = map_it->second.config();
     const int foot_x = static_cast<int>(player.pos_x()) + sprite_width / 2;
     const int foot_y = static_cast<int>(player.pos_y()) + sprite_height;
 
@@ -571,47 +577,102 @@ bool Game::try_map_transition(Player& player, CommandResult& result) {
             if (foot_x >= hb_left && foot_x < hb_right &&
                 foot_y >= hb_top && foot_y < hb_bottom) {
 
-                auto dest_it = maps.find(prop.transition_map);
-                if (dest_it == maps.end()) continue;
-
-                // Despawn on old map
-                EntityDespawnEvent despawn{.entity_id = player.get_id()};
-                for (uint16_t pid : get_player_ids_on_map(old_map_name)) {
-                    if (pid == player.get_id()) continue;
-                    result.targeted_events[pid].push_back(despawn);
-                }
-
-                int spawn_x = prop.transition_x;
-                int spawn_y = prop.transition_y;
-                if (spawn_x == 0 && spawn_y == 0) {
-                    spawn_x = cfg.tile_size * 2;
-                    spawn_y = cfg.tile_size * 2;
-                }
-
-                player.set_current_map(prop.transition_map);
-                player.set_pos(static_cast<uint16_t>(spawn_x),
-                               static_cast<uint16_t>(spawn_y));
-
-                result.private_events.push_back(MapTransitionEvent{
-                    .map_name = prop.transition_map,
-                    .pos_x = static_cast<uint16_t>(spawn_x),
-                    .pos_y = static_cast<uint16_t>(spawn_y),
-                });
-
-                // Send existing spawns on new map to the player
-                std::vector<ServerEvent> others = make_existing_spawns(player.get_id());
-                result.private_events.insert(result.private_events.end(), others.begin(), others.end());
-
-                // Spawn player on new map for other players there
-                EntitySpawnEvent spawn = make_entity_spawn(player);
-                for (uint16_t pid : get_player_ids_on_map(prop.transition_map)) {
-                    if (pid == player.get_id()) continue;
-                    result.targeted_events[pid].push_back(spawn);
-                }
-
+                do_transition(player, result, prop, old_map_name);
                 return true;
             }
         }
     }
     return false;
+}
+
+void Game::do_transition(Player& player, CommandResult& result, const PropDef& prop,
+                         const std::string& old_map_name) {
+    auto dest_it = maps.find(prop.transition_map);
+    if (dest_it == maps.end()) return;
+
+    // Despawn on old map
+    EntityDespawnEvent despawn{.entity_id = player.get_id()};
+    for (uint16_t pid : get_player_ids_on_map(old_map_name)) {
+        if (pid == player.get_id()) continue;
+        result.targeted_events[pid].push_back(despawn);
+    }
+
+    const TilemapConfig& cfg = dest_it->second.config();
+    int spawn_x = prop.transition_x;
+    int spawn_y = prop.transition_y;
+    if (spawn_x == 0 && spawn_y == 0) {
+        spawn_x = cfg.tile_size * 2;
+        spawn_y = cfg.tile_size * 2;
+    }
+
+    player.set_current_map(prop.transition_map);
+    player.set_pos(static_cast<uint16_t>(spawn_x),
+                   static_cast<uint16_t>(spawn_y));
+
+    result.private_events.push_back(MapTransitionEvent{
+        .map_name = prop.transition_map,
+        .pos_x = static_cast<uint16_t>(spawn_x),
+        .pos_y = static_cast<uint16_t>(spawn_y),
+    });
+
+    // Send existing spawns on new map to the player
+    std::vector<ServerEvent> others = make_existing_spawns(player.get_id());
+    result.private_events.insert(result.private_events.end(), others.begin(), others.end());
+
+    // Spawn player on new map for other players there
+    EntitySpawnEvent spawn = make_entity_spawn(player);
+    for (uint16_t pid : get_player_ids_on_map(prop.transition_map)) {
+        if (pid == player.get_id()) continue;
+        result.targeted_events[pid].push_back(spawn);
+    }
+}
+
+CommandResult Game::handle_change_map(uint16_t player_id, const ChangeMapCmd& cmd) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+
+    Player& player = it->second;
+    const std::string& old_map_name = player.get_current_map();
+    auto map_it = maps.find(old_map_name);
+    if (map_it == maps.end())
+        return {};
+
+    const TilemapConfig& cfg = map_it->second.config();
+
+    // Find the prop definition
+    auto prop_it = cfg.props.find(cmd.prop_name);
+    if (prop_it == cfg.props.end())
+        return {};
+
+    const PropDef& prop = prop_it->second;
+    if (prop.transition_map.empty())
+        return {};
+
+    // Validate player is within interaction range (3 tiles) of any placement of this prop
+    const int range = cfg.tile_size * 3;
+    const int px = static_cast<int>(player.pos_x());
+    const int py = static_cast<int>(player.pos_y());
+    bool in_range = false;
+
+    for (std::size_t r = 0; r < cfg.prop_map.size() && !in_range; ++r) {
+        for (std::size_t c = 0; c < cfg.prop_map[r].size() && !in_range; ++c) {
+            if (cfg.prop_map[r][c] != cmd.prop_name) continue;
+
+            int prop_x = static_cast<int>(c) * cfg.tile_size;
+            int prop_y = (static_cast<int>(r) + 1) * cfg.tile_size - prop.height;
+            int center_x = prop_x + prop.width / 2;
+            int center_y = prop_y + prop.height / 2;
+
+            if (std::abs(px - center_x) < range && std::abs(py - center_y) < range)
+                in_range = true;
+        }
+    }
+
+    if (!in_range)
+        return {};
+
+    CommandResult result;
+    do_transition(player, result, prop, old_map_name);
+    return result;
 }

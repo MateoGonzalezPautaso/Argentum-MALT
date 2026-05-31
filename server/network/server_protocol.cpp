@@ -41,6 +41,8 @@ ClientCommand ServerProtocol::recv_command() {
             return CheatLevelUpCmd{};
         case OpCode::CHEAT_LEVEL_DOWN:
             return CheatLevelDownCmd{};
+        case OpCode::CHANGE_MAP:
+            return recv_change_map();
         default:
             throw std::runtime_error("Unknown command opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
@@ -76,6 +78,12 @@ ClientCommand ServerProtocol::recv_attack() {
 ClientCommand ServerProtocol::recv_send_chat_msg() {
     SendChatMsgCmd cmd;
     cmd.text = protocol.recv_str();
+    return cmd;
+}
+
+ClientCommand ServerProtocol::recv_change_map() {
+    ChangeMapCmd cmd;
+    cmd.prop_name = protocol.recv_str();
     return cmd;
 }
 

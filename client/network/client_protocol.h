@@ -45,6 +45,7 @@ public:
     void send_cheat_die();
     void send_cheat_level_up();
     void send_cheat_level_down();
+    void send_change_map(const ChangeMapCmd& cmd);
 
     // Envía cualquier comando usando std::visit.
     void send_command(const ClientCommand& cmd);

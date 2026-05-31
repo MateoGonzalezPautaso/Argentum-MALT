@@ -230,6 +230,10 @@ struct CheatDieCmd {};
 struct CheatLevelUpCmd {};
 struct CheatLevelDownCmd {};
 
+struct ChangeMapCmd {
+    std::string prop_name;
+};
+
 /*
  * ClientCommand es la variante que engloba todos los comandos.
  * El GameLoop hace std::visit sobre esta variante para despacharlos.
@@ -241,7 +245,7 @@ using ClientCommand =
                      PrivateMsgCmd, SendChatMsgCmd, ClanFoundCmd, ClanJoinRequestCmd, ClanReviewCmd,
                      ClanAcceptCmd, ClanRejectCmd, ClanBanCmd, ClanKickCmd, ClanLeaveCmd,
                      CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd,
-                     CheatLevelUpCmd, CheatLevelDownCmd>;
+                     CheatLevelUpCmd, CheatLevelDownCmd, ChangeMapCmd>;
 
 // ---------------------------------------------------------------------------
 // Eventos: Servidor -> Cliente (sección 3.2 y 5 de protocol.md)

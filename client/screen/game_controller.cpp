@@ -135,6 +135,8 @@ void GameController::interact_with_prop(const std::string& prop_name) {
         chat_history.add_message(ChatMsgType::SYSTEM, "", "Banquero: El que deposita dolares, recibira dolares...");
     } else if (prop_name == "sanadora") {
         chat_history.add_message(ChatMsgType::SYSTEM, "", "Sanadora: Dejame ver esa herida.");
+    } else {
+        command_queue.push(ChangeMapCmd{prop_name});
     }
 }
 

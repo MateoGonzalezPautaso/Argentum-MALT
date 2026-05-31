@@ -42,6 +42,7 @@ private:
     CommandResult handle_cheat_die(uint16_t player_id);
     CommandResult handle_cheat_level_up(uint16_t player_id);
     CommandResult handle_cheat_level_down(uint16_t player_id);
+    CommandResult handle_change_map(uint16_t player_id, const ChangeMapCmd& cmd);
     CommandResult handle_resurrect(uint16_t player_id);
     CommandResult handle_meditate(uint16_t player_id);
     bool is_username_logged_in(const std::string& username) const;
@@ -52,6 +53,8 @@ private:
     Map& player_map(const Player& p);
     const Map& player_map(const Player& p) const;
     bool try_map_transition(Player& player, CommandResult& result);
+    void do_transition(Player& player, CommandResult& result, const PropDef& prop,
+                       const std::string& old_map_name);
 
 public:
     std::string get_player_map_name(uint16_t player_id) const;

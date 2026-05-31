@@ -63,6 +63,7 @@ private:
     ClientCommand recv_move();
     ClientCommand recv_attack();
     ClientCommand recv_send_chat_msg();
+    ClientCommand recv_change_map();
     // TODO ...
 };
 

@@ -41,8 +41,6 @@ void GameLoop::run() {
                 // Send map_events to all players on the same map as the command originator
                 std::string origin_map = game.get_player_map_name(pcmd.player_id);
                 for (uint16_t pid: game.get_player_ids_on_map(origin_map)) {
-                    if (pid == pcmd.player_id)
-                        continue;
                     for (const ServerEvent& ev: result.map_events)
                         monitor.push_event(pid, ev);
                 }

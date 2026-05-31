@@ -23,7 +23,12 @@ ServerConfig load_server_config(const std::string& path) {
         throw std::runtime_error("server config requires at least one map in map_list.toml");
     }
 
-    config.tilemap = config.tilemap_configs.begin()->second;
+    auto main_it = config.tilemap_configs.find("main");
+    if (main_it != config.tilemap_configs.end()) {
+        config.tilemap = main_it->second;
+    } else {
+        config.tilemap = config.tilemap_configs.begin()->second;
+    }
 
     if (auto movement = root["movement"].as_table()) {
         config.move_step = toml_get_int(*movement, "move_step", config.move_step);
