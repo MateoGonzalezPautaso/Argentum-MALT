@@ -1,5 +1,6 @@
 #include "map_scene_renderer.h"
 
+#include <algorithm>
 #include <QGraphicsRectItem>
 #include <QPainter>
 #include <QPen>
@@ -46,6 +47,24 @@ QPixmap MapSceneRenderer::prop_pixmap(const TilemapDocument& doc, const std::str
     if (def.parts.empty())
         return {};
 
+    int min_x = 0, min_y = 0, max_x = 0, max_y = 0;
+    {
+        const auto& p0 = def.parts[0];
+        min_x = p0.offset_x; max_x = p0.offset_x + p0.src_w;
+        min_y = p0.offset_y; max_y = p0.offset_y + p0.src_h;
+    }
+    for (std::size_t i = 1; i < def.parts.size(); ++i) {
+        const auto& p = def.parts[i];
+        min_x = std::min(min_x, p.offset_x);
+        min_y = std::min(min_y, p.offset_y);
+        max_x = std::max(max_x, p.offset_x + p.src_w);
+        max_y = std::max(max_y, p.offset_y + p.src_h);
+    }
+    int nat_w = max_x - min_x;
+    int nat_h = max_y - min_y;
+    float sx = (nat_w > 0) ? static_cast<float>(display_w) / nat_w : 1.f;
+    float sy = (nat_h > 0) ? static_cast<float>(display_h) / nat_h : 1.f;
+
     QPixmap composite(display_w, display_h);
     composite.fill(Qt::transparent);
     QPainter p(&composite);
@@ -54,7 +73,11 @@ QPixmap MapSceneRenderer::prop_pixmap(const TilemapDocument& doc, const std::str
         if (!atlas)
             continue;
         QPixmap frame = atlas->copy(QRect(part.src_x, part.src_y, part.src_w, part.src_h));
-        p.drawPixmap(part.offset_x, part.offset_y, part.src_w, part.src_h, frame);
+        int dx = static_cast<int>((part.offset_x - min_x) * sx);
+        int dy = static_cast<int>((part.offset_y - min_y) * sy);
+        int dw = std::max(1, static_cast<int>(part.src_w * sx));
+        int dh = std::max(1, static_cast<int>(part.src_h * sy));
+        p.drawPixmap(dx, dy, dw, dh, frame);
     }
     p.end();
     return composite;

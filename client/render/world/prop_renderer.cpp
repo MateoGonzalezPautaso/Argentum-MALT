@@ -71,6 +71,33 @@ void PropRenderer::load(const TilemapConfig& tilemap, int tile_size) {
                 pp.frames.emplace_back(renderer, texture::load_surface(part_def.path));
                 pr.parts.push_back(std::move(pp));
             }
+            if (!pr.parts.empty() && def.width > 0 && def.height > 0) {
+                int min_x = 0, min_y = 0, max_x = 0, max_y = 0;
+                {
+                    auto& p0 = pr.parts[0];
+                    min_x = p0.offset_x; max_x = p0.offset_x + p0.display_w;
+                    min_y = p0.offset_y; max_y = p0.offset_y + p0.display_h;
+                }
+                for (std::size_t i = 1; i < pr.parts.size(); ++i) {
+                    auto& p = pr.parts[i];
+                    min_x = std::min(min_x, p.offset_x);
+                    min_y = std::min(min_y, p.offset_y);
+                    max_x = std::max(max_x, p.offset_x + p.display_w);
+                    max_y = std::max(max_y, p.offset_y + p.display_h);
+                }
+                int nat_w = max_x - min_x;
+                int nat_h = max_y - min_y;
+                if (nat_w > 0 && nat_h > 0) {
+                    float sx = static_cast<float>(def.width) / nat_w;
+                    float sy = static_cast<float>(def.height) / nat_h;
+                    for (auto& part : pr.parts) {
+                        part.offset_x = static_cast<int>((part.offset_x - min_x) * sx);
+                        part.offset_y = static_cast<int>((part.offset_y - min_y) * sy);
+                        part.display_w = std::max(1, static_cast<int>(part.display_w * sx));
+                        part.display_h = std::max(1, static_cast<int>(part.display_h * sy));
+                    }
+                }
+            }
 
             prop_row.push_back(std::move(pr));
         }
