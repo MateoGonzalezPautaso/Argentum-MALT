@@ -185,6 +185,11 @@ void SpriteRenderer::despawn_entity(uint16_t entity_id) {
     entity_name_render.erase(entity_id);
 }
 
+void SpriteRenderer::clear_all_entities() {
+    entity_sprites.clear();
+    entity_name_render.clear();
+}
+
 void SpriteRenderer::set_skin_config(const SkinConfig& cfg) {
     skin_config = cfg;
 }

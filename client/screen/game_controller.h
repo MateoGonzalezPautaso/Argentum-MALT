@@ -30,6 +30,7 @@ public:
     bool is_chat_focused() const { return chat_input.is_focused(); }
 
 private:
+    const ClientConfig& config;
     SDL2pp::Renderer& renderer;
     ChatInput chat_input;
     ChatHistory chat_history;
@@ -61,6 +62,7 @@ private:
     void handle_player_respawned(const PlayerRespawnedEvent& e);
     void handle_clan_notification(const ClanNotificationEvent& e);
     void handle_clan_update(const ClanUpdateEvent& e);
+    void handle_map_transition(const MapTransitionEvent& e);
 
 };
 

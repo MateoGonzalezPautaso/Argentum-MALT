@@ -51,11 +51,11 @@ private:
     std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id, const std::string& map_name) const;
     Map& player_map(const Player& p);
     const Map& player_map(const Player& p) const;
-    std::string get_player_map_name(uint16_t player_id) const;
-    std::vector<uint16_t> get_player_ids_on_map(const std::string& map_name) const;
     bool try_map_transition(Player& player, CommandResult& result);
 
 public:
+    std::string get_player_map_name(uint16_t player_id) const;
+    std::vector<uint16_t> get_player_ids_on_map(const std::string& map_name) const;
     explicit Game(const ServerConfig& config, PlayerPersistence& persistence,
                   ClanPersistence& clan_persistence);
 

@@ -6,6 +6,7 @@
 
 GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& config,
                                Queue<ClientCommand>& command_queue):
+        config(config),
         renderer(renderer),
         world_renderer(renderer, config.background, config.tilemap, config.sprites, config.viewport,
                        config.font, config.skins),
@@ -57,7 +58,8 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                        [this](const PlayerRespawnedEvent& e) { handle_player_respawned(e); },
                        [this](const ClanNotificationEvent& e) { handle_clan_notification(e); },
                        [this](const ClanUpdateEvent& e) { handle_clan_update(e); },
-                       [](const auto&) {},
+                       [this](const MapTransitionEvent& e) { handle_map_transition(e); },
+                        [](const auto&) {},
                },
                ev);
 }
@@ -348,6 +350,18 @@ bool GameController::handle_keydown(const SDL_Event& event) {
     }
 
     return true;
+}
+
+void GameController::handle_map_transition(const MapTransitionEvent& e) {
+    auto it = config.tilemap_configs.find(e.map_name);
+    if (it == config.tilemap_configs.end())
+        return;
+
+    world_renderer.clear_entities();
+    world_renderer.load_map(it->second);
+    world_renderer.set_movable_position(e.pos_x, e.pos_y);
+    move_controller.set_position(e.pos_x, e.pos_y);
+    player_stats.pos = {e.pos_x, e.pos_y};
 }
 
 void GameController::flush_pending_chat() {

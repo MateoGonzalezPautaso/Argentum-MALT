@@ -289,9 +289,10 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     auto other_spawns = make_existing_spawns(p.get_id(), p.get_current_map());
     private_events.insert(private_events.end(), other_spawns.begin(), other_spawns.end());
 
-    return {.private_events = std::move(private_events),
-            .map_events = {spawn},
-            .targeted_events = {}};
+    CommandResult r;
+    r.private_events = std::move(private_events);
+    r.map_events = {spawn};
+    return r;
 }
 
 CommandResult Game::handle_cheat_infinite_hp(uint16_t player_id) {
@@ -323,7 +324,10 @@ CommandResult Game::handle_cheat_die(uint16_t player_id) {
                             .damage = 0, .hp_current = 0, .hp_max = it->second.get_hp_max()};
     EntityDiedEvent died{.entity_id = player_id};
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] You died!"};
-    return {.private_events = {msg}, .map_events = {dmg, died}, .targeted_events = {}};
+    CommandResult r;
+    r.private_events = {msg};
+    r.map_events = {dmg, died};
+    return r;
 }
 
 CommandResult Game::handle_cheat_level_up(uint16_t player_id) {
@@ -474,7 +478,9 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
 
     PlayerRespawnedEvent respawn_ev{player_id, player.get_hp_current(), player.get_hp_max()};
 
-    return {.private_events = {}, .map_events = {respawn_ev}, .targeted_events = {}};
+    CommandResult r;
+    r.map_events = {respawn_ev};
+    return r;
 }
 
 CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
