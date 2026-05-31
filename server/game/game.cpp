@@ -1,5 +1,6 @@
 #include "game.h"
 
+#include <cstdlib>
 #include <string>
 
 #include <utility>
@@ -440,6 +441,15 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
 
     if (!map.is_walkable(new_x + sprite_width / 2, new_y + sprite_height))
         return {};
+
+    for (const auto& [other_id, other]: players) {
+        if (other_id == player_id)
+            continue;
+        const int ox = static_cast<int>(other.pos_x());
+        const int oy = static_cast<int>(other.pos_y());
+        if (std::abs(new_x - ox) < sprite_width && std::abs(new_y - oy) < sprite_height)
+            return {};
+    }
 
     const int final_dx = new_x - current_x;
     const int final_dy = new_y - current_y;
