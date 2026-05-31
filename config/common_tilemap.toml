@@ -314,7 +314,7 @@ width = 27
     [[prop.tiles.banquero.parts]]
     offset_x = 0
     offset_y = 20
-    path = 'assets/Graficos/1689.png'
+    path = 'assets/Graficos/1248.png'
     src_h = 48
     src_w = 27
     src_x = 0
