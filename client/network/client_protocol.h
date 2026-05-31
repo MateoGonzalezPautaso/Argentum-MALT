@@ -68,12 +68,17 @@ private:
     ServerEvent recv_login_error();
     ServerEvent recv_character_created();
     ServerEvent recv_character_error();
-    ServerEvent recv_map_info();
     ServerEvent recv_entity_spawn();
     ServerEvent recv_entity_despawn();
     ServerEvent recv_entity_move();
-
-    // TODO ...
+    ServerEvent recv_damage_dealt();
+    ServerEvent recv_damage_received();
+    ServerEvent recv_entity_died();
+    ServerEvent recv_player_respawned();
+    ServerEvent recv_chat_msg();
+    ServerEvent recv_clan_notification();
+    ServerEvent recv_clan_update();
+    ServerEvent recv_heal_received();
 };
 
 #endif  // CLIENT_PROTOCOL_H_

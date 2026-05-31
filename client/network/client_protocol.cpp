@@ -92,90 +92,91 @@ ServerEvent ClientProtocol::recv_event() {
     OpCode opcode = protocol.recv_opcode();
 
     switch (opcode) {
-        case OpCode::LOGIN_OK:
-            return recv_login_ok();
-        case OpCode::LOGIN_ERROR:
-            return recv_login_error();
-        case OpCode::CHARACTER_CREATED:
-            return recv_character_created();
-        case OpCode::CHARACTER_ERROR:
-            return recv_character_error();
-        case OpCode::ENTITY_SPAWN:
-            return recv_entity_spawn();
-        case OpCode::ENTITY_DESPAWN:
-            return recv_entity_despawn();
-        case OpCode::ENTITY_MOVE:
-            return recv_entity_move();
-        case OpCode::DAMAGE_DEALT: {
-            uint16_t target_id = protocol.recv_uint16();
-            uint32_t damage = protocol.recv_uint32();
-            return DamageDealtEvent{target_id, damage};
-        }
-        case OpCode::DAMAGE_RECEIVED: {
-            uint16_t target_id = protocol.recv_uint16();
-            uint16_t attacker_id = protocol.recv_uint16();
-            uint32_t damage = protocol.recv_uint32();
-            uint32_t hp_current = protocol.recv_uint32();
-            uint32_t hp_max = protocol.recv_uint32();
-            return DamageReceivedEvent{target_id, attacker_id, damage, hp_current, hp_max};
-        }
-        case OpCode::ENTITY_DIED: {
-            uint16_t entity_id = protocol.recv_uint16();
-            return EntityDiedEvent{entity_id};
-        }
-        case OpCode::PLAYER_RESPAWNED: {
-            uint16_t entity_id = protocol.recv_uint16();
-            uint32_t hp_current = protocol.recv_uint32();
-            uint32_t hp_max = protocol.recv_uint32();
-            return PlayerRespawnedEvent{entity_id, hp_current, hp_max};
-        }
-        case OpCode::MEDITATION_START:
-            return MeditationStartEvent{};
-        case OpCode::MEDITATION_STOP:
-            return MeditationStopEvent{};
-        case OpCode::CHAT_MSG: {
-            ChatMsgType type = static_cast<ChatMsgType>(protocol.recv_uint8());
-            std::string sender = protocol.recv_str();
-            std::string message = protocol.recv_str();
-            uint16_t recipient_id = protocol.recv_uint16();
-            uint16_t sender_id = protocol.recv_uint16();
-            return ChatMsgEvent{type, sender, message, recipient_id, sender_id};
-        }
-        case OpCode::CLAN_NOTIFICATION: {
-            ClanNotifType type = static_cast<ClanNotifType>(protocol.recv_uint8());
-            std::string username = protocol.recv_str();
-            std::string clan_name = protocol.recv_str();
-            return ClanNotificationEvent{type, username, clan_name};
-        }
-        case OpCode::CLAN_UPDATE: {
-            ClanUpdateEvent ev;
-            ev.clan_name = protocol.recv_str();
-            uint8_t count = protocol.recv_uint8();
-            ev.members.resize(count);
-            for (uint8_t i = 0; i < count; ++i) {
-                ev.members[i].username = protocol.recv_str();
-                ev.members[i].is_founder = protocol.recv_bool();
-                ev.members[i].is_online = protocol.recv_bool();
-            }
-            return ev;
-        }
-        case OpCode::MAP_TRANSITION: {
-            MapTransitionEvent ev;
-            ev.map_name = protocol.recv_str();
-            ev.pos_x = protocol.recv_uint16();
-            ev.pos_y = protocol.recv_uint16();
-            return ev;
-        }
-        case OpCode::HEAL_RECEIVED: {
-            uint16_t player_id = protocol.recv_uint16();
-            uint32_t hp_current = protocol.recv_uint32();
-            uint32_t mana_current = protocol.recv_uint32();
-            return HealReceivedEvent{player_id, hp_current, mana_current};
-        }
+        case OpCode::LOGIN_OK:          return recv_login_ok();
+        case OpCode::LOGIN_ERROR:       return recv_login_error();
+        case OpCode::CHARACTER_CREATED: return recv_character_created();
+        case OpCode::CHARACTER_ERROR:   return recv_character_error();
+        case OpCode::ENTITY_SPAWN:      return recv_entity_spawn();
+        case OpCode::ENTITY_DESPAWN:    return recv_entity_despawn();
+        case OpCode::ENTITY_MOVE:       return recv_entity_move();
+        case OpCode::DAMAGE_DEALT:      return recv_damage_dealt();
+        case OpCode::DAMAGE_RECEIVED:   return recv_damage_received();
+        case OpCode::ATTACK_DODGED:     return AttackDodgedEvent{};
+        case OpCode::ENTITY_DIED:       return recv_entity_died();
+        case OpCode::PLAYER_RESPAWNED:  return recv_player_respawned();
+        case OpCode::MEDITATION_START:  return MeditationStartEvent{};
+        case OpCode::MEDITATION_STOP:   return MeditationStopEvent{};
+        case OpCode::CHAT_MSG:          return recv_chat_msg();
+        case OpCode::CLAN_NOTIFICATION: return recv_clan_notification();
+        case OpCode::CLAN_UPDATE:       return recv_clan_update();
+        case OpCode::HEAL_RECEIVED:     return recv_heal_received();
         default:
             throw std::runtime_error("Unknown event opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
     }
+}
+
+ServerEvent ClientProtocol::recv_damage_dealt() {
+    uint16_t target_id = protocol.recv_uint16();
+    uint32_t damage = protocol.recv_uint32();
+    return DamageDealtEvent{target_id, damage};
+}
+
+ServerEvent ClientProtocol::recv_damage_received() {
+    uint16_t target_id = protocol.recv_uint16();
+    uint16_t attacker_id = protocol.recv_uint16();
+    uint32_t damage = protocol.recv_uint32();
+    uint32_t hp_current = protocol.recv_uint32();
+    uint32_t hp_max = protocol.recv_uint32();
+    return DamageReceivedEvent{target_id, attacker_id, damage, hp_current, hp_max};
+}
+
+ServerEvent ClientProtocol::recv_entity_died() {
+    uint16_t entity_id = protocol.recv_uint16();
+    return EntityDiedEvent{entity_id};
+}
+
+ServerEvent ClientProtocol::recv_player_respawned() {
+    uint16_t entity_id = protocol.recv_uint16();
+    uint32_t hp_current = protocol.recv_uint32();
+    uint32_t hp_max = protocol.recv_uint32();
+    return PlayerRespawnedEvent{entity_id, hp_current, hp_max};
+}
+
+ServerEvent ClientProtocol::recv_chat_msg() {
+    ChatMsgType type = static_cast<ChatMsgType>(protocol.recv_uint8());
+    std::string sender = protocol.recv_str();
+    std::string message = protocol.recv_str();
+    uint16_t recipient_id = protocol.recv_uint16();
+    uint16_t sender_id = protocol.recv_uint16();
+    return ChatMsgEvent{type, sender, message, recipient_id, sender_id};
+}
+
+ServerEvent ClientProtocol::recv_clan_notification() {
+    ClanNotifType type = static_cast<ClanNotifType>(protocol.recv_uint8());
+    std::string username = protocol.recv_str();
+    std::string clan_name = protocol.recv_str();
+    return ClanNotificationEvent{type, username, clan_name};
+}
+
+ServerEvent ClientProtocol::recv_clan_update() {
+    ClanUpdateEvent ev;
+    ev.clan_name = protocol.recv_str();
+    uint8_t count = protocol.recv_uint8();
+    ev.members.resize(count);
+    for (uint8_t i = 0; i < count; ++i) {
+        ev.members[i].username = protocol.recv_str();
+        ev.members[i].is_founder = protocol.recv_bool();
+        ev.members[i].is_online = protocol.recv_bool();
+    }
+    return ev;
+}
+
+ServerEvent ClientProtocol::recv_heal_received() {
+    uint16_t player_id = protocol.recv_uint16();
+    uint32_t hp_current = protocol.recv_uint32();
+    uint32_t mana_current = protocol.recv_uint32();
+    return HealReceivedEvent{player_id, hp_current, mana_current};
 }
 
 ServerEvent ClientProtocol::recv_entity_spawn() {
