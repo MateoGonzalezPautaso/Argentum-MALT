@@ -68,8 +68,6 @@ ServerConfig load_server_config(const std::string& path) {
     }
 
     if (auto balance = root["balance"].as_table()) {
-        config.balance.starting_hp =
-                toml_get_int(*balance, "starting_hp", config.balance.starting_hp);
         config.balance.starting_mana =
                 toml_get_int(*balance, "starting_mana", config.balance.starting_mana);
         config.balance.starting_gold =
@@ -79,8 +77,6 @@ ServerConfig load_server_config(const std::string& path) {
         config.balance.starting_pos_y =
                 toml_get_int(*balance, "starting_pos_y", config.balance.starting_pos_y);
         config.balance.max_level = toml_get_int(*balance, "max_level", config.balance.max_level);
-        config.balance.hp_per_level =
-                toml_get_int(*balance, "hp_per_level", config.balance.hp_per_level);
         config.balance.mana_per_level =
                 toml_get_int(*balance, "mana_per_level", config.balance.mana_per_level);
         config.balance.gold_per_level =
@@ -104,6 +100,39 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*recovery, "dwarf", config.balance.race_recovery.dwarf);
         config.balance.race_recovery.gnome =
                 toml_get_double(*recovery, "gnome", config.balance.race_recovery.gnome);
+    }
+
+    if (auto c = root["constitution"].as_table()) {
+        config.balance.hp.constitution_human =
+                toml_get_int(*c, "human", config.balance.hp.constitution_human);
+        config.balance.hp.constitution_elf =
+                toml_get_int(*c, "elf", config.balance.hp.constitution_elf);
+        config.balance.hp.constitution_dwarf =
+                toml_get_int(*c, "dwarf", config.balance.hp.constitution_dwarf);
+        config.balance.hp.constitution_gnome =
+                toml_get_int(*c, "gnome", config.balance.hp.constitution_gnome);
+    }
+
+    if (auto r = root["race_hp_factor"].as_table()) {
+        config.balance.hp.race_hp_factor_human =
+                toml_get_double(*r, "human", config.balance.hp.race_hp_factor_human);
+        config.balance.hp.race_hp_factor_elf =
+                toml_get_double(*r, "elf", config.balance.hp.race_hp_factor_elf);
+        config.balance.hp.race_hp_factor_dwarf =
+                toml_get_double(*r, "dwarf", config.balance.hp.race_hp_factor_dwarf);
+        config.balance.hp.race_hp_factor_gnome =
+                toml_get_double(*r, "gnome", config.balance.hp.race_hp_factor_gnome);
+    }
+
+    if (auto cl = root["class_hp_factor"].as_table()) {
+        config.balance.hp.class_hp_factor_warrior =
+                toml_get_double(*cl, "warrior", config.balance.hp.class_hp_factor_warrior);
+        config.balance.hp.class_hp_factor_paladin =
+                toml_get_double(*cl, "paladin", config.balance.hp.class_hp_factor_paladin);
+        config.balance.hp.class_hp_factor_cleric =
+                toml_get_double(*cl, "cleric", config.balance.hp.class_hp_factor_cleric);
+        config.balance.hp.class_hp_factor_mage =
+                toml_get_double(*cl, "mage", config.balance.hp.class_hp_factor_mage);
     }
 
     return config;
