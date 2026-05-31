@@ -9,6 +9,7 @@
 
 void TilemapDocument::load(const std::string& path) {
     toml::table root = toml::parse_file(path);
+    config_ = TilemapConfig{};
     parse_tilemap_config(root, config_);
     parse_prop_config(root, config_);
     if (config_.mapa.empty()) {
