@@ -157,15 +157,15 @@ void Player::level_down() {
 }
 
 uint32_t Player::calculate_hp_max() const {
-    int constitution;
-    double f_race;
+    int constitution = balance.hp.constitution_human;
+    double f_race = balance.hp.race_hp_factor_human;
     switch (race) {
         case Race::HUMAN: constitution = balance.hp.constitution_human; f_race = balance.hp.race_hp_factor_human; break;
         case Race::ELF:   constitution = balance.hp.constitution_elf;   f_race = balance.hp.race_hp_factor_elf;   break;
         case Race::DWARF: constitution = balance.hp.constitution_dwarf; f_race = balance.hp.race_hp_factor_dwarf; break;
         case Race::GNOME: constitution = balance.hp.constitution_gnome; f_race = balance.hp.race_hp_factor_gnome; break;
     }
-    double f_class;
+    double f_class = balance.hp.class_hp_factor_warrior;
     switch (player_class) {
         case PlayerClass::WARRIOR: f_class = balance.hp.class_hp_factor_warrior; break;
         case PlayerClass::PALADIN: f_class = balance.hp.class_hp_factor_paladin; break;
