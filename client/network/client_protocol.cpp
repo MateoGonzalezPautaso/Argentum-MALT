@@ -65,6 +65,8 @@ void ClientProtocol::send_cheat_level_down() { protocol.send_opcode(OpCode::CHEA
 
 void ClientProtocol::send_cheat_add_gold() { protocol.send_opcode(OpCode::CHEAT_ADD_GOLD); }
 
+void ClientProtocol::send_cheat_velocity() { protocol.send_opcode(OpCode::CHEAT_VELOCITY); }
+
 void ClientProtocol::send_change_map(const ChangeMapCmd& cmd) {
     protocol.send_opcode(OpCode::CHANGE_MAP);
     protocol.send_str(cmd.prop_name);
@@ -85,6 +87,7 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const CheatLevelUpCmd&) { send_cheat_level_up(); },
                        [this](const CheatLevelDownCmd&) { send_cheat_level_down(); },
                        [this](const CheatAddGoldCmd&) { send_cheat_add_gold(); },
+                       [this](const CheatVelocityCmd&) { send_cheat_velocity(); },
                        [this](const ChangeMapCmd& msg) { send_change_map(msg); },
                         [](const auto&) { throw std::runtime_error("Command not implemented"); },
                },

@@ -87,6 +87,7 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                                [&](const CheatLevelUpCmd&) { return handle_cheat_level_up(player_id); },
                                 [&](const CheatLevelDownCmd&) { return handle_cheat_level_down(player_id); },
                                [&](const CheatAddGoldCmd&) { return handle_cheat_add_gold(player_id); },
+                               [&](const CheatVelocityCmd&) { return handle_cheat_velocity(player_id); },
                                 [&](const ChangeMapCmd& cmd) { return handle_change_map(player_id, cmd); },
                                 [](const auto&) { return CommandResult{}; },
                        },
@@ -471,6 +472,17 @@ CommandResult Game::handle_cheat_add_gold(uint16_t player_id) {
     return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
 }
 
+CommandResult Game::handle_cheat_velocity(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+    bool active = player.toggle_cheat_fast_velocity();
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                     std::string("[Cheat] Velocidad: ") + (active ? "ON" : "OFF")};
+    return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+}
+
 CommandResult Game::handle_meditate(uint16_t player_id) {
     auto it = players.find(player_id);
     if (it == players.end())
@@ -608,7 +620,8 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
 
     Map& cur_map = player_map(player);
 
-    auto [dx, dy] = direction_to_delta(cmd.direction, move_step);
+    int effective_step = player.has_cheat_fast_velocity() ? move_step * 2 : move_step;
+    auto [dx, dy] = direction_to_delta(cmd.direction, effective_step);
 
     const int current_x = static_cast<int>(player.pos_x());
     const int current_y = static_cast<int>(player.pos_y());

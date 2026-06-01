@@ -28,6 +28,7 @@ private:
     BalanceConfig balance;
     bool cheat_infinite_hp = false;
     bool cheat_infinite_mana = false;
+    bool cheat_fast_velocity = false;
     std::string clan_name;
     std::string current_map = "main";
 
@@ -73,6 +74,8 @@ public:
 
     bool toggle_cheat_infinite_hp() { return cheat_infinite_hp = !cheat_infinite_hp; }
     bool toggle_cheat_infinite_mana() { return cheat_infinite_mana = !cheat_infinite_mana; }
+    bool toggle_cheat_fast_velocity() { return cheat_fast_velocity = !cheat_fast_velocity; }
+    bool has_cheat_fast_velocity() const { return cheat_fast_velocity; }
     void kill() { hp_current = 0; is_dead = true; }
     void level_down();
 
