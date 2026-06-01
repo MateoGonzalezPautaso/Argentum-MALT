@@ -22,6 +22,8 @@ public:
     uint8_t occupied_slots() const;
     bool is_full() const;
     bool is_empty_at(uint8_t index) const;
+    bool has_free_slot() const;
+    uint8_t first_free_slot() const;
     InventorySlot at(uint8_t index) const;
 
     bool place(ItemType type, const std::string& name, uint8_t sprite_id = 0);

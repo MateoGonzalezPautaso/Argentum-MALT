@@ -118,3 +118,11 @@ void Inventory::from_records(const std::vector<InventorySlotRecord>& records) {
         }
     }
 }
+
+bool Inventory::has_free_slot() const {
+    return find_free_slot() < capacity;
+}
+
+uint8_t Inventory::first_free_slot() const {
+    return find_free_slot();
+}

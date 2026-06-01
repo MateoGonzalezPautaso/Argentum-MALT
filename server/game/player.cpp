@@ -24,6 +24,10 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
     hp_current = hp_max;
     mana_max = calculate_mana_max();
     mana_current = mana_max;
+    for (int i = 0; i < 4; ++i) {
+        equipped[i] = InventorySlot{};
+        equipped[i].item_type = ItemType::NONE;
+    }
 }
 
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
@@ -46,7 +50,12 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         mana_max(mana_max),
         gold(gold),
         balance(balance),
-        inventory(inv_capacity) {}
+        inventory(inv_capacity) {
+    for (int i = 0; i < 4; ++i) {
+        equipped[i] = InventorySlot{};
+        equipped[i].item_type = ItemType::NONE;
+    }
+}
 
 bool Player::try_attack(uint32_t current_tick, uint32_t cooldown_ticks) {
     if (current_tick < next_attack_tick)
@@ -201,4 +210,59 @@ uint32_t Player::calculate_mana_max() const {
 uint32_t Player::exp_to_next_level() const {
     return static_cast<uint32_t>(balance.level_exp_base *
                                  std::pow(level, balance.level_exp_exponent));
+}
+
+bool Player::equip(uint8_t inv_slot_index) {
+    if (inv_slot_index >= inventory.slot_count()) return false;
+    if (inventory.is_empty_at(inv_slot_index)) return false;
+
+    InventorySlot item = inventory.at(inv_slot_index);
+    ItemType type = item.item_type;
+
+    if (type == ItemType::HEALTH_POTION) {
+        heal(hp_max);
+        inventory.clear(inv_slot_index);
+        return true;
+    }
+    if (type == ItemType::MANA_POTION) {
+        mana_current = mana_max;
+        inventory.clear(inv_slot_index);
+        return true;
+    }
+
+    EquipSlot target = equip_slot_for(type);
+    uint8_t eslot = static_cast<uint8_t>(target);
+
+    if (equipped[eslot].item_type == ItemType::NONE) {
+        equipped[eslot] = item;
+        inventory.clear(inv_slot_index);
+        equipped[eslot].slot_index = eslot;
+    } else {
+        InventorySlot replaced = equipped[eslot];
+        equipped[eslot] = item;
+        equipped[eslot].slot_index = eslot;
+        inventory.place_at(inv_slot_index, replaced.item_type, replaced.item_name,
+                           replaced.sprite_id);
+    }
+    return true;
+}
+
+void Player::unequip(EquipSlot eslot) {
+    uint8_t index = static_cast<uint8_t>(eslot);
+    if (equipped[index].item_type == ItemType::NONE) return;
+    if (inventory.is_full()) return;
+
+    uint8_t free_slot = inventory.first_free_slot();
+    inventory.place_at(free_slot, equipped[index].item_type, equipped[index].item_name,
+                       equipped[index].sprite_id);
+    equipped[index] = InventorySlot{};
+    equipped[index].item_type = ItemType::NONE;
+}
+
+const InventorySlot& Player::get_equipped(EquipSlot eslot) const {
+    return equipped[static_cast<uint8_t>(eslot)];
+}
+
+void Player::dump_equipped(InventorySlot out[4]) const {
+    for (int i = 0; i < 4; ++i) out[i] = equipped[i];
 }

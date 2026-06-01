@@ -33,6 +33,7 @@ private:
     std::string clan_name;
     std::string current_map = "main";
     Inventory inventory;
+    InventorySlot equipped[4];
 
     uint32_t calculate_hp_max() const;
     uint32_t calculate_mana_max() const;
@@ -103,6 +104,11 @@ public:
 
     Inventory& get_inventory() { return inventory; }
     const Inventory& get_inventory() const { return inventory; }
+
+    bool equip(uint8_t inv_slot_index);
+    void unequip(EquipSlot eslot);
+    const InventorySlot& get_equipped(EquipSlot eslot) const;
+    void dump_equipped(InventorySlot out[4]) const;
 };
 
 #endif  // PLAYER_H
