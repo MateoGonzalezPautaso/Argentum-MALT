@@ -36,6 +36,8 @@ private:
     std::unordered_map<uint16_t, double> mana_regen_accum;
 
     double recovery_rate_for(Race race) const;
+    double intelligence_for(Race race) const;
+    double meditation_factor_for(PlayerClass player_class) const;
     CommandResult apply_regen();
 
     CommandResult handle_login(uint16_t player_id, const LoginCmd& cmd);

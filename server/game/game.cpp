@@ -136,6 +136,28 @@ double Game::recovery_rate_for(Race race) const {
     return r.human;
 }
 
+double Game::intelligence_for(Race race) const {
+    const auto& m = balance.mana;
+    switch (race) {
+        case Race::HUMAN: return m.intelligence_human;
+        case Race::ELF:   return m.intelligence_elf;
+        case Race::DWARF: return m.intelligence_dwarf;
+        case Race::GNOME: return m.intelligence_gnome;
+    }
+    return m.intelligence_human;
+}
+
+double Game::meditation_factor_for(PlayerClass player_class) const {
+    const auto& m = balance.mana;
+    switch (player_class) {
+        case PlayerClass::WARRIOR: return m.class_meditation_factor_warrior;
+        case PlayerClass::PALADIN: return m.class_meditation_factor_paladin;
+        case PlayerClass::CLERIC:  return m.class_meditation_factor_cleric;
+        case PlayerClass::MAGE:    return m.class_meditation_factor_mage;
+    }
+    return m.class_meditation_factor_warrior;
+}
+
 CommandResult Game::apply_regen() {
     CommandResult result;
     const double dt = 1.0 / tick_rate_hz;
@@ -160,7 +182,11 @@ CommandResult Game::apply_regen() {
             hp_regen_accum[id] = 0.0;
         }
 
-        mana_regen_accum[id] += rate * dt;
+        double mana_rate = rate;
+        if (player.get_is_meditating())
+            mana_rate += meditation_factor_for(player.get_player_class()) *
+                         intelligence_for(player.get_race());
+        mana_regen_accum[id] += mana_rate * dt;
         if (mana_regen_accum[id] >= 1.0 && player.get_mana_current() < player.get_mana_max()) {
             uint32_t gain = static_cast<uint32_t>(mana_regen_accum[id]);
             player.restore_mana(gain);
