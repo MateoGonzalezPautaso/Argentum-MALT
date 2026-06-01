@@ -77,3 +77,9 @@ warrior = 0.0
 paladin = 0.5
 cleric = 1.3
 mage = 2.0
+
+[class_meditation_factor]
+warrior = 0.0
+paladin = 0.5
+cleric = 1.0
+mage = 2.0

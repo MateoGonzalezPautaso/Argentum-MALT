@@ -164,5 +164,16 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*cl, "mage", config.balance.mana.class_mana_factor_mage);
     }
 
+    if (auto cl = root["class_meditation_factor"].as_table()) {
+        config.balance.mana.class_meditation_factor_warrior =
+                toml_get_double(*cl, "warrior", config.balance.mana.class_meditation_factor_warrior);
+        config.balance.mana.class_meditation_factor_paladin =
+                toml_get_double(*cl, "paladin", config.balance.mana.class_meditation_factor_paladin);
+        config.balance.mana.class_meditation_factor_cleric =
+                toml_get_double(*cl, "cleric", config.balance.mana.class_meditation_factor_cleric);
+        config.balance.mana.class_meditation_factor_mage =
+                toml_get_double(*cl, "mage", config.balance.mana.class_meditation_factor_mage);
+    }
+
     return config;
 }

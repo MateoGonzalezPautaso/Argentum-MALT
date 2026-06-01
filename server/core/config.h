@@ -45,6 +45,10 @@ struct ManaConfig {
     double class_mana_factor_paladin = 0.5;
     double class_mana_factor_cleric = 1.3;
     double class_mana_factor_mage = 2.0;
+    double class_meditation_factor_warrior = 0.0;
+    double class_meditation_factor_paladin = 0.5;
+    double class_meditation_factor_cleric = 1.0;
+    double class_meditation_factor_mage = 2.0;
 };
 
 struct HpConfig {
