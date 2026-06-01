@@ -229,6 +229,7 @@ struct CheatInfiniteManaCmd {};
 struct CheatDieCmd {};
 struct CheatLevelUpCmd {};
 struct CheatLevelDownCmd {};
+struct CheatAddGoldCmd {};
 
 struct ChangeMapCmd {
     std::string prop_name;
@@ -245,7 +246,7 @@ using ClientCommand =
                      PrivateMsgCmd, SendChatMsgCmd, ClanFoundCmd, ClanJoinRequestCmd, ClanReviewCmd,
                      ClanAcceptCmd, ClanRejectCmd, ClanBanCmd, ClanKickCmd, ClanLeaveCmd,
                      CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd,
-                     CheatLevelUpCmd, CheatLevelDownCmd, ChangeMapCmd>;
+                     CheatLevelUpCmd, CheatLevelDownCmd, CheatAddGoldCmd, ChangeMapCmd>;
 
 // ---------------------------------------------------------------------------
 // Eventos: Servidor -> Cliente (sección 3.2 y 5 de protocol.md)

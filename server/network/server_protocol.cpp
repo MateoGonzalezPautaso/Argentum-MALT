@@ -41,6 +41,8 @@ ClientCommand ServerProtocol::recv_command() {
             return CheatLevelUpCmd{};
         case OpCode::CHEAT_LEVEL_DOWN:
             return CheatLevelDownCmd{};
+        case OpCode::CHEAT_ADD_GOLD:
+            return CheatAddGoldCmd{};
         case OpCode::CHANGE_MAP:
             return recv_change_map();
         default:

@@ -86,6 +86,7 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                                [&](const CheatDieCmd&) { return handle_cheat_die(player_id); },
                                [&](const CheatLevelUpCmd&) { return handle_cheat_level_up(player_id); },
                                 [&](const CheatLevelDownCmd&) { return handle_cheat_level_down(player_id); },
+                               [&](const CheatAddGoldCmd&) { return handle_cheat_add_gold(player_id); },
                                 [&](const ChangeMapCmd& cmd) { return handle_change_map(player_id, cmd); },
                                 [](const auto&) { return CommandResult{}; },
                        },
@@ -395,7 +396,7 @@ CommandResult Game::handle_cheat_infinite_hp(uint16_t player_id) {
         return {};
     bool active = it->second.toggle_cheat_infinite_hp();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     active ? "[Cheat] Infinite HP: ON" : "[Cheat] Infinite HP: OFF"};
+                     active ? "[Cheat] HP infinito: ON" : "[Cheat] HP infinito: OFF"};
     return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
 }
 
@@ -405,7 +406,7 @@ CommandResult Game::handle_cheat_infinite_mana(uint16_t player_id) {
         return {};
     bool active = it->second.toggle_cheat_infinite_mana();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     active ? "[Cheat] Infinite Mana: ON" : "[Cheat] Infinite Mana: OFF"};
+                     active ? "[Cheat] Mana infinito: ON" : "[Cheat] Mana infinito: OFF"};
     return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
 }
 
@@ -417,7 +418,7 @@ CommandResult Game::handle_cheat_die(uint16_t player_id) {
     DamageReceivedEvent dmg{.target_id = player_id, .attacker_id = player_id,
                             .damage = 0, .hp_current = 0, .hp_max = it->second.get_hp_max()};
     EntityDiedEvent died{.entity_id = player_id};
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] You died!"};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Moriste!"};
     CommandResult r;
     r.private_events = {msg};
     r.map_events = {dmg, died};
@@ -447,6 +448,17 @@ CommandResult Game::handle_cheat_level_down(uint16_t player_id) {
     player.level_down();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      "[Cheat] Nivel bajado a " + std::to_string(player.get_level())};
+    return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+}
+
+CommandResult Game::handle_cheat_add_gold(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+    player.gain_gold(1000);
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                     "[Cheat] +1000 oro (total: " + std::to_string(player.get_gold()) + ")"};
     return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
 }
 
