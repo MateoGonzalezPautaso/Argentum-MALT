@@ -26,12 +26,10 @@ max_members = 16
 min_level_found = 6
 
 [balance]
-starting_mana = 50
 starting_gold = 0
 starting_pos_x = 100
 starting_pos_y = 100
 max_level = 100
-mana_per_level = 5
 gold_per_level = 100
 level_exp_base = 1000
 level_exp_exponent = 1.8
@@ -61,3 +59,21 @@ warrior = 2.0
 paladin = 1.5
 cleric = 1.2
 mage = 0.8
+
+[intelligence]
+human = 20
+elf = 25
+dwarf = 15
+gnome = 23
+
+[race_mana_factor]
+human = 1.0
+elf = 1.3
+dwarf = 0.7
+gnome = 1.1
+
+[class_mana_factor]
+warrior = 0.0
+paladin = 0.5
+cleric = 1.3
+mage = 2.0

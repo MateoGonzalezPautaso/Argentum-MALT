@@ -68,8 +68,6 @@ ServerConfig load_server_config(const std::string& path) {
     }
 
     if (auto balance = root["balance"].as_table()) {
-        config.balance.starting_mana =
-                toml_get_int(*balance, "starting_mana", config.balance.starting_mana);
         config.balance.starting_gold =
                 toml_get_int(*balance, "starting_gold", config.balance.starting_gold);
         config.balance.starting_pos_x =
@@ -77,8 +75,6 @@ ServerConfig load_server_config(const std::string& path) {
         config.balance.starting_pos_y =
                 toml_get_int(*balance, "starting_pos_y", config.balance.starting_pos_y);
         config.balance.max_level = toml_get_int(*balance, "max_level", config.balance.max_level);
-        config.balance.mana_per_level =
-                toml_get_int(*balance, "mana_per_level", config.balance.mana_per_level);
         config.balance.gold_per_level =
                 toml_get_int(*balance, "gold_per_level", config.balance.gold_per_level);
         config.balance.level_exp_base =
@@ -133,6 +129,39 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*cl, "cleric", config.balance.hp.class_hp_factor_cleric);
         config.balance.hp.class_hp_factor_mage =
                 toml_get_double(*cl, "mage", config.balance.hp.class_hp_factor_mage);
+    }
+
+    if (auto i = root["intelligence"].as_table()) {
+        config.balance.mana.intelligence_human =
+                toml_get_int(*i, "human", config.balance.mana.intelligence_human);
+        config.balance.mana.intelligence_elf =
+                toml_get_int(*i, "elf", config.balance.mana.intelligence_elf);
+        config.balance.mana.intelligence_dwarf =
+                toml_get_int(*i, "dwarf", config.balance.mana.intelligence_dwarf);
+        config.balance.mana.intelligence_gnome =
+                toml_get_int(*i, "gnome", config.balance.mana.intelligence_gnome);
+    }
+
+    if (auto r = root["race_mana_factor"].as_table()) {
+        config.balance.mana.race_mana_factor_human =
+                toml_get_double(*r, "human", config.balance.mana.race_mana_factor_human);
+        config.balance.mana.race_mana_factor_elf =
+                toml_get_double(*r, "elf", config.balance.mana.race_mana_factor_elf);
+        config.balance.mana.race_mana_factor_dwarf =
+                toml_get_double(*r, "dwarf", config.balance.mana.race_mana_factor_dwarf);
+        config.balance.mana.race_mana_factor_gnome =
+                toml_get_double(*r, "gnome", config.balance.mana.race_mana_factor_gnome);
+    }
+
+    if (auto cl = root["class_mana_factor"].as_table()) {
+        config.balance.mana.class_mana_factor_warrior =
+                toml_get_double(*cl, "warrior", config.balance.mana.class_mana_factor_warrior);
+        config.balance.mana.class_mana_factor_paladin =
+                toml_get_double(*cl, "paladin", config.balance.mana.class_mana_factor_paladin);
+        config.balance.mana.class_mana_factor_cleric =
+                toml_get_double(*cl, "cleric", config.balance.mana.class_mana_factor_cleric);
+        config.balance.mana.class_mana_factor_mage =
+                toml_get_double(*cl, "mage", config.balance.mana.class_mana_factor_mage);
     }
 
     return config;

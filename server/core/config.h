@@ -32,6 +32,21 @@ struct RaceRecoveryConfig {
     double gnome = 1.2;
 };
 
+struct ManaConfig {
+    int intelligence_human = 20;
+    int intelligence_elf = 25;
+    int intelligence_dwarf = 15;
+    int intelligence_gnome = 23;
+    double race_mana_factor_human = 1.0;
+    double race_mana_factor_elf = 1.3;
+    double race_mana_factor_dwarf = 0.7;
+    double race_mana_factor_gnome = 1.1;
+    double class_mana_factor_warrior = 0.0;
+    double class_mana_factor_paladin = 0.5;
+    double class_mana_factor_cleric = 1.3;
+    double class_mana_factor_mage = 2.0;
+};
+
 struct HpConfig {
     int constitution_human = 20;
     int constitution_elf = 15;
@@ -48,12 +63,10 @@ struct HpConfig {
 };
 
 struct BalanceConfig {
-    int starting_mana = 50;
     int starting_gold = 0;
     int starting_pos_x = 100;
     int starting_pos_y = 100;
     int max_level = 100;
-    int mana_per_level = 5;
     int gold_per_level = 100;
     int level_exp_base = 1000;
     double level_exp_exponent = 1.8;
@@ -61,6 +74,7 @@ struct BalanceConfig {
     double gold_cap_exponent = 1.1;
     RaceRecoveryConfig race_recovery;
     HpConfig hp;
+    ManaConfig mana;
 };
 
 struct ServerConfig {
