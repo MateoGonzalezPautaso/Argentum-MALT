@@ -338,8 +338,6 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     rec.pos_x = static_cast<uint16_t>(balance.starting_pos_x);
     rec.pos_y = static_cast<uint16_t>(balance.starting_pos_y);
     rec.dir = static_cast<uint8_t>(Direction::SOUTH);
-    rec.mana_current = static_cast<uint32_t>(balance.starting_mana);
-    rec.mana_max = static_cast<uint32_t>(balance.starting_mana);
     rec.gold = static_cast<uint32_t>(balance.starting_gold);
 
     Player player(player_id, cmd.username,
@@ -347,6 +345,8 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
                   Direction::SOUTH, cmd.race, cmd.player_class, balance);
     rec.hp_current = player.get_hp_current();
     rec.hp_max = player.get_hp_max();
+    rec.mana_current = player.get_mana_current();
+    rec.mana_max = player.get_mana_max();
     persistence.save(cmd.username, rec);
     auto it = players.emplace(player_id, std::move(player)).first;
     const Player& p = it->second;

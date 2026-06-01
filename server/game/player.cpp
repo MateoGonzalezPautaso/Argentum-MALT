@@ -15,12 +15,14 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         experience(0),
         hp_current(0),
         hp_max(0),
-        mana_current(balance.starting_mana),
-        mana_max(balance.starting_mana),
+        mana_current(0),
+        mana_max(0),
         gold(balance.starting_gold),
         balance(balance) {
     hp_max = calculate_hp_max();
     hp_current = hp_max;
+    mana_max = calculate_mana_max();
+    mana_current = mana_max;
 }
 
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
@@ -72,7 +74,7 @@ void Player::gain_experience(uint32_t exp) {
 void Player::level_up() {
     ++level;
     hp_max = calculate_hp_max();
-    mana_max += balance.mana_per_level;
+    mana_max = calculate_mana_max();
     gold += balance.gold_per_level * level;
     hp_current = hp_max;
     mana_current = mana_max;
@@ -151,7 +153,7 @@ void Player::level_down() {
         return;
     --level;
     hp_max = calculate_hp_max();
-    mana_max = std::max(mana_max, static_cast<uint32_t>(balance.starting_mana));
+    mana_max = calculate_mana_max();
     hp_current = hp_max;
     mana_current = mana_max;
 }
@@ -173,6 +175,25 @@ uint32_t Player::calculate_hp_max() const {
         case PlayerClass::MAGE:    f_class = balance.hp.class_hp_factor_mage;    break;
     }
     return static_cast<uint32_t>(constitution * f_class * f_race * level);
+}
+
+uint32_t Player::calculate_mana_max() const {
+    int intelligence = balance.mana.intelligence_human;
+    double f_race = balance.mana.race_mana_factor_human;
+    switch (race) {
+        case Race::HUMAN: intelligence = balance.mana.intelligence_human; f_race = balance.mana.race_mana_factor_human; break;
+        case Race::ELF:   intelligence = balance.mana.intelligence_elf;   f_race = balance.mana.race_mana_factor_elf;   break;
+        case Race::DWARF: intelligence = balance.mana.intelligence_dwarf; f_race = balance.mana.race_mana_factor_dwarf; break;
+        case Race::GNOME: intelligence = balance.mana.intelligence_gnome; f_race = balance.mana.race_mana_factor_gnome; break;
+    }
+    double f_class = balance.mana.class_mana_factor_warrior;
+    switch (player_class) {
+        case PlayerClass::WARRIOR: f_class = balance.mana.class_mana_factor_warrior; break;
+        case PlayerClass::PALADIN: f_class = balance.mana.class_mana_factor_paladin; break;
+        case PlayerClass::CLERIC:  f_class = balance.mana.class_mana_factor_cleric;  break;
+        case PlayerClass::MAGE:    f_class = balance.mana.class_mana_factor_mage;    break;
+    }
+    return static_cast<uint32_t>(intelligence * f_class * f_race * level);
 }
 
 uint32_t Player::exp_to_next_level() const {

@@ -32,6 +32,7 @@ private:
     std::string current_map = "main";
 
     uint32_t calculate_hp_max() const;
+    uint32_t calculate_mana_max() const;
 
 public:
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
