@@ -4,18 +4,24 @@
 
 namespace {
 
-Player make_player(uint16_t id = 1) {
+BalanceConfig make_balance() {
     BalanceConfig bal;
-    bal.starting_mana = 50;
     bal.starting_gold = 0;
     bal.max_level = 100;
-    bal.mana_per_level = 5;
     bal.gold_per_level = 10;
     bal.level_exp_base = 1000;
     bal.level_exp_exponent = 1.8;
     bal.gold_cap_base = 1000;
     bal.gold_cap_exponent = 1.0;
-    return Player(id, "hero", {100, 100}, Direction::SOUTH, Race::HUMAN, PlayerClass::WARRIOR, bal);
+    return bal;
+}
+
+Player make_player(uint16_t id = 1) {
+    return Player(id, "hero", {100, 100}, Direction::SOUTH, Race::HUMAN, PlayerClass::WARRIOR, make_balance());
+}
+
+Player make_mage_player(uint16_t id = 1) {
+    return Player(id, "mage", {100, 100}, Direction::SOUTH, Race::HUMAN, PlayerClass::MAGE, make_balance());
 }
 
 }  // namespace
@@ -86,16 +92,17 @@ TEST(PlayerTest, Resurrect_RestoresHpAndMana) {
 // ─────────────────────────────────────────────────────────────
 
 TEST(PlayerTest, GainExperience_TriggersLevelUp) {
-    auto p = make_player();
+    auto p = make_mage_player();
     EXPECT_EQ(p.get_level(), 1);
     uint32_t hp_before = p.get_hp_max();
+    uint32_t mana_before = p.get_mana_max();
 
     uint32_t threshold = p.exp_to_next_level();
     p.gain_experience(threshold);
 
     EXPECT_EQ(p.get_level(), 2);
     EXPECT_GT(p.get_hp_max(), hp_before);
-    EXPECT_GT(p.get_mana_max(), 50u);
+    EXPECT_GT(p.get_mana_max(), mana_before);
 }
 
 TEST(PlayerTest, GainExperience_ExcessCarriedOver) {
@@ -124,7 +131,7 @@ TEST(PlayerTest, GainExperience_MultipleLevelUps) {
 }
 
 TEST(PlayerTest, LevelUp_IncreasesMaxHpAndMana) {
-    auto p = make_player();
+    auto p = make_mage_player();
     uint32_t hp_before = p.get_hp_max();
     uint32_t mana_before = p.get_mana_max();
 
@@ -188,14 +195,15 @@ TEST(PlayerTest, SpendGold_UnderflowClampedToZero) {
 // ─────────────────────────────────────────────────────────────
 
 TEST(PlayerTest, UseMana_DeductsAmount) {
-    auto p = make_player();
-    p.use_mana(20);
-    EXPECT_EQ(p.get_mana_current(), 30u);
+    auto p = make_mage_player();
+    uint32_t amount = p.get_mana_max() / 4;
+    p.use_mana(amount);
+    EXPECT_EQ(p.get_mana_current(), p.get_mana_max() - amount);
 }
 
 TEST(PlayerTest, UseMana_UnderflowClampedToZero) {
-    auto p = make_player();
-    p.use_mana(999);
+    auto p = make_mage_player();
+    p.use_mana(p.get_mana_max() * 10);
     EXPECT_EQ(p.get_mana_current(), 0u);
 }
 
