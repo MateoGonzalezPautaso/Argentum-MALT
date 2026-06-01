@@ -204,6 +204,16 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
                 toml_get_int(*tbl, "cursor_height_shrink", config.ui.cursor_height_shrink);
         config.ui.chat_line_spacing =
                 toml_get_int(*tbl, "chat_line_spacing", config.ui.chat_line_spacing);
+
+        if (auto inv = (*tbl)["inventory_panel"].as_table()) {
+            config.ui.inventory_panel.x = toml_get_int(*inv, "x", config.ui.inventory_panel.x);
+            config.ui.inventory_panel.y = toml_get_int(*inv, "y", config.ui.inventory_panel.y);
+            config.ui.inventory_panel.cols = toml_get_int(*inv, "cols", config.ui.inventory_panel.cols);
+            config.ui.inventory_panel.slot_w = toml_get_int(*inv, "slot_w", config.ui.inventory_panel.slot_w);
+            config.ui.inventory_panel.slot_h = toml_get_int(*inv, "slot_h", config.ui.inventory_panel.slot_h);
+            config.ui.inventory_panel.gap = toml_get_int(*inv, "gap", config.ui.inventory_panel.gap);
+            config.ui.inventory_panel.equip_y = toml_get_int(*inv, "equip_y", config.ui.inventory_panel.equip_y);
+        }
     }
 
     parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{}, "hp_bar",

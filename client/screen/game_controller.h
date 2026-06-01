@@ -68,6 +68,7 @@ private:
     void handle_map_transition(const MapTransitionEvent& e);
     void handle_heal_received(const HealReceivedEvent& e);
     void handle_inventory_update(const InventoryUpdateEvent& e);
+    void handle_equip_update(const EquipUpdateEvent& e);
 
 };
 

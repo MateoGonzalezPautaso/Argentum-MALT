@@ -187,6 +187,10 @@ void UIRenderer::render_inventory(const std::vector<InventorySlot>& slots) {
     inventory_renderer.render(slots);
 }
 
+void UIRenderer::render_equipped(const InventorySlot equipped[4]) {
+    inventory_renderer.render_equipped(equipped);
+}
+
 void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages) {
     if (!chat_font || messages.empty()) {
         return;

@@ -47,6 +47,7 @@ public:
     void render_gold(uint32_t gold);
     void render_portrait(Race race, PlayerClass player_class, uint8_t level);
     void render_inventory(const std::vector<InventorySlot>& slots);
+    void render_equipped(const InventorySlot equipped[4]);
     bool is_chat_input_hit(int x, int y) const;
 
 private:

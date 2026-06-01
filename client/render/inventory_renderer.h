@@ -31,6 +31,7 @@ public:
     void set_font(TTF_Font* f) { font = f; }
 
     void render(const std::vector<InventorySlot>& slots);
+    void render_equipped(const InventorySlot equipped[4]);
 };
 
 #endif  // CLIENT_INVENTORY_RENDERER_H

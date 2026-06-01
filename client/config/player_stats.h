@@ -21,6 +21,7 @@ struct PlayerStats {
     uint32_t gold = 0;
     Position pos;
     std::vector<InventorySlot> inventory;
+    InventorySlot equipped[4] = {};
 };
 
 #endif  // CLIENT_PLAYER_STATS_H

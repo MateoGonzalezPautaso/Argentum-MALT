@@ -42,6 +42,7 @@ void GameController::render() {
     ui_renderer.render_chat_history(chat_history.get_messages());
     ui_renderer.render_chat_input();
     ui_renderer.render_inventory(player_stats.inventory);
+    ui_renderer.render_equipped(player_stats.equipped);
     renderer.Present();
 }
 
@@ -62,6 +63,7 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                         [this](const MapTransitionEvent& e) { handle_map_transition(e); },
                         [this](const HealReceivedEvent& e) { handle_heal_received(e); },
                         [this](const InventoryUpdateEvent& e) { handle_inventory_update(e); },
+                        [this](const EquipUpdateEvent& e) { handle_equip_update(e); },
                         [](const auto&) {},
                },
                ev);
@@ -213,6 +215,13 @@ void GameController::handle_clan_update(const ClanUpdateEvent& e) {
 
 void GameController::handle_inventory_update(const InventoryUpdateEvent& e) {
     player_stats.inventory = e.slots;
+}
+
+void GameController::handle_equip_update(const EquipUpdateEvent& e) {
+    player_stats.equipped[0] = e.weapon;
+    player_stats.equipped[1] = e.armor;
+    player_stats.equipped[2] = e.helmet;
+    player_stats.equipped[3] = e.shield;
 }
 
 void GameController::handle_entity_died(const EntityDiedEvent& e) {

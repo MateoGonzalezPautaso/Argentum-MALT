@@ -92,3 +92,48 @@ void InventoryRenderer::render(const std::vector<InventorySlot>& slots) {
         }
     }
 }
+
+void InventoryRenderer::render_equipped(const InventorySlot equipped[4]) {
+    const char* labels[4] = {"Arma", "Armadura", "Casco", "Escudo"};
+
+    for (int i = 0; i < 4; ++i) {
+        int sx = cfg.x + i * (cfg.slot_w + cfg.gap);
+        int sy = cfg.equip_y;
+        SDL2pp::Rect slot_rect(sx, sy, cfg.slot_w, cfg.slot_h);
+
+        if (equipped[i].item_type == ItemType::NONE) {
+            renderer.SetDrawColor(40, 40, 40, 255);
+            renderer.FillRect(slot_rect);
+            renderer.SetDrawColor(80, 80, 80, 255);
+            renderer.DrawRect(slot_rect);
+        } else {
+            const ItemSpriteDef* def = find_sprite(equipped[i].item_type);
+            if (def) {
+                auto it = texture_cache.find(def->path);
+                if (it == texture_cache.end()) {
+                    SDL2pp::Surface surf = texture::load_surface(def->path);
+                    auto tex = std::make_unique<SDL2pp::Texture>(renderer, surf);
+                    it = texture_cache.emplace(def->path, std::move(tex)).first;
+                }
+                SDL2pp::Rect src(def->src_x, def->src_y, def->src_w, def->src_h);
+                renderer.Copy(*it->second, src, slot_rect);
+            } else {
+                SDL_Color bg = color_for_type(equipped[i].item_type);
+                renderer.SetDrawColor(bg.r, bg.g, bg.b, 255);
+                renderer.FillRect(slot_rect);
+                renderer.SetDrawColor(255, 255, 255, 255);
+                renderer.DrawRect(slot_rect);
+            }
+        }
+
+        if (font) {
+            auto result = texture::render_text(renderer, font, labels[i], {255, 255, 255, 255});
+            if (result.w > 0) {
+                int tx = sx + (cfg.slot_w - result.w) / 2;
+                int ty = sy + cfg.slot_h + 2;
+                SDL2pp::Rect text_dst(tx, ty, result.w, result.h);
+                renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
+            }
+        }
+    }
+}

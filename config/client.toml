@@ -66,7 +66,16 @@ cursor_blink_ms = 500
 cursor_width = 2
 cursor_padding = 4
 cursor_height_shrink = 8
-chat_line_spacing = 2
+    chat_line_spacing = 2
+
+[ui.inventory_panel]
+x = 782
+y = 202
+cols = 4
+slot_w = 50
+slot_h = 50
+gap = 4
+equip_y = 102
 
 [ui.hp_bar]
 x = 790
