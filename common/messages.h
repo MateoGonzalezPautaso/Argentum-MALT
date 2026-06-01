@@ -173,10 +173,14 @@ struct PickupItemCmd {};
 struct DropItemCmd {};
 
 // 0x08
-struct EquipItemCmd {};
+struct EquipItemCmd {
+    uint8_t slot_index = 0;
+};
 
 // 0x09
-struct UnequipItemCmd {};
+struct UnequipItemCmd {
+    EquipSlot slot = EquipSlot::WEAPON;
+};
 
 // 0x0A
 struct MeditateCmd {};
@@ -357,7 +361,12 @@ struct InventoryUpdateEvent {
 };
 
 // 0x91
-struct EquipUpdateEvent {};
+struct EquipUpdateEvent {
+    InventorySlot weapon;
+    InventorySlot armor;
+    InventorySlot helmet;
+    InventorySlot shield;
+};
 
 // 0x92
 struct GoldUpdateEvent {};
@@ -428,5 +437,33 @@ using ServerEvent =
                      ItemDroppedEvent, ItemPickedEvent, NpcItemListEvent, TransactionOkEvent,
                      TransactionErrorEvent, ChatMsgEvent, ClanNotificationEvent, ClanUpdateEvent,
                      ServerMsgEvent, MapTransitionEvent, HealReceivedEvent>;
+
+inline EquipSlot equip_slot_for(ItemType type) {
+    switch (type) {
+        case ItemType::SWORD:
+        case ItemType::AXE:
+        case ItemType::HAMMER:
+        case ItemType::ASH_STAFF:
+        case ItemType::ELVEN_FLUTE:
+        case ItemType::KNOTTED_STAFF:
+        case ItemType::STUDDED_STAFF:
+        case ItemType::SIMPLE_BOW:
+        case ItemType::COMPOSITE_BOW:
+            return EquipSlot::WEAPON;
+        case ItemType::LEATHER_ARMOR:
+        case ItemType::PLATE_ARMOR:
+        case ItemType::BLUE_TUNIC:
+            return EquipSlot::ARMOR;
+        case ItemType::HOOD:
+        case ItemType::IRON_HELMET:
+        case ItemType::MAGIC_HAT:
+            return EquipSlot::HELMET;
+        case ItemType::TURTLE_SHIELD:
+        case ItemType::IRON_SHIELD:
+            return EquipSlot::SHIELD;
+        default:
+            return EquipSlot::WEAPON;
+    }
+}
 
 #endif  // MESSAGES_H_
