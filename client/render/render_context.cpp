@@ -19,11 +19,12 @@ ImageGuard::ImageGuard(int flags) {
 ImageGuard::~ImageGuard() { IMG_Quit(); }
 
 RenderContext::RenderContext(const std::string& title, int window_w, int window_h, int logical_w,
-                             int logical_h):
+                             int logical_h, bool fullscreen):
         sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO),
         ttf(),
         img(IMG_INIT_PNG),
-        window(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, window_w, window_h, 0),
+        window(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, window_w, window_h,
+               fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0),
         sdl_renderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
         logical_w(logical_w),
         logical_h(logical_h) {

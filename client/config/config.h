@@ -19,6 +19,7 @@ struct WindowConfig {
     int width = 960;
     int height = 540;
     std::string title = "Argentum Online";
+    bool fullscreen = false;
 };
 
 struct BackgroundConfig {

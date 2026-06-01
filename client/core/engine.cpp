@@ -2,7 +2,7 @@
 
 Engine::Engine(const ClientConfig& config, Queue<ClientCommand>& command_queue):
         render_ctx(config.window.title, config.window.width, config.window.height,
-                   config.viewport.logical_w, config.viewport.logical_h),
+                   config.viewport.logical_w, config.viewport.logical_h, config.window.fullscreen),
         menu_ctrl(render_ctx.renderer(), config.ui),
         login_ctrl(render_ctx.renderer(), config.ui),
         create_char_ctrl(render_ctx.renderer(), config.ui),

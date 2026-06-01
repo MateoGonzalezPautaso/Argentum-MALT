@@ -37,6 +37,7 @@ void parse_window_config(const toml::table& root, ClientConfig& config) {
         config.window.width = toml_get_int(*window, "width", config.window.width);
         config.window.height = toml_get_int(*window, "height", config.window.height);
         config.window.title = toml_get_string(*window, "title", config.window.title);
+        config.window.fullscreen = toml_get_bool(*window, "fullscreen", config.window.fullscreen);
     }
 }
 

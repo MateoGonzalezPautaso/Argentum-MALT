@@ -19,7 +19,7 @@ struct ImageGuard {
 class RenderContext {
 public:
     RenderContext(const std::string& title, int window_w, int window_h, int logical_w = 1024,
-                  int logical_h = 768);
+                  int logical_h = 768, bool fullscreen = false);
     ~RenderContext();
 
     SDL2pp::Renderer& renderer() { return sdl_renderer; }
