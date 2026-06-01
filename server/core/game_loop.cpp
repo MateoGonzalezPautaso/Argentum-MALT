@@ -7,6 +7,7 @@ GameLoop::GameLoop(const ServerConfig& config, Queue<PlayerCommand>& input_queue
                    ClientListMonitor& monitor, PlayerPersistence& persistence,
                    ClanPersistence& clan_persistence):
         tick_rate_hz(config.tick_rate_hz),
+        save_interval_ticks(config.save_interval_seconds * config.tick_rate_hz),
         game(config, persistence, clan_persistence),
         input_queue(input_queue),
         monitor(monitor) {}
@@ -17,6 +18,7 @@ void GameLoop::run() {
 
     const milliseconds tick_duration = milliseconds(1000 / tick_rate_hz);
     auto next_tick = steady_clock::now();
+    int ticks_since_save = 0;
 
     while (should_keep_running()) {
         next_tick += tick_duration;
@@ -74,6 +76,12 @@ void GameLoop::run() {
             // behind / tick_duration is integer division on chrono durations
             // it gives exactly how many complete ticks were missed. Advance next_tick by that many
             // ticks.
+        }
+
+        ++ticks_since_save;
+        if (ticks_since_save >= save_interval_ticks) {
+            game.save_all_players();
+            ticks_since_save = 0;
         }
 
         std::this_thread::sleep_until(next_tick);

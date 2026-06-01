@@ -15,6 +15,8 @@ ServerConfig load_server_config(const std::string& path) {
         config.port =
                 static_cast<uint16_t>(toml_get_int(*server, "port", static_cast<int>(config.port)));
         config.tick_rate_hz = toml_get_int(*server, "tick_rate_hz", config.tick_rate_hz);
+        config.save_interval_seconds =
+                toml_get_int(*server, "save_interval_seconds", config.save_interval_seconds);
     }
 
     config.tilemap_configs = load_all_map_configs("config/map_list.toml");

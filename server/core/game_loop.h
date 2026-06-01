@@ -13,6 +13,7 @@
 
 class GameLoop: public Thread {
     int tick_rate_hz;
+    int save_interval_ticks;
     Game game;
     Queue<PlayerCommand>& input_queue;
     ClientListMonitor& monitor;
