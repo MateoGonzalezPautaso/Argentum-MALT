@@ -93,7 +93,11 @@ struct InventoryPanelConfig {
     int cols = 4;
     int slot_w = 50, slot_h = 50;
     int gap = 4;
-    int equip_y = 102;
+    int equip_y = 50;
+    std::string equip_weapon_label{"Arma"};
+    std::string equip_armor_label{"Armadura"};
+    std::string equip_helmet_label{"Casco"};
+    std::string equip_shield_label{"Escudo"};
 };
 
 struct ItemSpriteDef {

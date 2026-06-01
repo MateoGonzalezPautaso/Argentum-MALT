@@ -75,7 +75,11 @@ cols = 4
 slot_w = 50
 slot_h = 50
 gap = 4
-equip_y = 102
+equip_y = 50
+equip_weapon_label = "Weapon"
+equip_armor_label = "Armor"
+equip_helmet_label = "Helmet"
+equip_shield_label = "Shield"
 
 [ui.hp_bar]
 x = 790
@@ -127,7 +131,7 @@ connect_default = "assets/interface/en_boton-conectar-default.bmp"
 connect_hover = "assets/interface/en_boton-conectar-over.bmp"
 back_default = "assets/interface/en_boton-volver-default.bmp"
 back_hover = "assets/interface/en_boton-volver-over.bmp"
-ui_frame = "assets/interface/en_ventanaprincipal_edit.bmp"
+ui_frame = "assets/interface/en_ventanaprincipal_edit_v2.bmp"
 hp_bar = "assets/interface/en_barradevida.bmp"
 mp_bar = "assets/interface/en_barrademana.bmp"
 exp_bar = "assets/interface/en_barraexperiencia.bmp"

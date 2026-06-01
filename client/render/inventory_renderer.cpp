@@ -94,7 +94,12 @@ void InventoryRenderer::render(const std::vector<InventorySlot>& slots) {
 }
 
 void InventoryRenderer::render_equipped(const InventorySlot equipped[4]) {
-    const char* labels[4] = {"Arma", "Armadura", "Casco", "Escudo"};
+    const char* labels[4] = {
+        cfg.equip_weapon_label.c_str(),
+        cfg.equip_armor_label.c_str(),
+        cfg.equip_helmet_label.c_str(),
+        cfg.equip_shield_label.c_str()
+    };
 
     for (int i = 0; i < 4; ++i) {
         int sx = cfg.x + i * (cfg.slot_w + cfg.gap);

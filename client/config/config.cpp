@@ -213,6 +213,10 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
             config.ui.inventory_panel.slot_h = toml_get_int(*inv, "slot_h", config.ui.inventory_panel.slot_h);
             config.ui.inventory_panel.gap = toml_get_int(*inv, "gap", config.ui.inventory_panel.gap);
             config.ui.inventory_panel.equip_y = toml_get_int(*inv, "equip_y", config.ui.inventory_panel.equip_y);
+            config.ui.inventory_panel.equip_weapon_label = toml_get_string(*inv, "equip_weapon_label", config.ui.inventory_panel.equip_weapon_label);
+            config.ui.inventory_panel.equip_armor_label = toml_get_string(*inv, "equip_armor_label", config.ui.inventory_panel.equip_armor_label);
+            config.ui.inventory_panel.equip_helmet_label = toml_get_string(*inv, "equip_helmet_label", config.ui.inventory_panel.equip_helmet_label);
+            config.ui.inventory_panel.equip_shield_label = toml_get_string(*inv, "equip_shield_label", config.ui.inventory_panel.equip_shield_label);
         }
     }
 
