@@ -6,11 +6,9 @@ namespace {
 
 Player make_player(uint16_t id = 1) {
     BalanceConfig bal;
-    bal.starting_hp = 100;
     bal.starting_mana = 50;
     bal.starting_gold = 0;
     bal.max_level = 100;
-    bal.hp_per_level = 10;
     bal.mana_per_level = 5;
     bal.gold_per_level = 10;
     bal.level_exp_base = 1000;
@@ -28,14 +26,15 @@ Player make_player(uint16_t id = 1) {
 
 TEST(PlayerTest, TakeDamage_ReducesHp) {
     auto p = make_player();
-    p.take_damage(30);
-    EXPECT_EQ(p.get_hp_current(), 70u);
+    uint32_t damage = p.get_hp_max() / 2;
+    p.take_damage(damage);
+    EXPECT_EQ(p.get_hp_current(), p.get_hp_max() - damage);
     EXPECT_FALSE(p.is_ghost());
 }
 
 TEST(PlayerTest, TakeDamage_ExactKill) {
     auto p = make_player();
-    p.take_damage(100);
+    p.take_damage(p.get_hp_max());
     EXPECT_EQ(p.get_hp_current(), 0u);
     EXPECT_TRUE(p.is_ghost());
 }
@@ -53,9 +52,10 @@ TEST(PlayerTest, TakeDamage_OverkillClampedToZero) {
 
 TEST(PlayerTest, Heal_IncreasesHp) {
     auto p = make_player();
-    p.take_damage(40);
-    p.heal(20);
-    EXPECT_EQ(p.get_hp_current(), 80u);
+    uint32_t max = p.get_hp_max();
+    p.take_damage(max / 2);
+    p.heal(max / 4);
+    EXPECT_EQ(p.get_hp_current(), max - max / 2 + max / 4);
 }
 
 TEST(PlayerTest, Heal_CappedAtMax) {
@@ -88,12 +88,13 @@ TEST(PlayerTest, Resurrect_RestoresHpAndMana) {
 TEST(PlayerTest, GainExperience_TriggersLevelUp) {
     auto p = make_player();
     EXPECT_EQ(p.get_level(), 1);
+    uint32_t hp_before = p.get_hp_max();
 
     uint32_t threshold = p.exp_to_next_level();
     p.gain_experience(threshold);
 
     EXPECT_EQ(p.get_level(), 2);
-    EXPECT_GT(p.get_hp_max(), 100u);
+    EXPECT_GT(p.get_hp_max(), hp_before);
     EXPECT_GT(p.get_mana_max(), 50u);
 }
 

@@ -23,10 +23,8 @@ protected:
 
     Player& add_player(uint16_t id, const std::string& username, Position pos = {100, 100}) {
         BalanceConfig bal;
-        bal.starting_hp = 100;
         bal.starting_mana = 50;
         bal.max_level = 100;
-        bal.hp_per_level = 10;
         bal.mana_per_level = 5;
         bal.gold_per_level = 10;
         bal.level_exp_base = 1000;
