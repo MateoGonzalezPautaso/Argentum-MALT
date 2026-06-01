@@ -229,6 +229,11 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
     if (text.empty())
         return {};
 
+    if (it->second.is_ghost()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden interactuar"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
     it->second.set_meditating(false);
 
     const std::string& sender_name = it->second.get_username();
