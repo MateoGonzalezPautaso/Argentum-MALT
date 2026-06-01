@@ -10,7 +10,8 @@
 #include "texture_loader.h"
 
 UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
-                       const SkinConfig& skin_config, const ChatInput& chat_model):
+                       const SkinConfig& skin_config, const ChatInput& chat_model,
+                       const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites):
         renderer(renderer),
         chat_model(chat_model),
         skin_config(skin_config),
@@ -24,7 +25,7 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
         chat_history_rect(ui_cfg.chat_history_x, ui_cfg.chat_history_y, ui_cfg.chat_history_w,
                           ui_cfg.chat_history_h),
         ui_cfg(ui_cfg),
-        inventory_renderer(renderer, bar_font, ui_cfg.inventory_panel) {
+        inventory_renderer(renderer, bar_font, ui_cfg.inventory_panel, item_sprites) {
     chat_font = TTF_OpenFont(ui_cfg.font_path.c_str(), ui_cfg.font_chat_size);
     if (!chat_font) {
         throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());

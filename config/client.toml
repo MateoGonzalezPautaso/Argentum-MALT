@@ -184,4 +184,140 @@ dir_src_y_right = 144
 head_dir_src_y_down = 0
 head_dir_src_y_up = 64
 head_dir_src_y_left = 128
-head_dir_src_y_right = 192
+    head_dir_src_y_right = 192
+
+[[item_sprites]]
+item_type = "SWORD"
+path = "assets/Graficos/2101.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+
+[[item_sprites]]
+item_type = "AXE"
+path = "assets/Graficos/2087.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+
+[[item_sprites]]
+item_type = "HAMMER"
+path = "assets/Graficos/2084.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+
+[[item_sprites]]
+item_type = "ASH_STAFF"
+path = "assets/Graficos/2019.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+
+[[item_sprites]]
+item_type = "ELVEN_FLUTE"
+path = "assets/Graficos/2089.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+
+[[item_sprites]]
+item_type = "KNOTTED_STAFF"
+path = "assets/Graficos/2016.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+
+[[item_sprites]]
+item_type = "STUDDED_STAFF"
+path = "assets/Graficos/2013.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+
+[[item_sprites]]
+item_type = "SIMPLE_BOW"
+path = "assets/Graficos/2044.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+
+[[item_sprites]]
+item_type = "COMPOSITE_BOW"
+path = "assets/Graficos/2045.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+
+[[item_sprites]]
+item_type = "LEATHER_ARMOR"
+path = "assets/Graficos/1860.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+
+[[item_sprites]]
+item_type = "PLATE_ARMOR"
+path = "assets/Graficos/1854.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+
+[[item_sprites]]
+item_type = "BLUE_TUNIC"
+path = "assets/Graficos/1981.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+
+[[item_sprites]]
+item_type = "HOOD"
+path = "assets/Graficos/437.png"
+src_x = 224
+src_y = 832
+src_w = 32
+src_h = 32
+
+[[item_sprites]]
+item_type = "IRON_HELMET"
+path = "assets/Graficos/437.png"
+src_x = 416
+src_y = 800
+src_w = 32
+src_h = 32
+
+[[item_sprites]]
+item_type = "TURTLE_SHIELD"
+path = "assets/Graficos/2368.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+
+[[item_sprites]]
+item_type = "IRON_SHIELD"
+path = "assets/Graficos/2322.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+
+[[item_sprites]]
+item_type = "MAGIC_HAT"
+path = "assets/Graficos/437.png"
+src_x = 96
+src_y = 800
+src_w = 32
+src_h = 32

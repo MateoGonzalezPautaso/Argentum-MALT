@@ -95,6 +95,13 @@ struct InventoryPanelConfig {
     int gap = 4;
 };
 
+struct ItemSpriteDef {
+    ItemType item_type = ItemType::NONE;
+    std::string path;
+    int src_x = 0, src_y = 0;
+    int src_w = 32, src_h = 32;
+};
+
 struct UIConfig {
     int window_w = 1024;
     int window_h = 768;
@@ -211,6 +218,7 @@ struct ClientConfig {
     FontConfig font;
     ViewportConfig viewport;
     UIConfig ui;
+    std::unordered_map<uint8_t, ItemSpriteDef> item_sprites;
     int move_step = 4;
     int walk_src_step = 30;
     int walk_src_frames = 6;

@@ -7,6 +7,29 @@
 
 namespace {
 
+ItemType parse_item_type(const std::string& str) {
+    if (str == "SWORD") return ItemType::SWORD;
+    if (str == "AXE") return ItemType::AXE;
+    if (str == "HAMMER") return ItemType::HAMMER;
+    if (str == "ASH_STAFF") return ItemType::ASH_STAFF;
+    if (str == "ELVEN_FLUTE") return ItemType::ELVEN_FLUTE;
+    if (str == "KNOTTED_STAFF") return ItemType::KNOTTED_STAFF;
+    if (str == "STUDDED_STAFF") return ItemType::STUDDED_STAFF;
+    if (str == "SIMPLE_BOW") return ItemType::SIMPLE_BOW;
+    if (str == "COMPOSITE_BOW") return ItemType::COMPOSITE_BOW;
+    if (str == "LEATHER_ARMOR") return ItemType::LEATHER_ARMOR;
+    if (str == "PLATE_ARMOR") return ItemType::PLATE_ARMOR;
+    if (str == "BLUE_TUNIC") return ItemType::BLUE_TUNIC;
+    if (str == "HOOD") return ItemType::HOOD;
+    if (str == "IRON_HELMET") return ItemType::IRON_HELMET;
+    if (str == "TURTLE_SHIELD") return ItemType::TURTLE_SHIELD;
+    if (str == "IRON_SHIELD") return ItemType::IRON_SHIELD;
+    if (str == "MAGIC_HAT") return ItemType::MAGIC_HAT;
+    if (str == "HEALTH_POTION") return ItemType::HEALTH_POTION;
+    if (str == "MANA_POTION") return ItemType::MANA_POTION;
+    return ItemType::NONE;
+}
+
 std::vector<std::string> parse_paths(const toml::table& tbl) {
     std::vector<std::string> paths;
 
@@ -293,6 +316,26 @@ void parse_movement_config(const toml::table& root, ClientConfig& config) {
                 toml_get_int(*movement, "head_dir_src_y_right", config.head_dir_src_y_right);
     }
 }
+
+void parse_item_sprites_config(const toml::table& root, ClientConfig& config) {
+    if (auto sprites = root["item_sprites"].as_array()) {
+        for (const auto& entry : *sprites) {
+            if (!entry.is_table()) continue;
+            const toml::table& tbl = *entry.as_table();
+            ItemSpriteDef def;
+            std::string type_str = toml_get_string(tbl, "item_type", "");
+            def.item_type = parse_item_type(type_str);
+            def.path = toml_get_string(tbl, "path", "");
+            def.src_x = toml_get_int(tbl, "src_x", def.src_x);
+            def.src_y = toml_get_int(tbl, "src_y", def.src_y);
+            def.src_w = toml_get_int(tbl, "src_w", def.src_w);
+            def.src_h = toml_get_int(tbl, "src_h", def.src_h);
+            if (def.item_type != ItemType::NONE && !def.path.empty()) {
+                config.item_sprites[static_cast<uint8_t>(def.item_type)] = def;
+            }
+        }
+    }
+}
 }  // namespace
 
 ClientConfig load_client_config(const std::string& path) {
@@ -309,6 +352,7 @@ ClientConfig load_client_config(const std::string& path) {
     parse_assets_config(root, config);
     parse_skin_config(root, config);
     parse_movement_config(root, config);
+    parse_item_sprites_config(root, config);
 
     config.tilemap_configs = load_all_map_configs("config/map_list.toml");
 

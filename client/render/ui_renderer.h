@@ -34,7 +34,8 @@ private:
 
 public:
     UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg, const SkinConfig& skin_config,
-               const ChatInput& chat_model);
+               const ChatInput& chat_model,
+               const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites);
     ~UIRenderer();
 
     void render_frame_background();
