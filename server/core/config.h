@@ -70,6 +70,7 @@ struct BalanceConfig {
     int starting_gold = 0;
     int starting_pos_x = 100;
     int starting_pos_y = 100;
+    int min_level = 1;
     int max_level = 100;
     int gold_per_level = 100;
     int level_exp_base = 1000;

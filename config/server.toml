@@ -29,6 +29,7 @@ min_level_found = 6
 starting_gold = 0
 starting_pos_x = 100
 starting_pos_y = 100
+min_level = 1
 max_level = 100
 gold_per_level = 100
 level_exp_base = 1000

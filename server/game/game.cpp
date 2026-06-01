@@ -430,6 +430,10 @@ CommandResult Game::handle_cheat_level_up(uint16_t player_id) {
     if (it == players.end())
         return {};
     Player& player = it->second;
+    if (player.get_level() >= balance.max_level) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Ya estas en el nivel maximo"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
     player.level_up();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      "[Cheat] Nivel subido a " + std::to_string(player.get_level())};
@@ -441,7 +445,7 @@ CommandResult Game::handle_cheat_level_down(uint16_t player_id) {
     if (it == players.end())
         return {};
     Player& player = it->second;
-    if (player.get_level() <= 1) {
+    if (player.get_level() <= balance.min_level) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Ya estas en el nivel minimo"};
         return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
