@@ -13,12 +13,15 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         player_class(player_class),
         level(1),
         experience(0),
-        hp_current(balance.starting_hp),
-        hp_max(balance.starting_hp),
+        hp_current(0),
+        hp_max(0),
         mana_current(balance.starting_mana),
         mana_max(balance.starting_mana),
         gold(balance.starting_gold),
-        balance(balance) {}
+        balance(balance) {
+    hp_max = calculate_hp_max();
+    hp_current = hp_max;
+}
 
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
                PlayerClass player_class, const BalanceConfig& balance,
@@ -68,7 +71,7 @@ void Player::gain_experience(uint32_t exp) {
 
 void Player::level_up() {
     ++level;
-    hp_max += balance.hp_per_level;
+    hp_max = calculate_hp_max();
     mana_max += balance.mana_per_level;
     gold += balance.gold_per_level * level;
     hp_current = hp_max;
@@ -147,10 +150,29 @@ void Player::level_down() {
     if (level <= 1)
         return;
     --level;
-    hp_max = std::max(hp_max, static_cast<uint32_t>(balance.starting_hp));
+    hp_max = calculate_hp_max();
     mana_max = std::max(mana_max, static_cast<uint32_t>(balance.starting_mana));
     hp_current = hp_max;
     mana_current = mana_max;
+}
+
+uint32_t Player::calculate_hp_max() const {
+    int constitution;
+    double f_race;
+    switch (race) {
+        case Race::HUMAN: constitution = balance.hp.constitution_human; f_race = balance.hp.race_hp_factor_human; break;
+        case Race::ELF:   constitution = balance.hp.constitution_elf;   f_race = balance.hp.race_hp_factor_elf;   break;
+        case Race::DWARF: constitution = balance.hp.constitution_dwarf; f_race = balance.hp.race_hp_factor_dwarf; break;
+        case Race::GNOME: constitution = balance.hp.constitution_gnome; f_race = balance.hp.race_hp_factor_gnome; break;
+    }
+    double f_class;
+    switch (player_class) {
+        case PlayerClass::WARRIOR: f_class = balance.hp.class_hp_factor_warrior; break;
+        case PlayerClass::PALADIN: f_class = balance.hp.class_hp_factor_paladin; break;
+        case PlayerClass::CLERIC:  f_class = balance.hp.class_hp_factor_cleric;  break;
+        case PlayerClass::MAGE:    f_class = balance.hp.class_hp_factor_mage;    break;
+    }
+    return static_cast<uint32_t>(constitution * f_class * f_race * level);
 }
 
 uint32_t Player::exp_to_next_level() const {
