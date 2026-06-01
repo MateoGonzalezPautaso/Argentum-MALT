@@ -126,6 +126,21 @@ ServerEvent ClientProtocol::recv_event() {
             }
             return InventoryUpdateEvent{std::move(slots)};
         }
+        case OpCode::EQUIP_UPDATE: {
+            auto read_slot = [this]() {
+                InventorySlot s;
+                s.item_type = static_cast<ItemType>(protocol.recv_uint8());
+                s.item_name = protocol.recv_str();
+                s.sprite_id = protocol.recv_uint8();
+                return s;
+            };
+            EquipUpdateEvent ev;
+            ev.weapon = read_slot();
+            ev.armor = read_slot();
+            ev.helmet = read_slot();
+            ev.shield = read_slot();
+            return ev;
+        }
         case OpCode::CHAT_MSG:          return recv_chat_msg();
         case OpCode::CLAN_NOTIFICATION: return recv_clan_notification();
         case OpCode::CLAN_UPDATE:       return recv_clan_update();

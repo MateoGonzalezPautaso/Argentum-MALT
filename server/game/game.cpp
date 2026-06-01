@@ -86,9 +86,11 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                                [&](const CheatDieCmd&) { return handle_cheat_die(player_id); },
                                [&](const CheatLevelUpCmd&) { return handle_cheat_level_up(player_id); },
                                 [&](const CheatLevelDownCmd&) { return handle_cheat_level_down(player_id); },
-                               [&](const CheatAddGoldCmd&) { return handle_cheat_add_gold(player_id); },
-                               [&](const CheatVelocityCmd&) { return handle_cheat_velocity(player_id); },
+                                [&](const CheatAddGoldCmd&) { return handle_cheat_add_gold(player_id); },
+                                [&](const CheatVelocityCmd&) { return handle_cheat_velocity(player_id); },
                                 [&](const ChangeMapCmd& cmd) { return handle_change_map(player_id, cmd); },
+                                [&](const EquipItemCmd& cmd) { return handle_equip(player_id, cmd); },
+                                [&](const UnequipItemCmd& cmd) { return handle_unequip(player_id, cmd); },
                                 [](const auto&) { return CommandResult{}; },
                        },
                        cmd);
@@ -270,6 +272,20 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         if (cmd_name == "/meditar") return handle_meditate(player_id);
         if (cmd_name == "/resucitar") return handle_resurrect(player_id);
 
+        if (cmd_name == "/equipar") {
+            try {
+                int idx = std::stoi(args);
+                return handle_equip(player_id, EquipItemCmd{static_cast<uint8_t>(idx)});
+            } catch (...) { return {}; }
+        }
+        if (cmd_name == "/desequipar") {
+            if (args == "weapon") return handle_unequip(player_id, UnequipItemCmd{EquipSlot::WEAPON});
+            if (args == "armor") return handle_unequip(player_id, UnequipItemCmd{EquipSlot::ARMOR});
+            if (args == "helmet") return handle_unequip(player_id, UnequipItemCmd{EquipSlot::HELMET});
+            if (args == "shield") return handle_unequip(player_id, UnequipItemCmd{EquipSlot::SHIELD});
+            return {};
+        }
+
         ChatMsgEvent ev{ChatMsgType::SYSTEM, "", "Comando " + cmd_name + " no reconocido"};
         return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = {}};
     }
@@ -314,6 +330,13 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
         // Send inventory after login
         InventoryUpdateEvent inv_event{p.get_inventory().dump_slots()};
         private_events.push_back(inv_event);
+
+        // Send equipment state after login
+        InventorySlot equipped_slots[4];
+        p.dump_equipped(equipped_slots);
+        EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
+                                   equipped_slots[3]};
+        private_events.push_back(equip_ev);
 
         if (p.get_current_map() != "main") {
             private_events.push_back(MapTransitionEvent{
@@ -608,6 +631,50 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     CommandResult r;
     r.map_events = {respawn_ev};
     return r;
+}
+
+CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
+    auto it = players.find(player_id);
+    if (it == players.end()) return {};
+
+    Player& player = it->second;
+    player.set_meditating(false);
+
+    bool changed = player.equip(cmd.slot_index);
+    if (!changed) return {};
+
+    InventorySlot equipped_slots[4];
+    player.dump_equipped(equipped_slots);
+    EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
+                               equipped_slots[3]};
+    InventoryUpdateEvent inv_ev{player.get_inventory().dump_slots()};
+
+    ChatMsgEvent msg{
+            ChatMsgType::SYSTEM, "",
+            "Equipaste slot " + std::to_string(cmd.slot_index)};
+    return {.private_events = {equip_ev, inv_ev, msg},
+            .broadcast_events = {},
+            .targeted_events = {}};
+}
+
+CommandResult Game::handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd) {
+    auto it = players.find(player_id);
+    if (it == players.end()) return {};
+
+    Player& player = it->second;
+    player.set_meditating(false);
+
+    player.unequip(cmd.slot);
+
+    InventorySlot equipped_slots[4];
+    player.dump_equipped(equipped_slots);
+    EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
+                               equipped_slots[3]};
+    InventoryUpdateEvent inv_ev{player.get_inventory().dump_slots()};
+
+    return {.private_events = {equip_ev, inv_ev},
+            .broadcast_events = {},
+            .targeted_events = {}};
 }
 
 CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {

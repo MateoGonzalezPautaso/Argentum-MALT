@@ -65,7 +65,8 @@ private:
     ClientCommand recv_attack();
     ClientCommand recv_send_chat_msg();
     ClientCommand recv_change_map();
-    // TODO ...
+    ClientCommand recv_equip_item();
+    ClientCommand recv_unequip_item();
 };
 
 #endif  // SERVER_PROTOCOL_H_
