@@ -297,6 +297,19 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
         return true;
     }
 
+    if (ui_renderer.is_hovering_occupied()) {
+        int idx = ui_renderer.get_hovered_inv_slot();
+        if (idx >= 0) {
+            command_queue.push(EquipItemCmd{static_cast<uint8_t>(idx)});
+            return true;
+        }
+        int eq = ui_renderer.get_hovered_equip_slot();
+        if (eq >= 0) {
+            command_queue.push(UnequipItemCmd{static_cast<EquipSlot>(eq)});
+            return true;
+        }
+    }
+
     int world_x = 0;
     int world_y = 0;
     if (!world_renderer.screen_to_world(event.button.x, event.button.y, world_x, world_y)) {

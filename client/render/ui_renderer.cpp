@@ -192,6 +192,14 @@ bool UIRenderer::is_hovering_occupied() const {
     return inventory_renderer.is_hovering_occupied();
 }
 
+int UIRenderer::get_hovered_inv_slot() const {
+    return inventory_renderer.get_hovered_inv_slot();
+}
+
+int UIRenderer::get_hovered_equip_slot() const {
+    return inventory_renderer.get_hovered_equip_slot();
+}
+
 void UIRenderer::render_inventory(const std::vector<InventorySlot>& slots) {
     inventory_renderer.render(slots);
 }

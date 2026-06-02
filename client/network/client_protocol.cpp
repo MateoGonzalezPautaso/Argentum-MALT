@@ -72,6 +72,17 @@ void ClientProtocol::send_change_map(const ChangeMapCmd& cmd) {
     protocol.send_str(cmd.prop_name);
 }
 
+void ClientProtocol::send_equip_item(const EquipItemCmd& cmd) {
+    protocol.send_opcode(OpCode::EQUIP_ITEM);
+    protocol.send_uint8(cmd.slot_index);
+}
+
+void ClientProtocol::send_unequip_item(const UnequipItemCmd& cmd) {
+    protocol.send_opcode(OpCode::UNEQUIP_ITEM);
+    protocol.send_uint8(static_cast<uint8_t>(cmd.slot));
+}
+}
+
 void ClientProtocol::send_command(const ClientCommand& cmd) {
     std::visit(overloaded{
                        [this](const MoveCmd& msg) { send_move(msg); },
@@ -89,6 +100,8 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const CheatAddGoldCmd&) { send_cheat_add_gold(); },
                        [this](const CheatVelocityCmd&) { send_cheat_velocity(); },
                        [this](const ChangeMapCmd& msg) { send_change_map(msg); },
+                       [this](const EquipItemCmd& msg) { send_equip_item(msg); },
+                       [this](const UnequipItemCmd& msg) { send_unequip_item(msg); },
                         [](const auto&) { throw std::runtime_error("Command not implemented"); },
                },
                cmd);
