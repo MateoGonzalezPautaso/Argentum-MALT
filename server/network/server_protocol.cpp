@@ -104,7 +104,6 @@ ClientCommand ServerProtocol::recv_unequip_item() {
     EquipSlot slot = static_cast<EquipSlot>(protocol.recv_uint8());
     return UnequipItemCmd{slot};
 }
-}
 
 void ServerProtocol::send_login_payload(const LoginOkEvent& ev) {
     protocol.send_uint16(ev.player_id);

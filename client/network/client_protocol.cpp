@@ -81,7 +81,6 @@ void ClientProtocol::send_unequip_item(const UnequipItemCmd& cmd) {
     protocol.send_opcode(OpCode::UNEQUIP_ITEM);
     protocol.send_uint8(static_cast<uint8_t>(cmd.slot));
 }
-}
 
 void ClientProtocol::send_command(const ClientCommand& cmd) {
     std::visit(overloaded{

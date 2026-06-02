@@ -50,6 +50,7 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         sprite_width(config.sprite_width),
         sprite_height(config.sprite_height),
         balance(config.balance),
+        inventory_config(config.inventory),
         combat_controller(config.attack, players),
         tick_rate_hz(config.tick_rate_hz) {
     for (const auto& [name, tc] : tilemap_configs) {
@@ -374,7 +375,7 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     }
 
     PlayerRecord existing;
-    if (persistence.load(cmd.username, existing)) {
+    if (player_data_service.player_exists(cmd.username)) {
         CharacterErrorEvent err{CharacterError::USERNAME_TAKEN, "El usuario " + cmd.username + " ya existe"};
         return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
     }
@@ -398,12 +399,13 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
 
     Player player(player_id, cmd.username,
                   Position{rec.pos_x, rec.pos_y},
-                  Direction::SOUTH, cmd.race, cmd.player_class, balance);
+                  Direction::SOUTH, cmd.race, cmd.player_class, balance,
+                  inventory_config.max_slots);
     rec.hp_current = player.get_hp_current();
     rec.hp_max = player.get_hp_max();
     rec.mana_current = player.get_mana_current();
     rec.mana_max = player.get_mana_max();
-    persistence.save(cmd.username, rec);
+    player_data_service.save_new_player(cmd.username, rec);
     auto it = players.emplace(player_id, std::move(player)).first;
     const Player& p = it->second;
 
@@ -600,7 +602,7 @@ std::vector<uint16_t> Game::get_player_ids_on_map(const std::string& map_name) c
 
 void Game::save_all_players() {
     for (const auto& [id, player]: players) {
-        persistence.save(player);
+        player_data_service.save_player(player);
     }
 }
 
@@ -765,7 +767,7 @@ void Game::do_transition(Player& player, CommandResult& result, const PropDef& p
     player.set_current_map(prop.transition_map);
     player.set_pos(spawn.x, spawn.y);
 
-    persistence.save(player);
+    player_data_service.save_player(player);
 
     notify_player_transition(result, player, prop.transition_map, spawn);
     notify_others_spawn(result, player, prop.transition_map);

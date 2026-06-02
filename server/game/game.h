@@ -29,6 +29,7 @@ private:
     int sprite_width;
     int sprite_height;
     BalanceConfig balance;
+    InventoryConfig inventory_config;
     CombatController combat_controller;
     uint32_t tick_count = 0;
     int tick_rate_hz;

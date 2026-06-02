@@ -23,7 +23,6 @@ Player make_player(uint16_t id = 1) {
 Player make_mage_player(uint16_t id = 1) {
     return Player(id, "mage", {100, 100}, Direction::SOUTH, Race::HUMAN, PlayerClass::MAGE, make_balance(), 20);
 }
-}
 
 }  // namespace
 
