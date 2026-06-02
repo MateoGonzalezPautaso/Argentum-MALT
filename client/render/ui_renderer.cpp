@@ -183,6 +183,15 @@ void UIRenderer::render_portrait(Race race, PlayerClass player_class, uint8_t le
     }
 }
 
+void UIRenderer::set_hover(int mx, int my, const std::vector<InventorySlot>& slots,
+                           const InventorySlot equipped[4]) {
+    inventory_renderer.update_hover(mx, my, slots, equipped);
+}
+
+bool UIRenderer::is_hovering_occupied() const {
+    return inventory_renderer.is_hovering_occupied();
+}
+
 void UIRenderer::render_inventory(const std::vector<InventorySlot>& slots) {
     inventory_renderer.render(slots);
 }

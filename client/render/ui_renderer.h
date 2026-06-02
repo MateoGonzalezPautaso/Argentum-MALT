@@ -46,6 +46,9 @@ public:
     void render_exp_bar(uint32_t current, uint32_t max);
     void render_gold(uint32_t gold);
     void render_portrait(Race race, PlayerClass player_class, uint8_t level);
+    void set_hover(int mx, int my, const std::vector<InventorySlot>& slots,
+                   const InventorySlot equipped[4]);
+    bool is_hovering_occupied() const;
     void render_inventory(const std::vector<InventorySlot>& slots);
     void render_equipped(const InventorySlot equipped[4]);
     bool is_chat_input_hit(int x, int y) const;

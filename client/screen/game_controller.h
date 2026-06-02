@@ -44,6 +44,8 @@ private:
     MoveConfig move_config;
     SDL_Cursor* hand_cursor;
     SDL_Cursor* arrow_cursor;
+    int mouse_x = 0;
+    int mouse_y = 0;
 
     bool handle_mouse_button(const SDL_Event& event);
     bool handle_mouse_motion(const SDL_Event& event);

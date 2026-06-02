@@ -41,6 +41,7 @@ void GameController::render() {
     ui_renderer.render_exp_bar(player_stats.experience, player_stats.exp_to_next);
     ui_renderer.render_chat_history(chat_history.get_messages());
     ui_renderer.render_chat_input();
+    ui_renderer.set_hover(mouse_x, mouse_y, player_stats.inventory, player_stats.equipped);
     ui_renderer.render_inventory(player_stats.inventory);
     ui_renderer.render_equipped(player_stats.equipped);
     renderer.Present();
@@ -323,6 +324,15 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
 }
 
 bool GameController::handle_mouse_motion(const SDL_Event& event) {
+    mouse_x = event.motion.x;
+    mouse_y = event.motion.y;
+
+    ui_renderer.set_hover(mouse_x, mouse_y, player_stats.inventory, player_stats.equipped);
+    if (ui_renderer.is_hovering_occupied()) {
+        SDL_SetCursor(hand_cursor);
+        return true;
+    }
+
     int world_x = 0;
     int world_y = 0;
     uint16_t entity_id = 0;
