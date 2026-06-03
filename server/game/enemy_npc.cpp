@@ -3,8 +3,8 @@
 #include "../../common/item.h"
 
 EnemyNpc::EnemyNpc(Position position, uint32_t hp_max, uint32_t damage, Rng& rng,
-                   EquipableItems& equipable_items, uint32_t level):
-        rng(rng), equipable_items(equipable_items) {
+                   EquipableItems& equipable_items, uint8_t level, const std::string& name):
+        rng(rng), equipable_items(equipable_items), name(name) {
     this->position = position;
     hp_current = hp_max;
     this->hp_max = hp_max;
@@ -35,7 +35,7 @@ EnemyDrop EnemyNpc::get_kill_reward() {
     return enemy_drop;
 }
 
-bool EnemyNpc::is_dead() { return hp_current == 0; }
+bool EnemyNpc::is_dead() const { return hp_current == 0; }
 
 uint32_t EnemyNpc::get_damage() const { return damage; }
 
@@ -53,6 +53,14 @@ Item EnemyNpc::get_potion() {
         return Item("Health potion", ItemType::HEALTH_POTION, 0, 0, 0, 0, 0);
 }
 
-uint32_t EnemyNpc::get_level() const { return level; }
+uint8_t EnemyNpc::get_level() const { return level; }
 
 uint32_t EnemyNpc::get_hp_max() const { return hp_max; }
+
+uint32_t EnemyNpc::get_hp_current() const { return hp_current; }
+
+uint16_t EnemyNpc::pos_x() const { return position.x; }
+
+uint16_t EnemyNpc::pos_y() const { return position.y; }
+
+std::string EnemyNpc::get_name() const { return name; }

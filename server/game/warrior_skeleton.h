@@ -6,10 +6,9 @@
 
 #include "enemy_npc.h"
 
-// Dungeon variant
 class WarriorSkeleton: public EnemyNpc {
 public:
-    WarriorSkeleton(Position position, Rng& rng, EquipableItems& equipable_items, uint32_t level);
+    WarriorSkeleton(Position position, Rng& rng, EquipableItems& equipable_items, uint8_t level);
 };
 
 #endif

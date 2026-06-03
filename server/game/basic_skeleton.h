@@ -5,11 +5,9 @@
 #include "../../common/rng.h"
 
 #include "enemy_npc.h"
-
-// Appear in intermediate zones
 class BasicSkeleton: public EnemyNpc {
 public:
-    BasicSkeleton(Position position, Rng& rng, EquipableItems& equipable_items, uint32_t level);
+    BasicSkeleton(Position position, Rng& rng, EquipableItems& equipable_items, uint8_t level);
 };
 
 #endif

@@ -51,6 +51,17 @@ struct ManaConfig {
     double class_meditation_factor_mage = 2.0;
 };
 
+struct StrengthConfig {
+    double race_strength_factor_human = 1.0;
+    double race_strength_factor_elf = 0.7;
+    double race_strength_factor_dwarf = 1.3;
+    double race_strength_factor_gnome = 0.9;
+    double class_strength_factor_warrior = 1.5;
+    double class_strength_factor_paladin = 1.2;
+    double class_strength_factor_cleric = 0.8;
+    double class_strength_factor_mage = 0.5;
+};
+
 struct HpConfig {
     int constitution_human = 20;
     int constitution_elf = 15;
@@ -80,6 +91,7 @@ struct BalanceConfig {
     RaceRecoveryConfig race_recovery;
     HpConfig hp;
     ManaConfig mana;
+    StrengthConfig strength;
 };
 
 struct ServerConfig {

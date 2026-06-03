@@ -6,10 +6,9 @@
 
 #include "enemy_npc.h"
 
-// Very weak, enemy for newbies
 class SmallSpider: public EnemyNpc {
 public:
-    SmallSpider(Position position, Rng& rng, EquipableItems& equipable_items, uint32_t level);
+    SmallSpider(Position position, Rng& rng, EquipableItems& equipable_items, uint8_t level);
 };
 
 #endif

@@ -2,19 +2,22 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstdlib>
+#include <utility>
 #include <vector>
 
 #include "clan_manager.h"
 
-CombatController::CombatController(const AttackConfig& config,
-                                   std::map<uint16_t, Player>& players):
-        config(config), players(players) {}
+CombatController::CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
+                                   Rng& rng):
+        config(config), players(players), rng(rng) {}
 
 void CombatController::set_clan_manager(ClanManager& mgr) { clan_manager = &mgr; }
 
-CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t target_id,
-                                              uint32_t current_tick) {
+CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16_t target_id,
+                                                    uint32_t current_tick) {
+    if (attacker_id == target_id)
+        return {};
+
     auto attacker_it = players.find(attacker_id);
     if (attacker_it == players.end())
         return {};
@@ -23,13 +26,10 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
     if (target_it == players.end())
         return {};
 
-    if (attacker_id == target_id)
-        return {};
-
     Player& attacker = attacker_it->second;
     Player& target = target_it->second;
 
-    if (attacker.is_ghost() || target.is_ghost())
+    if (attacker.is_dead() || target.is_dead())
         return {};
 
 
@@ -42,7 +42,8 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
         return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
 
-    int level_diff = std::abs(static_cast<int>(attacker.get_level()) - static_cast<int>(target.get_level()));
+    int level_diff =
+            std::abs(static_cast<int>(attacker.get_level()) - static_cast<int>(target.get_level()));
     if (level_diff > config.max_level_diff) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                          "No puedes atacar a un jugador con diferencia de niveles mayor a 10"};
@@ -58,67 +59,69 @@ CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t targ
     if (!attacker.try_attack(current_tick, config.cooldown_ticks))
         return {};
 
-    if (!in_range(attacker, target))
+    if (!in_range(attacker.pos_x(), attacker.pos_y(), target.pos_x(), target.pos_y()))
         return {};
 
-    uint32_t damage = calculate_damage();
-
-    // Clan proximity bonus: increase attack damage based on nearby clan members
-    int nearby_allies = 0;
-    if (clan_manager && !attacker.get_clan_name().empty()) {
-        nearby_allies = count_nearby_clan_members(attacker);
-        double bonus = std::min(config.clan_bonus_per_member * nearby_allies, config.clan_bonus_max);
-        damage = static_cast<uint32_t>(std::round(damage * (1.0 + bonus)));
-    }
-
+    uint32_t damage = calculate_damage(attacker);
     target.take_damage(damage);
+    attacker.gain_experience(damage * std::max(static_cast<int>(target.get_level()) -
+                                                       static_cast<int>(attacker.get_level()) + 10,
+                                               0));
 
-    DamageDealtEvent dealt{target.get_id(), damage};
-    DamageReceivedEvent received{target.get_id(), attacker.get_id(), damage,
-                                  target.get_hp_current(), target.get_hp_max()};
-    ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
-                           attacker.get_username() + " ataco a " + target.get_username() +
-                                   " por " + std::to_string(damage) + " de daño"};
-    std::vector<ServerEvent> broadcast = {received, chat_msg};
-
-    if (target.is_ghost()) {
-        EntityDiedEvent died{target_id};
-        broadcast.push_back(died);
-        attacker.gain_experience(static_cast<uint32_t>(config.xp_per_level_kill) *
-                                  target.get_level());
-    }
-
-    // Notify clan members when someone is attacked
-    std::map<uint16_t, std::vector<ServerEvent>> targeted;
-    if (clan_manager && !target.get_clan_name().empty()) {
-        ClanNotificationEvent notif{ClanNotifType::MEMBER_ATTACKED, target.get_username(),
-                                    target.get_clan_name()};
-        for (const auto& [pid, p]: players) {
-            if (pid == attacker_id || pid == target_id)
-                continue;
-            if (p.get_clan_name() == target.get_clan_name()) {
-                targeted[pid].push_back(notif);
-            }
-        }
-    }
-
-    return {.private_events = {dealt}, .broadcast_events = std::move(broadcast),
-            .targeted_events = std::move(targeted)};
+    return notify_entity_attacked(attacker, target_id, damage, target.get_hp_current(),
+                                  target.get_hp_max(), target.get_username(),
+                                  target.get_clan_name(), target.is_dead(), target.get_level());
 }
 
-bool CombatController::in_range(const Player& attacker, const Player& target) const {
-    const int dx = static_cast<int>(target.pos_x()) - static_cast<int>(attacker.pos_x());
-    const int dy = static_cast<int>(target.pos_y()) - static_cast<int>(attacker.pos_y());
+CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,
+                                                 std::map<uint16_t, EnemyNpc>& npcs,
+                                                 uint32_t current_tick) {
+    auto attacker_it = players.find(attacker_id);
+    if (attacker_it == players.end())
+        return {};
+
+    auto npc_target_it = npcs.find(npc_target_id);
+    if (npc_target_it == npcs.end())
+        return {};
+
+    Player& attacker = attacker_it->second;
+    if (attacker.is_dead())
+        return {};
+
+    EnemyNpc& npc_target = npc_target_it->second;
+
+    if (!attacker.try_attack(current_tick, config.cooldown_ticks))
+        return {};
+
+    if (!in_range(attacker.pos_x(), attacker.pos_y(), npc_target.pos_x(), npc_target.pos_y()))
+        return {};
+
+    uint32_t damage = calculate_damage(attacker);
+    npc_target.take_damage(damage);
+    attacker.gain_experience(damage * std::max(static_cast<int>(npc_target.get_level()) -
+                                                       static_cast<int>(attacker.get_level()) + 10,
+                                               0));
+
+    return notify_entity_attacked(attacker, npc_target_id, damage, npc_target.get_hp_current(),
+                                  npc_target.get_hp_max(), npc_target.get_name(), "",
+                                  npc_target.is_dead(), npc_target.get_level());
+}
+
+bool CombatController::in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x,
+                                uint16_t target_y) const {
+    const int dx = static_cast<int>(target_x) - static_cast<int>(attacker_x);
+    const int dy = static_cast<int>(target_y) - static_cast<int>(attacker_y);
     const int dist_sq = dx * dx + dy * dy;
     const int range_sq = config.attack_range_px * config.attack_range_px;
     return dist_sq <= range_sq;
 }
 
-uint32_t CombatController::calculate_damage() const {
-    int variance = 0;
-    if (config.damage_variance > 0)
-        variance = (std::rand() % (2 * config.damage_variance + 1)) - config.damage_variance;
-    return static_cast<uint32_t>(std::max(1, config.base_damage + variance));
+uint32_t CombatController::calculate_damage(const Player& attacker) const {
+    int random_number = rng.get_random_int(1, 9);
+
+    uint32_t damage = static_cast<uint32_t>(attacker.get_strength() * random_number);
+    double bonus = get_clan_damage_bonus(attacker);
+    return static_cast<uint32_t>(std::round(damage * (1.0 + bonus)));
 }
 
 int CombatController::count_nearby_clan_members(const Player& player) const {
@@ -130,7 +133,7 @@ int CombatController::count_nearby_clan_members(const Player& player) const {
             continue;
         if (p.get_clan_name() != player.get_clan_name())
             continue;
-        if (p.is_ghost())
+        if (p.is_dead())
             continue;
         const int dx = static_cast<int>(p.pos_x()) - static_cast<int>(player.pos_x());
         const int dy = static_cast<int>(p.pos_y()) - static_cast<int>(player.pos_y());
@@ -140,4 +143,58 @@ int CombatController::count_nearby_clan_members(const Player& player) const {
         }
     }
     return count;
+}
+
+// Clan proximity bonus: increase attack damage based on nearby clan members
+double CombatController::get_clan_damage_bonus(const Player& attacker) const {
+    double bonus = 0;
+    if (clan_manager && !attacker.get_clan_name().empty()) {
+        int nearby_allies = count_nearby_clan_members(attacker);
+        bonus = std::min(config.clan_bonus_per_member * nearby_allies, config.clan_bonus_max);
+    }
+    return bonus;
+}
+
+CommandResult CombatController::notify_entity_attacked(Player& attacker, uint16_t target_id,
+                                                       uint32_t damage, uint32_t target_hp_current,
+                                                       uint32_t target_hp_max,
+                                                       const std::string& target_name,
+                                                       const std::string& target_clan_name,
+                                                       bool target_is_dead, uint8_t target_level) {
+    DamageDealtEvent dealt{attacker.get_id(), damage};
+    DamageReceivedEvent received{target_id, attacker.get_id(), damage, target_hp_current,
+                                 target_hp_max};
+    ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
+                          attacker.get_username() + " ataco a " + target_name + " por " +
+                                  std::to_string(damage) + " de daño"};
+    std::vector<ServerEvent> broadcast = {received, chat_msg};
+
+    if (target_is_dead) {
+        EntityDiedEvent died{target_id};
+        broadcast.push_back(died);
+
+        double random_double = rng.get_random_double(0, 0.1);
+        attacker.gain_experience(random_double * target_hp_max *
+                                 std::max(static_cast<int>(target_level) -
+                                                  static_cast<int>(attacker.get_level()) + 10,
+                                          0));
+    }
+
+    std::map<uint16_t, std::vector<ServerEvent>> targeted;
+    // Notify clan members when someone is attacked
+    if (clan_manager && !target_clan_name.empty()) {
+        ClanNotificationEvent notif{ClanNotifType::MEMBER_ATTACKED, target_name,
+                                    std::string(target_clan_name)};
+        for (const auto& [pid, p]: players) {
+            if (pid == attacker.get_id() || pid == target_id)
+                continue;
+            if (p.get_clan_name() == target_clan_name) {
+                targeted[pid].push_back(notif);
+            }
+        }
+    }
+
+    return {.private_events = {dealt},
+            .broadcast_events = std::move(broadcast),
+            .targeted_events = std::move(targeted)};
 }

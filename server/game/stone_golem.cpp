@@ -1,9 +1,8 @@
 #include "stone_golem.h"
 
-#define MAX_HP_STONE_GOLEM 900
-#define DAMAGE_STONE_GOLEM 40
+#define MAX_HP 900
+#define DAMAGE 40
+#define NAME "Stone golem"
 
-StoneGolem::StoneGolem(Position position, Rng& rng, EquipableItems& equipable_items,
-                       uint32_t level):
-        EnemyNpc(position, MAX_HP_STONE_GOLEM * level, DAMAGE_STONE_GOLEM * level, rng,
-                 equipable_items, level) {}
+StoneGolem::StoneGolem(Position position, Rng& rng, EquipableItems& equipable_items, uint8_t level):
+        EnemyNpc(position, MAX_HP * level, DAMAGE * level, rng, equipable_items, level, NAME) {}

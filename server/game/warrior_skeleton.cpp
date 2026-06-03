@@ -1,9 +1,9 @@
 #include "warrior_skeleton.h"
 
-#define MAX_HP_WAR_SKELETON 425
-#define DAMAGE_WARRIOR_SKELETON 22
+#define MAX_HP 425
+#define DAMAGE 22
+#define NAME "Warrior skeleton"
 
 WarriorSkeleton::WarriorSkeleton(Position position, Rng& rng, EquipableItems& equipable_items,
-                                 uint32_t level):
-        EnemyNpc(position, MAX_HP_WAR_SKELETON * level, DAMAGE_WARRIOR_SKELETON * level, rng,
-                 equipable_items, level) {}
+                                 uint8_t level):
+        EnemyNpc(position, MAX_HP * level, DAMAGE * level, rng, equipable_items, level, NAME) {}

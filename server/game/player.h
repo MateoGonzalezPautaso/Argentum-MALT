@@ -7,6 +7,12 @@
 #include "../../common/messages.h"
 #include "../core/config.h"
 
+struct UpdateStats {
+    uint32_t mana_max;
+    uint32_t hp_max;
+    uint32_t strength;
+};
+
 class Player {
 private:
     uint16_t id;
@@ -23,27 +29,24 @@ private:
     uint32_t mana_max;
     uint32_t gold;
     uint32_t next_attack_tick = 0;
-    bool is_dead = false;
     bool is_meditating = false;
     BalanceConfig balance;
     bool cheat_infinite_hp = false;
     bool cheat_infinite_mana = false;
     std::string clan_name;
     std::string current_map = "main";
+    uint32_t strength;
 
-    uint32_t calculate_hp_max() const;
-    uint32_t calculate_mana_max() const;
+    UpdateStats update_stats() const;
 
 public:
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
            PlayerClass player_class, const BalanceConfig& balance);
 
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
-           PlayerClass player_class, const BalanceConfig& balance,
-           uint8_t level, uint32_t experience,
-           uint32_t hp_current, uint32_t hp_max,
-           uint32_t mana_current, uint32_t mana_max,
-           uint32_t gold);
+           PlayerClass player_class, const BalanceConfig& balance, uint8_t level,
+           uint32_t experience, uint32_t hp_current, uint32_t hp_max, uint32_t mana_current,
+           uint32_t mana_max, uint32_t gold, uint32_t strength);
 
     uint16_t get_id() const { return id; }
     const std::string& get_username() const { return username; }
@@ -61,6 +64,7 @@ public:
     uint32_t get_mana_current() const { return mana_current; }
     uint32_t get_mana_max() const { return mana_max; }
     uint32_t get_gold() const { return gold; }
+    uint32_t get_strength() const { return strength; }
 
     const std::string& get_clan_name() const { return clan_name; }
     void set_clan_name(const std::string& name) { clan_name = name; }
@@ -73,11 +77,11 @@ public:
 
     bool toggle_cheat_infinite_hp() { return cheat_infinite_hp = !cheat_infinite_hp; }
     bool toggle_cheat_infinite_mana() { return cheat_infinite_mana = !cheat_infinite_mana; }
-    void kill() { hp_current = 0; is_dead = true; }
+    void kill() { hp_current = 0; }
     void level_down();
 
     bool try_attack(uint32_t current_tick, uint32_t cooldown_ticks);
-    bool is_ghost() const;
+    bool is_dead() const;
 
     void apply_move(Direction new_dir, int dx, int dy);
     void set_pos(uint16_t x, uint16_t y) { pos = {x, y}; }

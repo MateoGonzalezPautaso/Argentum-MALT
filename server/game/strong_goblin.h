@@ -6,10 +6,9 @@
 
 #include "enemy_npc.h"
 
-// More dangerous variant of WeakGoblin
 class StrongGoblin: public EnemyNpc {
 public:
-    StrongGoblin(Position position, Rng& rng, EquipableItems& equipable_items, uint32_t level);
+    StrongGoblin(Position position, Rng& rng, EquipableItems& equipable_items, uint8_t level);
 };
 
 #endif

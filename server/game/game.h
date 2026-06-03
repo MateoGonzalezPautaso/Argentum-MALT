@@ -5,8 +5,11 @@
 #include <map>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
+#include "../../common/equipable_items.h"
 #include "../../common/messages.h"
+#include "../../common/rng.h"
 #include "../core/config.h"
 #include "../persistence/player_persistence.h"
 
@@ -14,6 +17,7 @@
 #include "clan_manager.h"
 #include "combat_controller.h"
 #include "command_result.h"
+#include "enemy_npc.h"
 #include "map.h"
 #include "player.h"
 
@@ -29,11 +33,15 @@ private:
     int sprite_width;
     int sprite_height;
     BalanceConfig balance;
+    Rng rng;
     CombatController combat_controller;
     uint32_t tick_count = 0;
     int tick_rate_hz;
     std::unordered_map<uint16_t, double> hp_regen_accum;
     std::unordered_map<uint16_t, double> mana_regen_accum;
+    std::map<uint16_t, EnemyNpc> npcs;
+    EquipableItems equipable_items;
+
 
     double recovery_rate_for(Race race) const;
     double intelligence_for(Race race) const;
@@ -58,7 +66,8 @@ private:
     LoginOkEvent make_login_ok(const Player& p) const;
     EntitySpawnEvent make_entity_spawn(const Player& p) const;
     std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id) const;
-    std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id, const std::string& map_name) const;
+    std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id,
+                                                  const std::string& map_name) const;
     Map& player_map(const Player& p);
     const Map& player_map(const Player& p) const;
     bool try_map_transition(Player& player, CommandResult& result);

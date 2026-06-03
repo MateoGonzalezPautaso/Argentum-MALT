@@ -1,9 +1,9 @@
 #include "small_spider.h"
 
-#define MAX_HP_SMALL_SPIDER 80
-#define DAMAGE_SMALL_SPIDER 4
+#define MAX_HP 80
+#define DAMAGE 4
+#define NAME "Small spider"
 
 SmallSpider::SmallSpider(Position position, Rng& rng, EquipableItems& equipable_items,
-                         uint32_t level):
-        EnemyNpc(position, MAX_HP_SMALL_SPIDER * level, DAMAGE_SMALL_SPIDER * level, rng,
-                 equipable_items, level) {}
+                         uint8_t level):
+        EnemyNpc(position, MAX_HP * level, DAMAGE * level, rng, equipable_items, level, NAME) {}

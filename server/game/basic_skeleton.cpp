@@ -1,9 +1,9 @@
 #include "basic_skeleton.h"
 
-#define MAX_HP_BASIC_SKELETON 175
-#define DAMAGE_BASIC_SKELETON 10
+#define MAX_HP 175
+#define DAMAGE 10
+#define NAME "Basic skeleton"
 
 BasicSkeleton::BasicSkeleton(Position position, Rng& rng, EquipableItems& equipable_items,
-                             uint32_t level):
-        EnemyNpc(position, MAX_HP_BASIC_SKELETON * level, DAMAGE_BASIC_SKELETON * level, rng,
-                 equipable_items, level) {}
+                             uint8_t level):
+        EnemyNpc(position, MAX_HP * level, DAMAGE * level, rng, equipable_items, level, NAME) {}
