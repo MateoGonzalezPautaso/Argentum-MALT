@@ -253,6 +253,7 @@ bool Player::equip(uint8_t inv_slot_index, const ItemCatalog& catalog) {
 
 void Player::unequip(EquipSlot eslot) {
     uint8_t index = static_cast<uint8_t>(eslot);
+    if (index >= EQUIP_SLOT_COUNT) return;
     if (equipped[index].item_type == ItemType::NONE) return;
     if (inventory.is_full()) return;
 
