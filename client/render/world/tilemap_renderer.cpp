@@ -48,10 +48,11 @@ void TilemapRenderer::render(const SDL2pp::Rect& cam) {
     if (!loaded_)
         return;
 
-    const int first_col = std::max(0, cam.GetX() / tile_size_);
-    const int first_row = std::max(0, cam.GetY() / tile_size_);
-    const int last_col = std::max(0, (cam.GetX() + cam.GetW() - 1) / tile_size_);
-    const int last_row = std::max(0, (cam.GetY() + cam.GetH() - 1) / tile_size_);
+    constexpr int extra = 2;
+    const int first_col = std::max(0, cam.GetX() / tile_size_ - extra);
+    const int first_row = std::max(0, cam.GetY() / tile_size_ - extra);
+    const int last_col = (cam.GetX() + cam.GetW() - 1) / tile_size_ + extra;
+    const int last_row = (cam.GetY() + cam.GetH() - 1) / tile_size_ + extra;
 
     for (int row = first_row; row <= last_row; ++row) {
         if (row < 0 || row >= static_cast<int>(tiles.size()))
