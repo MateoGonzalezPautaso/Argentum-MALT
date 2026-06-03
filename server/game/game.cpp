@@ -101,6 +101,7 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const CheatLevelDownCmd&) { return handle_cheat_level_down(player_id); },
                     [&](const CheatAddGoldCmd&) { return handle_cheat_add_gold(player_id); },
                     [&](const CheatVelocityCmd&) { return handle_cheat_velocity(player_id); },
+                    [&](const CheatReviveCmd&) { return handle_cheat_revive(player_id); },
                     [&](const ChangeMapCmd& cmd) { return handle_change_map(player_id, cmd); },
                     [&](const EquipItemCmd& cmd) { return handle_equip(player_id, cmd); },
                     [&](const UnequipItemCmd& cmd) { return handle_unequip(player_id, cmd); },
@@ -507,6 +508,24 @@ CommandResult Game::handle_cheat_die(uint16_t player_id) {
     CommandResult r;
     r.private_events = {msg};
     r.map_events = {dmg, died};
+    return r;
+}
+
+CommandResult Game::handle_cheat_revive(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+    if (!player.is_dead()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] No estás muerto"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+    player.resurrect();
+    PlayerRespawnedEvent respawn_ev{player_id, player.get_hp_current(), player.get_hp_max()};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Reviviste!"};
+    CommandResult r;
+    r.private_events = {msg};
+    r.map_events = {respawn_ev};
     return r;
 }
 

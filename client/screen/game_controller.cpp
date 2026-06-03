@@ -418,6 +418,10 @@ bool GameController::handle_keydown(const SDL_Event& event) {
             if (ctrl)
                 command_queue.push(CheatVelocityCmd{});
             break;
+        case SDLK_r:
+            if (ctrl)
+                command_queue.push(CheatReviveCmd{});
+            break;
         default:
             break;
     }

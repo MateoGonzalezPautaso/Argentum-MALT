@@ -67,6 +67,8 @@ void ClientProtocol::send_cheat_add_gold() { protocol.send_opcode(OpCode::CHEAT_
 
 void ClientProtocol::send_cheat_velocity() { protocol.send_opcode(OpCode::CHEAT_VELOCITY); }
 
+void ClientProtocol::send_cheat_revive() { protocol.send_opcode(OpCode::CHEAT_REVIVE); }
+
 void ClientProtocol::send_change_map(const ChangeMapCmd& cmd) {
     protocol.send_opcode(OpCode::CHANGE_MAP);
     protocol.send_str(cmd.prop_name);
@@ -98,6 +100,7 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const CheatLevelDownCmd&) { send_cheat_level_down(); },
                        [this](const CheatAddGoldCmd&) { send_cheat_add_gold(); },
                        [this](const CheatVelocityCmd&) { send_cheat_velocity(); },
+                       [this](const CheatReviveCmd&) { send_cheat_revive(); },
                        [this](const ChangeMapCmd& msg) { send_change_map(msg); },
                        [this](const EquipItemCmd& msg) { send_equip_item(msg); },
                        [this](const UnequipItemCmd& msg) { send_unequip_item(msg); },

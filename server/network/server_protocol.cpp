@@ -45,6 +45,8 @@ ClientCommand ServerProtocol::recv_command() {
             return CheatAddGoldCmd{};
         case OpCode::CHEAT_VELOCITY:
             return CheatVelocityCmd{};
+        case OpCode::CHEAT_REVIVE:
+            return CheatReviveCmd{};
         case OpCode::CHANGE_MAP:
             return recv_change_map();
         case OpCode::EQUIP_ITEM:
