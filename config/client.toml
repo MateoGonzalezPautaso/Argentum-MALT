@@ -416,3 +416,12 @@ category = "Pocion de mana"
 color_r = 40
 color_g = 140
 color_b = 60
+
+[sfx]
+death = "11.ogg"
+meditate = "20.ogg"
+hit = "345.ogg"
+merchant = "600.ogg"
+banker = "611.ogg"
+priest = "620.ogg"
+healer = "701.ogg"

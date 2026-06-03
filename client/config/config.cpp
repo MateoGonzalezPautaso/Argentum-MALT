@@ -334,6 +334,15 @@ void parse_item_sprites_config(const toml::table& root, ClientConfig& config) {
         }
     }
 }
+void parse_sfx_config(const toml::table& root, ClientConfig& config) {
+    if (auto tbl = root["sfx"].as_table()) {
+        for (const auto& [key, value]: *tbl) {
+            if (auto path = value.value<std::string>()) {
+                config.sfx.sounds[std::string(key.str())] = *path;
+            }
+        }
+    }
+}
 }  // namespace
 
 ClientConfig load_client_config(const std::string& path) {
@@ -351,6 +360,7 @@ ClientConfig load_client_config(const std::string& path) {
     parse_skin_config(root, config);
     parse_movement_config(root, config);
     parse_item_sprites_config(root, config);
+    parse_sfx_config(root, config);
 
     config.tilemap_configs = load_all_map_configs("config/map_list.toml");
 

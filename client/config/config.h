@@ -216,6 +216,10 @@ private:
     }
 };
 
+struct SfxConfig {
+    std::unordered_map<std::string, std::string> sounds;
+};
+
 struct ClientConfig {
     NetworkConfig network;
     WindowConfig window;
@@ -245,6 +249,7 @@ struct ClientConfig {
     int head_dir_src_y_up = 64;
     int head_dir_src_y_left = 128;
     int head_dir_src_y_right = 192;
+    SfxConfig sfx;
 };
 
 ClientConfig load_client_config(const std::string& path);
