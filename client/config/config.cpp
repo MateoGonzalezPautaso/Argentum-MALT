@@ -5,30 +5,9 @@
 
 #include <toml++/toml.h>
 
-namespace {
+#include "../../common/item_catalog.h"
 
-ItemType parse_item_type(const std::string& str) {
-    if (str == "SWORD") return ItemType::SWORD;
-    if (str == "AXE") return ItemType::AXE;
-    if (str == "HAMMER") return ItemType::HAMMER;
-    if (str == "ASH_STAFF") return ItemType::ASH_STAFF;
-    if (str == "ELVEN_FLUTE") return ItemType::ELVEN_FLUTE;
-    if (str == "KNOTTED_STAFF") return ItemType::KNOTTED_STAFF;
-    if (str == "STUDDED_STAFF") return ItemType::STUDDED_STAFF;
-    if (str == "SIMPLE_BOW") return ItemType::SIMPLE_BOW;
-    if (str == "COMPOSITE_BOW") return ItemType::COMPOSITE_BOW;
-    if (str == "LEATHER_ARMOR") return ItemType::LEATHER_ARMOR;
-    if (str == "PLATE_ARMOR") return ItemType::PLATE_ARMOR;
-    if (str == "BLUE_TUNIC") return ItemType::BLUE_TUNIC;
-    if (str == "HOOD") return ItemType::HOOD;
-    if (str == "IRON_HELMET") return ItemType::IRON_HELMET;
-    if (str == "TURTLE_SHIELD") return ItemType::TURTLE_SHIELD;
-    if (str == "IRON_SHIELD") return ItemType::IRON_SHIELD;
-    if (str == "MAGIC_HAT") return ItemType::MAGIC_HAT;
-    if (str == "HEALTH_POTION") return ItemType::HEALTH_POTION;
-    if (str == "MANA_POTION") return ItemType::MANA_POTION;
-    return ItemType::NONE;
-}
+namespace {
 
 std::vector<std::string> parse_paths(const toml::table& tbl) {
     std::vector<std::string> paths;
