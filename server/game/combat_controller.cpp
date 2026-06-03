@@ -9,7 +9,10 @@
 
 CombatController::CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
                                    Rng& rng):
-        config(config), players(players), rng(rng) {}
+        config(config), players(players), rng_ptr(&rng) {}
+
+CombatController::CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players):
+        config(config), players(players), rng_ptr(&owned_rng) {}
 
 void CombatController::set_clan_manager(ClanManager& mgr) { clan_manager = &mgr; }
 
@@ -117,9 +120,10 @@ bool CombatController::in_range(uint16_t attacker_x, uint16_t attacker_y, uint16
 }
 
 uint32_t CombatController::calculate_damage(const Player& attacker) const {
-    int random_number = rng.get_random_int(1, 9);
-
-    uint32_t damage = static_cast<uint32_t>(attacker.get_strength() * random_number);
+    int variance = config.damage_variance > 0
+                       ? rng_ptr->get_random_int(0, config.damage_variance)
+                       : 0;
+    uint32_t damage = static_cast<uint32_t>(config.base_damage + variance);
     double bonus = get_clan_damage_bonus(attacker);
     return static_cast<uint32_t>(std::round(damage * (1.0 + bonus)));
 }
@@ -173,7 +177,7 @@ CommandResult CombatController::notify_entity_attacked(Player& attacker, uint16_
         EntityDiedEvent died{target_id};
         broadcast.push_back(died);
 
-        double random_double = rng.get_random_double(0, 0.1);
+        double random_double = rng_ptr->get_random_double(0, 0.1);
         attacker.gain_experience(random_double * target_hp_max *
                                  std::max(static_cast<int>(target_level) -
                                                   static_cast<int>(attacker.get_level()) + 10,

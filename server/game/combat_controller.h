@@ -17,6 +17,7 @@ class ClanManager;
 class CombatController {
 public:
     CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players, Rng& rng);
+    CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players);
 
     void set_clan_manager(ClanManager& mgr);
 
@@ -24,6 +25,9 @@ public:
                                       uint32_t current_tick);
     CommandResult melee_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,
                                    std::map<uint16_t, EnemyNpc>& npcs, uint32_t current_tick);
+    CommandResult melee_attack(uint16_t attacker_id, uint16_t target_id, uint32_t current_tick) {
+        return melee_attack_player(attacker_id, target_id, current_tick);
+    }
 
 private:
     bool in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x,
@@ -40,7 +44,8 @@ private:
     const AttackConfig& config;
     std::map<uint16_t, Player>& players;
     ClanManager* clan_manager = nullptr;
-    Rng& rng;
+    Rng owned_rng;
+    Rng* rng_ptr;
 };
 
 #endif

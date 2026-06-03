@@ -19,6 +19,7 @@ target_sources(taller_tests
     ${CMAKE_SOURCE_DIR}/server/game/clan_manager.cpp
     ${CMAKE_SOURCE_DIR}/server/game/clan_command_handler.cpp
     ${CMAKE_SOURCE_DIR}/server/game/combat_controller.cpp
+    ${CMAKE_SOURCE_DIR}/server/game/enemy_npc.cpp
     ${CMAKE_SOURCE_DIR}/server/persistence/clan_persistence.cpp
     ${CMAKE_SOURCE_DIR}/server/persistence/clan_record.cpp
     PUBLIC

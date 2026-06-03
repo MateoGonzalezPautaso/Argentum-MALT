@@ -205,7 +205,7 @@ TEST_F(CombatControllerTest, LethalAttack_EmitsEntityDied) {
         if (std::holds_alternative<EntityDiedEvent>(ev))
             found_died = true;
     EXPECT_TRUE(found_died);
-    EXPECT_TRUE(target.is_ghost());
+    EXPECT_TRUE(target.is_dead());
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -241,7 +241,7 @@ TEST_F(CombatControllerTest, DeadAttacker_Blocked) {
     set_level(target, 15);
 
     attacker.take_damage(attacker.get_hp_max());
-    ASSERT_TRUE(attacker.is_ghost());
+    ASSERT_TRUE(attacker.is_dead());
 
     auto result = controller->melee_attack(1, 2, 0);
     EXPECT_TRUE(result.broadcast_events.empty());
@@ -255,7 +255,7 @@ TEST_F(CombatControllerTest, DeadTarget_Blocked) {
     set_level(target, 15);
 
     target.take_damage(target.get_hp_max());
-    ASSERT_TRUE(target.is_ghost());
+    ASSERT_TRUE(target.is_dead());
 
     auto result = controller->melee_attack(1, 2, 0);
     EXPECT_TRUE(result.broadcast_events.empty());
