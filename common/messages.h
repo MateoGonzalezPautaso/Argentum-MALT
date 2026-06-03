@@ -62,6 +62,8 @@ enum class EquipSlot : uint8_t {
     CONSUMABLE = 0x04
 };
 
+constexpr uint8_t EQUIP_SLOT_COUNT = 4;
+
 enum class EntityType : uint8_t { PLAYER = 0x00, NPC = 0x01 };
 
 enum class LoginError : uint8_t {

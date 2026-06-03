@@ -258,8 +258,8 @@ void ServerProtocol::send_inventory_update(const InventoryUpdateEvent& ev) {
 
 void ServerProtocol::send_equip_update(const EquipUpdateEvent& ev) {
     protocol.send_opcode(OpCode::EQUIP_UPDATE);
-    const InventorySlot* slots[4] = {&ev.weapon, &ev.armor, &ev.helmet, &ev.shield};
-    for (int i = 0; i < 4; ++i) {
+    const InventorySlot* slots[EQUIP_SLOT_COUNT] = {&ev.weapon, &ev.armor, &ev.helmet, &ev.shield};
+    for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
         protocol.send_uint8(static_cast<uint8_t>(slots[i]->item_type));
         protocol.send_str(slots[i]->item_name);
     }

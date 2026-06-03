@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
                PlayerClass player_class, const BalanceConfig& balance, uint8_t inv_capacity):
@@ -24,7 +25,7 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
     hp_current = hp_max;
     mana_max = calculate_mana_max();
     mana_current = mana_max;
-    for (int i = 0; i < 4; ++i) {
+    for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
         equipped[i] = InventorySlot{};
         equipped[i].item_type = ItemType::NONE;
     }
@@ -51,7 +52,7 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         gold(gold),
         balance(balance),
         inventory(inv_capacity) {
-    for (int i = 0; i < 4; ++i) {
+    for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
         equipped[i] = InventorySlot{};
         equipped[i].item_type = ItemType::NONE;
     }
@@ -265,6 +266,13 @@ const InventorySlot& Player::get_equipped(EquipSlot eslot) const {
     return equipped[static_cast<uint8_t>(eslot)];
 }
 
-void Player::dump_equipped(InventorySlot out[4]) const {
-    for (int i = 0; i < 4; ++i) out[i] = equipped[i];
+void Player::dump_equipped(InventorySlot out[EQUIP_SLOT_COUNT]) const {
+    for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) out[i] = equipped[i];
+}
+
+void Player::restore_equipment(const InventorySlot equipment[EQUIP_SLOT_COUNT]) {
+    for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
+        equipped[i] = equipment[i];
+        equipped[i].slot_index = i;
+    }
 }

@@ -334,7 +334,7 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
         private_events.push_back(inv_event);
 
         // Send equipment state after login
-        InventorySlot equipped_slots[4];
+        InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
         p.dump_equipped(equipped_slots);
         EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
                                    equipped_slots[3]};
@@ -646,7 +646,7 @@ CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
     bool changed = player.equip(cmd.slot_index, item_catalog);
     if (!changed) return {};
 
-    InventorySlot equipped_slots[4];
+    InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
     player.dump_equipped(equipped_slots);
     EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
                                equipped_slots[3]};
@@ -669,7 +669,7 @@ CommandResult Game::handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd
 
     player.unequip(cmd.slot);
 
-    InventorySlot equipped_slots[4];
+    InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
     player.dump_equipped(equipped_slots);
     EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
                                equipped_slots[3]};
