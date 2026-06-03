@@ -22,17 +22,9 @@ uint8_t Inventory::find_free_slot() const {
 
 uint8_t Inventory::slot_count() const { return capacity; }
 
-uint8_t Inventory::occupied_slots() const {
-    uint8_t count = 0;
-    for (uint8_t i = 0; i < capacity; ++i) {
-        if (slots[i].item_type != ItemType::NONE) {
-            ++count;
-        }
-    }
-    return count;
-}
+uint8_t Inventory::occupied_slots() const { return occupied; }
 
-bool Inventory::is_full() const { return find_free_slot() == capacity; }
+bool Inventory::is_full() const { return occupied == capacity; }
 
 bool Inventory::is_empty_at(uint8_t index) const {
     if (index >= capacity) return true;
@@ -52,6 +44,7 @@ bool Inventory::place(ItemType type, const std::string& name) {
 
 bool Inventory::place_at(uint8_t index, ItemType type, const std::string& name) {
     if (index >= capacity) return false;
+    if (slots[index].item_type == ItemType::NONE) ++occupied;
     slots[index].item_type = type;
     slots[index].item_name = name;
     return true;
@@ -59,6 +52,7 @@ bool Inventory::place_at(uint8_t index, ItemType type, const std::string& name) 
 
 void Inventory::clear(uint8_t index) {
     if (index >= capacity) return;
+    if (slots[index].item_type != ItemType::NONE) --occupied;
     slots[index].item_type = ItemType::NONE;
     slots[index].item_name.clear();
 }
@@ -82,6 +76,10 @@ void Inventory::load_slots(const std::vector<InventorySlot>& new_slots) {
         } else {
             slots.push_back(InventorySlot{static_cast<uint8_t>(i), ItemType::NONE, ""});
         }
+    }
+    occupied = 0;
+    for (const auto& slot : slots) {
+        if (slot.item_type != ItemType::NONE) ++occupied;
     }
 }
 
@@ -112,10 +110,14 @@ void Inventory::from_records(const std::vector<InventorySlotRecord>& records) {
             slots.push_back(InventorySlot{static_cast<uint8_t>(i), ItemType::NONE, ""});
         }
     }
+    occupied = 0;
+    for (const auto& slot : slots) {
+        if (slot.item_type != ItemType::NONE) ++occupied;
+    }
 }
 
 bool Inventory::has_free_slot() const {
-    return find_free_slot() < capacity;
+    return occupied < capacity;
 }
 
 uint8_t Inventory::first_free_slot() const {

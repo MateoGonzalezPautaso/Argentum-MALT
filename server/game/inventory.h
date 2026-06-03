@@ -12,6 +12,7 @@ class Inventory {
 private:
     std::vector<InventorySlot> slots;
     uint8_t capacity;
+    uint8_t occupied = 0;
 
     uint8_t find_free_slot() const;
 
