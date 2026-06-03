@@ -23,9 +23,10 @@ private:
     int hovered_inv_slot = -1;
     int hovered_equip_slot = -1;
 
-    SDL_Color color_for_type(ItemType type) const;
     const ItemSpriteDef* find_sprite(ItemType type) const;
-    const char* category_label(ItemType type) const;
+    SDL2pp::Texture* get_or_load_texture(const ItemSpriteDef& def);
+
+    void render_item_sprite(ItemType type, const std::string& name, const SDL2pp::Rect& dst);
     void render_item_tooltip(int sx, int sy, const InventorySlot& slot);
     void draw_hover_border(int sx, int sy);
 

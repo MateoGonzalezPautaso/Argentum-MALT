@@ -206,6 +206,10 @@ src_x = 0
 src_y = 224
 src_w = 32
 src_h = 32
+category = "Arma"
+color_r = 180
+color_g = 40
+color_b = 40
 
 [[item_sprites]]
 item_type = "AXE"
@@ -214,6 +218,10 @@ src_x = 0
 src_y = 224
 src_w = 32
 src_h = 32
+category = "Arma"
+color_r = 180
+color_g = 40
+color_b = 40
 
 [[item_sprites]]
 item_type = "HAMMER"
@@ -222,6 +230,10 @@ src_x = 0
 src_y = 224
 src_w = 32
 src_h = 32
+category = "Arma"
+color_r = 180
+color_g = 40
+color_b = 40
 
 [[item_sprites]]
 item_type = "ASH_STAFF"
@@ -230,6 +242,10 @@ src_x = 0
 src_y = 224
 src_w = 32
 src_h = 32
+category = "Baculo"
+color_r = 140
+color_g = 40
+color_b = 200
 
 [[item_sprites]]
 item_type = "ELVEN_FLUTE"
@@ -238,6 +254,10 @@ src_x = 0
 src_y = 224
 src_w = 32
 src_h = 32
+category = "Baculo"
+color_r = 140
+color_g = 40
+color_b = 200
 
 [[item_sprites]]
 item_type = "KNOTTED_STAFF"
@@ -246,6 +266,10 @@ src_x = 0
 src_y = 224
 src_w = 32
 src_h = 32
+category = "Baculo"
+color_r = 140
+color_g = 40
+color_b = 200
 
 [[item_sprites]]
 item_type = "STUDDED_STAFF"
@@ -254,6 +278,10 @@ src_x = 0
 src_y = 224
 src_w = 32
 src_h = 32
+category = "Baculo"
+color_r = 140
+color_g = 40
+color_b = 200
 
 [[item_sprites]]
 item_type = "SIMPLE_BOW"
@@ -262,6 +290,10 @@ src_x = 0
 src_y = 224
 src_w = 32
 src_h = 32
+category = "Arco"
+color_r = 200
+color_g = 120
+color_b = 40
 
 [[item_sprites]]
 item_type = "COMPOSITE_BOW"
@@ -270,6 +302,10 @@ src_x = 0
 src_y = 224
 src_w = 32
 src_h = 32
+category = "Arco"
+color_r = 200
+color_g = 120
+color_b = 40
 
 [[item_sprites]]
 item_type = "LEATHER_ARMOR"
@@ -278,6 +314,10 @@ src_x = 0
 src_y = 224
 src_w = 32
 src_h = 32
+category = "Armadura"
+color_r = 40
+color_g = 80
+color_b = 180
 
 [[item_sprites]]
 item_type = "PLATE_ARMOR"
@@ -286,6 +326,10 @@ src_x = 0
 src_y = 224
 src_w = 32
 src_h = 32
+category = "Armadura"
+color_r = 40
+color_g = 80
+color_b = 180
 
 [[item_sprites]]
 item_type = "BLUE_TUNIC"
@@ -294,6 +338,10 @@ src_x = 0
 src_y = 224
 src_w = 32
 src_h = 32
+category = "Armadura"
+color_r = 40
+color_g = 80
+color_b = 180
 
 [[item_sprites]]
 item_type = "HOOD"
@@ -302,6 +350,10 @@ src_x = 224
 src_y = 832
 src_w = 32
 src_h = 32
+category = "Casco"
+color_r = 180
+color_g = 160
+color_b = 40
 
 [[item_sprites]]
 item_type = "IRON_HELMET"
@@ -310,6 +362,10 @@ src_x = 416
 src_y = 800
 src_w = 32
 src_h = 32
+category = "Casco"
+color_r = 180
+color_g = 160
+color_b = 40
 
 [[item_sprites]]
 item_type = "TURTLE_SHIELD"
@@ -318,6 +374,10 @@ src_x = 0
 src_y = 224
 src_w = 32
 src_h = 32
+category = "Escudo"
+color_r = 40
+color_g = 160
+color_b = 180
 
 [[item_sprites]]
 item_type = "IRON_SHIELD"
@@ -326,6 +386,10 @@ src_x = 0
 src_y = 224
 src_w = 32
 src_h = 32
+category = "Escudo"
+color_r = 40
+color_g = 160
+color_b = 180
 
 [[item_sprites]]
 item_type = "MAGIC_HAT"
@@ -334,3 +398,21 @@ src_x = 96
 src_y = 800
 src_w = 32
 src_h = 32
+category = "Casco"
+color_r = 180
+color_g = 160
+color_b = 40
+
+[[item_sprites]]
+item_type = "HEALTH_POTION"
+category = "Pocion de vida"
+color_r = 40
+color_g = 140
+color_b = 60
+
+[[item_sprites]]
+item_type = "MANA_POTION"
+category = "Pocion de mana"
+color_r = 40
+color_g = 140
+color_b = 60

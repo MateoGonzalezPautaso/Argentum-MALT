@@ -105,6 +105,10 @@ struct ItemSpriteDef {
     std::string path;
     int src_x = 0, src_y = 0;
     int src_w = 32, src_h = 32;
+    std::string category;
+    uint8_t color_r = 80;
+    uint8_t color_g = 80;
+    uint8_t color_b = 80;
 };
 
 struct UIConfig {

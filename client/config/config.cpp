@@ -339,14 +339,19 @@ void parse_item_sprites_config(const toml::table& root, ClientConfig& config) {
             ItemSpriteDef def;
             std::string type_str = toml_get_string(tbl, "item_type", "");
             def.item_type = parse_item_type(type_str);
+            if (def.item_type == ItemType::NONE) continue;
+
             def.path = toml_get_string(tbl, "path", "");
             def.src_x = toml_get_int(tbl, "src_x", def.src_x);
             def.src_y = toml_get_int(tbl, "src_y", def.src_y);
             def.src_w = toml_get_int(tbl, "src_w", def.src_w);
             def.src_h = toml_get_int(tbl, "src_h", def.src_h);
-            if (def.item_type != ItemType::NONE && !def.path.empty()) {
-                config.item_sprites[static_cast<uint8_t>(def.item_type)] = def;
-            }
+            def.category = toml_get_string(tbl, "category", "");
+            def.color_r = static_cast<uint8_t>(toml_get_int(tbl, "color_r", def.color_r));
+            def.color_g = static_cast<uint8_t>(toml_get_int(tbl, "color_g", def.color_g));
+            def.color_b = static_cast<uint8_t>(toml_get_int(tbl, "color_b", def.color_b));
+
+            config.item_sprites[static_cast<uint8_t>(def.item_type)] = def;
         }
     }
 }
