@@ -54,11 +54,17 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                        [this](const EntitySpawnEvent& e) { handle_entity_spawn(e); },
                        [this](const LoginOkEvent& e) { handle_login_ok(e); },
                        [this](const EntityDespawnEvent& e) { handle_entity_despawn(e); },
-                       [this](const DamageReceivedEvent& e) { handle_damage_received(e); },
+                       [this](const DamageReceivedEvent& e) {
+                           audio_manager.play_sfx("hit");
+                           handle_damage_received(e);
+                       },
                        [](const DamageDealtEvent&) {},
                        [this](const AttackDodgedEvent& e) { handle_attack_dodged(e); },
                        [this](const ChatMsgEvent& e) { handle_chat_msg(e); },
                        [this](const EntityDiedEvent& e) { handle_entity_died(e); },
+                       [this](const MeditationStartEvent&) {
+                           audio_manager.play_sfx("meditate");
+                       },
                        [this](const PlayerRespawnedEvent& e) { handle_player_respawned(e); },
                        [this](const ClanNotificationEvent& e) { handle_clan_notification(e); },
                        [this](const ClanUpdateEvent& e) { handle_clan_update(e); },
@@ -135,12 +141,16 @@ void GameController::handle_damage_received(const DamageReceivedEvent& e) {
 
 void GameController::interact_with_prop(const std::string& prop_name) {
     if (prop_name == "sacerdote") {
+        audio_manager.play_sfx("priest");
         chat_history.add_message(ChatMsgType::SYSTEM, "", "Sacerdote: ¡SHALOM!");
     } else if (prop_name == "comerciante") {
+        audio_manager.play_sfx("merchant");
         chat_history.add_message(ChatMsgType::SYSTEM, "", "Comerciante: Pasa, todo lo que ves esta en venta.");
     } else if (prop_name == "banquero") {
+        audio_manager.play_sfx("banker");
         chat_history.add_message(ChatMsgType::SYSTEM, "", "Banquero: El que deposita dolares, recibira dolares...");
     } else if (prop_name == "sanadora") {
+        audio_manager.play_sfx("healer");
         chat_history.add_message(ChatMsgType::SYSTEM, "", "Sanadora: Dejame ver esa herida.");
     } else if (is_transition_prop(prop_name)) {
         command_queue.push(ChangeMapCmd{prop_name});
@@ -231,6 +241,7 @@ void GameController::handle_entity_died(const EntityDiedEvent& e) {
     if (e.entity_id != player_stats.player_id) {
         return;
     }
+    audio_manager.play_sfx("death");
     player_is_ghost = true;
     world_renderer.set_movable_alpha(128);
 }
