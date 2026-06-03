@@ -47,6 +47,10 @@ ClientCommand ServerProtocol::recv_command() {
             return CheatVelocityCmd{};
         case OpCode::CHANGE_MAP:
             return recv_change_map();
+        case OpCode::EQUIP_ITEM:
+            return recv_equip_item();
+        case OpCode::UNEQUIP_ITEM:
+            return recv_unequip_item();
         default:
             throw std::runtime_error("Unknown command opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
@@ -89,6 +93,16 @@ ClientCommand ServerProtocol::recv_change_map() {
     ChangeMapCmd cmd;
     cmd.prop_name = protocol.recv_str();
     return cmd;
+}
+
+ClientCommand ServerProtocol::recv_equip_item() {
+    uint8_t slot_index = protocol.recv_uint8();
+    return EquipItemCmd{slot_index};
+}
+
+ClientCommand ServerProtocol::recv_unequip_item() {
+    EquipSlot slot = static_cast<EquipSlot>(protocol.recv_uint8());
+    return UnequipItemCmd{slot};
 }
 
 void ServerProtocol::send_login_payload(const LoginOkEvent& ev) {
@@ -232,6 +246,25 @@ void ServerProtocol::send_heal_received(const HealReceivedEvent& ev) {
     protocol.send_uint32(ev.mana_current);
 }
 
+void ServerProtocol::send_inventory_update(const InventoryUpdateEvent& ev) {
+    protocol.send_opcode(OpCode::INVENTORY_UPDATE);
+    protocol.send_uint8(static_cast<uint8_t>(ev.slots.size()));
+    for (const auto& slot : ev.slots) {
+        protocol.send_uint8(slot.slot_index);
+        protocol.send_uint8(static_cast<uint8_t>(slot.item_type));
+        protocol.send_str(slot.item_name);
+    }
+}
+
+void ServerProtocol::send_equip_update(const EquipUpdateEvent& ev) {
+    protocol.send_opcode(OpCode::EQUIP_UPDATE);
+    const InventorySlot* slots[EQUIP_SLOT_COUNT] = {&ev.weapon, &ev.armor, &ev.helmet, &ev.shield};
+    for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
+        protocol.send_uint8(static_cast<uint8_t>(slots[i]->item_type));
+        protocol.send_str(slots[i]->item_name);
+    }
+}
+
 void ServerProtocol::send_event(const ServerEvent& ev) {
     std::visit(overloaded{
                        [this](const LoginOkEvent& msg) { send_login_ok(msg); },
@@ -252,6 +285,8 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                          [this](const ClanUpdateEvent& msg) { send_clan_update(msg); },
                          [this](const MapTransitionEvent& msg) { send_map_transition(msg); },
                          [this](const HealReceivedEvent& msg) { send_heal_received(msg); },
+                         [this](const InventoryUpdateEvent& msg) { send_inventory_update(msg); },
+                         [this](const EquipUpdateEvent& msg) { send_equip_update(msg); },
                         [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },
                ev);

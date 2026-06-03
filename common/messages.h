@@ -54,7 +54,15 @@ enum class ItemType : uint8_t {
     GOLD_DROP = 0x14
 };
 
-enum class EquipSlot : uint8_t { WEAPON = 0x00, ARMOR = 0x01, HELMET = 0x02, SHIELD = 0x03 };
+enum class EquipSlot : uint8_t {
+    WEAPON = 0x00,
+    ARMOR = 0x01,
+    HELMET = 0x02,
+    SHIELD = 0x03,
+    CONSUMABLE = 0x04
+};
+
+constexpr uint8_t EQUIP_SLOT_COUNT = 4;
 
 enum class EntityType : uint8_t { PLAYER = 0x00, NPC = 0x01 };
 
@@ -112,7 +120,6 @@ struct InventorySlot {
     uint8_t slot_index = 0;
     ItemType item_type = ItemType::NONE;
     std::string item_name;
-    uint8_t sprite_id = 0;
 };
 
 struct TileInfo {
@@ -173,10 +180,14 @@ struct PickupItemCmd {};
 struct DropItemCmd {};
 
 // 0x08
-struct EquipItemCmd {};
+struct EquipItemCmd {
+    uint8_t slot_index = 0;
+};
 
 // 0x09
-struct UnequipItemCmd {};
+struct UnequipItemCmd {
+    EquipSlot slot = EquipSlot::WEAPON;
+};
 
 // 0x0A
 struct MeditateCmd {};
@@ -352,10 +363,17 @@ struct MeditationStartEvent {};
 struct MeditationStopEvent {};
 
 // 0x90
-struct InventoryUpdateEvent {};
+struct InventoryUpdateEvent {
+    std::vector<InventorySlot> slots;
+};
 
 // 0x91
-struct EquipUpdateEvent {};
+struct EquipUpdateEvent {
+    InventorySlot weapon;
+    InventorySlot armor;
+    InventorySlot helmet;
+    InventorySlot shield;
+};
 
 // 0x92
 struct GoldUpdateEvent {};

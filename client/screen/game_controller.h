@@ -44,6 +44,8 @@ private:
     MoveConfig move_config;
     SDL_Cursor* hand_cursor;
     SDL_Cursor* arrow_cursor;
+    int mouse_x = 0;
+    int mouse_y = 0;
 
     bool handle_mouse_button(const SDL_Event& event);
     bool handle_mouse_motion(const SDL_Event& event);
@@ -67,6 +69,8 @@ private:
     void handle_clan_update(const ClanUpdateEvent& e);
     void handle_map_transition(const MapTransitionEvent& e);
     void handle_heal_received(const HealReceivedEvent& e);
+    void handle_inventory_update(const InventoryUpdateEvent& e);
+    void handle_equip_update(const EquipUpdateEvent& e);
 
 };
 

@@ -11,6 +11,9 @@ ServerConfig load_server_config(const std::string& path) {
     toml::table root = toml::parse_file(path);
     ServerConfig config;
 
+    // Cargar catalogo de items
+    config.item_catalog.load_from_file("config/items.toml");
+
     if (auto server = root["server"].as_table()) {
         config.port =
                 static_cast<uint16_t>(toml_get_int(*server, "port", static_cast<int>(config.port)));
@@ -61,6 +64,11 @@ ServerConfig load_server_config(const std::string& path) {
                                                               config.attack.clan_bonus_per_member);
         config.attack.clan_bonus_max =
                 toml_get_double(*attack, "clan_bonus_max", config.attack.clan_bonus_max);
+    }
+
+    if (auto inventory = root["inventory"].as_table()) {
+        config.inventory.max_slots =
+                toml_get_int(*inventory, "max_slots", config.inventory.max_slots);
     }
 
     if (auto clan = root["clan"].as_table()) {

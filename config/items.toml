@@ -1,0 +1,189 @@
+[[item]]
+item_type = "SWORD"
+name = "Espada"
+equip_slot = "WEAPON"
+min_damage = 2
+max_damage = 5
+mana_cost = 0
+min_defense = 0
+max_defense = 0
+
+[[item]]
+item_type = "AXE"
+name = "Hacha"
+equip_slot = "WEAPON"
+min_damage = 4
+max_damage = 5
+mana_cost = 0
+min_defense = 0
+max_defense = 0
+
+[[item]]
+item_type = "HAMMER"
+name = "Martillo"
+equip_slot = "WEAPON"
+min_damage = 1
+max_damage = 9
+mana_cost = 0
+min_defense = 0
+max_defense = 0
+
+[[item]]
+item_type = "ASH_STAFF"
+name = "Vara de fresno"
+equip_slot = "WEAPON"
+min_damage = 2
+max_damage = 4
+mana_cost = 5
+min_defense = 0
+max_defense = 0
+
+[[item]]
+item_type = "ELVEN_FLUTE"
+name = "Flauta elfica"
+equip_slot = "WEAPON"
+min_damage = 0
+max_damage = 0
+mana_cost = 100
+min_defense = 0
+max_defense = 0
+
+[[item]]
+item_type = "KNOTTED_STAFF"
+name = "Baculo nudoso"
+equip_slot = "WEAPON"
+min_damage = 4
+max_damage = 8
+mana_cost = 15
+min_defense = 0
+max_defense = 0
+
+[[item]]
+item_type = "STUDDED_STAFF"
+name = "Baculo engarzado"
+equip_slot = "WEAPON"
+min_damage = 8
+max_damage = 20
+mana_cost = 30
+min_defense = 0
+max_defense = 0
+
+[[item]]
+item_type = "SIMPLE_BOW"
+name = "Arco simple"
+equip_slot = "WEAPON"
+min_damage = 1
+max_damage = 4
+mana_cost = 0
+min_defense = 0
+max_defense = 0
+
+[[item]]
+item_type = "COMPOSITE_BOW"
+name = "Arco compuesto"
+equip_slot = "WEAPON"
+min_damage = 4
+max_damage = 16
+mana_cost = 0
+min_defense = 0
+max_defense = 0
+
+[[item]]
+item_type = "LEATHER_ARMOR"
+name = "Armadura de cuero"
+equip_slot = "ARMOR"
+min_damage = 0
+max_damage = 0
+mana_cost = 0
+min_defense = 2
+max_defense = 6
+
+[[item]]
+item_type = "PLATE_ARMOR"
+name = "Armadura de placas"
+equip_slot = "ARMOR"
+min_damage = 0
+max_damage = 0
+mana_cost = 0
+min_defense = 15
+max_defense = 30
+
+[[item]]
+item_type = "BLUE_TUNIC"
+name = "Tunica azul"
+equip_slot = "ARMOR"
+min_damage = 0
+max_damage = 0
+mana_cost = 0
+min_defense = 6
+max_defense = 10
+
+[[item]]
+item_type = "HOOD"
+name = "Capucha"
+equip_slot = "HELMET"
+min_damage = 0
+max_damage = 0
+mana_cost = 0
+min_defense = 1
+max_defense = 4
+
+[[item]]
+item_type = "IRON_HELMET"
+name = "Casco de hierro"
+equip_slot = "HELMET"
+min_damage = 0
+max_damage = 0
+mana_cost = 0
+min_defense = 4
+max_defense = 8
+
+[[item]]
+item_type = "MAGIC_HAT"
+name = "Sombrero magico"
+equip_slot = "HELMET"
+min_damage = 0
+max_damage = 0
+mana_cost = 0
+min_defense = 4
+max_defense = 12
+
+[[item]]
+item_type = "TURTLE_SHIELD"
+name = "Escudo de tortuga"
+equip_slot = "SHIELD"
+min_damage = 0
+max_damage = 0
+mana_cost = 0
+min_defense = 1
+max_defense = 2
+
+[[item]]
+item_type = "IRON_SHIELD"
+name = "Escudo de hierro"
+equip_slot = "SHIELD"
+min_damage = 0
+max_damage = 0
+mana_cost = 0
+min_defense = 1
+max_defense = 4
+
+[[item]]
+item_type = "HEALTH_POTION"
+name = "Pocion de vida"
+equip_slot = "CONSUMABLE"
+min_damage = 0
+max_damage = 0
+mana_cost = 0
+min_defense = 0
+max_defense = 0
+
+[[item]]
+item_type = "MANA_POTION"
+name = "Pocion de mana"
+equip_slot = "CONSUMABLE"
+min_damage = 0
+max_damage = 0
+mana_cost = 0
+min_defense = 0
+max_defense = 0

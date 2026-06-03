@@ -4,11 +4,11 @@
 #include <thread>
 
 GameLoop::GameLoop(const ServerConfig& config, Queue<PlayerCommand>& input_queue,
-                   ClientListMonitor& monitor, PlayerPersistence& persistence,
+                   ClientListMonitor& monitor, PlayerDataService& player_data_service,
                    ClanPersistence& clan_persistence):
         tick_rate_hz(config.tick_rate_hz),
         save_interval_ticks(config.save_interval_seconds * config.tick_rate_hz),
-        game(config, persistence, clan_persistence),
+        game(config, player_data_service, clan_persistence),
         input_queue(input_queue),
         monitor(monitor) {}
 

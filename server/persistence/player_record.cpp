@@ -16,6 +16,8 @@ PlayerRecord::PlayerRecord() {
     mana_max = 0;
     gold = 0;
     std::memset(current_map, 0, sizeof(current_map));
+    std::memset(equipped_type, 0, sizeof(equipped_type));
+    std::memset(equipped_name, 0, sizeof(equipped_name));
 }
 
 void PlayerRecord::set_current_map(const std::string& name) {

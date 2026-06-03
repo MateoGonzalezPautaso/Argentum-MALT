@@ -72,6 +72,16 @@ void ClientProtocol::send_change_map(const ChangeMapCmd& cmd) {
     protocol.send_str(cmd.prop_name);
 }
 
+void ClientProtocol::send_equip_item(const EquipItemCmd& cmd) {
+    protocol.send_opcode(OpCode::EQUIP_ITEM);
+    protocol.send_uint8(cmd.slot_index);
+}
+
+void ClientProtocol::send_unequip_item(const UnequipItemCmd& cmd) {
+    protocol.send_opcode(OpCode::UNEQUIP_ITEM);
+    protocol.send_uint8(static_cast<uint8_t>(cmd.slot));
+}
+
 void ClientProtocol::send_command(const ClientCommand& cmd) {
     std::visit(overloaded{
                        [this](const MoveCmd& msg) { send_move(msg); },
@@ -89,6 +99,8 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const CheatAddGoldCmd&) { send_cheat_add_gold(); },
                        [this](const CheatVelocityCmd&) { send_cheat_velocity(); },
                        [this](const ChangeMapCmd& msg) { send_change_map(msg); },
+                       [this](const EquipItemCmd& msg) { send_equip_item(msg); },
+                       [this](const UnequipItemCmd& msg) { send_unequip_item(msg); },
                         [](const auto&) { throw std::runtime_error("Command not implemented"); },
                },
                cmd);
@@ -112,6 +124,33 @@ ServerEvent ClientProtocol::recv_event() {
         case OpCode::PLAYER_RESPAWNED:  return recv_player_respawned();
         case OpCode::MEDITATION_START:  return MeditationStartEvent{};
         case OpCode::MEDITATION_STOP:   return MeditationStopEvent{};
+        case OpCode::INVENTORY_UPDATE: {
+            uint8_t count = protocol.recv_uint8();
+            std::vector<InventorySlot> slots;
+            slots.reserve(count);
+            for (uint8_t i = 0; i < count; ++i) {
+                InventorySlot slot;
+                slot.slot_index = protocol.recv_uint8();
+                slot.item_type = static_cast<ItemType>(protocol.recv_uint8());
+                slot.item_name = protocol.recv_str();
+                slots.push_back(std::move(slot));
+            }
+            return InventoryUpdateEvent{std::move(slots)};
+        }
+        case OpCode::EQUIP_UPDATE: {
+            auto read_slot = [this]() {
+                InventorySlot s;
+                s.item_type = static_cast<ItemType>(protocol.recv_uint8());
+                s.item_name = protocol.recv_str();
+                return s;
+            };
+            EquipUpdateEvent ev;
+            ev.weapon = read_slot();
+            ev.armor = read_slot();
+            ev.helmet = read_slot();
+            ev.shield = read_slot();
+            return ev;
+        }
         case OpCode::CHAT_MSG:          return recv_chat_msg();
         case OpCode::CLAN_NOTIFICATION: return recv_clan_notification();
         case OpCode::CLAN_UPDATE:       return recv_clan_update();

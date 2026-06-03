@@ -10,6 +10,8 @@ struct PlayerRecord {
     static constexpr std::size_t USERNAME_MAX = 32;
     static constexpr std::size_t PASSWORD_MAX = 32;
     static constexpr std::size_t MAP_NAME_MAX = 32;
+    static constexpr std::size_t EQUIPPED_SLOTS = 4;
+    static constexpr std::size_t EQUIPPED_NAME_MAX = 32;
 
     char username[USERNAME_MAX];
     char password[PASSWORD_MAX];
@@ -27,6 +29,9 @@ struct PlayerRecord {
     uint32_t gold;
     uint32_t strength;
     char current_map[MAP_NAME_MAX];
+
+    uint8_t equipped_type[EQUIPPED_SLOTS];
+    char equipped_name[EQUIPPED_SLOTS][EQUIPPED_NAME_MAX];
 
     PlayerRecord();
 

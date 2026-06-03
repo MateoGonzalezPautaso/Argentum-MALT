@@ -88,6 +88,29 @@ struct PortraitConfig {
     float zoom = 1.9f;
 };
 
+struct InventoryPanelConfig {
+    int x = 782, y = 202;
+    int cols = 4;
+    int slot_w = 50, slot_h = 50;
+    int gap = 4;
+    int equip_y = 50;
+    std::string equip_weapon_label{"Arma"};
+    std::string equip_armor_label{"Armadura"};
+    std::string equip_helmet_label{"Casco"};
+    std::string equip_shield_label{"Escudo"};
+};
+
+struct ItemSpriteDef {
+    ItemType item_type = ItemType::NONE;
+    std::string path;
+    int src_x = 0, src_y = 0;
+    int src_w = 32, src_h = 32;
+    std::string category;
+    uint8_t color_r = 80;
+    uint8_t color_g = 80;
+    uint8_t color_b = 80;
+};
+
 struct UIConfig {
     int window_w = 1024;
     int window_h = 768;
@@ -154,6 +177,7 @@ struct UIConfig {
     int cursor_padding = 4;
     int cursor_height_shrink = 8;
     int chat_line_spacing = 2;
+    InventoryPanelConfig inventory_panel;
 };
 
 struct SkinConfig {
@@ -203,6 +227,7 @@ struct ClientConfig {
     FontConfig font;
     ViewportConfig viewport;
     UIConfig ui;
+    std::unordered_map<uint8_t, ItemSpriteDef> item_sprites;
     int move_step = 4;
     int walk_src_step = 30;
     int walk_src_frames = 6;

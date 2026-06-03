@@ -7,12 +7,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../../common/equipable_items.h"
 #include "../../common/messages.h"
 #include "../../common/rng.h"
 #include "../core/config.h"
-#include "../persistence/player_persistence.h"
-
+#include "../persistence/clan_persistence.h"
 #include "clan_command_handler.h"
 #include "clan_manager.h"
 #include "combat_controller.h"
@@ -20,11 +18,12 @@
 #include "enemy_npc.h"
 #include "map.h"
 #include "player.h"
+#include "player_data_service.h"
 
 class Game {
 private:
     std::map<uint16_t, Player> players;
-    PlayerPersistence& persistence;
+    PlayerDataService& player_data_service;
     ClanManager clan_manager;
     ClanCommandHandler clan_handler;
     std::unordered_map<std::string, TilemapConfig> tilemap_configs;
@@ -33,6 +32,8 @@ private:
     int sprite_width;
     int sprite_height;
     BalanceConfig balance;
+    InventoryConfig inventory_config;
+    const ItemCatalog& item_catalog;
     Rng rng;
     CombatController combat_controller;
     uint32_t tick_count = 0;
@@ -40,7 +41,6 @@ private:
     std::unordered_map<uint16_t, double> hp_regen_accum;
     std::unordered_map<uint16_t, double> mana_regen_accum;
     std::map<uint16_t, EnemyNpc> npcs;
-    EquipableItems equipable_items;
 
 
     double recovery_rate_for(Race race) const;
@@ -63,6 +63,8 @@ private:
     CommandResult handle_change_map(uint16_t player_id, const ChangeMapCmd& cmd);
     CommandResult handle_resurrect(uint16_t player_id);
     CommandResult handle_meditate(uint16_t player_id);
+    CommandResult handle_equip(uint16_t player_id, const EquipItemCmd& cmd);
+    CommandResult handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd);
     bool is_username_logged_in(const std::string& username) const;
     LoginOkEvent make_login_ok(const Player& p) const;
     EntitySpawnEvent make_entity_spawn(const Player& p) const;
@@ -86,7 +88,7 @@ private:
 public:
     std::string get_player_map_name(uint16_t player_id) const;
     std::vector<uint16_t> get_player_ids_on_map(const std::string& map_name) const;
-    explicit Game(const ServerConfig& config, PlayerPersistence& persistence,
+    explicit Game(const ServerConfig& config, PlayerDataService& player_data_service,
                   ClanPersistence& clan_persistence);
 
     CommandResult process_command(uint16_t player_id, const ClientCommand& cmd);

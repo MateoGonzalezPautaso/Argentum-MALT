@@ -8,10 +8,10 @@ Server::Server(const ServerConfig& cfg):
         listener(std::to_string(cfg.port).c_str()),
         input_queue(),
         monitor(),
-        persistence("data/players.dat", "data/players.idx"),
+        player_data_service("data", config),
         clan_persistence("data/clans.dat", "data/clans.idx"),
         acceptor(listener, input_queue, monitor),
-        game_loop(config, input_queue, monitor, persistence, clan_persistence) {}
+        game_loop(config, input_queue, monitor, player_data_service, clan_persistence) {}
 
 void Server::run() {
     std::cout << "Server listening on port " << config.port << "...\n";

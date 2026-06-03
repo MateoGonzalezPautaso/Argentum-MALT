@@ -30,7 +30,7 @@ protected:
         bal.gold_cap_base = 1000;
         bal.gold_cap_exponent = 1.0;
         players.emplace(id, Player(id, username, pos, Direction::SOUTH, Race::HUMAN,
-                                   PlayerClass::WARRIOR, bal));
+                                   PlayerClass::WARRIOR, bal, 20));
         return players.at(id);
     }
 

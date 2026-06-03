@@ -2,9 +2,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
-               PlayerClass player_class, const BalanceConfig& balance):
+               PlayerClass player_class, const BalanceConfig& balance, uint8_t inv_capacity):
         id(id),
         username(username),
         pos(pos),
@@ -18,19 +19,26 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         mana_current(0),
         mana_max(0),
         gold(balance.starting_gold),
-        balance(balance) {
+        balance(balance),
+        inventory(inv_capacity) {
     UpdateStats stats = update_stats();
     hp_max = stats.hp_max;
     hp_current = hp_max;
     mana_max = stats.mana_max;
     mana_current = mana_max;
     strength = stats.strength;
+    for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
+        equipped[i] = InventorySlot{};
+        equipped[i].item_type = ItemType::NONE;
+    }
 }
 
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
-               PlayerClass player_class, const BalanceConfig& balance, uint8_t level,
-               uint32_t experience, uint32_t hp_current, uint32_t hp_max, uint32_t mana_current,
-               uint32_t mana_max, uint32_t gold, uint32_t strength):
+               PlayerClass player_class, const BalanceConfig& balance,
+               uint8_t level, uint32_t experience,
+               uint32_t hp_current, uint32_t hp_max,
+               uint32_t mana_current, uint32_t mana_max,
+               uint32_t gold, uint8_t inv_capacity, uint32_t strength):
         id(id),
         username(username),
         pos(pos),
@@ -45,7 +53,13 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         mana_max(mana_max),
         gold(gold),
         balance(balance),
-        strength(strength) {}
+        inventory(inv_capacity),
+        strength(strength) {
+    for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
+        equipped[i] = InventorySlot{};
+        equipped[i].item_type = ItemType::NONE;
+    }
+}
 
 bool Player::try_attack(uint32_t current_tick, uint32_t cooldown_ticks) {
     if (current_tick < next_attack_tick)
@@ -235,4 +249,85 @@ UpdateStats Player::update_stats() const {
 uint32_t Player::exp_to_next_level() const {
     return static_cast<uint32_t>(balance.level_exp_base *
                                  std::pow(level, balance.level_exp_exponent));
+}
+
+bool Player::equip(uint8_t inv_slot_index, const ItemCatalog& catalog) {
+    if (inv_slot_index >= inventory.slot_count()) return false;
+    if (inventory.is_empty_at(inv_slot_index)) return false;
+
+    InventorySlot slot = inventory.at(inv_slot_index);
+    const Item* def = catalog.find(slot.item_type);
+    if (!def) return false;
+
+    if (def->equip_slot == EquipSlot::CONSUMABLE) {
+        switch (def->type) {
+            case ItemType::HEALTH_POTION:
+                heal(hp_max);
+                break;
+            case ItemType::MANA_POTION:
+                mana_current = mana_max;
+                break;
+            default:
+                return false;
+        }
+        inventory.clear(inv_slot_index);
+        return true;
+    }
+
+    uint8_t eslot = static_cast<uint8_t>(def->equip_slot);
+
+    if (equipped[eslot].item_type == ItemType::NONE) {
+        equipped[eslot] = slot;
+        inventory.clear(inv_slot_index);
+        equipped[eslot].slot_index = eslot;
+    } else {
+        InventorySlot replaced = equipped[eslot];
+        equipped[eslot] = slot;
+        equipped[eslot].slot_index = eslot;
+        inventory.place_at(inv_slot_index, replaced.item_type, replaced.item_name);
+    }
+    return true;
+}
+
+void Player::unequip(EquipSlot eslot) {
+    uint8_t index = static_cast<uint8_t>(eslot);
+    if (index >= EQUIP_SLOT_COUNT) return;
+    if (equipped[index].item_type == ItemType::NONE) return;
+    if (inventory.is_full()) return;
+
+    uint8_t free_slot = inventory.first_free_slot();
+    inventory.place_at(free_slot, equipped[index].item_type, equipped[index].item_name);
+    equipped[index] = InventorySlot{};
+    equipped[index].item_type = ItemType::NONE;
+}
+
+const InventorySlot& Player::get_equipped(EquipSlot eslot) const {
+    return equipped[static_cast<uint8_t>(eslot)];
+}
+
+void Player::dump_equipped(InventorySlot out[EQUIP_SLOT_COUNT]) const {
+    for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) out[i] = equipped[i];
+}
+
+void Player::restore_equipment(const InventorySlot equipment[EQUIP_SLOT_COUNT]) {
+    for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
+        equipped[i] = equipment[i];
+        equipped[i].slot_index = i;
+    }
+}
+
+std::vector<InventorySlot> Player::dump_inventory() const {
+    return inventory.dump_slots();
+}
+
+void Player::load_inventory(const std::vector<InventorySlotRecord>& records) {
+    inventory.from_records(records);
+}
+
+bool Player::add_item(ItemType type, const std::string& name) {
+    return inventory.place(type, name);
+}
+
+std::vector<InventorySlotRecord> Player::dump_inventory_records() const {
+    return inventory.to_records();
 }

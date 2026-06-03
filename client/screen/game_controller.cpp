@@ -10,7 +10,7 @@ GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& c
         renderer(renderer),
         world_renderer(renderer, config.background, config.tilemap, config.sprites, config.viewport,
                        config.font, config.skins),
-        ui_renderer(renderer, config.ui, config.skins, chat_input),
+        ui_renderer(renderer, config.ui, config.skins, chat_input, config.item_sprites),
         command_queue(command_queue),
         move_controller(this->command_queue, MoveConfig(config), SDL_GetTicks()),
         move_config(config),
@@ -41,6 +41,9 @@ void GameController::render() {
     ui_renderer.render_exp_bar(player_stats.experience, player_stats.exp_to_next);
     ui_renderer.render_chat_history(chat_history.get_messages());
     ui_renderer.render_chat_input();
+    ui_renderer.set_hover(mouse_x, mouse_y, player_stats.inventory, player_stats.equipped);
+    ui_renderer.render_inventory(player_stats.inventory);
+    ui_renderer.render_equipped(player_stats.equipped);
     renderer.Present();
 }
 
@@ -60,6 +63,8 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                        [this](const ClanUpdateEvent& e) { handle_clan_update(e); },
                         [this](const MapTransitionEvent& e) { handle_map_transition(e); },
                         [this](const HealReceivedEvent& e) { handle_heal_received(e); },
+                        [this](const InventoryUpdateEvent& e) { handle_inventory_update(e); },
+                        [this](const EquipUpdateEvent& e) { handle_equip_update(e); },
                         [](const auto&) {},
                },
                ev);
@@ -209,6 +214,17 @@ void GameController::handle_clan_update(const ClanUpdateEvent& e) {
     chat_history.add_message(ChatMsgType::SYSTEM, "", msg);
 }
 
+void GameController::handle_inventory_update(const InventoryUpdateEvent& e) {
+    player_stats.inventory = e.slots;
+}
+
+void GameController::handle_equip_update(const EquipUpdateEvent& e) {
+    player_stats.equipped[0] = e.weapon;
+    player_stats.equipped[1] = e.armor;
+    player_stats.equipped[2] = e.helmet;
+    player_stats.equipped[3] = e.shield;
+}
+
 void GameController::handle_entity_died(const EntityDiedEvent& e) {
     world_renderer.set_entity_alpha(e.entity_id, 128);
     if (e.entity_id != player_stats.player_id) {
@@ -281,6 +297,19 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
         return true;
     }
 
+    if (ui_renderer.is_hovering_occupied()) {
+        int idx = ui_renderer.get_hovered_inv_slot();
+        if (idx >= 0) {
+            command_queue.push(EquipItemCmd{static_cast<uint8_t>(idx)});
+            return true;
+        }
+        int eq = ui_renderer.get_hovered_equip_slot();
+        if (eq >= 0) {
+            command_queue.push(UnequipItemCmd{static_cast<EquipSlot>(eq)});
+            return true;
+        }
+    }
+
     int world_x = 0;
     int world_y = 0;
     if (!world_renderer.screen_to_world(event.button.x, event.button.y, world_x, world_y)) {
@@ -308,6 +337,15 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
 }
 
 bool GameController::handle_mouse_motion(const SDL_Event& event) {
+    mouse_x = event.motion.x;
+    mouse_y = event.motion.y;
+
+    ui_renderer.set_hover(mouse_x, mouse_y, player_stats.inventory, player_stats.equipped);
+    if (ui_renderer.is_hovering_occupied()) {
+        SDL_SetCursor(hand_cursor);
+        return true;
+    }
+
     int world_x = 0;
     int world_y = 0;
     uint16_t entity_id = 0;
