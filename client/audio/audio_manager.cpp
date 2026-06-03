@@ -3,7 +3,9 @@
 #include <iostream>
 #include <string>
 
-AudioManager::AudioManager(): menu_music_(nullptr), game_music_(nullptr) {
+AudioManager::AudioManager(const SfxConfig& sfx_cfg):
+        menu_music_(nullptr),
+        game_music_(nullptr) {
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
         std::cerr << "AudioManager: Mix_OpenAudio failed - " << Mix_GetError() << std::endl;
         return;
@@ -20,6 +22,17 @@ AudioManager::AudioManager(): menu_music_(nullptr), game_music_(nullptr) {
         std::cerr << "AudioManager: failed to load game music - " << Mix_GetError()
                   << std::endl;
     }
+
+    for (const auto& [name, filename]: sfx_cfg.sounds) {
+        std::string full_path = "assets/SoundsOgg/" + filename;
+        Mix_Chunk* chunk = Mix_LoadWAV(full_path.c_str());
+        if (!chunk) {
+            std::cerr << "AudioManager: failed to load sfx '" << name << "' from "
+                      << full_path << " - " << Mix_GetError() << std::endl;
+            continue;
+        }
+        sfx_[name] = chunk;
+    }
 }
 
 AudioManager::~AudioManager() {
@@ -29,6 +42,9 @@ AudioManager::~AudioManager() {
     }
     if (game_music_) {
         Mix_FreeMusic(game_music_);
+    }
+    for (const auto& [name, chunk]: sfx_) {
+        Mix_FreeChunk(chunk);
     }
     Mix_CloseAudio();
 }
@@ -48,4 +64,12 @@ void AudioManager::play_game_music() {
     int volume = static_cast<int>(MIX_MAX_VOLUME * 0.3f);
     Mix_VolumeMusic(volume);
     Mix_PlayMusic(game_music_, -1);
+}
+
+void AudioManager::play_sfx(const std::string& name) const {
+    auto it = sfx_.find(name);
+    if (it == sfx_.end()) {
+        return;
+    }
+    Mix_PlayChannel(-1, it->second, 0);
 }
