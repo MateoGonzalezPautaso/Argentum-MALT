@@ -407,6 +407,11 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     rec.mana_current = player.get_mana_current();
     rec.mana_max = player.get_mana_max();
     player_data_service.save_new_player(cmd.username, rec);
+
+    // ITEM INICIAL ESPADA (PARA TESTING, LUEGO QUITAR)
+    player.get_inventory().place(ItemType::SWORD, "Espada");
+    player_data_service.save_player(player);
+
     auto it = players.emplace(player_id, std::move(player)).first;
     const Player& p = it->second;
 
@@ -415,6 +420,15 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     std::vector<ServerEvent> private_events = {created};
     auto other_spawns = make_existing_spawns(p.get_id(), p.get_current_map());
     private_events.insert(private_events.end(), other_spawns.begin(), other_spawns.end());
+
+    InventoryUpdateEvent inv_event{p.get_inventory().dump_slots()};
+    private_events.push_back(inv_event);
+
+    InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
+    p.dump_equipped(equipped_slots);
+    EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
+                               equipped_slots[3]};
+    private_events.push_back(equip_ev);
 
     CommandResult r;
     r.private_events = std::move(private_events);
