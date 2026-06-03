@@ -11,6 +11,9 @@ ServerConfig load_server_config(const std::string& path) {
     toml::table root = toml::parse_file(path);
     ServerConfig config;
 
+    // Cargar catalogo de items
+    config.item_catalog.load_from_file("config/items.toml");
+
     if (auto server = root["server"].as_table()) {
         config.port =
                 static_cast<uint16_t>(toml_get_int(*server, "port", static_cast<int>(config.port)));

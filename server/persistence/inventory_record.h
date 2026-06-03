@@ -9,7 +9,6 @@ struct InventorySlotRecord {
 
     char item_name[ITEM_NAME_MAX] = {};
     uint8_t item_type = 0;
-    uint8_t sprite_id = 0;
 };
 
 #endif  // SERVER_INVENTORY_RECORD_H

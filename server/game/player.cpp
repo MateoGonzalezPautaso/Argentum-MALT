@@ -241,8 +241,7 @@ bool Player::equip(uint8_t inv_slot_index) {
         InventorySlot replaced = equipped[eslot];
         equipped[eslot] = item;
         equipped[eslot].slot_index = eslot;
-        inventory.place_at(inv_slot_index, replaced.item_type, replaced.item_name,
-                           replaced.sprite_id);
+        inventory.place_at(inv_slot_index, replaced.item_type, replaced.item_name);
     }
     return true;
 }
@@ -253,8 +252,7 @@ void Player::unequip(EquipSlot eslot) {
     if (inventory.is_full()) return;
 
     uint8_t free_slot = inventory.first_free_slot();
-    inventory.place_at(free_slot, equipped[index].item_type, equipped[index].item_name,
-                       equipped[index].sprite_id);
+    inventory.place_at(free_slot, equipped[index].item_type, equipped[index].item_name);
     equipped[index] = InventorySlot{};
     equipped[index].item_type = ItemType::NONE;
 }

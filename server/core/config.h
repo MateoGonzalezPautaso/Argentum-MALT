@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "../../common/config.h"
+#include "../../common/item_catalog.h"
 
 struct AttackConfig {
     int base_damage = 10;
@@ -99,6 +100,7 @@ struct ServerConfig {
     BalanceConfig balance;
     AttackConfig attack;
     ClanConfig clan;
+    ItemCatalog item_catalog;
 };
 
 ServerConfig load_server_config(const std::string& path);

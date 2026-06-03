@@ -54,7 +54,13 @@ enum class ItemType : uint8_t {
     GOLD_DROP = 0x14
 };
 
-enum class EquipSlot : uint8_t { WEAPON = 0x00, ARMOR = 0x01, HELMET = 0x02, SHIELD = 0x03 };
+enum class EquipSlot : uint8_t {
+    WEAPON = 0x00,
+    ARMOR = 0x01,
+    HELMET = 0x02,
+    SHIELD = 0x03,
+    CONSUMABLE = 0x04
+};
 
 enum class EntityType : uint8_t { PLAYER = 0x00, NPC = 0x01 };
 
@@ -112,7 +118,6 @@ struct InventorySlot {
     uint8_t slot_index = 0;
     ItemType item_type = ItemType::NONE;
     std::string item_name;
-    uint8_t sprite_id = 0;
 };
 
 struct TileInfo {

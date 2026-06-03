@@ -26,8 +26,8 @@ public:
     uint8_t first_free_slot() const;
     InventorySlot at(uint8_t index) const;
 
-    bool place(ItemType type, const std::string& name, uint8_t sprite_id = 0);
-    bool place_at(uint8_t index, ItemType type, const std::string& name, uint8_t sprite_id = 0);
+    bool place(ItemType type, const std::string& name);
+    bool place_at(uint8_t index, ItemType type, const std::string& name);
     void clear(uint8_t index);
     void swap(uint8_t a, uint8_t b);
 

@@ -3,6 +3,6 @@
 #define MAX_HP_BIG_SPIDER 325
 #define DAMAGE_BIG_SPIDER 17
 
-BigSpider::BigSpider(Position position, Rng& rng, EquipableItems& equipable_items, uint32_t level):
+BigSpider::BigSpider(Position position, Rng& rng, ItemCatalog& catalog, uint32_t level):
         EnemyNpc(position, MAX_HP_BIG_SPIDER * level, DAMAGE_BIG_SPIDER * level, rng,
-                 equipable_items, level) {}
+                 catalog, level) {}

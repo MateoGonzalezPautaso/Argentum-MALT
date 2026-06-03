@@ -253,7 +253,6 @@ void ServerProtocol::send_inventory_update(const InventoryUpdateEvent& ev) {
         protocol.send_uint8(slot.slot_index);
         protocol.send_uint8(static_cast<uint8_t>(slot.item_type));
         protocol.send_str(slot.item_name);
-        protocol.send_uint8(slot.sprite_id);
     }
 }
 
@@ -263,7 +262,6 @@ void ServerProtocol::send_equip_update(const EquipUpdateEvent& ev) {
     for (int i = 0; i < 4; ++i) {
         protocol.send_uint8(static_cast<uint8_t>(slots[i]->item_type));
         protocol.send_str(slots[i]->item_name);
-        protocol.send_uint8(slots[i]->sprite_id);
     }
 }
 

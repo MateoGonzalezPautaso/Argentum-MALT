@@ -3,7 +3,7 @@
 #define MAX_HP_SMALL_SPIDER 80
 #define DAMAGE_SMALL_SPIDER 4
 
-SmallSpider::SmallSpider(Position position, Rng& rng, EquipableItems& equipable_items,
+SmallSpider::SmallSpider(Position position, Rng& rng, ItemCatalog& catalog,
                          uint32_t level):
         EnemyNpc(position, MAX_HP_SMALL_SPIDER * level, DAMAGE_SMALL_SPIDER * level, rng,
-                 equipable_items, level) {}
+                 catalog, level) {}

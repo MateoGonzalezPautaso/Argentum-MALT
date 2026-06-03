@@ -133,7 +133,6 @@ ServerEvent ClientProtocol::recv_event() {
                 slot.slot_index = protocol.recv_uint8();
                 slot.item_type = static_cast<ItemType>(protocol.recv_uint8());
                 slot.item_name = protocol.recv_str();
-                slot.sprite_id = protocol.recv_uint8();
                 slots.push_back(std::move(slot));
             }
             return InventoryUpdateEvent{std::move(slots)};
@@ -143,7 +142,6 @@ ServerEvent ClientProtocol::recv_event() {
                 InventorySlot s;
                 s.item_type = static_cast<ItemType>(protocol.recv_uint8());
                 s.item_name = protocol.recv_str();
-                s.sprite_id = protocol.recv_uint8();
                 return s;
             };
             EquipUpdateEvent ev;
