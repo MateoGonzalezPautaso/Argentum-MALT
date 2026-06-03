@@ -24,7 +24,7 @@ public:
 
 private:
     std::vector<Item> items_;
-    std::unordered_map<ItemType, const Item*> by_type_;
+    std::unordered_map<ItemType, size_t> by_index_;
 };
 
 ItemType parse_item_type(const std::string& str);

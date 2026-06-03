@@ -43,7 +43,7 @@ EquipSlot parse_equip_slot(const std::string& str) {
 void ItemCatalog::load_from_file(const std::string& path) {
     auto root = toml::parse_file(path);
     items_.clear();
-    by_type_.clear();
+    by_index_.clear();
 
     auto arr = root["item"].as_array();
     if (!arr) {
@@ -69,14 +69,15 @@ void ItemCatalog::load_from_file(const std::string& path) {
         items_.push_back(item);
     }
 
-    for (auto& item : items_) {
-        by_type_[item.type] = &item;
+    for (size_t i = 0; i < items_.size(); ++i) {
+        by_index_[items_[i].type] = i;
     }
 }
 
 const Item* ItemCatalog::find(ItemType type) const {
-    auto it = by_type_.find(type);
-    return it != by_type_.end() ? it->second : nullptr;
+    auto it = by_index_.find(type);
+    if (it == by_index_.end()) return nullptr;
+    return &items_[it->second];
 }
 
 const Item& ItemCatalog::get(ItemType type) const {
