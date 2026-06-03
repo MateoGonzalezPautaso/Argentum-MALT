@@ -51,6 +51,7 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         sprite_height(config.sprite_height),
         balance(config.balance),
         inventory_config(config.inventory),
+        item_catalog(config.item_catalog),
         combat_controller(config.attack, players),
         tick_rate_hz(config.tick_rate_hz) {
     for (const auto& [name, tc] : tilemap_configs) {
@@ -642,7 +643,7 @@ CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
     Player& player = it->second;
     player.set_meditating(false);
 
-    bool changed = player.equip(cmd.slot_index);
+    bool changed = player.equip(cmd.slot_index, item_catalog);
     if (!changed) return {};
 
     InventorySlot equipped_slots[4];

@@ -30,6 +30,7 @@ private:
     int sprite_height;
     BalanceConfig balance;
     InventoryConfig inventory_config;
+    const ItemCatalog& item_catalog;
     CombatController combat_controller;
     uint32_t tick_count = 0;
     int tick_rate_hz;

@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <string>
 
+#include "../../common/item_catalog.h"
 #include "../../common/messages.h"
 #include "../core/config.h"
 #include "inventory.h"
@@ -105,7 +106,7 @@ public:
     Inventory& get_inventory() { return inventory; }
     const Inventory& get_inventory() const { return inventory; }
 
-    bool equip(uint8_t inv_slot_index);
+    bool equip(uint8_t inv_slot_index, const ItemCatalog& catalog);
     void unequip(EquipSlot eslot);
     const InventorySlot& get_equipped(EquipSlot eslot) const;
     void dump_equipped(InventorySlot out[4]) const;

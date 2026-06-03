@@ -212,34 +212,38 @@ uint32_t Player::exp_to_next_level() const {
                                  std::pow(level, balance.level_exp_exponent));
 }
 
-bool Player::equip(uint8_t inv_slot_index) {
+bool Player::equip(uint8_t inv_slot_index, const ItemCatalog& catalog) {
     if (inv_slot_index >= inventory.slot_count()) return false;
     if (inventory.is_empty_at(inv_slot_index)) return false;
 
-    InventorySlot item = inventory.at(inv_slot_index);
-    ItemType type = item.item_type;
+    InventorySlot slot = inventory.at(inv_slot_index);
+    const Item* def = catalog.find(slot.item_type);
+    if (!def) return false;
 
-    if (type == ItemType::HEALTH_POTION) {
-        heal(hp_max);
+    if (def->equip_slot == EquipSlot::CONSUMABLE) {
+        switch (def->type) {
+            case ItemType::HEALTH_POTION:
+                heal(hp_max);
+                break;
+            case ItemType::MANA_POTION:
+                mana_current = mana_max;
+                break;
+            default:
+                return false;
+        }
         inventory.clear(inv_slot_index);
         return true;
     }
-    if (type == ItemType::MANA_POTION) {
-        mana_current = mana_max;
-        inventory.clear(inv_slot_index);
-        return true;
-    }
 
-    EquipSlot target = equip_slot_for(type);
-    uint8_t eslot = static_cast<uint8_t>(target);
+    uint8_t eslot = static_cast<uint8_t>(def->equip_slot);
 
     if (equipped[eslot].item_type == ItemType::NONE) {
-        equipped[eslot] = item;
+        equipped[eslot] = slot;
         inventory.clear(inv_slot_index);
         equipped[eslot].slot_index = eslot;
     } else {
         InventorySlot replaced = equipped[eslot];
-        equipped[eslot] = item;
+        equipped[eslot] = slot;
         equipped[eslot].slot_index = eslot;
         inventory.place_at(inv_slot_index, replaced.item_type, replaced.item_name);
     }

@@ -443,32 +443,4 @@ using ServerEvent =
                      TransactionErrorEvent, ChatMsgEvent, ClanNotificationEvent, ClanUpdateEvent,
                      ServerMsgEvent, MapTransitionEvent, HealReceivedEvent>;
 
-inline EquipSlot equip_slot_for(ItemType type) {
-    switch (type) {
-        case ItemType::SWORD:
-        case ItemType::AXE:
-        case ItemType::HAMMER:
-        case ItemType::ASH_STAFF:
-        case ItemType::ELVEN_FLUTE:
-        case ItemType::KNOTTED_STAFF:
-        case ItemType::STUDDED_STAFF:
-        case ItemType::SIMPLE_BOW:
-        case ItemType::COMPOSITE_BOW:
-            return EquipSlot::WEAPON;
-        case ItemType::LEATHER_ARMOR:
-        case ItemType::PLATE_ARMOR:
-        case ItemType::BLUE_TUNIC:
-            return EquipSlot::ARMOR;
-        case ItemType::HOOD:
-        case ItemType::IRON_HELMET:
-        case ItemType::MAGIC_HAT:
-            return EquipSlot::HELMET;
-        case ItemType::TURTLE_SHIELD:
-        case ItemType::IRON_SHIELD:
-            return EquipSlot::SHIELD;
-        default:
-            return EquipSlot::WEAPON;
-    }
-}
-
 #endif  // MESSAGES_H_
