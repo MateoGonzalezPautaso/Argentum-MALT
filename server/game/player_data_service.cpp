@@ -29,7 +29,7 @@ std::optional<Player> PlayerDataService::load_player(uint16_t player_id,
                   rec.level, rec.experience,
                   rec.hp_current, rec.hp_max,
                   rec.mana_current, rec.mana_max,
-                  rec.gold, inv_capacity);
+                  rec.gold, inv_capacity, rec.strength);
 
     std::vector<InventorySlotRecord> inv_records;
     if (inventory_persistence.load(username, inv_records)) {
@@ -65,6 +65,7 @@ void PlayerDataService::save_player(const Player& player) {
     rec.mana_current = player.get_mana_current();
     rec.mana_max = player.get_mana_max();
     rec.gold = player.get_gold();
+    rec.strength = player.get_strength();
 
     InventorySlot equipped[EQUIP_SLOT_COUNT];
     player.dump_equipped(equipped);

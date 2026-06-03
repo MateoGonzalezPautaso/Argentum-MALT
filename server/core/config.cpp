@@ -60,8 +60,8 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_int(*attack, "max_level_diff", config.attack.max_level_diff);
         config.attack.clan_bonus_range_px =
                 toml_get_int(*attack, "clan_bonus_range_px", config.attack.clan_bonus_range_px);
-        config.attack.clan_bonus_per_member =
-                toml_get_double(*attack, "clan_bonus_per_member", config.attack.clan_bonus_per_member);
+        config.attack.clan_bonus_per_member = toml_get_double(*attack, "clan_bonus_per_member",
+                                                              config.attack.clan_bonus_per_member);
         config.attack.clan_bonus_max =
                 toml_get_double(*attack, "clan_bonus_max", config.attack.clan_bonus_max);
     }
@@ -176,14 +176,36 @@ ServerConfig load_server_config(const std::string& path) {
     }
 
     if (auto cl = root["class_meditation_factor"].as_table()) {
-        config.balance.mana.class_meditation_factor_warrior =
-                toml_get_double(*cl, "warrior", config.balance.mana.class_meditation_factor_warrior);
-        config.balance.mana.class_meditation_factor_paladin =
-                toml_get_double(*cl, "paladin", config.balance.mana.class_meditation_factor_paladin);
+        config.balance.mana.class_meditation_factor_warrior = toml_get_double(
+                *cl, "warrior", config.balance.mana.class_meditation_factor_warrior);
+        config.balance.mana.class_meditation_factor_paladin = toml_get_double(
+                *cl, "paladin", config.balance.mana.class_meditation_factor_paladin);
         config.balance.mana.class_meditation_factor_cleric =
                 toml_get_double(*cl, "cleric", config.balance.mana.class_meditation_factor_cleric);
         config.balance.mana.class_meditation_factor_mage =
                 toml_get_double(*cl, "mage", config.balance.mana.class_meditation_factor_mage);
+    }
+
+    if (auto r = root["race_strength_factor"].as_table()) {
+        config.balance.strength.race_strength_factor_human =
+                toml_get_double(*r, "human", config.balance.strength.race_strength_factor_human);
+        config.balance.strength.race_strength_factor_elf =
+                toml_get_double(*r, "elf", config.balance.strength.race_strength_factor_elf);
+        config.balance.strength.race_strength_factor_dwarf =
+                toml_get_double(*r, "dwarf", config.balance.strength.race_strength_factor_dwarf);
+        config.balance.strength.race_strength_factor_gnome =
+                toml_get_double(*r, "gnome", config.balance.strength.race_strength_factor_gnome);
+    }
+
+    if (auto cs = root["class_strength_factor"].as_table()) {
+        config.balance.strength.class_strength_factor_warrior = toml_get_double(
+                *cs, "warrior", config.balance.strength.class_strength_factor_warrior);
+        config.balance.strength.class_strength_factor_paladin = toml_get_double(
+                *cs, "paladin", config.balance.strength.class_strength_factor_paladin);
+        config.balance.strength.class_strength_factor_cleric = toml_get_double(
+                *cs, "cleric", config.balance.strength.class_strength_factor_cleric);
+        config.balance.strength.class_strength_factor_mage =
+                toml_get_double(*cs, "mage", config.balance.strength.class_strength_factor_mage);
     }
 
     return config;

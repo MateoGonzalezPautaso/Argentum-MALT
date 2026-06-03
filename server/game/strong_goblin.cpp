@@ -1,9 +1,9 @@
 #include "strong_goblin.h"
 
-#define MAX_HP_STRONG_GOB 250
-#define DAMAGE_STRONG_GOBLIN 12
+#define MAX_HP 250
+#define DAMAGE 12
+#define NAME "Strong goblin"
 
-StrongGoblin::StrongGoblin(Position position, Rng& rng, ItemCatalog& catalog,
+StrongGoblin::StrongGoblin(Position position, Rng& rng, const ItemCatalog& catalog,
                            uint32_t level):
-        EnemyNpc(position, MAX_HP_STRONG_GOB * level, DAMAGE_STRONG_GOBLIN * level, rng,
-                 catalog, level) {}
+        EnemyNpc(position, MAX_HP * level, DAMAGE * level, rng, catalog, level, NAME) {}

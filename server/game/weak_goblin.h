@@ -6,10 +6,9 @@
 
 #include "enemy_npc.h"
 
-// Initial enemy
 class WeakGoblin: public EnemyNpc {
 public:
-    WeakGoblin(Position position, Rng& rng, ItemCatalog& catalog, uint32_t level);
+    WeakGoblin(Position position, Rng& rng, const ItemCatalog& catalog, uint32_t level);
 };
 
 #endif

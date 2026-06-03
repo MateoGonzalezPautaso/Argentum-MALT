@@ -6,10 +6,9 @@
 
 #include "enemy_npc.h"
 
-// Open world's strong enemy
 class Orc: public EnemyNpc {
 public:
-    Orc(Position position, Rng& rng, ItemCatalog& catalog, uint32_t level);
+    Orc(Position position, Rng& rng, const ItemCatalog& catalog, uint32_t level);
 };
 
 #endif

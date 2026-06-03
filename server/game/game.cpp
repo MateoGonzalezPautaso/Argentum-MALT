@@ -2,12 +2,14 @@
 
 #include <cstdlib>
 #include <string>
-
 #include <utility>
 #include <variant>
 #include <vector>
 
 #include "../../common/visit.h"
+
+#include "orc.h"
+#include "weak_goblin.h"
 
 namespace {
 
@@ -52,12 +54,16 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         balance(config.balance),
         inventory_config(config.inventory),
         item_catalog(config.item_catalog),
-        combat_controller(config.attack, players),
+        rng(),
+        combat_controller(config.attack, players, rng),
         tick_rate_hz(config.tick_rate_hz) {
-    for (const auto& [name, tc] : tilemap_configs) {
+    for (const auto& [name, tc]: tilemap_configs) {
         maps.emplace(name, Map(tc));
     }
     combat_controller.set_clan_manager(clan_manager);
+    npcs.emplace(1001, WeakGoblin({300, 200}, rng, item_catalog, 2));
+    npcs.emplace(1002, WeakGoblin({400, 300}, rng, item_catalog, 1));
+    npcs.emplace(1003, Orc({500, 400}, rng, item_catalog, 5));
 }
 
 Map& Game::player_map(const Player& p) {
@@ -75,27 +81,32 @@ const Map& Game::player_map(const Player& p) const {
 }
 
 CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd) {
-    return std::visit(overloaded{
-                               [&](const LoginCmd& cmd) { return handle_login(player_id, cmd); },
-                               [&](const CreateCharacterCmd& cmd) { return handle_create_character(player_id, cmd); },
-                               [&](const MoveCmd& cmd) { return handle_move(player_id, cmd); },
-                               [&](const AttackCmd& cmd) { return handle_attack(player_id, cmd); },
-                               [&](const SendChatMsgCmd& cmd) { return handle_send_chat_msg(player_id, cmd); },
-                               [&](const MeditateCmd&) { return handle_meditate(player_id); },
-                               [&](const ResurrectCmd&) { return handle_resurrect(player_id); },
-                               [&](const CheatInfiniteHpCmd&) { return handle_cheat_infinite_hp(player_id); },
-                               [&](const CheatInfiniteManaCmd&) { return handle_cheat_infinite_mana(player_id); },
-                               [&](const CheatDieCmd&) { return handle_cheat_die(player_id); },
-                               [&](const CheatLevelUpCmd&) { return handle_cheat_level_up(player_id); },
-                                [&](const CheatLevelDownCmd&) { return handle_cheat_level_down(player_id); },
-                                [&](const CheatAddGoldCmd&) { return handle_cheat_add_gold(player_id); },
-                                [&](const CheatVelocityCmd&) { return handle_cheat_velocity(player_id); },
-                                [&](const ChangeMapCmd& cmd) { return handle_change_map(player_id, cmd); },
-                                [&](const EquipItemCmd& cmd) { return handle_equip(player_id, cmd); },
-                                [&](const UnequipItemCmd& cmd) { return handle_unequip(player_id, cmd); },
-                                [](const auto&) { return CommandResult{}; },
-                       },
-                       cmd);
+    return std::visit(
+            overloaded{
+                    [&](const LoginCmd& cmd) { return handle_login(player_id, cmd); },
+                    [&](const CreateCharacterCmd& cmd) {
+                        return handle_create_character(player_id, cmd);
+                    },
+                    [&](const MoveCmd& cmd) { return handle_move(player_id, cmd); },
+                    [&](const AttackCmd& cmd) { return handle_attack(player_id, cmd); },
+                    [&](const SendChatMsgCmd& cmd) { return handle_send_chat_msg(player_id, cmd); },
+                    [&](const MeditateCmd&) { return handle_meditate(player_id); },
+                    [&](const ResurrectCmd&) { return handle_resurrect(player_id); },
+                    [&](const CheatInfiniteHpCmd&) { return handle_cheat_infinite_hp(player_id); },
+                    [&](const CheatInfiniteManaCmd&) {
+                        return handle_cheat_infinite_mana(player_id);
+                    },
+                    [&](const CheatDieCmd&) { return handle_cheat_die(player_id); },
+                    [&](const CheatLevelUpCmd&) { return handle_cheat_level_up(player_id); },
+                    [&](const CheatLevelDownCmd&) { return handle_cheat_level_down(player_id); },
+                    [&](const CheatAddGoldCmd&) { return handle_cheat_add_gold(player_id); },
+                    [&](const CheatVelocityCmd&) { return handle_cheat_velocity(player_id); },
+                    [&](const ChangeMapCmd& cmd) { return handle_change_map(player_id, cmd); },
+                    [&](const EquipItemCmd& cmd) { return handle_equip(player_id, cmd); },
+                    [&](const UnequipItemCmd& cmd) { return handle_unequip(player_id, cmd); },
+                    [](const auto&) { return CommandResult{}; },
+            },
+            cmd);
 }
 
 CommandResult Game::remove_player(uint16_t player_id) {
@@ -112,8 +123,9 @@ CommandResult Game::remove_player(uint16_t player_id) {
 
     // Send despawn to all players on the same map
     CommandResult result;
-    for (uint16_t pid : get_player_ids_on_map(map_name)) {
-        if (pid == player_id) continue;
+    for (uint16_t pid: get_player_ids_on_map(map_name)) {
+        if (pid == player_id)
+            continue;
         result.targeted_events[pid].push_back(despawn);
     }
 
@@ -124,8 +136,7 @@ CommandResult Game::remove_player(uint16_t player_id) {
         ClanNotificationEvent notif{ClanNotifType::MEMBER_OFFLINE, username, clan_name};
         auto clan_result = clan_handler.notify_clan_members(notif.clan_name, notif, player_id);
         for (auto& ev: clan_result.targeted_events)
-            for (auto& se: ev.second)
-                result.targeted_events[ev.first].push_back(std::move(se));
+            for (auto& se: ev.second) result.targeted_events[ev.first].push_back(std::move(se));
     }
 
     return result;
@@ -134,10 +145,14 @@ CommandResult Game::remove_player(uint16_t player_id) {
 double Game::recovery_rate_for(Race race) const {
     const auto& r = balance.race_recovery;
     switch (race) {
-        case Race::HUMAN: return r.human;
-        case Race::ELF:   return r.elf;
-        case Race::DWARF: return r.dwarf;
-        case Race::GNOME: return r.gnome;
+        case Race::HUMAN:
+            return r.human;
+        case Race::ELF:
+            return r.elf;
+        case Race::DWARF:
+            return r.dwarf;
+        case Race::GNOME:
+            return r.gnome;
     }
     return r.human;
 }
@@ -145,10 +160,14 @@ double Game::recovery_rate_for(Race race) const {
 double Game::intelligence_for(Race race) const {
     const auto& m = balance.mana;
     switch (race) {
-        case Race::HUMAN: return m.intelligence_human;
-        case Race::ELF:   return m.intelligence_elf;
-        case Race::DWARF: return m.intelligence_dwarf;
-        case Race::GNOME: return m.intelligence_gnome;
+        case Race::HUMAN:
+            return m.intelligence_human;
+        case Race::ELF:
+            return m.intelligence_elf;
+        case Race::DWARF:
+            return m.intelligence_dwarf;
+        case Race::GNOME:
+            return m.intelligence_gnome;
     }
     return m.intelligence_human;
 }
@@ -156,10 +175,14 @@ double Game::intelligence_for(Race race) const {
 double Game::meditation_factor_for(PlayerClass player_class) const {
     const auto& m = balance.mana;
     switch (player_class) {
-        case PlayerClass::WARRIOR: return m.class_meditation_factor_warrior;
-        case PlayerClass::PALADIN: return m.class_meditation_factor_paladin;
-        case PlayerClass::CLERIC:  return m.class_meditation_factor_cleric;
-        case PlayerClass::MAGE:    return m.class_meditation_factor_mage;
+        case PlayerClass::WARRIOR:
+            return m.class_meditation_factor_warrior;
+        case PlayerClass::PALADIN:
+            return m.class_meditation_factor_paladin;
+        case PlayerClass::CLERIC:
+            return m.class_meditation_factor_cleric;
+        case PlayerClass::MAGE:
+            return m.class_meditation_factor_mage;
     }
     return m.class_meditation_factor_warrior;
 }
@@ -169,14 +192,14 @@ CommandResult Game::apply_regen() {
     const double dt = 1.0 / tick_rate_hz;
 
     for (auto& [id, player]: players) {
-        if (player.is_ghost())
+        if (player.is_dead())
             continue;
 
         bool changed = false;
         double rate = recovery_rate_for(player.get_race());
 
-        // rate is in HP/second, but tick() runs 20 times per second. 
-        // Each tick only represents dt = 1/20 = 0.05 seconds, 
+        // rate is in HP/second, but tick() runs 20 times per second.
+        // Each tick only represents dt = 1/20 = 0.05 seconds,
         // so the per-tick gain is 1.0 * 0.05 = 0.05 HP
         hp_regen_accum[id] += rate * dt;
         if (hp_regen_accum[id] >= 1.0 && player.get_hp_current() < player.get_hp_max()) {
@@ -219,7 +242,13 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
     auto it = players.find(player_id);
     if (it != players.end())
         it->second.set_meditating(false);
-    CommandResult result = combat_controller.melee_attack(player_id, cmd.target_id, tick_count);
+    CommandResult result;
+    auto target_it = npcs.find(cmd.target_id);
+    if (target_it == npcs.end())
+        result = combat_controller.melee_attack_player(player_id, cmd.target_id, tick_count);
+    else
+        result = combat_controller.melee_attack_npc(player_id, cmd.target_id, npcs, tick_count);
+
     // Convert combat broadcasts to per-map events
     result.map_events = std::move(result.broadcast_events);
     return result;
@@ -234,7 +263,7 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
     if (text.empty())
         return {};
 
-    if (it->second.is_ghost()) {
+    if (it->second.is_dead()) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden interactuar"};
         return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
@@ -250,12 +279,14 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             std::string msg = text.substr(space_pos + 1);
             for (const auto& [target_id, player]: players) {
                 if (player.get_username() == target_nick) {
-                    ChatMsgEvent chat_ev{ChatMsgType::PRIVATE, sender_name, msg,
-                                        target_id, player_id};
+                    ChatMsgEvent chat_ev{ChatMsgType::PRIVATE, sender_name, msg, target_id,
+                                         player_id};
                     std::map<uint16_t, std::vector<ServerEvent>> targeted;
                     targeted[target_id].push_back(chat_ev);
                     targeted[player_id].push_back(chat_ev);
-                    return {.private_events = {}, .broadcast_events = {}, .targeted_events = std::move(targeted)};
+                    return {.private_events = {},
+                            .broadcast_events = {},
+                            .targeted_events = std::move(targeted)};
                 }
             }
             ChatMsgEvent err{ChatMsgType::SYSTEM, "", "Jugador " + target_nick + " no encontrado"};
@@ -271,8 +302,10 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         if (auto result = clan_handler.handle(player_id, cmd_name, args))
             return *result;
 
-        if (cmd_name == "/meditar") return handle_meditate(player_id);
-        if (cmd_name == "/resucitar") return handle_resurrect(player_id);
+        if (cmd_name == "/meditar")
+            return handle_meditate(player_id);
+        if (cmd_name == "/resucitar")
+            return handle_resurrect(player_id);
 
         if (cmd_name == "/equipar") {
             try {
@@ -342,9 +375,9 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
 
         if (p.get_current_map() != "main") {
             private_events.push_back(MapTransitionEvent{
-                .map_name = p.get_current_map(),
-                .pos_x = p.pos_x(),
-                .pos_y = p.pos_y(),
+                    .map_name = p.get_current_map(),
+                    .pos_x = p.pos_x(),
+                    .pos_y = p.pos_y(),
             });
         }
 
@@ -371,18 +404,21 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
 
 CommandResult Game::handle_create_character(uint16_t player_id, const CreateCharacterCmd& cmd) {
     if (cmd.username.empty()) {
-        CharacterErrorEvent err{CharacterError::INVALID_USERNAME, "El nombre de usuario no puede estar vacio"};
+        CharacterErrorEvent err{CharacterError::INVALID_USERNAME,
+                                "El nombre de usuario no puede estar vacio"};
         return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
     }
 
     PlayerRecord existing;
     if (player_data_service.player_exists(cmd.username)) {
-        CharacterErrorEvent err{CharacterError::USERNAME_TAKEN, "El usuario " + cmd.username + " ya existe"};
+        CharacterErrorEvent err{CharacterError::USERNAME_TAKEN,
+                                "El usuario " + cmd.username + " ya existe"};
         return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
     }
 
     if (is_username_logged_in(cmd.username)) {
-        CharacterErrorEvent err{CharacterError::USERNAME_TAKEN, "El usuario " + cmd.username + " ya esta en juego"};
+        CharacterErrorEvent err{CharacterError::USERNAME_TAKEN,
+                                "El usuario " + cmd.username + " ya esta en juego"};
         return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
     }
 
@@ -461,8 +497,11 @@ CommandResult Game::handle_cheat_die(uint16_t player_id) {
     if (it == players.end())
         return {};
     it->second.kill();
-    DamageReceivedEvent dmg{.target_id = player_id, .attacker_id = player_id,
-                            .damage = 0, .hp_current = 0, .hp_max = it->second.get_hp_max()};
+    DamageReceivedEvent dmg{.target_id = player_id,
+                            .attacker_id = player_id,
+                            .damage = 0,
+                            .hp_current = 0,
+                            .hp_max = it->second.get_hp_max()};
     EntityDiedEvent died{.entity_id = player_id};
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Moriste!"};
     CommandResult r;
@@ -530,7 +569,7 @@ CommandResult Game::handle_meditate(uint16_t player_id) {
 
     Player& player = it->second;
 
-    if (player.is_ghost())
+    if (player.is_dead())
         return {};
 
     if (player.get_player_class() == PlayerClass::WARRIOR) {
@@ -540,10 +579,14 @@ CommandResult Game::handle_meditate(uint16_t player_id) {
 
     if (player.get_is_meditating()) {
         player.set_meditating(false);
-        return {.private_events = {MeditationStopEvent{}}, .broadcast_events = {}, .targeted_events = {}};
+        return {.private_events = {MeditationStopEvent{}},
+                .broadcast_events = {},
+                .targeted_events = {}};
     } else {
         player.set_meditating(true);
-        return {.private_events = {MeditationStartEvent{}}, .broadcast_events = {}, .targeted_events = {}};
+        return {.private_events = {MeditationStartEvent{}},
+                .broadcast_events = {},
+                .targeted_events = {}};
     }
 }
 
@@ -587,7 +630,8 @@ std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id) const {
     return spawns;
 }
 
-std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id, const std::string& map_name) const {
+std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id,
+                                                    const std::string& map_name) const {
     std::vector<ServerEvent> spawns;
     for (const auto& [id, player]: players) {
         if (id == exclude_id)
@@ -636,7 +680,7 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     }
 
     Player& player = it->second;
-    if (!player.is_ghost()) {
+    if (!player.is_dead()) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "You are not dead"};
         return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
@@ -724,8 +768,7 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
         const int oy = static_cast<int>(other.pos_y());
         const int hw = sprite_width / 2;
         const int hh = sprite_height / 2;
-        bool already_overlapping = (std::abs(current_x - ox) < hw &&
-                                    std::abs(current_y - oy) < hh);
+        bool already_overlapping = (std::abs(current_x - ox) < hw && std::abs(current_y - oy) < hh);
         if (already_overlapping)
             continue;
         if (std::abs(new_x - ox) < hw && std::abs(new_y - oy) < hh)
@@ -773,7 +816,8 @@ bool Game::try_map_transition(Player& player, CommandResult& result) {
 void Game::do_transition(Player& player, CommandResult& result, const PropDef& prop,
                          const std::string& old_map_name) {
     auto dest_it = maps.find(prop.transition_map);
-    if (dest_it == maps.end()) return;
+    if (dest_it == maps.end())
+        return;
 
     Position spawn = compute_spawn_position(dest_it->second.config(), prop);
 
@@ -799,20 +843,21 @@ Position Game::compute_spawn_position(const TilemapConfig& dest_cfg, const PropD
 }
 
 void Game::despawn_player(CommandResult& result, uint16_t player_id,
-                           const std::string& old_map_name) const {
+                          const std::string& old_map_name) const {
     EntityDespawnEvent despawn{.entity_id = player_id};
-    for (uint16_t pid : get_player_ids_on_map(old_map_name)) {
-        if (pid == player_id) continue;
+    for (uint16_t pid: get_player_ids_on_map(old_map_name)) {
+        if (pid == player_id)
+            continue;
         result.targeted_events[pid].push_back(despawn);
     }
 }
 
 void Game::notify_player_transition(CommandResult& result, const Player& player,
-                                     const std::string& map_name, Position spawn) const {
+                                    const std::string& map_name, Position spawn) const {
     result.private_events.push_back(MapTransitionEvent{
-        .map_name = map_name,
-        .pos_x = spawn.x,
-        .pos_y = spawn.y,
+            .map_name = map_name,
+            .pos_x = spawn.x,
+            .pos_y = spawn.y,
     });
 
     std::vector<ServerEvent> others = make_existing_spawns(player.get_id(), map_name);
@@ -820,10 +865,11 @@ void Game::notify_player_transition(CommandResult& result, const Player& player,
 }
 
 void Game::notify_others_spawn(CommandResult& result, const Player& player,
-                                const std::string& map_name) const {
+                               const std::string& map_name) const {
     EntitySpawnEvent spawn = make_entity_spawn(player);
-    for (uint16_t pid : get_player_ids_on_map(map_name)) {
-        if (pid == player.get_id()) continue;
+    for (uint16_t pid: get_player_ids_on_map(map_name)) {
+        if (pid == player.get_id())
+            continue;
         result.targeted_events[pid].push_back(spawn);
     }
 }

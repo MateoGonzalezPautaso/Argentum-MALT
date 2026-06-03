@@ -6,10 +6,9 @@
 
 #include "enemy_npc.h"
 
-// More threatening that SmallSpider
 class BigSpider: public EnemyNpc {
 public:
-    BigSpider(Position position, Rng& rng, ItemCatalog& catalog, uint32_t level);
+    BigSpider(Position position, Rng& rng, const ItemCatalog& catalog, uint32_t level);
 };
 
 #endif

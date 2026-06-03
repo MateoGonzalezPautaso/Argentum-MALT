@@ -6,10 +6,9 @@
 
 #include "enemy_npc.h"
 
-// Game's hardest enemy
 class IronGolem: public EnemyNpc {
 public:
-    IronGolem(Position position, Rng& rng, ItemCatalog& catalog, uint32_t level);
+    IronGolem(Position position, Rng& rng, const ItemCatalog& catalog, uint32_t level);
 };
 
 #endif

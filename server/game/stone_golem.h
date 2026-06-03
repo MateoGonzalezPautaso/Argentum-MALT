@@ -6,10 +6,9 @@
 
 #include "enemy_npc.h"
 
-// Dungeon boss
 class StoneGolem: public EnemyNpc {
 public:
-    StoneGolem(Position position, Rng& rng, ItemCatalog& catalog, uint32_t level);
+    StoneGolem(Position position, Rng& rng, const ItemCatalog& catalog, uint32_t level);
 };
 
 #endif

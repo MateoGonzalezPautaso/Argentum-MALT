@@ -1,9 +1,9 @@
 #include "weak_goblin.h"
 
-#define MAX_HP_WEAK_GOBLIN 100
-#define DAMAGE_WEAK_GOBLIN 5
+#define MAX_HP 100
+#define DAMAGE 5
+#define NAME "Weak goblin"
 
-WeakGoblin::WeakGoblin(Position position, Rng& rng, ItemCatalog& catalog,
+WeakGoblin::WeakGoblin(Position position, Rng& rng, const ItemCatalog& catalog,
                        uint32_t level):
-        EnemyNpc(position, MAX_HP_WEAK_GOBLIN * level, DAMAGE_WEAK_GOBLIN * level, rng,
-                 catalog, level) {}
+        EnemyNpc(position, MAX_HP * level, DAMAGE * level, rng, catalog, level, NAME) {}

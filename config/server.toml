@@ -87,3 +87,15 @@ warrior = 0.0
 paladin = 0.5
 cleric = 1.0
 mage = 2.0
+
+[race_strength_factor]
+human = 1.0
+elf = 0.7
+dwarf = 1.3
+gnome = 0.9
+
+[class_strength_factor]
+warrior = 1.5
+paladin = 1.2
+cleric = 0.8
+mage = 0.5
