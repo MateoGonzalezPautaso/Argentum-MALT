@@ -5,7 +5,8 @@
 #include "../../common/visit.h"
 
 GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& config,
-                               Queue<ClientCommand>& command_queue):
+                               Queue<ClientCommand>& command_queue, AudioManager& audio_manager):
+        audio_manager(audio_manager),
         config(config),
         renderer(renderer),
         world_renderer(renderer, config.background, config.tilemap, config.sprites, config.viewport,

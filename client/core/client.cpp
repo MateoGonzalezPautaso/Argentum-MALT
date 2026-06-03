@@ -10,8 +10,8 @@ Client::Client(const ClientConfig& cfg):
         config(cfg),
         skt(cfg.network.host.c_str(), cfg.network.port.c_str()),
         protocol(std::move(skt)),
-        engine(config, command_queue),
         audio_manager(config.sfx),
+        engine(config, command_queue, audio_manager),
         sender(protocol, command_queue),
         receiver(protocol, event_queue) {
     SDL_StartTextInput();

@@ -23,8 +23,8 @@ private:
     ClientProtocol protocol;
     Queue<ClientCommand> command_queue;
     Queue<ServerEvent> event_queue;
-    Engine engine;
     AudioManager audio_manager;
+    Engine engine;
     Sender sender;
     Receiver receiver;
 
