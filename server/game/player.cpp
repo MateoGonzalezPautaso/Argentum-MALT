@@ -176,11 +176,11 @@ void Player::level_down() {
 }
 
 UpdateStats Player::update_stats() const {
-    int constitution;
-    double f_hp_race;
-    int intelligence;
-    double f_mana_race;
-    double f_strength_race;
+    int constitution = 0;
+    double f_hp_race = 0.0;
+    int intelligence = 0;
+    double f_mana_race = 0.0;
+    double f_strength_race = 0.0;
     switch (race) {
         case Race::HUMAN:
             constitution = balance.hp.constitution_human;
@@ -212,9 +212,9 @@ UpdateStats Player::update_stats() const {
             break;
     }
 
-    double f_hp_class;
-    double f_mana_class;
-    double f_strength_class;
+    double f_hp_class = 0.0;
+    double f_mana_class = 0.0;
+    double f_strength_class = 0.0;
     switch (player_class) {
         case PlayerClass::WARRIOR:
             f_hp_class = balance.hp.class_hp_factor_warrior;
