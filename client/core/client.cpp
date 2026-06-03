@@ -33,6 +33,8 @@ bool Client::run_menu() {
     bool running = true;
     uint32_t last_tick = SDL_GetTicks();
 
+    audio_manager.play_menu_music();
+
     while (running && state == GameState::Menu) {
         running = engine.dispatch_event(state);
         if (!running) {
@@ -95,6 +97,8 @@ void Client::game_loop() {
     GameState state = GameState::Playing;
     bool running = true;
     uint32_t last_tick = SDL_GetTicks();
+
+    audio_manager.play_game_music();
 
     while (running) {
         running = engine.dispatch_event(state);
