@@ -65,6 +65,8 @@ void ClientProtocol::send_cheat_level_down() { protocol.send_opcode(OpCode::CHEA
 
 void ClientProtocol::send_cheat_add_gold() { protocol.send_opcode(OpCode::CHEAT_ADD_GOLD); }
 
+void ClientProtocol::send_cheat_velocity() { protocol.send_opcode(OpCode::CHEAT_VELOCITY); }
+
 void ClientProtocol::send_change_map(const ChangeMapCmd& cmd) {
     protocol.send_opcode(OpCode::CHANGE_MAP);
     protocol.send_str(cmd.prop_name);
@@ -85,6 +87,7 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const CheatLevelUpCmd&) { send_cheat_level_up(); },
                        [this](const CheatLevelDownCmd&) { send_cheat_level_down(); },
                        [this](const CheatAddGoldCmd&) { send_cheat_add_gold(); },
+                       [this](const CheatVelocityCmd&) { send_cheat_velocity(); },
                        [this](const ChangeMapCmd& msg) { send_change_map(msg); },
                         [](const auto&) { throw std::runtime_error("Command not implemented"); },
                },
@@ -113,6 +116,7 @@ ServerEvent ClientProtocol::recv_event() {
         case OpCode::CLAN_NOTIFICATION: return recv_clan_notification();
         case OpCode::CLAN_UPDATE:       return recv_clan_update();
         case OpCode::HEAL_RECEIVED:     return recv_heal_received();
+        case OpCode::MAP_TRANSITION:    return recv_map_transition();
         default:
             throw std::runtime_error("Unknown event opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
@@ -180,6 +184,14 @@ ServerEvent ClientProtocol::recv_heal_received() {
     uint32_t hp_current = protocol.recv_uint32();
     uint32_t mana_current = protocol.recv_uint32();
     return HealReceivedEvent{player_id, hp_current, mana_current};
+}
+
+ServerEvent ClientProtocol::recv_map_transition() {
+    MapTransitionEvent ev;
+    ev.map_name = protocol.recv_str();
+    ev.pos_x = protocol.recv_uint16();
+    ev.pos_y = protocol.recv_uint16();
+    return ev;
 }
 
 ServerEvent ClientProtocol::recv_entity_spawn() {
