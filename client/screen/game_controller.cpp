@@ -1,8 +1,23 @@
 #include "game_controller.h"
 
+#include <unordered_map>
 #include <variant>
 
 #include "../../common/visit.h"
+
+namespace {
+const std::unordered_map<ItemType, std::string> weapon_sounds = {
+    {ItemType::SWORD,         "sword"},
+    {ItemType::AXE,           "axe"},
+    {ItemType::HAMMER,        "hammer"},
+    {ItemType::SIMPLE_BOW,    "bow"},
+    {ItemType::COMPOSITE_BOW, "bow"},
+    {ItemType::ASH_STAFF,     "spell"},
+    {ItemType::KNOTTED_STAFF, "spell"},
+    {ItemType::STUDDED_STAFF, "spell"},
+    {ItemType::ELVEN_FLUTE,   "flute"},
+};
+}
 
 GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& config,
                                Queue<ClientCommand>& command_queue, AudioManager& audio_manager):
@@ -58,7 +73,13 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                            audio_manager.play_sfx("hit");
                            handle_damage_received(e);
                        },
-                       [](const DamageDealtEvent&) {},
+                         [this](const DamageDealtEvent&) {
+                             auto weapon = player_stats.equipped[0].item_type;
+                             auto it = weapon_sounds.find(weapon);
+                             if (it != weapon_sounds.end()) {
+                                 audio_manager.play_sfx(it->second);
+                             }
+                         },
                        [this](const AttackDodgedEvent& e) { handle_attack_dodged(e); },
                        [this](const ChatMsgEvent& e) { handle_chat_msg(e); },
                        [this](const EntityDiedEvent& e) { handle_entity_died(e); },
