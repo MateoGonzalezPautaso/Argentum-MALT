@@ -103,8 +103,10 @@ public:
     void increase_max_hp(uint32_t amount);
     void increase_max_mana(uint32_t amount);
 
-    Inventory& get_inventory() { return inventory; }
-    const Inventory& get_inventory() const { return inventory; }
+    std::vector<InventorySlot> dump_inventory() const;
+    void load_inventory(const std::vector<InventorySlotRecord>& records);
+    bool add_item(ItemType type, const std::string& name);
+    std::vector<InventorySlotRecord> dump_inventory_records() const;
 
     bool equip(uint8_t inv_slot_index, const ItemCatalog& catalog);
     void unequip(EquipSlot eslot);

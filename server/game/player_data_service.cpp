@@ -33,9 +33,9 @@ std::optional<Player> PlayerDataService::load_player(uint16_t player_id,
 
     std::vector<InventorySlotRecord> inv_records;
     if (inventory_persistence.load(username, inv_records)) {
-        player.get_inventory().from_records(inv_records);
+        player.load_inventory(inv_records);
     } else {
-        inventory_persistence.save(username, player.get_inventory().to_records());
+        inventory_persistence.save(username, player.dump_inventory_records());
     }
 
     InventorySlot rec_equipped[EQUIP_SLOT_COUNT];
@@ -77,7 +77,7 @@ void PlayerDataService::save_player(const Player& player) {
 
     player_persistence.save(player.get_username(), rec);
 
-    inventory_persistence.save(player.get_username(), player.get_inventory().to_records());
+    inventory_persistence.save(player.get_username(), player.dump_inventory_records());
 }
 
 void PlayerDataService::save_new_player(const std::string& username,

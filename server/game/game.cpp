@@ -330,7 +330,7 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
         std::vector<ServerEvent> private_events = {make_login_ok(p)};
 
         // Send inventory after login
-        InventoryUpdateEvent inv_event{p.get_inventory().dump_slots()};
+        InventoryUpdateEvent inv_event{p.dump_inventory()};
         private_events.push_back(inv_event);
 
         // Send equipment state after login
@@ -409,7 +409,7 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     player_data_service.save_new_player(cmd.username, rec);
 
     // ITEM INICIAL ESPADA (PARA TESTING, LUEGO QUITAR)
-    player.get_inventory().place(ItemType::SWORD, "Espada");
+    player.add_item(ItemType::SWORD, "Espada");
     player_data_service.save_player(player);
 
     auto it = players.emplace(player_id, std::move(player)).first;
@@ -421,7 +421,7 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     auto other_spawns = make_existing_spawns(p.get_id(), p.get_current_map());
     private_events.insert(private_events.end(), other_spawns.begin(), other_spawns.end());
 
-    InventoryUpdateEvent inv_event{p.get_inventory().dump_slots()};
+    InventoryUpdateEvent inv_event{p.dump_inventory()};
     private_events.push_back(inv_event);
 
     InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
@@ -664,7 +664,7 @@ CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
     player.dump_equipped(equipped_slots);
     EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
                                equipped_slots[3]};
-    InventoryUpdateEvent inv_ev{player.get_inventory().dump_slots()};
+    InventoryUpdateEvent inv_ev{player.dump_inventory()};
 
     ChatMsgEvent msg{
             ChatMsgType::SYSTEM, "",
@@ -687,7 +687,7 @@ CommandResult Game::handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd
     player.dump_equipped(equipped_slots);
     EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
                                equipped_slots[3]};
-    InventoryUpdateEvent inv_ev{player.get_inventory().dump_slots()};
+    InventoryUpdateEvent inv_ev{player.dump_inventory()};
 
     return {.private_events = {equip_ev, inv_ev},
             .broadcast_events = {},

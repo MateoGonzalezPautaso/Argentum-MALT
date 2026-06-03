@@ -276,3 +276,19 @@ void Player::restore_equipment(const InventorySlot equipment[EQUIP_SLOT_COUNT]) 
         equipped[i].slot_index = i;
     }
 }
+
+std::vector<InventorySlot> Player::dump_inventory() const {
+    return inventory.dump_slots();
+}
+
+void Player::load_inventory(const std::vector<InventorySlotRecord>& records) {
+    inventory.from_records(records);
+}
+
+bool Player::add_item(ItemType type, const std::string& name) {
+    return inventory.place(type, name);
+}
+
+std::vector<InventorySlotRecord> Player::dump_inventory_records() const {
+    return inventory.to_records();
+}
