@@ -15,7 +15,7 @@ AudioManager::AudioManager(): menu_music_(nullptr), game_music_(nullptr) {
                   << std::endl;
     }
 
-    game_music_ = Mix_LoadMUS("assets/midi/5.mid");
+    game_music_ = Mix_LoadMUS("assets/Mp3/31.mp3");
     if (!game_music_) {
         std::cerr << "AudioManager: failed to load game music - " << Mix_GetError()
                   << std::endl;
