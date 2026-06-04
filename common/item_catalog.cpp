@@ -74,6 +74,11 @@ void ItemCatalog::load_from_file(const std::string& path) {
     }
 }
 
+void ItemCatalog::add(const Item& item) {
+    by_index_[item.type] = items_.size();
+    items_.push_back(item);
+}
+
 const Item* ItemCatalog::find(ItemType type) const {
     auto it = by_index_.find(type);
     if (it == by_index_.end()) return nullptr;

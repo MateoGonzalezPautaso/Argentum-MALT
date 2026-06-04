@@ -14,6 +14,7 @@ class Rng;
 class ItemCatalog {
 public:
     void load_from_file(const std::string& path);
+    void add(const Item& item);
 
     const Item* find(ItemType type) const;
     const Item& get(ItemType type) const;

@@ -1,6 +1,8 @@
 #include <map>
+#include <optional>
 
 #include "gtest/gtest.h"
+#include "common/item.h"
 #include "server/core/config.h"
 #include "server/game/combat_controller.h"
 #include "server/game/player.h"
@@ -10,17 +12,15 @@ protected:
     std::map<uint16_t, Player> players;
     AttackConfig config;
     ItemCatalog item_catalog;
-    CombatController* controller = nullptr;
+    std::optional<CombatController> controller;
 
     void SetUp() override {
         config.base_damage = 10;
         config.damage_variance = 0;
         config.attack_range_px = 200;
         config.cooldown_ticks = 10;
-        controller = new CombatController(config, players, item_catalog);
+        controller = CombatController(config, players, item_catalog);
     }
-
-    void TearDown() override { delete controller; }
 
     Player& add_player(uint16_t id, const std::string& username, Position pos = {100, 100}) {
         BalanceConfig bal;
@@ -261,4 +261,34 @@ TEST_F(CombatControllerTest, DeadTarget_Blocked) {
     auto result = controller->melee_attack(1, 2, 0);
     EXPECT_TRUE(result.broadcast_events.empty());
     EXPECT_TRUE(result.private_events.empty());
+}
+
+// ─────────────────────────────────────────────────────────────
+// Weapon-based damage formula
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(CombatControllerTest, WeaponEquipped_DamageUsesStrength) {
+    Item sword;
+    sword.type = ItemType::SWORD;
+    sword.name = "Espada";
+    sword.equip_slot = EquipSlot::WEAPON;
+    sword.min_damage = 5;
+    sword.max_damage = 5;  // fixed roll — no variance
+    item_catalog.add(sword);
+    controller.emplace(config, players, item_catalog);
+
+    auto& attacker = add_player(1, "alice");
+    auto& target = add_player(2, "bob");
+    set_level(attacker, 15);
+    set_level(target, 15);
+
+    attacker.add_item(ItemType::SWORD, "Espada");
+    attacker.equip(0, item_catalog);
+
+    auto result = controller->melee_attack(1, 2, 0);
+
+    ASSERT_FALSE(result.broadcast_events.empty());
+    ASSERT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.broadcast_events[0]));
+    const auto& dmg = std::get<DamageReceivedEvent>(result.broadcast_events[0]);
+    EXPECT_EQ(dmg.damage, attacker.get_strength() * 5u);
 }

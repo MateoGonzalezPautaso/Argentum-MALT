@@ -8,12 +8,8 @@
 #include "clan_manager.h"
 
 CombatController::CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
-                                   const ItemCatalog& catalog, Rng& rng):
-        config(config), players(players), item_catalog_(catalog), rng_ptr(&rng) {}
-
-CombatController::CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
                                    const ItemCatalog& catalog):
-        config(config), players(players), item_catalog_(catalog), rng_ptr(&owned_rng) {}
+        config(config), players(players), item_catalog_(catalog) {}
 
 void CombatController::set_clan_manager(ClanManager& mgr) { clan_manager = &mgr; }
 
@@ -120,18 +116,18 @@ bool CombatController::in_range(uint16_t attacker_x, uint16_t attacker_y, uint16
     return dist_sq <= range_sq;
 }
 
-uint32_t CombatController::calculate_damage(const Player& attacker) const {
+uint32_t CombatController::calculate_damage(const Player& attacker) {
     const InventorySlot& weapon_slot = attacker.get_equipped(EquipSlot::WEAPON);
     const Item* weapon = nullptr;
     if (weapon_slot.item_type != ItemType::NONE)
         weapon = item_catalog_.find(weapon_slot.item_type);
     uint32_t base;
     if (weapon && weapon->max_damage > 0) {
-        int roll = rng_ptr->get_random_int(weapon->min_damage, weapon->max_damage);
+        int roll = rng.get_random_int(weapon->min_damage, weapon->max_damage);
         base = attacker.get_strength() * static_cast<uint32_t>(roll);
     } else {
         int variance = config.damage_variance > 0
-                           ? rng_ptr->get_random_int(0, config.damage_variance)
+                           ? rng.get_random_int(0, config.damage_variance)
                            : 0;
         base = static_cast<uint32_t>(config.base_damage + variance);
     }
@@ -188,7 +184,7 @@ CommandResult CombatController::notify_entity_attacked(Player& attacker, uint16_
         EntityDiedEvent died{target_id};
         broadcast.push_back(died);
 
-        double random_double = rng_ptr->get_random_double(0, 0.1);
+        double random_double = rng.get_random_double(0, 0.1);
         attacker.gain_experience(random_double * target_hp_max *
                                  std::max(static_cast<int>(target_level) -
                                                   static_cast<int>(attacker.get_level()) + 10,
