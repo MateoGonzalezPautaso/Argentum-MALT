@@ -53,6 +53,7 @@ private:
     double intelligence_for(Race race) const;
     double meditation_factor_for(PlayerClass player_class) const;
     CommandResult apply_regen();
+    CommandResult process_pending_resurrections();
 
     CommandResult handle_login(uint16_t player_id, const LoginCmd& cmd);
     CommandResult handle_create_character(uint16_t player_id, const CreateCharacterCmd& cmd);

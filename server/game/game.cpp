@@ -1,5 +1,6 @@
 #include "game.h"
 
+#include <cmath>
 #include <cstdlib>
 #include <string>
 #include <utility>
@@ -130,6 +131,7 @@ CommandResult Game::remove_player(uint16_t player_id) {
         result.targeted_events[pid].push_back(despawn);
     }
 
+    pending_resurrections_.erase(player_id);
     players.erase(it);
 
     // Notify clan members of logout
@@ -236,7 +238,83 @@ CommandResult Game::apply_regen() {
 
 CommandResult Game::tick() {
     ++tick_count;
-    return apply_regen();
+    CommandResult result = apply_regen();
+    CommandResult res_result = process_pending_resurrections();
+
+    for (auto& ev : res_result.targeted_events)
+        for (auto& se : ev.second)
+            result.targeted_events[ev.first].push_back(std::move(se));
+    for (auto& ev : res_result.broadcast_events)
+        result.broadcast_events.push_back(std::move(ev));
+
+    return result;
+}
+
+CommandResult Game::process_pending_resurrections() {
+    CommandResult result;
+
+    for (auto it = pending_resurrections_.begin(); it != pending_resurrections_.end();) {
+        auto& [player_id, pending] = *it;
+
+        if (pending.remaining_ticks > 0) {
+            --pending.remaining_ticks;
+            ++it;
+            continue;
+        }
+
+        auto player_it = players.find(player_id);
+        if (player_it == players.end()) {
+            it = pending_resurrections_.erase(it);
+            continue;
+        }
+
+        Player& player = player_it->second;
+        const std::string old_map = player.get_current_map();
+        const bool needs_map_transition = (pending.target_map != old_map);
+
+        if (needs_map_transition) {
+            EntityDespawnEvent despawn{player_id};
+            for (uint16_t pid : get_player_ids_on_map(old_map)) {
+                if (pid != player_id)
+                    result.targeted_events[pid].push_back(despawn);
+            }
+
+            player.set_current_map(pending.target_map);
+            player.set_pos(pending.target_pos.x, pending.target_pos.y);
+
+            player.resurrect();
+
+            std::vector<ServerEvent> existing =
+                    make_existing_spawns(player_id, pending.target_map);
+            existing.insert(existing.begin(),
+                            MapTransitionEvent{pending.target_map, pending.target_pos.x,
+                                               pending.target_pos.y});
+            result.targeted_events[player_id] = std::move(existing);
+
+            EntitySpawnEvent spawn = make_entity_spawn(player);
+            PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
+            for (uint16_t pid : get_player_ids_on_map(pending.target_map)) {
+                if (pid == player_id)
+                    continue;
+                result.targeted_events[pid].push_back(spawn);
+                result.targeted_events[pid].push_back(respawn);
+            }
+        } else {
+            player.set_pos(pending.target_pos.x, pending.target_pos.y);
+            player.resurrect();
+
+            EntityMoveEvent move_ev{player_id, player.get_pos(), player.get_dir()};
+            PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
+            for (uint16_t pid : get_player_ids_on_map(pending.target_map)) {
+                result.targeted_events[pid].push_back(move_ev);
+                result.targeted_events[pid].push_back(respawn);
+            }
+        }
+
+        it = pending_resurrections_.erase(it);
+    }
+
+    return result;
 }
 
 CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
@@ -265,6 +343,8 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         return {};
 
     if (it->second.is_dead()) {
+        if (text[0] == '/' && text.substr(0, 10) == "/resucitar")
+            return handle_resurrect(player_id);
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden interactuar"};
         return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
@@ -704,23 +784,60 @@ bool Game::is_username_logged_in(const std::string& username) const {
 
 CommandResult Game::handle_resurrect(uint16_t player_id) {
     auto it = players.find(player_id);
-    if (it == players.end()) {
+    if (it == players.end())
         return {};
-    }
 
     Player& player = it->second;
     if (!player.is_dead()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "You are not dead"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No estás muerto"};
+        return {.private_events = {msg}};
     }
 
-    player.resurrect();
+    if (pending_resurrections_.contains(player_id)) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Ya estás resucitando, espera"};
+        return {.private_events = {msg}};
+    }
 
-    PlayerRespawnedEvent respawn_ev{player_id, player.get_hp_current(), player.get_hp_max()};
+    const std::string& current_map = player.get_current_map();
+    auto map_it = maps.find(current_map);
+    if (map_it == maps.end())
+        return {};
 
-    CommandResult r;
-    r.map_events = {respawn_ev};
-    return r;
+    const int tile_size = map_it->second.tile_size();
+    const int px = static_cast<int>(player.pos_x());
+    const int py = static_cast<int>(player.pos_y());
+
+    int san_cx, san_cy;
+    std::string target_map;
+    uint32_t wait_ticks;
+
+    if (map_it->second.prop_grid().find_nearest_center("sanadora", px, py, san_cx, san_cy)) {
+        target_map = current_map;
+        int dx = px - san_cx;
+        int dy = py - san_cy;
+        int dist_px = static_cast<int>(std::sqrt(static_cast<double>(dx * dx + dy * dy)));
+        int dist_tiles = dist_px / tile_size;
+        wait_ticks = static_cast<uint32_t>(dist_tiles * tick_rate_hz);
+    } else {
+        auto main_it = maps.find("main");
+        if (main_it == maps.end() ||
+            !main_it->second.prop_grid().find_nearest_center("sanadora", 0, 0, san_cx, san_cy))
+            return {};
+        target_map = "main";
+        wait_ticks = static_cast<uint32_t>(10 * tick_rate_hz);
+    }
+
+    Position target_pos{static_cast<uint16_t>(san_cx - sprite_width / 2),
+                        static_cast<uint16_t>(san_cy - sprite_height)};
+
+    pending_resurrections_[player_id] = {wait_ticks, target_map, target_pos};
+
+    uint32_t remaining_tiles = wait_ticks / tick_rate_hz;
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                     "Resucitando en " + std::to_string(remaining_tiles) +
+                     " segundos... Permanece inmóvil."};
+
+    return {.private_events = {msg}};
 }
 
 CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
