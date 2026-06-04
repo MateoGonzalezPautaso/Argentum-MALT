@@ -10,6 +10,7 @@
 #include "../input/chat_input.h"
 #include "../chat/chat_history.h"
 
+#include "../audio/audio_manager.h"
 #include "../config/config.h"
 #include "../config/player_stats.h"
 #include "../input/chat_input.h"
@@ -20,7 +21,7 @@
 class GameController {
 public:
     GameController(SDL2pp::Renderer& renderer, const ClientConfig& config,
-                   Queue<ClientCommand>& command_queue);
+                   Queue<ClientCommand>& command_queue, AudioManager& audio_manager);
     ~GameController();
 
     void tick();
@@ -30,6 +31,7 @@ public:
     bool is_chat_focused() const { return chat_input.is_focused(); }
 
 private:
+    AudioManager& audio_manager;
     const ClientConfig& config;
     SDL2pp::Renderer& renderer;
     ChatInput chat_input;

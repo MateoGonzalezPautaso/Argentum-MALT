@@ -8,6 +8,7 @@
 #include "../../common/messages.h"
 #include "../../common/queue.h"
 #include "../../common/socket.h"
+#include "../audio/audio_manager.h"
 #include "../config/config.h"
 #include "../network/client_protocol.h"
 #include "../network/receiver.h"
@@ -22,6 +23,7 @@ private:
     ClientProtocol protocol;
     Queue<ClientCommand> command_queue;
     Queue<ServerEvent> event_queue;
+    AudioManager audio_manager;
     Engine engine;
     Sender sender;
     Receiver receiver;
