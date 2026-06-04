@@ -42,6 +42,12 @@ private:
     std::unordered_map<uint16_t, double> mana_regen_accum;
     std::map<uint16_t, EnemyNpc> npcs;
 
+    struct PendingResurrection {
+        uint32_t remaining_ticks;
+        std::string target_map;
+        Position target_pos;
+    };
+    std::unordered_map<uint16_t, PendingResurrection> pending_resurrections_;
 
     double recovery_rate_for(Race race) const;
     double intelligence_for(Race race) const;

@@ -775,6 +775,9 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
     Player& player = it->second;
     player.set_meditating(false);
 
+    if (pending_resurrections_.contains(player_id))
+        return {};
+
     Map& cur_map = player_map(player);
 
     int effective_step = player.has_cheat_fast_velocity() ? move_step * 2 : move_step;
