@@ -351,19 +351,17 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
     }
 
     uint16_t entity_id = 0;
-    if (player_is_ghost) {
-        return true;
-    }
+    if (!player_is_ghost) {
+        if (world_renderer.hit_test_entity(world_x, world_y, entity_id)) {
+            command_queue.push(AttackCmd{entity_id});
+            return true;
+        }
 
-    if (world_renderer.hit_test_entity(world_x, world_y, entity_id)) {
-        command_queue.push(AttackCmd{entity_id});
-        return true;
-    }
-
-    std::string prop_name;
-    if (world_renderer.hit_test_prop(world_x, world_y, prop_name)) {
-        interact_with_prop(prop_name);
-        return true;
+        std::string prop_name;
+        if (world_renderer.hit_test_prop(world_x, world_y, prop_name)) {
+            interact_with_prop(prop_name);
+            return true;
+        }
     }
 
     move_controller.set_move_target(world_x, world_y);

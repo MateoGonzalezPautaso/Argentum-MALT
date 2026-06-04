@@ -42,11 +42,18 @@ private:
     std::unordered_map<uint16_t, double> mana_regen_accum;
     std::map<uint16_t, EnemyNpc> npcs;
 
+    struct PendingResurrection {
+        uint32_t remaining_ticks;
+        std::string target_map;
+        Position target_pos;
+    };
+    std::unordered_map<uint16_t, PendingResurrection> pending_resurrections_;
 
     double recovery_rate_for(Race race) const;
     double intelligence_for(Race race) const;
     double meditation_factor_for(PlayerClass player_class) const;
     CommandResult apply_regen();
+    CommandResult process_pending_resurrections();
 
     CommandResult handle_login(uint16_t player_id, const LoginCmd& cmd);
     CommandResult handle_create_character(uint16_t player_id, const CreateCharacterCmd& cmd);

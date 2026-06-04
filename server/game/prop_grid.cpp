@@ -1,5 +1,7 @@
 #include "prop_grid.h"
 
+#include <limits>
+
 PropGrid::PropGrid(const TilemapConfig& tilemap) {
     entries_.reserve(tilemap.prop_map.size() * tilemap.prop_map.front().size());
 
@@ -66,4 +68,28 @@ bool PropGrid::is_in_range_of(const std::string& prop_name, int px, int py, int 
             return true;
     }
     return false;
+}
+
+bool PropGrid::find_nearest_center(const std::string& prop_name, int px, int py,
+                                   int& out_cx, int& out_cy) const {
+    int best = std::numeric_limits<int>::max();
+    bool found = false;
+
+    for (const auto& e : entries_) {
+        if (e.name != prop_name)
+            continue;
+
+        int dx = px - e.center_x;
+        int dy = py - e.center_y;
+        int dist_sq = dx * dx + dy * dy;
+
+        if (dist_sq < best) {
+            best = dist_sq;
+            out_cx = e.center_x;
+            out_cy = e.center_y;
+            found = true;
+        }
+    }
+
+    return found;
 }
