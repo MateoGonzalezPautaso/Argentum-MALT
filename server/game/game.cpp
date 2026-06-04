@@ -55,7 +55,7 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         inventory_config(config.inventory),
         item_catalog(config.item_catalog),
         rng(),
-        combat_controller(config.attack, players, rng),
+        combat_controller(config.attack, players, config.item_catalog, rng),
         tick_rate_hz(config.tick_rate_hz) {
     for (const auto& [name, tc]: tilemap_configs) {
         maps.emplace(name, Map(tc));

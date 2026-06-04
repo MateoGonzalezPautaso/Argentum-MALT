@@ -8,11 +8,12 @@
 #include "clan_manager.h"
 
 CombatController::CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
-                                   Rng& rng):
-        config(config), players(players), rng_ptr(&rng) {}
+                                   const ItemCatalog& catalog, Rng& rng):
+        config(config), players(players), item_catalog_(catalog), rng_ptr(&rng) {}
 
-CombatController::CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players):
-        config(config), players(players), rng_ptr(&owned_rng) {}
+CombatController::CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
+                                   const ItemCatalog& catalog):
+        config(config), players(players), item_catalog_(catalog), rng_ptr(&owned_rng) {}
 
 void CombatController::set_clan_manager(ClanManager& mgr) { clan_manager = &mgr; }
 
@@ -120,12 +121,22 @@ bool CombatController::in_range(uint16_t attacker_x, uint16_t attacker_y, uint16
 }
 
 uint32_t CombatController::calculate_damage(const Player& attacker) const {
-    int variance = config.damage_variance > 0
-                       ? rng_ptr->get_random_int(0, config.damage_variance)
-                       : 0;
-    uint32_t damage = static_cast<uint32_t>(config.base_damage + variance);
+    const InventorySlot& weapon_slot = attacker.get_equipped(EquipSlot::WEAPON);
+    const Item* weapon = nullptr;
+    if (weapon_slot.item_type != ItemType::NONE)
+        weapon = item_catalog_.find(weapon_slot.item_type);
+    uint32_t base;
+    if (weapon && weapon->max_damage > 0) {
+        int roll = rng_ptr->get_random_int(weapon->min_damage, weapon->max_damage);
+        base = attacker.get_strength() * static_cast<uint32_t>(roll);
+    } else {
+        int variance = config.damage_variance > 0
+                           ? rng_ptr->get_random_int(0, config.damage_variance)
+                           : 0;
+        base = static_cast<uint32_t>(config.base_damage + variance);
+    }
     double bonus = get_clan_damage_bonus(attacker);
-    return static_cast<uint32_t>(std::round(damage * (1.0 + bonus)));
+    return static_cast<uint32_t>(std::round(base * (1.0 + bonus)));
 }
 
 int CombatController::count_nearby_clan_members(const Player& player) const {

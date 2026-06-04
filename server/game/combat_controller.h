@@ -16,8 +16,10 @@ class ClanManager;
 
 class CombatController {
 public:
-    CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players, Rng& rng);
-    CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players);
+    CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
+                     const ItemCatalog& catalog, Rng& rng);
+    CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
+                     const ItemCatalog& catalog);
 
     void set_clan_manager(ClanManager& mgr);
 
@@ -44,6 +46,7 @@ private:
     const AttackConfig& config;
     std::map<uint16_t, Player>& players;
     ClanManager* clan_manager = nullptr;
+    const ItemCatalog& item_catalog_;
     Rng owned_rng;
     Rng* rng_ptr;
 };
