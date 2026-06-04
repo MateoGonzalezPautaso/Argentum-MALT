@@ -19,7 +19,7 @@ protected:
         config.damage_variance = 0;
         config.attack_range_px = 200;
         config.cooldown_ticks = 10;
-        controller = CombatController(config, players, item_catalog);
+        controller.emplace(config, players, item_catalog);
     }
 
     Player& add_player(uint16_t id, const std::string& username, Position pos = {100, 100}) {
