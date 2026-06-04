@@ -477,6 +477,9 @@ void GameController::handle_map_transition(const MapTransitionEvent& e) {
 }
 
 void GameController::handle_player_stats(const PlayerStatsEvent& e) {
+    if (e.level > player_stats.level) {
+        audio_manager.play_sfx("level_up");
+    }
     player_stats.level = e.level;
     player_stats.experience = e.experience;
     player_stats.exp_to_next = e.exp_to_next;
