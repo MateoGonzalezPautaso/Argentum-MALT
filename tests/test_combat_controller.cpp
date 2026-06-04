@@ -9,6 +9,7 @@ class CombatControllerTest: public ::testing::Test {
 protected:
     std::map<uint16_t, Player> players;
     AttackConfig config;
+    ItemCatalog item_catalog;
     CombatController* controller = nullptr;
 
     void SetUp() override {
@@ -16,7 +17,7 @@ protected:
         config.damage_variance = 0;
         config.attack_range_px = 200;
         config.cooldown_ticks = 10;
-        controller = new CombatController(config, players);
+        controller = new CombatController(config, players, item_catalog);
     }
 
     void TearDown() override { delete controller; }
