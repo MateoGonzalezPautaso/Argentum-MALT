@@ -304,7 +304,13 @@ struct CharacterErrorEvent {
 struct MapInfoEvent {};
 
 // 0x85
-struct PlayerStatsEvent {};
+struct PlayerStatsEvent {
+    uint8_t level;
+    uint32_t experience;
+    uint32_t exp_to_next;
+    uint32_t hp_max;
+    uint32_t mana_max;
+};
 
 // 0x86
 struct EntitySpawnEvent {

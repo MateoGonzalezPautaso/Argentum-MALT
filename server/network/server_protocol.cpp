@@ -241,6 +241,15 @@ void ServerProtocol::send_clan_update(const ClanUpdateEvent& ev) {
     }
 }
 
+void ServerProtocol::send_player_stats(const PlayerStatsEvent& ev) {
+    protocol.send_opcode(OpCode::PLAYER_STATS);
+    protocol.send_uint8(ev.level);
+    protocol.send_uint32(ev.experience);
+    protocol.send_uint32(ev.exp_to_next);
+    protocol.send_uint32(ev.hp_max);
+    protocol.send_uint32(ev.mana_max);
+}
+
 void ServerProtocol::send_heal_received(const HealReceivedEvent& ev) {
     protocol.send_opcode(OpCode::HEAL_RECEIVED);
     protocol.send_uint16(ev.player_id);
@@ -286,6 +295,7 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                          [this](const ClanNotificationEvent& msg) { send_clan_notification(msg); },
                          [this](const ClanUpdateEvent& msg) { send_clan_update(msg); },
                          [this](const MapTransitionEvent& msg) { send_map_transition(msg); },
+                         [this](const PlayerStatsEvent& msg) { send_player_stats(msg); },
                          [this](const HealReceivedEvent& msg) { send_heal_received(msg); },
                          [this](const InventoryUpdateEvent& msg) { send_inventory_update(msg); },
                          [this](const EquipUpdateEvent& msg) { send_equip_update(msg); },

@@ -159,6 +159,7 @@ ServerEvent ClientProtocol::recv_event() {
         case OpCode::CLAN_UPDATE:       return recv_clan_update();
         case OpCode::HEAL_RECEIVED:     return recv_heal_received();
         case OpCode::MAP_TRANSITION:    return recv_map_transition();
+        case OpCode::PLAYER_STATS:      return recv_player_stats();
         default:
             throw std::runtime_error("Unknown event opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
@@ -226,6 +227,16 @@ ServerEvent ClientProtocol::recv_heal_received() {
     uint32_t hp_current = protocol.recv_uint32();
     uint32_t mana_current = protocol.recv_uint32();
     return HealReceivedEvent{player_id, hp_current, mana_current};
+}
+
+ServerEvent ClientProtocol::recv_player_stats() {
+    PlayerStatsEvent ev;
+    ev.level = protocol.recv_uint8();
+    ev.experience = protocol.recv_uint32();
+    ev.exp_to_next = protocol.recv_uint32();
+    ev.hp_max = protocol.recv_uint32();
+    ev.mana_max = protocol.recv_uint32();
+    return ev;
 }
 
 ServerEvent ClientProtocol::recv_map_transition() {

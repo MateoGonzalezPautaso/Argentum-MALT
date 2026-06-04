@@ -205,7 +205,14 @@ CommandResult CombatController::notify_entity_attacked(Player& attacker, uint16_
         }
     }
 
-    return {.private_events = {dealt},
+    PlayerStatsEvent stats{
+            .level = attacker.get_level(),
+            .experience = attacker.get_experience(),
+            .exp_to_next = attacker.exp_to_next_level(),
+            .hp_max = attacker.get_hp_max(),
+            .mana_max = attacker.get_mana_max(),
+    };
+    return {.private_events = {dealt, stats},
             .broadcast_events = std::move(broadcast),
             .targeted_events = std::move(targeted)};
 }

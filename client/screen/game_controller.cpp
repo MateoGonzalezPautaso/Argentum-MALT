@@ -93,6 +93,7 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                         [this](const HealReceivedEvent& e) { handle_heal_received(e); },
                         [this](const InventoryUpdateEvent& e) { handle_inventory_update(e); },
                         [this](const EquipUpdateEvent& e) { handle_equip_update(e); },
+                        [this](const PlayerStatsEvent& e) { handle_player_stats(e); },
                         [](const auto&) {},
                },
                ev);
@@ -473,6 +474,14 @@ void GameController::handle_map_transition(const MapTransitionEvent& e) {
     world_renderer.set_movable_position(e.pos_x, e.pos_y);
     move_controller.set_position(e.pos_x, e.pos_y);
     player_stats.pos = {e.pos_x, e.pos_y};
+}
+
+void GameController::handle_player_stats(const PlayerStatsEvent& e) {
+    player_stats.level = e.level;
+    player_stats.experience = e.experience;
+    player_stats.exp_to_next = e.exp_to_next;
+    player_stats.hp_max = e.hp_max;
+    player_stats.mana_max = e.mana_max;
 }
 
 void GameController::flush_pending_chat() {

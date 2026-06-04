@@ -541,7 +541,12 @@ CommandResult Game::handle_cheat_level_up(uint16_t player_id) {
     player.level_up();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      "[Cheat] Nivel subido a " + std::to_string(player.get_level())};
-    return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    PlayerStatsEvent stats{.level = player.get_level(),
+                           .experience = player.get_experience(),
+                           .exp_to_next = player.exp_to_next_level(),
+                           .hp_max = player.get_hp_max(),
+                           .mana_max = player.get_mana_max()};
+    return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_cheat_level_down(uint16_t player_id) {
@@ -556,7 +561,12 @@ CommandResult Game::handle_cheat_level_down(uint16_t player_id) {
     player.level_down();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      "[Cheat] Nivel bajado a " + std::to_string(player.get_level())};
-    return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    PlayerStatsEvent stats{.level = player.get_level(),
+                           .experience = player.get_experience(),
+                           .exp_to_next = player.exp_to_next_level(),
+                           .hp_max = player.get_hp_max(),
+                           .mana_max = player.get_mana_max()};
+    return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_cheat_add_gold(uint16_t player_id) {

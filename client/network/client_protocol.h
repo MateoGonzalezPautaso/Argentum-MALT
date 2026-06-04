@@ -83,6 +83,7 @@ private:
     ServerEvent recv_clan_update();
     ServerEvent recv_heal_received();
     ServerEvent recv_map_transition();
+    ServerEvent recv_player_stats();
 };
 
 #endif  // CLIENT_PROTOCOL_H_
