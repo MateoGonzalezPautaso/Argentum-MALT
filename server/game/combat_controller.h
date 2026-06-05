@@ -41,6 +41,8 @@ private:
                                          const std::string& target_clan_name, bool target_is_dead,
                                          uint8_t target_level);
     bool is_critical_attack(const Player& attacker);
+    uint32_t calculate_defense(const Player& target);
+    uint32_t calculate_object_defense(const InventorySlot& object_slot);
 
     const AttackConfig& config;
     std::map<uint16_t, Player>& players;

@@ -71,6 +71,9 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
             damage = 0;
     }
 
+    uint32_t defense = calculate_defense(target);
+    damage = damage > defense ? (damage - defense) : 0;
+
     target.take_damage(damage);
     attacker.gain_experience(damage * std::max(static_cast<int>(target.get_level()) -
                                                        static_cast<int>(attacker.get_level()) + 10,
@@ -153,6 +156,25 @@ uint32_t CombatController::calculate_damage(const Player& attacker) {
     }
     double bonus = get_clan_damage_bonus(attacker);
     return static_cast<uint32_t>(std::round(base * (1.0 + bonus)));
+}
+
+uint32_t CombatController::calculate_defense(const Player& target) {
+    const InventorySlot& armor_slot = target.get_equipped(EquipSlot::ARMOR);
+    const InventorySlot& shield_slot = target.get_equipped(EquipSlot::SHIELD);
+    const InventorySlot& helmet_slot = target.get_equipped(EquipSlot::HELMET);
+
+    return calculate_object_defense(armor_slot) + calculate_object_defense(shield_slot) +
+           calculate_object_defense(helmet_slot);
+}
+
+uint32_t CombatController::calculate_object_defense(const InventorySlot& object_slot) {
+    uint32_t object_defense = 0;
+    if (object_slot.item_type != ItemType::NONE) {
+        const Item* object = item_catalog_.find(object_slot.item_type);
+        int defense = rng.get_random_int(object->min_defense, object->max_defense);
+        object_defense = static_cast<uint32_t>(defense);
+    }
+    return object_defense;
 }
 
 int CombatController::count_nearby_clan_members(const Player& player) const {
