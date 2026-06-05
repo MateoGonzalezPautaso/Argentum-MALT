@@ -162,6 +162,16 @@ void Player::spend_gold(uint32_t amount) {
     }
 }
 
+uint32_t Player::take_excess_gold() {
+    uint32_t oro_max = static_cast<uint32_t>(balance.gold_cap_base *
+                                             std::pow(level, balance.gold_cap_exponent));
+    if (gold <= oro_max)
+        return 0;
+    uint32_t excess = gold - oro_max;
+    gold = oro_max;
+    return excess;
+}
+
 void Player::level_down() {
     if (level <= 1)
         return;

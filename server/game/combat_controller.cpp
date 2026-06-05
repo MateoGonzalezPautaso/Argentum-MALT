@@ -68,9 +68,18 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
                                                        static_cast<int>(attacker.get_level()) + 10,
                                                0));
 
-    return notify_entity_attacked(attacker, target_id, damage, target.get_hp_current(),
-                                  target.get_hp_max(), target.get_username(),
-                                  target.get_clan_name(), target.is_dead(), target.get_level());
+    CommandResult result =
+            notify_entity_attacked(attacker, target_id, damage, target.get_hp_current(),
+                                   target.get_hp_max(), target.get_username(),
+                                   target.get_clan_name(), target.is_dead(), target.get_level());
+
+    if (target.is_dead()) {
+        uint32_t excess = target.take_excess_gold();
+        if (excess > 0)
+            attacker.gain_gold(excess);
+    }
+
+    return result;
 }
 
 CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,

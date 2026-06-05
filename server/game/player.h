@@ -103,6 +103,7 @@ public:
     void use_mana(uint32_t amount);
     void gain_gold(uint32_t amount);
     void spend_gold(uint32_t amount);
+    uint32_t take_excess_gold();
 
     uint32_t exp_to_next_level() const;
 
