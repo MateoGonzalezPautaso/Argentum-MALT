@@ -185,7 +185,7 @@ UpdateStats Player::update_stats() const {
     int intelligence = 0;
     double f_mana_race = 0.0;
     double f_strength_race = 0.0;
-    double f_agility_race;
+    double f_agility_race = 0.0;
     switch (race) {
         case Race::HUMAN:
             constitution = balance.hp.constitution_human;
@@ -224,7 +224,7 @@ UpdateStats Player::update_stats() const {
     double f_hp_class = 0.0;
     double f_mana_class = 0.0;
     double f_strength_class = 0.0;
-    double f_agility_class;
+    double f_agility_class = 0.0;
     switch (player_class) {
         case PlayerClass::WARRIOR:
             f_hp_class = balance.hp.class_hp_factor_warrior;
