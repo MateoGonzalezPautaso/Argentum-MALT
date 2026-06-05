@@ -246,9 +246,8 @@ using ClientCommand =
                      NpcBuyCmd, NpcSellCmd, NpcHealCmd, BankDepositCmd, BankWithdrawCmd, NpcListCmd,
                      PrivateMsgCmd, SendChatMsgCmd, ClanFoundCmd, ClanJoinRequestCmd, ClanReviewCmd,
                      ClanAcceptCmd, ClanRejectCmd, ClanBanCmd, ClanKickCmd, ClanLeaveCmd,
-                     CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd,
-                     CheatLevelUpCmd, CheatLevelDownCmd, CheatAddGoldCmd, CheatVelocityCmd,
-                     ChangeMapCmd>;
+                     CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd, CheatLevelUpCmd,
+                     CheatLevelDownCmd, CheatAddGoldCmd, CheatVelocityCmd, ChangeMapCmd>;
 
 // ---------------------------------------------------------------------------
 // Eventos: Servidor -> Cliente (sección 3.2 y 5 de protocol.md)
@@ -333,7 +332,9 @@ struct DamageReceivedEvent {
 };
 
 // 0x8B
-struct AttackDodgedEvent {};
+struct AttackDodgedEvent {
+    uint16_t player_id;
+};
 
 // 0x8C
 struct EntityDiedEvent {

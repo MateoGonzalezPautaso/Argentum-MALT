@@ -61,6 +61,8 @@ ServerConfig load_server_config(const std::string& path) {
                                                               config.attack.clan_bonus_per_member);
         config.attack.clan_bonus_max =
                 toml_get_double(*attack, "clan_bonus_max", config.attack.clan_bonus_max);
+        config.attack.critical_chance =
+                toml_get_double(*attack, "critical_chance", config.attack.critical_chance);
     }
 
     if (auto clan = root["clan"].as_table()) {
@@ -198,6 +200,28 @@ ServerConfig load_server_config(const std::string& path) {
                 *cs, "cleric", config.balance.strength.class_strength_factor_cleric);
         config.balance.strength.class_strength_factor_mage =
                 toml_get_double(*cs, "mage", config.balance.strength.class_strength_factor_mage);
+    }
+
+    if (auto r = root["race_agility_factor"].as_table()) {
+        config.balance.agility.race_agility_factor_human =
+                toml_get_double(*r, "human", config.balance.agility.race_agility_factor_human);
+        config.balance.agility.race_agility_factor_elf =
+                toml_get_double(*r, "elf", config.balance.agility.race_agility_factor_elf);
+        config.balance.agility.race_agility_factor_dwarf =
+                toml_get_double(*r, "dwarf", config.balance.agility.race_agility_factor_dwarf);
+        config.balance.agility.race_agility_factor_gnome =
+                toml_get_double(*r, "gnome", config.balance.agility.race_agility_factor_gnome);
+    }
+
+    if (auto ca = root["class_agility_factor"].as_table()) {
+        config.balance.agility.class_agility_factor_warrior = toml_get_double(
+                *ca, "warrior", config.balance.agility.class_agility_factor_warrior);
+        config.balance.agility.class_agility_factor_paladin = toml_get_double(
+                *ca, "paladin", config.balance.agility.class_agility_factor_paladin);
+        config.balance.agility.class_agility_factor_cleric =
+                toml_get_double(*ca, "cleric", config.balance.agility.class_agility_factor_cleric);
+        config.balance.agility.class_agility_factor_mage =
+                toml_get_double(*ca, "mage", config.balance.agility.class_agility_factor_mage);
     }
 
     return config;

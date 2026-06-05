@@ -63,6 +63,14 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
         return {};
 
     uint32_t damage = calculate_damage(attacker);
+    if (is_critical_attack(attacker)) {
+        damage *= 2;
+    } else {
+        bool esquivado = pow(rng.get_random_double(0, 1), target.get_agility()) < 0.001;
+        if (esquivado)
+            damage = 0;
+    }
+
     target.take_damage(damage);
     attacker.gain_experience(damage * std::max(static_cast<int>(target.get_level()) -
                                                        static_cast<int>(attacker.get_level()) + 10,
@@ -97,6 +105,10 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
         return {};
 
     uint32_t damage = calculate_damage(attacker);
+    if (is_critical_attack(attacker)) {
+        damage *= 2;
+    }
+
     npc_target.take_damage(damage);
     attacker.gain_experience(damage * std::max(static_cast<int>(npc_target.get_level()) -
                                                        static_cast<int>(attacker.get_level()) + 10,
@@ -105,6 +117,15 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
     return notify_entity_attacked(attacker, npc_target_id, damage, npc_target.get_hp_current(),
                                   npc_target.get_hp_max(), npc_target.get_name(), "",
                                   npc_target.is_dead(), npc_target.get_level());
+}
+
+bool CombatController::is_critical_attack(const Player& attacker) {
+    double critic_probability = attacker.get_strength() * config.critical_chance * 100;
+    double random_number = rng.get_random_double(0, 99);
+
+    if (random_number < critic_probability)
+        return true;
+    return false;
 }
 
 bool CombatController::in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x,
@@ -178,6 +199,9 @@ CommandResult CombatController::notify_entity_attacked(Player& attacker, uint16_
                                  std::max(static_cast<int>(target_level) -
                                                   static_cast<int>(attacker.get_level()) + 10,
                                           0));
+    } else if (damage == 0) {
+        AttackDodgedEvent dodged{target_id};
+        broadcast.push_back(dodged);
     }
 
     std::map<uint16_t, std::vector<ServerEvent>> targeted;
