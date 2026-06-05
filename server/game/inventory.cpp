@@ -86,11 +86,9 @@ void Inventory::load_slots(const std::vector<InventorySlot>& new_slots) {
             slots.push_back(InventorySlot{static_cast<uint8_t>(i), ItemType::NONE, ""});
         }
     }
-    occupied = 0;
-    for (const auto& slot: slots) {
-        if (slot.item_type != ItemType::NONE)
-            ++occupied;
-    }
+    occupied = static_cast<uint8_t>(
+            std::count_if(slots.begin(), slots.end(),
+                          [](const InventorySlot& s) { return s.item_type != ItemType::NONE; }));
 }
 
 std::vector<InventorySlotRecord> Inventory::to_records() const {
@@ -119,11 +117,9 @@ void Inventory::from_records(const std::vector<InventorySlotRecord>& records) {
             slots.push_back(InventorySlot{static_cast<uint8_t>(i), ItemType::NONE, ""});
         }
     }
-    occupied = 0;
-    for (const auto& slot: slots) {
-        if (slot.item_type != ItemType::NONE)
-            ++occupied;
-    }
+    occupied = static_cast<uint8_t>(
+            std::count_if(slots.begin(), slots.end(),
+                          [](const InventorySlot& s) { return s.item_type != ItemType::NONE; }));
 }
 
 bool Inventory::has_free_slot() const { return occupied < capacity; }

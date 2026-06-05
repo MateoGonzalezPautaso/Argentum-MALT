@@ -347,8 +347,8 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
         return true;
     }
 
-    uint16_t entity_id = 0;
     if (!player_is_ghost) {
+        uint16_t entity_id = 0;
         if (world_renderer.hit_test_entity(world_x, world_y, entity_id)) {
             command_queue.push(AttackCmd{entity_id});
             return true;
@@ -377,9 +377,9 @@ bool GameController::handle_mouse_motion(const SDL_Event& event) {
 
     int world_x = 0;
     int world_y = 0;
-    uint16_t entity_id = 0;
-    std::string prop_name;
     if (world_renderer.screen_to_world(event.motion.x, event.motion.y, world_x, world_y)) {
+        uint16_t entity_id = 0;
+        std::string prop_name;
         bool show_hand = world_renderer.hit_test_entity(world_x, world_y, entity_id);
         if (!show_hand && world_renderer.hit_test_prop(world_x, world_y, prop_name))
             show_hand = is_clickable_prop(prop_name);

@@ -75,14 +75,14 @@ void PropRenderer::load(const TilemapConfig& tilemap, int tile_size) {
             if (!pr.parts.empty() && def.width > 0 && def.height > 0) {
                 int min_x = 0, min_y = 0, max_x = 0, max_y = 0;
                 {
-                    auto& p0 = pr.parts[0];
+                    const auto& p0 = pr.parts[0];
                     min_x = p0.offset_x;
                     max_x = p0.offset_x + p0.display_w;
                     min_y = p0.offset_y;
                     max_y = p0.offset_y + p0.display_h;
                 }
                 for (std::size_t i = 1; i < pr.parts.size(); ++i) {
-                    auto& p = pr.parts[i];
+                    const auto& p = pr.parts[i];
                     min_x = std::min(min_x, p.offset_x);
                     min_y = std::min(min_y, p.offset_y);
                     max_x = std::max(max_x, p.offset_x + p.display_w);

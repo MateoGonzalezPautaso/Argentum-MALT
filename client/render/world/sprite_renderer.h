@@ -63,7 +63,7 @@ public:
     void load_damage_overlay();
     void trigger_damage_overlay_at(int world_x, int world_y);
     bool get_entity_world_position(uint16_t entity_id, int& x, int& y) const;
-    void tick_overlays(AnimationSystem& anim);
+    void tick_overlays(const AnimationSystem& anim);
     void render_overlays(const SDL2pp::Rect& cam);
 
     bool empty() const { return sprites.empty(); }

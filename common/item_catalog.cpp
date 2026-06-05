@@ -122,15 +122,14 @@ const Item& ItemCatalog::get(ItemType type) const {
 }
 
 const Item& ItemCatalog::random_equipable(Rng& rng) const {
-    std::vector<const Item*> pool;
-    for (const auto& item: items_) {
-        if (item.equip_slot != EquipSlot::CONSUMABLE && item.type != ItemType::NONE) {
-            pool.push_back(&item);
-        }
+    std::vector<size_t> indices;
+    for (size_t i = 0; i < items_.size(); ++i) {
+        if (items_[i].equip_slot != EquipSlot::CONSUMABLE && items_[i].type != ItemType::NONE)
+            indices.push_back(i);
     }
-    if (pool.empty()) {
+    if (indices.empty()) {
         throw std::runtime_error("No equipable items in catalog");
     }
-    int idx = rng.get_random_int(0, static_cast<int>(pool.size()) - 1);
-    return *pool[idx];
+    int idx = rng.get_random_int(0, static_cast<int>(indices.size()) - 1);
+    return items_[indices[idx]];
 }

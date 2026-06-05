@@ -54,7 +54,6 @@ private:
     ClanConfig config;
 
     ClanData* find_clan_by_member(const std::string& username);
-    const ClanData* find_clan_by_name(const std::string& clan_name) const;
     void add_member_to_clan(ClanData& clan, const std::string& username);
     void save_clan(const ClanData& clan);
 };

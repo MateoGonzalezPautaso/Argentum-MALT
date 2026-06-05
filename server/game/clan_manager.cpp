@@ -282,13 +282,6 @@ ClanManager::ClanData* ClanManager::find_clan_by_member(const std::string& usern
     return &cit->second;
 }
 
-const ClanManager::ClanData* ClanManager::find_clan_by_name(const std::string& clan_name) const {
-    auto it = clans.find(clan_name);
-    if (it == clans.end())
-        return nullptr;
-    return &it->second;
-}
-
 void ClanManager::add_member_to_clan(ClanData& clan, const std::string& username) {
     clan.members.push_back(username);
     player_to_clan[username] = clan.name;

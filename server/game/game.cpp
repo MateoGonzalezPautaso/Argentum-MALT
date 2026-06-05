@@ -806,7 +806,7 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     if (it == players.end())
         return {};
 
-    Player& player = it->second;
+    const Player& player = it->second;
     if (!player.is_dead()) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No estás muerto"};
         return {.private_events = {msg}};

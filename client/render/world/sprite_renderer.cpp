@@ -391,12 +391,10 @@ void SpriteRenderer::render_entity_names(const SDL2pp::Rect& cam) {
             continue;
         }
         int body_foot_y = 0;
-        for (auto& sprite: pair.second) {
-            if (sprite.movable) {
-                body_foot_y = sprite.dst.GetY() + sprite.dst.GetH();
-                break;
-            }
-        }
+        auto sit = std::find_if(pair.second.begin(), pair.second.end(),
+                                [](const auto& s) { return s.movable; });
+        if (sit != pair.second.end())
+            body_foot_y = sit->dst.GetY() + sit->dst.GetH();
         if (body_foot_y <= 0) {
             continue;
         }
@@ -461,17 +459,16 @@ bool SpriteRenderer::get_entity_world_position(uint16_t entity_id, int& x, int& 
     auto it = entity_sprites.find(entity_id);
     if (it == entity_sprites.end())
         return false;
-    for (const auto& part: it->second) {
-        if (part.movable) {
-            x = part.dst.GetX() + part.dst.GetW() / 2;
-            y = part.dst.GetY() + part.dst.GetH() / 2;
-            return true;
-        }
-    }
-    return false;
+    auto pit = std::find_if(it->second.begin(), it->second.end(),
+                            [](const auto& p) { return p.movable; });
+    if (pit == it->second.end())
+        return false;
+    x = pit->dst.GetX() + pit->dst.GetW() / 2;
+    y = pit->dst.GetY() + pit->dst.GetH() / 2;
+    return true;
 }
 
-void SpriteRenderer::tick_overlays(AnimationSystem& anim) {
+void SpriteRenderer::tick_overlays(const AnimationSystem& anim) {
     (void)anim;
     uint32_t now = SDL_GetTicks();
     for (auto& ov: overlays) {
