@@ -103,6 +103,7 @@ struct ServerConfig {
     uint16_t port = 1234;
     int tick_rate_hz = 20;
     int save_interval_seconds = 30;
+    bool cheats_enabled = false;
     TilemapConfig tilemap;
     std::unordered_map<std::string, TilemapConfig> tilemap_configs;
     int move_step = 4;

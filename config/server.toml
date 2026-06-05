@@ -1,6 +1,7 @@
 [server]
 port = 1234
 tick_rate_hz = 20
+cheats_enabled = true
 
 [movement]
 move_step = 8

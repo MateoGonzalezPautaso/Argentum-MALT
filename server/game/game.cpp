@@ -57,7 +57,8 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         item_catalog(config.item_catalog),
         rng(),
         combat_controller(config.attack, players, config.item_catalog),
-        tick_rate_hz(config.tick_rate_hz) {
+        tick_rate_hz(config.tick_rate_hz),
+        cheats_enabled(config.cheats_enabled) {
     for (const auto& [name, tc]: tilemap_configs) {
         maps.emplace(name, Map(tc));
     }
@@ -93,16 +94,30 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const SendChatMsgCmd& cmd) { return handle_send_chat_msg(player_id, cmd); },
                     [&](const MeditateCmd&) { return handle_meditate(player_id); },
                     [&](const ResurrectCmd&) { return handle_resurrect(player_id); },
-                    [&](const CheatInfiniteHpCmd&) { return handle_cheat_infinite_hp(player_id); },
-                    [&](const CheatInfiniteManaCmd&) {
-                        return handle_cheat_infinite_mana(player_id);
+                    [&](const CheatInfiniteHpCmd&) {
+                        return cheats_enabled ? handle_cheat_infinite_hp(player_id) : CommandResult{};
                     },
-                    [&](const CheatDieCmd&) { return handle_cheat_die(player_id); },
-                    [&](const CheatLevelUpCmd&) { return handle_cheat_level_up(player_id); },
-                    [&](const CheatLevelDownCmd&) { return handle_cheat_level_down(player_id); },
-                    [&](const CheatAddGoldCmd&) { return handle_cheat_add_gold(player_id); },
-                    [&](const CheatVelocityCmd&) { return handle_cheat_velocity(player_id); },
-                    [&](const CheatReviveCmd&) { return handle_cheat_revive(player_id); },
+                    [&](const CheatInfiniteManaCmd&) {
+                        return cheats_enabled ? handle_cheat_infinite_mana(player_id) : CommandResult{};
+                    },
+                    [&](const CheatDieCmd&) {
+                        return cheats_enabled ? handle_cheat_die(player_id) : CommandResult{};
+                    },
+                    [&](const CheatLevelUpCmd&) {
+                        return cheats_enabled ? handle_cheat_level_up(player_id) : CommandResult{};
+                    },
+                    [&](const CheatLevelDownCmd&) {
+                        return cheats_enabled ? handle_cheat_level_down(player_id) : CommandResult{};
+                    },
+                    [&](const CheatAddGoldCmd&) {
+                        return cheats_enabled ? handle_cheat_add_gold(player_id) : CommandResult{};
+                    },
+                    [&](const CheatVelocityCmd&) {
+                        return cheats_enabled ? handle_cheat_velocity(player_id) : CommandResult{};
+                    },
+                    [&](const CheatReviveCmd&) {
+                        return cheats_enabled ? handle_cheat_revive(player_id) : CommandResult{};
+                    },
                     [&](const ChangeMapCmd& cmd) { return handle_change_map(player_id, cmd); },
                     [&](const EquipItemCmd& cmd) { return handle_equip(player_id, cmd); },
                     [&](const UnequipItemCmd& cmd) { return handle_unequip(player_id, cmd); },

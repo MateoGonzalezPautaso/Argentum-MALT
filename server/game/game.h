@@ -38,6 +38,7 @@ private:
     CombatController combat_controller;
     uint32_t tick_count = 0;
     int tick_rate_hz;
+    bool cheats_enabled;
     std::unordered_map<uint16_t, double> hp_regen_accum;
     std::unordered_map<uint16_t, double> mana_regen_accum;
     std::map<uint16_t, EnemyNpc> npcs;
