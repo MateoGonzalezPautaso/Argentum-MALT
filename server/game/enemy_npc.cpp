@@ -42,7 +42,7 @@ bool EnemyNpc::is_dead() const { return hp_current == 0; }
 uint32_t EnemyNpc::get_damage() const { return damage; }
 
 uint32_t EnemyNpc::get_gold_reward() {
-    double random_number = rng.get_random_double(0.01, 0.2);
+    double random_number = rng.get_random_double(0.0, 0.2);
     return random_number * hp_max;
 }
 
