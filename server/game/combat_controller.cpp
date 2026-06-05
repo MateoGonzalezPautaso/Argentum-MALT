@@ -193,12 +193,18 @@ CommandResult CombatController::notify_entity_attacked(Player& attacker, uint16_
                                                        const std::string& target_clan_name,
                                                        bool target_is_dead, uint8_t target_level) {
     DamageDealtEvent dealt{attacker.get_id(), damage};
+    std::vector<ServerEvent> broadcast;
+    std::map<uint16_t, std::vector<ServerEvent>> targeted;
+
     DamageReceivedEvent received{target_id, attacker.get_id(), damage, target_hp_current,
                                  target_hp_max};
     ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
                           attacker.get_username() + " ataco a " + target_name + " por " +
                                   std::to_string(damage) + " de daño"};
-    std::vector<ServerEvent> broadcast = {received, chat_msg};
+
+    targeted[target_id].push_back(received);
+    targeted[target_id].push_back(chat_msg);
+    targeted[attacker.get_id()].push_back(chat_msg);
 
     if (target_is_dead) {
         EntityDiedEvent died{target_id};
@@ -211,10 +217,10 @@ CommandResult CombatController::notify_entity_attacked(Player& attacker, uint16_
                                           0));
     } else if (damage == 0) {
         AttackDodgedEvent dodged{target_id};
-        broadcast.push_back(dodged);
+        targeted[target_id].push_back(dodged);
+        targeted[attacker.get_id()].push_back(dodged);
     }
 
-    std::map<uint16_t, std::vector<ServerEvent>> targeted;
     // Notify clan members when someone is attacked
     if (clan_manager && !target_clan_name.empty()) {
         ClanNotificationEvent notif{ClanNotifType::MEMBER_ATTACKED, target_name,
