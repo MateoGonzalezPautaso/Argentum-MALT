@@ -1,6 +1,7 @@
 #include "player_data_service.h"
 
 #include <cstring>
+#include <vector>
 
 PlayerDataService::PlayerDataService(const std::string& data_dir, const ServerConfig& config):
         player_persistence(data_dir + "/players.dat", data_dir + "/players.idx"),

@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "../input/chat_input.h"
 

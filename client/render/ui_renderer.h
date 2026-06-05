@@ -2,6 +2,8 @@
 #define CLIENT_UI_RENDERER_H
 
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>

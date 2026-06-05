@@ -1,5 +1,7 @@
 #include "chat_input.h"
 
+#include <utility>
+
 bool ChatInput::handle_text_input(const SDL_Event& event) {
     if (!focused) {
         return false;

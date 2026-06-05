@@ -2,6 +2,7 @@
 #define CLIENT_PROP_RENDERER_H
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include <SDL2/SDL.h>

@@ -1,6 +1,7 @@
 #include "game_loop.h"
 
 #include <chrono>
+#include <string>
 #include <thread>
 
 GameLoop::GameLoop(const ServerConfig& config, Queue<PlayerCommand>& input_queue,

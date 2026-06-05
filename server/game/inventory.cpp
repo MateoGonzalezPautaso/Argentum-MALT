@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <utility>
 
 Inventory::Inventory(uint8_t capacity): capacity(capacity) {
     slots.resize(capacity);

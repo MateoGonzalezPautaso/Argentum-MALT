@@ -1,7 +1,9 @@
 #include "client_protocol.h"
 
 #include <stdexcept>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include <sys/socket.h>
 

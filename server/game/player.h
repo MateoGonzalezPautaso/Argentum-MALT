@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "../../common/item_catalog.h"
 #include "../../common/messages.h"

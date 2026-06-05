@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <vector>
 
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
                PlayerClass player_class, const BalanceConfig& balance, uint8_t inv_capacity):

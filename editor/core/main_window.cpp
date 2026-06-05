@@ -18,6 +18,7 @@
 #include <QToolBar>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <algorithm>
 
 #include "../io/file_manager.h"
 #include "../render/map_scene_renderer.h"

@@ -54,8 +54,7 @@ std::optional<LoginOkEvent> Client::run_login() {
     bool login_sent = false;
 
     ServerEvent discard;
-    while (event_queue.try_pop(discard))
-        ;
+    while (event_queue.try_pop(discard)) {}
 
     while (running && state == GameState::Login) {
         running = engine.dispatch_event(state);
@@ -135,8 +134,7 @@ std::optional<LoginOkEvent> Client::run_create_character() {
     bool cmd_sent = false;
 
     ServerEvent discard;
-    while (event_queue.try_pop(discard))
-        ;
+    while (event_queue.try_pop(discard)) {}
 
     while (running && state == GameState::CreateCharacter) {
         running = engine.dispatch_event(state);

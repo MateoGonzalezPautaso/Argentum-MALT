@@ -1,6 +1,7 @@
 #include "prop_grid.h"
 
 #include <limits>
+#include <utility>
 
 PropGrid::PropGrid(const TilemapConfig& tilemap) {
     entries_.reserve(tilemap.prop_map.size() * tilemap.prop_map.front().size());

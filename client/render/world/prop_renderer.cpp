@@ -1,6 +1,7 @@
 #include "prop_renderer.h"
 
 #include <algorithm>
+#include <string>
 #include <utility>
 
 #include "../texture_loader.h"

@@ -1,5 +1,7 @@
 #include "create_character_controller.h"
 
+#include <string>
+
 static const Race RACES[4] = {Race::HUMAN, Race::ELF, Race::DWARF, Race::GNOME};
 static const PlayerClass CLASSES[4] = {PlayerClass::MAGE, PlayerClass::CLERIC, PlayerClass::PALADIN,
                                        PlayerClass::WARRIOR};

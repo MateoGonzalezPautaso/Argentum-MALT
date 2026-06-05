@@ -1,6 +1,8 @@
 #ifndef CLIENT_GAME_CONTROLLER_H
 #define CLIENT_GAME_CONTROLLER_H
 
+#include <string>
+
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 

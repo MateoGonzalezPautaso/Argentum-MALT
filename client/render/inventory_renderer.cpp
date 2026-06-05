@@ -1,5 +1,7 @@
 #include "inventory_renderer.h"
 
+#include <utility>
+
 #include "geometry.h"
 #include "text_renderer.h"
 #include "texture_loader.h"
