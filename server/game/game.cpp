@@ -647,7 +647,8 @@ CommandResult Game::handle_cheat_level_up(uint16_t player_id) {
                            .hp_max = player.get_hp_max(),
                            .mana_current = player.get_mana_current(),
                            .mana_max = player.get_mana_max()};
-    return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
+    GoldUpdateEvent gold{player.get_gold()};
+    return {.private_events = {msg, stats, gold}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_cheat_level_down(uint16_t player_id) {
@@ -680,7 +681,8 @@ CommandResult Game::handle_cheat_add_gold(uint16_t player_id) {
     player.gain_gold(1000);
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      "[Cheat] +1000 oro (total: " + std::to_string(player.get_gold()) + ")"};
-    return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    GoldUpdateEvent gold{player.get_gold()};
+    return {.private_events = {msg, gold}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_cheat_velocity(uint16_t player_id) {

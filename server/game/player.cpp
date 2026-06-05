@@ -91,7 +91,7 @@ void Player::level_up() {
     hp_max = stats_updated.hp_max;
     mana_max = stats_updated.mana_max;
     strength = stats_updated.strength;
-    gold += balance.gold_per_level * level;
+    gain_gold(static_cast<uint32_t>(balance.gold_per_level * level));
     hp_current = hp_max;
     mana_current = mana_max;
 }
