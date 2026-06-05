@@ -263,12 +263,13 @@ void MainWindow::update_drag_preview(int r1, int c1, int r2, int c2) {
     int c_max = std::max(c1, c2);
 
     if (!drag_preview_) {
-        drag_preview_ = scene_->addRect(0, 0, 0, 0, QPen(QColor(255, 255, 255, 180), 2, Qt::DashLine),
-                                        QBrush(QColor(100, 200, 255, 40)));
+        drag_preview_ =
+                scene_->addRect(0, 0, 0, 0, QPen(QColor(255, 255, 255, 180), 2, Qt::DashLine),
+                                QBrush(QColor(100, 200, 255, 40)));
     }
 
-    drag_preview_->setRect(c_min * tsz, r_min * tsz,
-                           (c_max - c_min + 1) * tsz, (r_max - r_min + 1) * tsz);
+    drag_preview_->setRect(c_min * tsz, r_min * tsz, (c_max - c_min + 1) * tsz,
+                           (r_max - r_min + 1) * tsz);
 }
 
 void MainWindow::destroy_drag_preview() {

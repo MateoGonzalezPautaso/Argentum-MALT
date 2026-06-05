@@ -6,8 +6,7 @@
 
 void ChatHistory::add_message(ChatMsgType type, const std::string& sender,
                               const std::string& text) {
-    messages.push_back(
-            {type, sender, text, static_cast<uint32_t>(SDL_GetTicks())});
+    messages.push_back({type, sender, text, static_cast<uint32_t>(SDL_GetTicks())});
 
     if (messages.size() > MAX_MESSAGES) {
         messages.erase(messages.begin(),

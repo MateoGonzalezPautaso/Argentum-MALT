@@ -8,35 +8,60 @@
 #include "rng.h"
 
 ItemType parse_item_type(const std::string& str) {
-    if (str == "SWORD") return ItemType::SWORD;
-    if (str == "AXE") return ItemType::AXE;
-    if (str == "HAMMER") return ItemType::HAMMER;
-    if (str == "ASH_STAFF") return ItemType::ASH_STAFF;
-    if (str == "ELVEN_FLUTE") return ItemType::ELVEN_FLUTE;
-    if (str == "KNOTTED_STAFF") return ItemType::KNOTTED_STAFF;
-    if (str == "STUDDED_STAFF") return ItemType::STUDDED_STAFF;
-    if (str == "SIMPLE_BOW") return ItemType::SIMPLE_BOW;
-    if (str == "COMPOSITE_BOW") return ItemType::COMPOSITE_BOW;
-    if (str == "LEATHER_ARMOR") return ItemType::LEATHER_ARMOR;
-    if (str == "PLATE_ARMOR") return ItemType::PLATE_ARMOR;
-    if (str == "BLUE_TUNIC") return ItemType::BLUE_TUNIC;
-    if (str == "HOOD") return ItemType::HOOD;
-    if (str == "IRON_HELMET") return ItemType::IRON_HELMET;
-    if (str == "TURTLE_SHIELD") return ItemType::TURTLE_SHIELD;
-    if (str == "IRON_SHIELD") return ItemType::IRON_SHIELD;
-    if (str == "MAGIC_HAT") return ItemType::MAGIC_HAT;
-    if (str == "HEALTH_POTION") return ItemType::HEALTH_POTION;
-    if (str == "MANA_POTION") return ItemType::MANA_POTION;
-    if (str == "GOLD_DROP") return ItemType::GOLD_DROP;
+    if (str == "SWORD")
+        return ItemType::SWORD;
+    if (str == "AXE")
+        return ItemType::AXE;
+    if (str == "HAMMER")
+        return ItemType::HAMMER;
+    if (str == "ASH_STAFF")
+        return ItemType::ASH_STAFF;
+    if (str == "ELVEN_FLUTE")
+        return ItemType::ELVEN_FLUTE;
+    if (str == "KNOTTED_STAFF")
+        return ItemType::KNOTTED_STAFF;
+    if (str == "STUDDED_STAFF")
+        return ItemType::STUDDED_STAFF;
+    if (str == "SIMPLE_BOW")
+        return ItemType::SIMPLE_BOW;
+    if (str == "COMPOSITE_BOW")
+        return ItemType::COMPOSITE_BOW;
+    if (str == "LEATHER_ARMOR")
+        return ItemType::LEATHER_ARMOR;
+    if (str == "PLATE_ARMOR")
+        return ItemType::PLATE_ARMOR;
+    if (str == "BLUE_TUNIC")
+        return ItemType::BLUE_TUNIC;
+    if (str == "HOOD")
+        return ItemType::HOOD;
+    if (str == "IRON_HELMET")
+        return ItemType::IRON_HELMET;
+    if (str == "TURTLE_SHIELD")
+        return ItemType::TURTLE_SHIELD;
+    if (str == "IRON_SHIELD")
+        return ItemType::IRON_SHIELD;
+    if (str == "MAGIC_HAT")
+        return ItemType::MAGIC_HAT;
+    if (str == "HEALTH_POTION")
+        return ItemType::HEALTH_POTION;
+    if (str == "MANA_POTION")
+        return ItemType::MANA_POTION;
+    if (str == "GOLD_DROP")
+        return ItemType::GOLD_DROP;
     return ItemType::NONE;
 }
 
 EquipSlot parse_equip_slot(const std::string& str) {
-    if (str == "WEAPON") return EquipSlot::WEAPON;
-    if (str == "ARMOR") return EquipSlot::ARMOR;
-    if (str == "HELMET") return EquipSlot::HELMET;
-    if (str == "SHIELD") return EquipSlot::SHIELD;
-    if (str == "CONSUMABLE") return EquipSlot::CONSUMABLE;
+    if (str == "WEAPON")
+        return EquipSlot::WEAPON;
+    if (str == "ARMOR")
+        return EquipSlot::ARMOR;
+    if (str == "HELMET")
+        return EquipSlot::HELMET;
+    if (str == "SHIELD")
+        return EquipSlot::SHIELD;
+    if (str == "CONSUMABLE")
+        return EquipSlot::CONSUMABLE;
     return EquipSlot::WEAPON;
 }
 
@@ -50,13 +75,15 @@ void ItemCatalog::load_from_file(const std::string& path) {
         throw std::runtime_error("items.toml: missing [[item]] array");
     }
 
-    for (const auto& node : *arr) {
+    for (const auto& node: *arr) {
         const auto* tbl = node.as_table();
-        if (!tbl) continue;
+        if (!tbl)
+            continue;
 
         Item item;
         item.type = parse_item_type(toml_get_string(*tbl, "item_type", ""));
-        if (item.type == ItemType::NONE) continue;
+        if (item.type == ItemType::NONE)
+            continue;
 
         item.name = toml_get_string(*tbl, "name", "");
         item.equip_slot = parse_equip_slot(toml_get_string(*tbl, "equip_slot", "WEAPON"));
@@ -81,7 +108,8 @@ void ItemCatalog::add(const Item& item) {
 
 const Item* ItemCatalog::find(ItemType type) const {
     auto it = by_index_.find(type);
-    if (it == by_index_.end()) return nullptr;
+    if (it == by_index_.end())
+        return nullptr;
     return &items_[it->second];
 }
 
@@ -95,7 +123,7 @@ const Item& ItemCatalog::get(ItemType type) const {
 
 const Item& ItemCatalog::random_equipable(Rng& rng) const {
     std::vector<const Item*> pool;
-    for (const auto& item : items_) {
+    for (const auto& item: items_) {
         if (item.equip_slot != EquipSlot::CONSUMABLE && item.type != ItemType::NONE) {
             pool.push_back(&item);
         }

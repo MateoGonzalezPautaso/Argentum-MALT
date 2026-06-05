@@ -25,11 +25,9 @@ std::optional<Player> PlayerDataService::load_player(uint16_t player_id,
                                                      const PlayerRecord& rec) {
     Player player(player_id, username, Position{rec.pos_x, rec.pos_y},
                   static_cast<Direction>(rec.dir), static_cast<Race>(rec.race),
-                  static_cast<PlayerClass>(rec.player_class), balance,
-                  rec.level, rec.experience,
-                  rec.hp_current, rec.hp_max,
-                  rec.mana_current, rec.mana_max,
-                  rec.gold, inv_capacity, rec.strength);
+                  static_cast<PlayerClass>(rec.player_class), balance, rec.level, rec.experience,
+                  rec.hp_current, rec.hp_max, rec.mana_current, rec.mana_max, rec.gold,
+                  inv_capacity, rec.strength);
 
     std::vector<InventorySlotRecord> inv_records;
     if (inventory_persistence.load(username, inv_records)) {
@@ -41,8 +39,8 @@ std::optional<Player> PlayerDataService::load_player(uint16_t player_id,
     InventorySlot rec_equipped[EQUIP_SLOT_COUNT];
     for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
         rec_equipped[i].item_type = static_cast<ItemType>(rec.equipped_type[i]);
-        rec_equipped[i].item_name = std::string(rec.equipped_name[i],
-                                                std::strlen(rec.equipped_name[i]));
+        rec_equipped[i].item_name =
+                std::string(rec.equipped_name[i], std::strlen(rec.equipped_name[i]));
     }
     player.restore_equipment(rec_equipped);
 
@@ -81,7 +79,6 @@ void PlayerDataService::save_player(const Player& player) {
     inventory_persistence.save(player.get_username(), player.dump_inventory_records());
 }
 
-void PlayerDataService::save_new_player(const std::string& username,
-                                        const PlayerRecord& record) {
+void PlayerDataService::save_new_player(const std::string& username, const PlayerRecord& record) {
     player_persistence.save(username, record);
 }

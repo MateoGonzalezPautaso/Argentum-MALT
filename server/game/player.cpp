@@ -34,11 +34,9 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
 }
 
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
-               PlayerClass player_class, const BalanceConfig& balance,
-               uint8_t level, uint32_t experience,
-               uint32_t hp_current, uint32_t hp_max,
-               uint32_t mana_current, uint32_t mana_max,
-               uint32_t gold, uint8_t inv_capacity, uint32_t strength):
+               PlayerClass player_class, const BalanceConfig& balance, uint8_t level,
+               uint32_t experience, uint32_t hp_current, uint32_t hp_max, uint32_t mana_current,
+               uint32_t mana_max, uint32_t gold, uint8_t inv_capacity, uint32_t strength):
         id(id),
         username(username),
         pos(pos),
@@ -252,12 +250,15 @@ uint32_t Player::exp_to_next_level() const {
 }
 
 bool Player::equip(uint8_t inv_slot_index, const ItemCatalog& catalog) {
-    if (inv_slot_index >= inventory.slot_count()) return false;
-    if (inventory.is_empty_at(inv_slot_index)) return false;
+    if (inv_slot_index >= inventory.slot_count())
+        return false;
+    if (inventory.is_empty_at(inv_slot_index))
+        return false;
 
     InventorySlot slot = inventory.at(inv_slot_index);
     const Item* def = catalog.find(slot.item_type);
-    if (!def) return false;
+    if (!def)
+        return false;
 
     if (def->equip_slot == EquipSlot::CONSUMABLE) {
         switch (def->type) {
@@ -291,9 +292,12 @@ bool Player::equip(uint8_t inv_slot_index, const ItemCatalog& catalog) {
 
 void Player::unequip(EquipSlot eslot) {
     uint8_t index = static_cast<uint8_t>(eslot);
-    if (index >= EQUIP_SLOT_COUNT) return;
-    if (equipped[index].item_type == ItemType::NONE) return;
-    if (inventory.is_full()) return;
+    if (index >= EQUIP_SLOT_COUNT)
+        return;
+    if (equipped[index].item_type == ItemType::NONE)
+        return;
+    if (inventory.is_full())
+        return;
 
     uint8_t free_slot = inventory.first_free_slot();
     inventory.place_at(free_slot, equipped[index].item_type, equipped[index].item_name);
@@ -316,9 +320,7 @@ void Player::restore_equipment(const InventorySlot equipment[EQUIP_SLOT_COUNT]) 
     }
 }
 
-std::vector<InventorySlot> Player::dump_inventory() const {
-    return inventory.dump_slots();
-}
+std::vector<InventorySlot> Player::dump_inventory() const { return inventory.dump_slots(); }
 
 void Player::load_inventory(const std::vector<InventorySlotRecord>& records) {
     inventory.from_records(records);

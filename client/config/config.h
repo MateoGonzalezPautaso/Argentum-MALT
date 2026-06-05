@@ -197,20 +197,28 @@ struct SkinConfig {
 private:
     static std::string class_to_skin_key(PlayerClass pc) {
         switch (pc) {
-            case PlayerClass::MAGE:    return "mage";
-            case PlayerClass::CLERIC:  return "cleric";
-            case PlayerClass::PALADIN: return "paladin";
-            case PlayerClass::WARRIOR: return "warrior";
+            case PlayerClass::MAGE:
+                return "mage";
+            case PlayerClass::CLERIC:
+                return "cleric";
+            case PlayerClass::PALADIN:
+                return "paladin";
+            case PlayerClass::WARRIOR:
+                return "warrior";
         }
         return "";
     }
 
     static std::string race_to_skin_key(Race race) {
         switch (race) {
-            case Race::HUMAN: return "human";
-            case Race::ELF:   return "elf";
-            case Race::DWARF: return "dwarf";
-            case Race::GNOME: return "gnome";
+            case Race::HUMAN:
+                return "human";
+            case Race::ELF:
+                return "elf";
+            case Race::DWARF:
+                return "dwarf";
+            case Race::GNOME:
+                return "gnome";
         }
         return "";
     }

@@ -1,8 +1,8 @@
 #include <map>
 #include <optional>
 
-#include "gtest/gtest.h"
 #include "common/item.h"
+#include "gtest/gtest.h"
 #include "server/core/config.h"
 #include "server/game/combat_controller.h"
 #include "server/game/player.h"
@@ -37,8 +37,7 @@ protected:
 
     // Levels a player up to the given level (from level 1)
     void set_level(Player& p, int target_level) {
-        for (int i = 1; i < target_level; ++i)
-            p.level_up();
+        for (int i = 1; i < target_level; ++i) p.level_up();
     }
 };
 
@@ -62,7 +61,7 @@ TEST_F(CombatControllerTest, SelfAttack_Blocked) {
 TEST_F(CombatControllerTest, AttackerIsNewbie_Blocked) {
     auto& attacker = add_player(1, "alice");
     auto& target = add_player(2, "bob");
-    set_level(attacker, 5);   // newbie
+    set_level(attacker, 5);  // newbie
     set_level(target, 15);
 
     auto result = controller->melee_attack(1, 2, 0);
@@ -75,7 +74,7 @@ TEST_F(CombatControllerTest, TargetIsNewbie_Blocked) {
     auto& attacker = add_player(1, "alice");
     auto& target = add_player(2, "bob");
     set_level(attacker, 15);
-    set_level(target, 5);   // newbie
+    set_level(target, 5);  // newbie
 
     auto result = controller->melee_attack(1, 2, 0);
     EXPECT_TRUE(result.broadcast_events.empty());

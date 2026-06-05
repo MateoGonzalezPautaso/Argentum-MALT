@@ -188,13 +188,9 @@ void UIRenderer::set_hover(int mx, int my, const std::vector<InventorySlot>& slo
     inventory_renderer.update_hover(mx, my, slots, equipped);
 }
 
-bool UIRenderer::is_hovering_occupied() const {
-    return inventory_renderer.is_hovering_occupied();
-}
+bool UIRenderer::is_hovering_occupied() const { return inventory_renderer.is_hovering_occupied(); }
 
-int UIRenderer::get_hovered_inv_slot() const {
-    return inventory_renderer.get_hovered_inv_slot();
-}
+int UIRenderer::get_hovered_inv_slot() const { return inventory_renderer.get_hovered_inv_slot(); }
 
 int UIRenderer::get_hovered_equip_slot() const {
     return inventory_renderer.get_hovered_equip_slot();
@@ -256,8 +252,8 @@ void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages) {
 }
 
 void UIRenderer::render_chat_text_line(int& clipped_w) const {
-    clipped_w = texture::render_text_clipped(renderer, chat_font, chat_model.get_text(),
-                                              chat_color, chat_input_rect);
+    clipped_w = texture::render_text_clipped(renderer, chat_font, chat_model.get_text(), chat_color,
+                                             chat_input_rect);
 }
 
 void UIRenderer::render_chat_cursor(int x_offset) const {

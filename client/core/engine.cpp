@@ -114,8 +114,8 @@ void Engine::handle_login_error(const std::string& msg) {
 
 void Engine::reset_login_state() { login_ctrl.clear_error(); }
 
-bool Engine::try_submit_create_character(std::string& username, std::string& password,
-                                         Race& race, PlayerClass& player_class) {
+bool Engine::try_submit_create_character(std::string& username, std::string& password, Race& race,
+                                         PlayerClass& player_class) {
     if (!create_char_ctrl.is_submitted())
         return false;
     create_char_ctrl.clear_error();

@@ -6,11 +6,8 @@
 
 #include "../../common/messages.h"
 #include "../../common/queue.h"
-
-#include "../input/chat_input.h"
-#include "../chat/chat_history.h"
-
 #include "../audio/audio_manager.h"
+#include "../chat/chat_history.h"
 #include "../config/config.h"
 #include "../config/player_stats.h"
 #include "../input/chat_input.h"
@@ -74,7 +71,6 @@ private:
     void handle_inventory_update(const InventoryUpdateEvent& e);
     void handle_equip_update(const EquipUpdateEvent& e);
     void handle_player_stats(const PlayerStatsEvent& e);
-
 };
 
 #endif

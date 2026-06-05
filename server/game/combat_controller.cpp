@@ -126,9 +126,8 @@ uint32_t CombatController::calculate_damage(const Player& attacker) {
         int roll = rng.get_random_int(weapon->min_damage, weapon->max_damage);
         base = attacker.get_strength() * static_cast<uint32_t>(roll);
     } else {
-        int variance = config.damage_variance > 0
-                           ? rng.get_random_int(0, config.damage_variance)
-                           : 0;
+        int variance =
+                config.damage_variance > 0 ? rng.get_random_int(0, config.damage_variance) : 0;
         base = static_cast<uint32_t>(config.base_damage + variance);
     }
     double bonus = get_clan_damage_bonus(attacker);

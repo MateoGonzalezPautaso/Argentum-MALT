@@ -4,9 +4,9 @@
 #include "text_renderer.h"
 #include "texture_loader.h"
 
-InventoryRenderer::InventoryRenderer(SDL2pp::Renderer& renderer, TTF_Font* font,
-                                     const InventoryPanelConfig& cfg,
-                                     const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites):
+InventoryRenderer::InventoryRenderer(
+        SDL2pp::Renderer& renderer, TTF_Font* font, const InventoryPanelConfig& cfg,
+        const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites):
         renderer(renderer), font(font), cfg(cfg), item_sprites(item_sprites) {}
 
 const ItemSpriteDef* InventoryRenderer::find_sprite(ItemType type) const {
@@ -56,7 +56,7 @@ void InventoryRenderer::render_item_sprite(ItemType type, const std::string& nam
 }
 
 void InventoryRenderer::update_hover(int mx, int my, const std::vector<InventorySlot>& slots,
-                                    const InventorySlot equipped[4]) {
+                                     const InventorySlot equipped[4]) {
     hovered_inv_slot = -1;
     hovered_equip_slot = -1;
 
@@ -98,7 +98,8 @@ void InventoryRenderer::draw_hover_border(int sx, int sy) {
 }
 
 void InventoryRenderer::render_item_tooltip(int sx, int sy, const InventorySlot& slot) {
-    if (!font || slot.item_type == ItemType::NONE) return;
+    if (!font || slot.item_type == ItemType::NONE)
+        return;
 
     const ItemSpriteDef* def = find_sprite(slot.item_type);
     std::string text = slot.item_name;
@@ -108,7 +109,8 @@ void InventoryRenderer::render_item_tooltip(int sx, int sy, const InventorySlot&
 
     SDL_Color white{255, 255, 255, 255};
     auto result = texture::render_text(renderer, font, text, white);
-    if (result.w == 0) return;
+    if (result.w == 0)
+        return;
 
     const int pad = 6;
     int tw = result.w + pad * 2;
@@ -122,7 +124,8 @@ void InventoryRenderer::render_item_tooltip(int sx, int sy, const InventorySlot&
     if (ty + th > renderer.GetLogicalHeight()) {
         ty = renderer.GetLogicalHeight() - th - 2;
     }
-    if (tx < 0) tx = 2;
+    if (tx < 0)
+        tx = 2;
 
     SDL2pp::Rect bg(tx, ty, tw, th);
     renderer.SetDrawColor(0, 0, 0, 220);
@@ -164,12 +167,8 @@ void InventoryRenderer::render(const std::vector<InventorySlot>& slots) {
 }
 
 void InventoryRenderer::render_equipped(const InventorySlot equipped[4]) {
-    const char* labels[4] = {
-        cfg.equip_weapon_label.c_str(),
-        cfg.equip_armor_label.c_str(),
-        cfg.equip_helmet_label.c_str(),
-        cfg.equip_shield_label.c_str()
-    };
+    const char* labels[4] = {cfg.equip_weapon_label.c_str(), cfg.equip_armor_label.c_str(),
+                             cfg.equip_helmet_label.c_str(), cfg.equip_shield_label.c_str()};
 
     for (int i = 0; i < 4; ++i) {
         int sx = cfg.x + i * (cfg.slot_w + cfg.gap);

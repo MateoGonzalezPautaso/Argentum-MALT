@@ -95,10 +95,12 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const MeditateCmd&) { return handle_meditate(player_id); },
                     [&](const ResurrectCmd&) { return handle_resurrect(player_id); },
                     [&](const CheatInfiniteHpCmd&) {
-                        return cheats_enabled ? handle_cheat_infinite_hp(player_id) : CommandResult{};
+                        return cheats_enabled ? handle_cheat_infinite_hp(player_id) :
+                                                CommandResult{};
                     },
                     [&](const CheatInfiniteManaCmd&) {
-                        return cheats_enabled ? handle_cheat_infinite_mana(player_id) : CommandResult{};
+                        return cheats_enabled ? handle_cheat_infinite_mana(player_id) :
+                                                CommandResult{};
                     },
                     [&](const CheatDieCmd&) {
                         return cheats_enabled ? handle_cheat_die(player_id) : CommandResult{};
@@ -107,7 +109,8 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                         return cheats_enabled ? handle_cheat_level_up(player_id) : CommandResult{};
                     },
                     [&](const CheatLevelDownCmd&) {
-                        return cheats_enabled ? handle_cheat_level_down(player_id) : CommandResult{};
+                        return cheats_enabled ? handle_cheat_level_down(player_id) :
+                                                CommandResult{};
                     },
                     [&](const CheatAddGoldCmd&) {
                         return cheats_enabled ? handle_cheat_add_gold(player_id) : CommandResult{};
@@ -256,11 +259,9 @@ CommandResult Game::tick() {
     CommandResult result = apply_regen();
     CommandResult res_result = process_pending_resurrections();
 
-    for (auto& ev : res_result.targeted_events)
-        for (auto& se : ev.second)
-            result.targeted_events[ev.first].push_back(std::move(se));
-    for (auto& ev : res_result.broadcast_events)
-        result.broadcast_events.push_back(std::move(ev));
+    for (auto& ev: res_result.targeted_events)
+        for (auto& se: ev.second) result.targeted_events[ev.first].push_back(std::move(se));
+    for (auto& ev: res_result.broadcast_events) result.broadcast_events.push_back(std::move(ev));
 
     return result;
 }
@@ -289,7 +290,7 @@ CommandResult Game::process_pending_resurrections() {
 
         if (needs_map_transition) {
             EntityDespawnEvent despawn{player_id};
-            for (uint16_t pid : get_player_ids_on_map(old_map)) {
+            for (uint16_t pid: get_player_ids_on_map(old_map)) {
                 if (pid != player_id)
                     result.targeted_events[pid].push_back(despawn);
             }
@@ -299,8 +300,7 @@ CommandResult Game::process_pending_resurrections() {
 
             player.resurrect();
 
-            std::vector<ServerEvent> existing =
-                    make_existing_spawns(player_id, pending.target_map);
+            std::vector<ServerEvent> existing = make_existing_spawns(player_id, pending.target_map);
             existing.insert(existing.begin(),
                             MapTransitionEvent{pending.target_map, pending.target_pos.x,
                                                pending.target_pos.y});
@@ -308,7 +308,7 @@ CommandResult Game::process_pending_resurrections() {
 
             EntitySpawnEvent spawn = make_entity_spawn(player);
             PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
-            for (uint16_t pid : get_player_ids_on_map(pending.target_map)) {
+            for (uint16_t pid: get_player_ids_on_map(pending.target_map)) {
                 if (pid == player_id)
                     continue;
                 result.targeted_events[pid].push_back(spawn);
@@ -320,7 +320,7 @@ CommandResult Game::process_pending_resurrections() {
 
             EntityMoveEvent move_ev{player_id, player.get_pos(), player.get_dir()};
             PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
-            for (uint16_t pid : get_player_ids_on_map(pending.target_map)) {
+            for (uint16_t pid: get_player_ids_on_map(pending.target_map)) {
                 result.targeted_events[pid].push_back(move_ev);
                 result.targeted_events[pid].push_back(respawn);
             }
@@ -407,13 +407,19 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             try {
                 int idx = std::stoi(args);
                 return handle_equip(player_id, EquipItemCmd{static_cast<uint8_t>(idx)});
-            } catch (...) { return {}; }
+            } catch (...) {
+                return {};
+            }
         }
         if (cmd_name == "/desequipar") {
-            if (args == "weapon") return handle_unequip(player_id, UnequipItemCmd{EquipSlot::WEAPON});
-            if (args == "armor") return handle_unequip(player_id, UnequipItemCmd{EquipSlot::ARMOR});
-            if (args == "helmet") return handle_unequip(player_id, UnequipItemCmd{EquipSlot::HELMET});
-            if (args == "shield") return handle_unequip(player_id, UnequipItemCmd{EquipSlot::SHIELD});
+            if (args == "weapon")
+                return handle_unequip(player_id, UnequipItemCmd{EquipSlot::WEAPON});
+            if (args == "armor")
+                return handle_unequip(player_id, UnequipItemCmd{EquipSlot::ARMOR});
+            if (args == "helmet")
+                return handle_unequip(player_id, UnequipItemCmd{EquipSlot::HELMET});
+            if (args == "shield")
+                return handle_unequip(player_id, UnequipItemCmd{EquipSlot::SHIELD});
             return {};
         }
 
@@ -466,7 +472,7 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
         InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
         p.dump_equipped(equipped_slots);
         EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
-                                   equipped_slots[3]};
+                                  equipped_slots[3]};
         private_events.push_back(equip_ev);
 
         if (p.get_current_map() != "main") {
@@ -530,10 +536,8 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     rec.dir = static_cast<uint8_t>(Direction::SOUTH);
     rec.gold = static_cast<uint32_t>(balance.starting_gold);
 
-    Player player(player_id, cmd.username,
-                  Position{rec.pos_x, rec.pos_y},
-                  Direction::SOUTH, cmd.race, cmd.player_class, balance,
-                  inventory_config.max_slots);
+    Player player(player_id, cmd.username, Position{rec.pos_x, rec.pos_y}, Direction::SOUTH,
+                  cmd.race, cmd.player_class, balance, inventory_config.max_slots);
     rec.hp_current = player.get_hp_current();
     rec.hp_max = player.get_hp_max();
     rec.mana_current = player.get_mana_current();
@@ -559,7 +563,7 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
     p.dump_equipped(equipped_slots);
     EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
-                               equipped_slots[3]};
+                              equipped_slots[3]};
     private_events.push_back(equip_ev);
 
     CommandResult r;
@@ -850,30 +854,30 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     uint32_t remaining_tiles = wait_ticks / tick_rate_hz;
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      "Resucitando en " + std::to_string(remaining_tiles) +
-                     " segundos... Permanece inmóvil."};
+                             " segundos... Permanece inmóvil."};
 
     return {.private_events = {msg}};
 }
 
 CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
     auto it = players.find(player_id);
-    if (it == players.end()) return {};
+    if (it == players.end())
+        return {};
 
     Player& player = it->second;
     player.set_meditating(false);
 
     bool changed = player.equip(cmd.slot_index, item_catalog);
-    if (!changed) return {};
+    if (!changed)
+        return {};
 
     InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
     player.dump_equipped(equipped_slots);
     EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
-                               equipped_slots[3]};
+                              equipped_slots[3]};
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
 
-    ChatMsgEvent msg{
-            ChatMsgType::SYSTEM, "",
-            "Equipaste slot " + std::to_string(cmd.slot_index)};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Equipaste slot " + std::to_string(cmd.slot_index)};
     return {.private_events = {equip_ev, inv_ev, msg},
             .broadcast_events = {},
             .targeted_events = {}};
@@ -881,7 +885,8 @@ CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
 
 CommandResult Game::handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd) {
     auto it = players.find(player_id);
-    if (it == players.end()) return {};
+    if (it == players.end())
+        return {};
 
     Player& player = it->second;
     player.set_meditating(false);
@@ -891,12 +896,10 @@ CommandResult Game::handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd
     InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
     player.dump_equipped(equipped_slots);
     EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
-                               equipped_slots[3]};
+                              equipped_slots[3]};
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
 
-    return {.private_events = {equip_ev, inv_ev},
-            .broadcast_events = {},
-            .targeted_events = {}};
+    return {.private_events = {equip_ev, inv_ev}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {

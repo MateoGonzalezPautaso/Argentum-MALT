@@ -7,15 +7,11 @@
 
 namespace {
 const std::unordered_map<ItemType, std::string> weapon_sounds = {
-    {ItemType::SWORD,         "sword"},
-    {ItemType::AXE,           "axe"},
-    {ItemType::HAMMER,        "hammer"},
-    {ItemType::SIMPLE_BOW,    "bow"},
-    {ItemType::COMPOSITE_BOW, "bow"},
-    {ItemType::ASH_STAFF,     "spell"},
-    {ItemType::KNOTTED_STAFF, "spell"},
-    {ItemType::STUDDED_STAFF, "spell"},
-    {ItemType::ELVEN_FLUTE,   "flute"},
+        {ItemType::SWORD, "sword"},         {ItemType::AXE, "axe"},
+        {ItemType::HAMMER, "hammer"},       {ItemType::SIMPLE_BOW, "bow"},
+        {ItemType::COMPOSITE_BOW, "bow"},   {ItemType::ASH_STAFF, "spell"},
+        {ItemType::KNOTTED_STAFF, "spell"}, {ItemType::STUDDED_STAFF, "spell"},
+        {ItemType::ELVEN_FLUTE, "flute"},
 };
 }
 
@@ -73,28 +69,26 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                            audio_manager.play_sfx("hit");
                            handle_damage_received(e);
                        },
-                         [this](const DamageDealtEvent&) {
-                             auto weapon = player_stats.equipped[0].item_type;
-                             auto it = weapon_sounds.find(weapon);
-                             if (it != weapon_sounds.end()) {
-                                 audio_manager.play_sfx(it->second);
-                             }
-                         },
+                       [this](const DamageDealtEvent&) {
+                           auto weapon = player_stats.equipped[0].item_type;
+                           auto it = weapon_sounds.find(weapon);
+                           if (it != weapon_sounds.end()) {
+                               audio_manager.play_sfx(it->second);
+                           }
+                       },
                        [this](const AttackDodgedEvent& e) { handle_attack_dodged(e); },
                        [this](const ChatMsgEvent& e) { handle_chat_msg(e); },
                        [this](const EntityDiedEvent& e) { handle_entity_died(e); },
-                       [this](const MeditationStartEvent&) {
-                           audio_manager.play_sfx("meditate");
-                       },
+                       [this](const MeditationStartEvent&) { audio_manager.play_sfx("meditate"); },
                        [this](const PlayerRespawnedEvent& e) { handle_player_respawned(e); },
                        [this](const ClanNotificationEvent& e) { handle_clan_notification(e); },
                        [this](const ClanUpdateEvent& e) { handle_clan_update(e); },
-                        [this](const MapTransitionEvent& e) { handle_map_transition(e); },
-                        [this](const HealReceivedEvent& e) { handle_heal_received(e); },
-                        [this](const InventoryUpdateEvent& e) { handle_inventory_update(e); },
-                        [this](const EquipUpdateEvent& e) { handle_equip_update(e); },
-                        [this](const PlayerStatsEvent& e) { handle_player_stats(e); },
-                        [](const auto&) {},
+                       [this](const MapTransitionEvent& e) { handle_map_transition(e); },
+                       [this](const HealReceivedEvent& e) { handle_heal_received(e); },
+                       [this](const InventoryUpdateEvent& e) { handle_inventory_update(e); },
+                       [this](const EquipUpdateEvent& e) { handle_equip_update(e); },
+                       [this](const PlayerStatsEvent& e) { handle_player_stats(e); },
+                       [](const auto&) {},
                },
                ev);
 }
@@ -167,10 +161,12 @@ void GameController::interact_with_prop(const std::string& prop_name) {
         chat_history.add_message(ChatMsgType::SYSTEM, "", "Sacerdote: ¡SHALOM!");
     } else if (prop_name == "comerciante") {
         audio_manager.play_sfx("merchant");
-        chat_history.add_message(ChatMsgType::SYSTEM, "", "Comerciante: Pasa, todo lo que ves esta en venta.");
+        chat_history.add_message(ChatMsgType::SYSTEM, "",
+                                 "Comerciante: Pasa, todo lo que ves esta en venta.");
     } else if (prop_name == "banquero") {
         audio_manager.play_sfx("banker");
-        chat_history.add_message(ChatMsgType::SYSTEM, "", "Banquero: El que deposita dolares, recibira dolares...");
+        chat_history.add_message(ChatMsgType::SYSTEM, "",
+                                 "Banquero: El que deposita dolares, recibira dolares...");
     } else if (prop_name == "sanadora") {
         audio_manager.play_sfx("healer");
         chat_history.add_message(ChatMsgType::SYSTEM, "", "Sanadora: Dejame ver esa herida.");
@@ -180,9 +176,8 @@ void GameController::interact_with_prop(const std::string& prop_name) {
 }
 
 bool GameController::is_clickable_prop(const std::string& prop_name) const {
-    return prop_name == "sacerdote" || prop_name == "comerciante" ||
-           prop_name == "banquero" || prop_name == "sanadora" ||
-           is_transition_prop(prop_name);
+    return prop_name == "sacerdote" || prop_name == "comerciante" || prop_name == "banquero" ||
+           prop_name == "sanadora" || is_transition_prop(prop_name);
 }
 
 bool GameController::is_transition_prop(const std::string& prop_name) const {
@@ -291,7 +286,7 @@ void GameController::apply_movement_visual(Direction dir, bool advance_frame) {
     world_renderer.set_anchor_src_y(move_config.head_src_y_for(dir));
     if (advance_frame) {
         world_renderer.step_movable_src_x(move_config.walk_src_step,
-                                           move_config.walk_src_frames_for(dir));
+                                          move_config.walk_src_frames_for(dir));
     }
 }
 
@@ -412,13 +407,15 @@ bool GameController::handle_keydown(const SDL_Event& event) {
             break;
         case SDLK_UP:
             move_controller.cancel_move_target();
-            apply_movement_visual(Direction::NORTH,
-                                  move_controller.move_direction(Direction::NORTH, now).has_value());
+            apply_movement_visual(
+                    Direction::NORTH,
+                    move_controller.move_direction(Direction::NORTH, now).has_value());
             break;
         case SDLK_DOWN:
             move_controller.cancel_move_target();
-            apply_movement_visual(Direction::SOUTH,
-                                  move_controller.move_direction(Direction::SOUTH, now).has_value());
+            apply_movement_visual(
+                    Direction::SOUTH,
+                    move_controller.move_direction(Direction::SOUTH, now).has_value());
             break;
         case SDLK_h:
             if (ctrl)

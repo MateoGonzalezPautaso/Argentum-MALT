@@ -1,6 +1,6 @@
-#include <algorithm>
-
 #include "text_renderer.h"
+
+#include <algorithm>
 
 namespace texture {
 
@@ -26,10 +26,9 @@ RenderedText render_text(SDL2pp::Renderer& renderer, TTF_Font* font, const std::
     return {SDL2pp::Texture(renderer, wrapped), text_w, text_h};
 }
 
-int render_text_clipped(SDL2pp::Renderer& renderer, TTF_Font* font,
-                         const std::string& text, SDL_Color color,
-                         const SDL2pp::Rect& rect,
-                         int pad_x, int pad_y, bool center_y) {
+int render_text_clipped(SDL2pp::Renderer& renderer, TTF_Font* font, const std::string& text,
+                        SDL_Color color, const SDL2pp::Rect& rect, int pad_x, int pad_y,
+                        bool center_y) {
     auto result = render_text(renderer, font, text, color);
     if (result.w == 0) {
         return 0;

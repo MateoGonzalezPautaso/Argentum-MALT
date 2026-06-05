@@ -26,9 +26,10 @@ EnemyDrop EnemyNpc::get_kill_reward() {
         enemy_drop.gold = get_gold_reward();
     } else if ((random_number >= 8) && (random_number < 9)) {
         enemy_drop.is_potion = true;
-        const Item* potion = catalog.find(
-                rng.get_random_int(1, 2) == 1 ? ItemType::MANA_POTION : ItemType::HEALTH_POTION);
-        if (potion) enemy_drop.item = *potion;
+        const Item* potion = catalog.find(rng.get_random_int(1, 2) == 1 ? ItemType::MANA_POTION :
+                                                                          ItemType::HEALTH_POTION);
+        if (potion)
+            enemy_drop.item = *potion;
     } else if ((random_number >= 9) && (random_number < 10)) {
         enemy_drop.is_object = true;
         enemy_drop.item = catalog.random_equipable(rng);

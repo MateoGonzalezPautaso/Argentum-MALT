@@ -7,9 +7,9 @@
 #include <SDL_ttf.h>
 
 #include "../../common/messages.h"
-
 #include "../chat/chat_history.h"
 #include "../config/config.h"
+
 #include "inventory_renderer.h"
 
 class ChatInput;

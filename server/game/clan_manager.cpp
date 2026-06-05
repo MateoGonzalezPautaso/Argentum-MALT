@@ -69,7 +69,8 @@ ClanResult ClanManager::request_join(const std::string& applicant_username,
     }
 
     if (static_cast<int>(clan.members.size()) >= config.max_members) {
-        return {false, "El clan esta lleno (maximo " + std::to_string(config.max_members) + " miembros)"};
+        return {false,
+                "El clan esta lleno (maximo " + std::to_string(config.max_members) + " miembros)"};
     }
 
     auto& requests = clan.join_requests;

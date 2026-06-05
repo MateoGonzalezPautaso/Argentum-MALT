@@ -11,6 +11,7 @@
 #include "../../common/rng.h"
 #include "../core/config.h"
 #include "../persistence/clan_persistence.h"
+
 #include "clan_command_handler.h"
 #include "clan_manager.h"
 #include "combat_controller.h"

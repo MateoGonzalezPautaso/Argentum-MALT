@@ -33,8 +33,8 @@ public:
     void handle_login_error(const std::string& msg);
     void reset_login_state();
 
-    bool try_submit_create_character(std::string& username, std::string& password,
-                                     Race& race, PlayerClass& player_class);
+    bool try_submit_create_character(std::string& username, std::string& password, Race& race,
+                                     PlayerClass& player_class);
     void handle_create_char_error(const std::string& msg);
     void reset_create_char_state();
     bool wants_create_character() const;

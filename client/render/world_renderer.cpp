@@ -66,9 +66,7 @@ void WorldRenderer::load_map(const TilemapConfig& tilemap) {
     }
 }
 
-void WorldRenderer::clear_entities() {
-    sprite_renderer.clear_all_entities();
-}
+void WorldRenderer::clear_entities() { sprite_renderer.clear_all_entities(); }
 
 WorldRenderer::~WorldRenderer() {
     if (name_font) {
@@ -141,13 +139,9 @@ bool WorldRenderer::get_movable_position(int& x, int& y) const {
     return sprite_renderer.get_movable_position(x, y);
 }
 
-int WorldRenderer::movable_w() const {
-    return sprite_renderer.movable_w();
-}
+int WorldRenderer::movable_w() const { return sprite_renderer.movable_w(); }
 
-int WorldRenderer::movable_h() const {
-    return sprite_renderer.movable_h();
-}
+int WorldRenderer::movable_h() const { return sprite_renderer.movable_h(); }
 
 void WorldRenderer::get_camera_offset(int& x, int& y) const {
     x = camera.offset_x();
@@ -186,9 +180,7 @@ void WorldRenderer::set_entity_alpha(uint16_t entity_id, uint8_t alpha) {
     sprite_renderer.set_entity_alpha(entity_id, alpha);
 }
 
-void WorldRenderer::set_movable_alpha(uint8_t alpha) {
-    sprite_renderer.set_movable_alpha(alpha);
-}
+void WorldRenderer::set_movable_alpha(uint8_t alpha) { sprite_renderer.set_movable_alpha(alpha); }
 
 void WorldRenderer::trigger_damage_overlay_at(int world_x, int world_y) {
     sprite_renderer.trigger_damage_overlay_at(world_x, world_y);

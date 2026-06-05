@@ -38,44 +38,43 @@ PropGrid::PropGrid(const TilemapConfig& tilemap) {
 }
 
 bool PropGrid::is_hitbox_at(int foot_x, int foot_y) const {
-    for (const auto& e : entries_) {
+    for (const auto& e: entries_) {
         if (e.hb_w <= 0 || e.hb_h <= 0)
             continue;
-        if (foot_x >= e.hb_left && foot_x < e.hb_right &&
-            foot_y >= e.hb_top && foot_y < e.hb_bottom)
+        if (foot_x >= e.hb_left && foot_x < e.hb_right && foot_y >= e.hb_top &&
+            foot_y < e.hb_bottom)
             return true;
     }
     return false;
 }
 
 const PropDef* PropGrid::find_transition_at(int foot_x, int foot_y) const {
-    for (const auto& e : entries_) {
+    for (const auto& e: entries_) {
         if (e.def->transition_map.empty())
             continue;
-        if (foot_x >= e.hb_left && foot_x < e.hb_right &&
-            foot_y >= e.hb_top && foot_y < e.hb_bottom)
+        if (foot_x >= e.hb_left && foot_x < e.hb_right && foot_y >= e.hb_top &&
+            foot_y < e.hb_bottom)
             return e.def;
     }
     return nullptr;
 }
 
 bool PropGrid::is_in_range_of(const std::string& prop_name, int px, int py, int range) const {
-    for (const auto& e : entries_) {
+    for (const auto& e: entries_) {
         if (e.name != prop_name)
             continue;
-        if (std::abs(px - e.center_x) < range &&
-            std::abs(py - e.center_y) < range)
+        if (std::abs(px - e.center_x) < range && std::abs(py - e.center_y) < range)
             return true;
     }
     return false;
 }
 
-bool PropGrid::find_nearest_center(const std::string& prop_name, int px, int py,
-                                   int& out_cx, int& out_cy) const {
+bool PropGrid::find_nearest_center(const std::string& prop_name, int px, int py, int& out_cx,
+                                   int& out_cy) const {
     int best = std::numeric_limits<int>::max();
     bool found = false;
 
-    for (const auto& e : entries_) {
+    for (const auto& e: entries_) {
         if (e.name != prop_name)
             continue;
 

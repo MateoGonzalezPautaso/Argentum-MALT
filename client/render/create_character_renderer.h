@@ -9,6 +9,7 @@
 
 #include "../../common/messages.h"
 #include "../config/config.h"
+
 #include "button.h"
 
 class ChatInput;

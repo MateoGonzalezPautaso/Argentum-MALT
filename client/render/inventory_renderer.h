@@ -31,8 +31,7 @@ private:
     void draw_hover_border(int sx, int sy);
 
 public:
-    InventoryRenderer(SDL2pp::Renderer& renderer, TTF_Font* font,
-                      const InventoryPanelConfig& cfg,
+    InventoryRenderer(SDL2pp::Renderer& renderer, TTF_Font* font, const InventoryPanelConfig& cfg,
                       const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites);
 
     void set_font(TTF_Font* f) { font = f; }

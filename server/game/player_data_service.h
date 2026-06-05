@@ -8,6 +8,7 @@
 #include "../core/config.h"
 #include "../persistence/inventory_persistence.h"
 #include "../persistence/player_persistence.h"
+
 #include "player.h"
 
 class PlayerDataService {
@@ -16,7 +17,7 @@ private:
     InventoryPersistence inventory_persistence;
     const BalanceConfig& balance;
     uint8_t inv_capacity;
-    
+
 public:
     PlayerDataService(const std::string& data_dir, const ServerConfig& config);
 

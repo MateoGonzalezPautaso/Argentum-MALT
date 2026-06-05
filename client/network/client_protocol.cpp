@@ -49,9 +49,7 @@ void ClientProtocol::send_meditate() { protocol.send_opcode(OpCode::MEDITATE); }
 
 void ClientProtocol::send_resurrect() { protocol.send_opcode(OpCode::RESURRECT); }
 
-void ClientProtocol::send_cheat_infinite_hp() {
-    protocol.send_opcode(OpCode::CHEAT_INFINITE_HP);
-}
+void ClientProtocol::send_cheat_infinite_hp() { protocol.send_opcode(OpCode::CHEAT_INFINITE_HP); }
 
 void ClientProtocol::send_cheat_infinite_mana() {
     protocol.send_opcode(OpCode::CHEAT_INFINITE_MANA);
@@ -104,7 +102,7 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const ChangeMapCmd& msg) { send_change_map(msg); },
                        [this](const EquipItemCmd& msg) { send_equip_item(msg); },
                        [this](const UnequipItemCmd& msg) { send_unequip_item(msg); },
-                        [](const auto&) { throw std::runtime_error("Command not implemented"); },
+                       [](const auto&) { throw std::runtime_error("Command not implemented"); },
                },
                cmd);
 }
@@ -113,20 +111,34 @@ ServerEvent ClientProtocol::recv_event() {
     OpCode opcode = protocol.recv_opcode();
 
     switch (opcode) {
-        case OpCode::LOGIN_OK:          return recv_login_ok();
-        case OpCode::LOGIN_ERROR:       return recv_login_error();
-        case OpCode::CHARACTER_CREATED: return recv_character_created();
-        case OpCode::CHARACTER_ERROR:   return recv_character_error();
-        case OpCode::ENTITY_SPAWN:      return recv_entity_spawn();
-        case OpCode::ENTITY_DESPAWN:    return recv_entity_despawn();
-        case OpCode::ENTITY_MOVE:       return recv_entity_move();
-        case OpCode::DAMAGE_DEALT:      return recv_damage_dealt();
-        case OpCode::DAMAGE_RECEIVED:   return recv_damage_received();
-        case OpCode::ATTACK_DODGED:     return AttackDodgedEvent{};
-        case OpCode::ENTITY_DIED:       return recv_entity_died();
-        case OpCode::PLAYER_RESPAWNED:  return recv_player_respawned();
-        case OpCode::MEDITATION_START:  return MeditationStartEvent{};
-        case OpCode::MEDITATION_STOP:   return MeditationStopEvent{};
+        case OpCode::LOGIN_OK:
+            return recv_login_ok();
+        case OpCode::LOGIN_ERROR:
+            return recv_login_error();
+        case OpCode::CHARACTER_CREATED:
+            return recv_character_created();
+        case OpCode::CHARACTER_ERROR:
+            return recv_character_error();
+        case OpCode::ENTITY_SPAWN:
+            return recv_entity_spawn();
+        case OpCode::ENTITY_DESPAWN:
+            return recv_entity_despawn();
+        case OpCode::ENTITY_MOVE:
+            return recv_entity_move();
+        case OpCode::DAMAGE_DEALT:
+            return recv_damage_dealt();
+        case OpCode::DAMAGE_RECEIVED:
+            return recv_damage_received();
+        case OpCode::ATTACK_DODGED:
+            return AttackDodgedEvent{};
+        case OpCode::ENTITY_DIED:
+            return recv_entity_died();
+        case OpCode::PLAYER_RESPAWNED:
+            return recv_player_respawned();
+        case OpCode::MEDITATION_START:
+            return MeditationStartEvent{};
+        case OpCode::MEDITATION_STOP:
+            return MeditationStopEvent{};
         case OpCode::INVENTORY_UPDATE: {
             uint8_t count = protocol.recv_uint8();
             std::vector<InventorySlot> slots;
@@ -154,12 +166,18 @@ ServerEvent ClientProtocol::recv_event() {
             ev.shield = read_slot();
             return ev;
         }
-        case OpCode::CHAT_MSG:          return recv_chat_msg();
-        case OpCode::CLAN_NOTIFICATION: return recv_clan_notification();
-        case OpCode::CLAN_UPDATE:       return recv_clan_update();
-        case OpCode::HEAL_RECEIVED:     return recv_heal_received();
-        case OpCode::MAP_TRANSITION:    return recv_map_transition();
-        case OpCode::PLAYER_STATS:      return recv_player_stats();
+        case OpCode::CHAT_MSG:
+            return recv_chat_msg();
+        case OpCode::CLAN_NOTIFICATION:
+            return recv_clan_notification();
+        case OpCode::CLAN_UPDATE:
+            return recv_clan_update();
+        case OpCode::HEAL_RECEIVED:
+            return recv_heal_received();
+        case OpCode::MAP_TRANSITION:
+            return recv_map_transition();
+        case OpCode::PLAYER_STATS:
+            return recv_player_stats();
         default:
             throw std::runtime_error("Unknown event opcode: " +
                                      std::to_string(static_cast<int>(opcode)));

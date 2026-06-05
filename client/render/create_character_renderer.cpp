@@ -3,16 +3,16 @@
 #include <algorithm>
 
 #include "../input/chat_input.h"
+
 #include "geometry.h"
 #include "text_renderer.h"
 #include "texture_loader.h"
 
 static constexpr std::array<std::string_view, 4> RACE_LABELS = {"Human", "Elf", "Dwarf", "Gnome"};
 static constexpr std::array<std::string_view, 4> CLASS_LABELS = {"Warrior", "Mage", "Cleric",
-                                                                   "Paladin"};
+                                                                 "Paladin"};
 
-CreateCharacterRenderer::CreateCharacterRenderer(SDL2pp::Renderer& renderer,
-                                                 const UIConfig& ui_cfg,
+CreateCharacterRenderer::CreateCharacterRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
                                                  const ChatInput& username_model,
                                                  const ChatInput& password_model):
         renderer(renderer),
@@ -63,11 +63,11 @@ void CreateCharacterRenderer::init_layout() {
 
     const int field_x = std::max(0, (ui_cfg.window_w - ui_cfg.login_field_w) / 2);
     const int field_start_y = title_y + title_h + ui_cfg.login_field_spacing;
-    username_field_rect = SDL2pp::Rect(field_x, field_start_y, ui_cfg.login_field_w,
-                                       ui_cfg.login_field_h);
+    username_field_rect =
+            SDL2pp::Rect(field_x, field_start_y, ui_cfg.login_field_w, ui_cfg.login_field_h);
     const int password_y = field_start_y + ui_cfg.login_field_h + ui_cfg.login_field_gap;
-    password_field_rect = SDL2pp::Rect(field_x, password_y, ui_cfg.login_field_w,
-                                       ui_cfg.login_field_h);
+    password_field_rect =
+            SDL2pp::Rect(field_x, password_y, ui_cfg.login_field_w, ui_cfg.login_field_h);
 
     // Selector rows: each option = field_w/4 wide, same height as fields
     const int sel_w = ui_cfg.login_field_w / 4;
@@ -98,8 +98,7 @@ void CreateCharacterRenderer::render(Race selected_race, PlayerClass selected_cl
     renderer.Copy(background_texture, SDL2pp::NullOpt, background_rect);
     renderer.Copy(logo_texture, SDL2pp::NullOpt, logo_rect);
 
-    SDL_Surface* title_surf =
-            TTF_RenderUTF8_Blended(title_font, "Create Character", title_color);
+    SDL_Surface* title_surf = TTF_RenderUTF8_Blended(title_font, "Create Character", title_color);
     if (title_surf) {
         SDL2pp::Surface wrapped(title_surf);
         SDL2pp::Texture tex(renderer, wrapped);
@@ -125,8 +124,8 @@ void CreateCharacterRenderer::render(Race selected_race, PlayerClass selected_cl
     renderer.Present();
 }
 
-void CreateCharacterRenderer::render_text_field(const SDL2pp::Rect& rect,
-                                                const std::string& text, bool focused,
+void CreateCharacterRenderer::render_text_field(const SDL2pp::Rect& rect, const std::string& text,
+                                                bool focused,
                                                 const std::string& placeholder) const {
     if (!field_font)
         return;
@@ -138,8 +137,8 @@ void CreateCharacterRenderer::render_text_field(const SDL2pp::Rect& rect,
 
     int clipped_w = 0;
     if (!text.empty())
-        clipped_w = texture::render_text_clipped(renderer, field_font, text, text_color, rect, 4,
-                                                 2, true);
+        clipped_w = texture::render_text_clipped(renderer, field_font, text, text_color, rect, 4, 2,
+                                                 true);
     else if (!focused && !placeholder.empty())
         texture::render_text_clipped(renderer, field_font, placeholder, placeholder_color, rect, 4,
                                      2, true);
@@ -147,8 +146,8 @@ void CreateCharacterRenderer::render_text_field(const SDL2pp::Rect& rect,
     if (focused && (SDL_GetTicks() / ui_cfg.cursor_blink_ms) % 2U == 0U) {
         const int cursor_x = rect.GetX() + ui_cfg.cursor_padding + clipped_w;
         renderer.SetDrawColor(255, 255, 255, 255);
-        SDL2pp::Rect cursor_rect(cursor_x, rect.GetY() + ui_cfg.cursor_padding,
-                                 ui_cfg.cursor_width, rect.GetH() - ui_cfg.cursor_height_shrink);
+        SDL2pp::Rect cursor_rect(cursor_x, rect.GetY() + ui_cfg.cursor_padding, ui_cfg.cursor_width,
+                                 rect.GetH() - ui_cfg.cursor_height_shrink);
         renderer.FillRect(cursor_rect);
     }
 }
@@ -178,8 +177,7 @@ void CreateCharacterRenderer::render_error() const {
     if (result.w == 0)
         return;
     const int x = std::max(0, (ui_cfg.window_w - result.w) / 2);
-    const int y =
-            create_button.rect.GetY() + create_button.rect.GetH() + ui_cfg.error_spacing;
+    const int y = create_button.rect.GetY() + create_button.rect.GetH() + ui_cfg.error_spacing;
     renderer.Copy(result.texture, SDL2pp::NullOpt, SDL2pp::Rect(x, y, result.w, result.h));
 }
 

@@ -23,8 +23,10 @@ public:
 
     ClanResult create_clan(const std::string& founder_username, const std::string& clan_name);
     ClanResult request_join(const std::string& applicant_username, const std::string& clan_name);
-    ClanResult accept_member(const std::string& founder_username, const std::string& target_username);
-    ClanResult reject_member(const std::string& founder_username, const std::string& target_username);
+    ClanResult accept_member(const std::string& founder_username,
+                             const std::string& target_username);
+    ClanResult reject_member(const std::string& founder_username,
+                             const std::string& target_username);
     ClanResult ban_member(const std::string& founder_username, const std::string& target_username);
     ClanResult kick_member(const std::string& founder_username, const std::string& target_username);
     ClanResult leave_clan(const std::string& username);

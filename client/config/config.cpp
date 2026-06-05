@@ -187,15 +187,24 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
         if (auto inv = (*tbl)["inventory_panel"].as_table()) {
             config.ui.inventory_panel.x = toml_get_int(*inv, "x", config.ui.inventory_panel.x);
             config.ui.inventory_panel.y = toml_get_int(*inv, "y", config.ui.inventory_panel.y);
-            config.ui.inventory_panel.cols = toml_get_int(*inv, "cols", config.ui.inventory_panel.cols);
-            config.ui.inventory_panel.slot_w = toml_get_int(*inv, "slot_w", config.ui.inventory_panel.slot_w);
-            config.ui.inventory_panel.slot_h = toml_get_int(*inv, "slot_h", config.ui.inventory_panel.slot_h);
-            config.ui.inventory_panel.gap = toml_get_int(*inv, "gap", config.ui.inventory_panel.gap);
-            config.ui.inventory_panel.equip_y = toml_get_int(*inv, "equip_y", config.ui.inventory_panel.equip_y);
-            config.ui.inventory_panel.equip_weapon_label = toml_get_string(*inv, "equip_weapon_label", config.ui.inventory_panel.equip_weapon_label);
-            config.ui.inventory_panel.equip_armor_label = toml_get_string(*inv, "equip_armor_label", config.ui.inventory_panel.equip_armor_label);
-            config.ui.inventory_panel.equip_helmet_label = toml_get_string(*inv, "equip_helmet_label", config.ui.inventory_panel.equip_helmet_label);
-            config.ui.inventory_panel.equip_shield_label = toml_get_string(*inv, "equip_shield_label", config.ui.inventory_panel.equip_shield_label);
+            config.ui.inventory_panel.cols =
+                    toml_get_int(*inv, "cols", config.ui.inventory_panel.cols);
+            config.ui.inventory_panel.slot_w =
+                    toml_get_int(*inv, "slot_w", config.ui.inventory_panel.slot_w);
+            config.ui.inventory_panel.slot_h =
+                    toml_get_int(*inv, "slot_h", config.ui.inventory_panel.slot_h);
+            config.ui.inventory_panel.gap =
+                    toml_get_int(*inv, "gap", config.ui.inventory_panel.gap);
+            config.ui.inventory_panel.equip_y =
+                    toml_get_int(*inv, "equip_y", config.ui.inventory_panel.equip_y);
+            config.ui.inventory_panel.equip_weapon_label = toml_get_string(
+                    *inv, "equip_weapon_label", config.ui.inventory_panel.equip_weapon_label);
+            config.ui.inventory_panel.equip_armor_label = toml_get_string(
+                    *inv, "equip_armor_label", config.ui.inventory_panel.equip_armor_label);
+            config.ui.inventory_panel.equip_helmet_label = toml_get_string(
+                    *inv, "equip_helmet_label", config.ui.inventory_panel.equip_helmet_label);
+            config.ui.inventory_panel.equip_shield_label = toml_get_string(
+                    *inv, "equip_shield_label", config.ui.inventory_panel.equip_shield_label);
         }
     }
 
@@ -216,12 +225,18 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
             config.ui.portrait.h = toml_get_int(*pt, "h", config.ui.portrait.h);
             config.ui.portrait.lvl_x = toml_get_int(*pt, "lvl_x", config.ui.portrait.lvl_x);
             config.ui.portrait.lvl_y = toml_get_int(*pt, "lvl_y", config.ui.portrait.lvl_y);
-            config.ui.portrait.head_src_w = toml_get_int(*pt, "head_src_w", config.ui.portrait.head_src_w);
-            config.ui.portrait.head_src_h = toml_get_int(*pt, "head_src_h", config.ui.portrait.head_src_h);
-            config.ui.portrait.body_src_w = toml_get_int(*pt, "body_src_w", config.ui.portrait.body_src_w);
-            config.ui.portrait.body_shoulder_h = toml_get_int(*pt, "body_shoulder_h", config.ui.portrait.body_shoulder_h);
-            config.ui.portrait.anchor_y = toml_get_int(*pt, "anchor_y", config.ui.portrait.anchor_y);
-            config.ui.portrait.zoom = static_cast<float>(toml_get_double(*pt, "zoom", config.ui.portrait.zoom));
+            config.ui.portrait.head_src_w =
+                    toml_get_int(*pt, "head_src_w", config.ui.portrait.head_src_w);
+            config.ui.portrait.head_src_h =
+                    toml_get_int(*pt, "head_src_h", config.ui.portrait.head_src_h);
+            config.ui.portrait.body_src_w =
+                    toml_get_int(*pt, "body_src_w", config.ui.portrait.body_src_w);
+            config.ui.portrait.body_shoulder_h =
+                    toml_get_int(*pt, "body_shoulder_h", config.ui.portrait.body_shoulder_h);
+            config.ui.portrait.anchor_y =
+                    toml_get_int(*pt, "anchor_y", config.ui.portrait.anchor_y);
+            config.ui.portrait.zoom =
+                    static_cast<float>(toml_get_double(*pt, "zoom", config.ui.portrait.zoom));
         }
     }
 }
@@ -312,13 +327,15 @@ void parse_movement_config(const toml::table& root, ClientConfig& config) {
 
 void parse_item_sprites_config(const toml::table& root, ClientConfig& config) {
     if (auto sprites = root["item_sprites"].as_array()) {
-        for (const auto& entry : *sprites) {
-            if (!entry.is_table()) continue;
+        for (const auto& entry: *sprites) {
+            if (!entry.is_table())
+                continue;
             const toml::table& tbl = *entry.as_table();
             ItemSpriteDef def;
             std::string type_str = toml_get_string(tbl, "item_type", "");
             def.item_type = parse_item_type(type_str);
-            if (def.item_type == ItemType::NONE) continue;
+            if (def.item_type == ItemType::NONE)
+                continue;
 
             def.path = toml_get_string(tbl, "path", "");
             def.src_x = toml_get_int(tbl, "src_x", def.src_x);

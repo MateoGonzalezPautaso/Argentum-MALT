@@ -7,6 +7,7 @@
 #include "../../common/item_catalog.h"
 #include "../../common/messages.h"
 #include "../core/config.h"
+
 #include "inventory.h"
 
 struct UpdateStats {
@@ -49,11 +50,9 @@ public:
            PlayerClass player_class, const BalanceConfig& balance, uint8_t inv_capacity);
 
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
-           PlayerClass player_class, const BalanceConfig& balance,
-           uint8_t level, uint32_t experience,
-           uint32_t hp_current, uint32_t hp_max,
-           uint32_t mana_current, uint32_t mana_max,
-           uint32_t gold, uint8_t inv_capacity, uint32_t strength);
+           PlayerClass player_class, const BalanceConfig& balance, uint8_t level,
+           uint32_t experience, uint32_t hp_current, uint32_t hp_max, uint32_t mana_current,
+           uint32_t mana_max, uint32_t gold, uint8_t inv_capacity, uint32_t strength);
 
     uint16_t get_id() const { return id; }
     const std::string& get_username() const { return username; }

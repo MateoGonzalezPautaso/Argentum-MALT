@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
-#include "server/game/player.h"
 #include "server/core/config.h"
+#include "server/game/player.h"
 
 namespace {
 
@@ -17,11 +17,13 @@ BalanceConfig make_balance() {
 }
 
 Player make_player(uint16_t id = 1) {
-    return Player(id, "hero", {100, 100}, Direction::SOUTH, Race::HUMAN, PlayerClass::WARRIOR, make_balance(), 20);
+    return Player(id, "hero", {100, 100}, Direction::SOUTH, Race::HUMAN, PlayerClass::WARRIOR,
+                  make_balance(), 20);
 }
 
 Player make_mage_player(uint16_t id = 1) {
-    return Player(id, "mage", {100, 100}, Direction::SOUTH, Race::HUMAN, PlayerClass::MAGE, make_balance(), 20);
+    return Player(id, "mage", {100, 100}, Direction::SOUTH, Race::HUMAN, PlayerClass::MAGE,
+                  make_balance(), 20);
 }
 
 }  // namespace
