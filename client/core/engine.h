@@ -5,6 +5,7 @@
 
 #include "../../common/messages.h"
 #include "../../common/queue.h"
+#include "../audio/audio_manager.h"
 #include "../config/config.h"
 #include "../render/render_context.h"
 #include "../screen/create_character_controller.h"
@@ -16,7 +17,8 @@ enum class GameState { Menu, Login, CreateCharacter, Playing };
 
 class Engine {
 public:
-    Engine(const ClientConfig& config, Queue<ClientCommand>& command_queue);
+    Engine(const ClientConfig& config, Queue<ClientCommand>& command_queue,
+           AudioManager& audio_manager);
 
     bool dispatch_event(GameState& state);
 
@@ -31,8 +33,8 @@ public:
     void handle_login_error(const std::string& msg);
     void reset_login_state();
 
-    bool try_submit_create_character(std::string& username, std::string& password,
-                                     Race& race, PlayerClass& player_class);
+    bool try_submit_create_character(std::string& username, std::string& password, Race& race,
+                                     PlayerClass& player_class);
     void handle_create_char_error(const std::string& msg);
     void reset_create_char_state();
     bool wants_create_character() const;
@@ -42,6 +44,7 @@ private:
     MenuController menu_ctrl;
     LoginController login_ctrl;
     CreateCharacterController create_char_ctrl;
+    AudioManager& audio_manager;
     GameController game_controller;
     bool create_char_requested = false;
 

@@ -5,10 +5,9 @@
 #include <stdexcept>
 #include <utility>
 
-#include "../../../common/messages.h"
-
 #include <SDL2/SDL.h>
 
+#include "../../../common/messages.h"
 #include "../geometry.h"
 #include "../texture_loader.h"
 
@@ -96,7 +95,7 @@ void SpriteRenderer::set_movable_position(int x, int y) {
 }
 
 SpriteConfig SpriteRenderer::resolve_entity_skin(const SpriteConfig& config, Race race,
-                                                  PlayerClass player_class) const {
+                                                 PlayerClass player_class) const {
     SpriteConfig selected = config;
     if (config.movable && !config.anchor_to_movable) {
         std::string path = skin_config.body_path_for(player_class);
@@ -162,8 +161,8 @@ void SpriteRenderer::create_entity_name_label(uint16_t entity_id, const std::str
     SDL2pp::Surface wrapped(surface);
     int text_w = 0, text_h = 0;
     TTF_SizeUTF8(name_font, name.c_str(), &text_w, &text_h);
-    entity_name_render.emplace(entity_id,
-                               EntityNameRender{SDL2pp::Texture(renderer, wrapped), text_w, text_h});
+    entity_name_render.emplace(
+            entity_id, EntityNameRender{SDL2pp::Texture(renderer, wrapped), text_w, text_h});
 }
 
 void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::string& name,
@@ -190,9 +189,7 @@ void SpriteRenderer::clear_all_entities() {
     entity_name_render.clear();
 }
 
-void SpriteRenderer::set_skin_config(const SkinConfig& cfg) {
-    skin_config = cfg;
-}
+void SpriteRenderer::set_skin_config(const SkinConfig& cfg) { skin_config = cfg; }
 
 void SpriteRenderer::set_local_player_info(Race race, PlayerClass player_class) {
     if (entity_part_configs.empty()) {
@@ -373,8 +370,7 @@ void SpriteRenderer::render(const SDL2pp::Rect& cam) {
 }
 
 void SpriteRenderer::append_sprite_drawables(std::vector<SpriteRender>& src,
-                                             const SDL2pp::Rect& cam,
-                                             std::vector<Drawable>& out) {
+                                             const SDL2pp::Rect& cam, std::vector<Drawable>& out) {
     for (auto& sprite: src) {
         if (!sprite.visible || sprite.frames.empty() || !is_visible(sprite, cam)) {
             continue;
@@ -395,12 +391,10 @@ void SpriteRenderer::render_entity_names(const SDL2pp::Rect& cam) {
             continue;
         }
         int body_foot_y = 0;
-        for (auto& sprite: pair.second) {
-            if (sprite.movable) {
-                body_foot_y = sprite.dst.GetY() + sprite.dst.GetH();
-                break;
-            }
-        }
+        auto sit = std::find_if(pair.second.begin(), pair.second.end(),
+                                [](const auto& s) { return s.movable; });
+        if (sit != pair.second.end())
+            body_foot_y = sit->dst.GetY() + sit->dst.GetH();
         if (body_foot_y <= 0) {
             continue;
         }
@@ -435,7 +429,7 @@ void SpriteRenderer::sort_and_render_drawables(std::vector<Drawable>& drawables)
 
 void SpriteRenderer::load_damage_overlay() {
     overlays.resize(3);
-    for (auto& ov : overlays) {
+    for (auto& ov: overlays) {
         ov.frames.reserve(5);
         for (int i = 400; i <= 404; ++i) {
             std::string path = "assets/Graficos/" + std::to_string(i) + ".png";
@@ -449,8 +443,9 @@ void SpriteRenderer::load_damage_overlay() {
 }
 
 void SpriteRenderer::trigger_damage_overlay_at(int world_x, int world_y) {
-    for (auto& ov : overlays) {
-        if (ov.active) continue;
+    for (auto& ov: overlays) {
+        if (ov.active)
+            continue;
         ov.dst.SetX(world_x - ov.dst.GetW() / 2);
         ov.dst.SetY(world_y - ov.dst.GetH() / 2);
         ov.current_frame = 0;
@@ -462,23 +457,25 @@ void SpriteRenderer::trigger_damage_overlay_at(int world_x, int world_y) {
 
 bool SpriteRenderer::get_entity_world_position(uint16_t entity_id, int& x, int& y) const {
     auto it = entity_sprites.find(entity_id);
-    if (it == entity_sprites.end()) return false;
-    for (const auto& part : it->second) {
-        if (part.movable) {
-            x = part.dst.GetX() + part.dst.GetW() / 2;
-            y = part.dst.GetY() + part.dst.GetH() / 2;
-            return true;
-        }
-    }
-    return false;
+    if (it == entity_sprites.end())
+        return false;
+    auto pit = std::find_if(it->second.begin(), it->second.end(),
+                            [](const auto& p) { return p.movable; });
+    if (pit == it->second.end())
+        return false;
+    x = pit->dst.GetX() + pit->dst.GetW() / 2;
+    y = pit->dst.GetY() + pit->dst.GetH() / 2;
+    return true;
 }
 
-void SpriteRenderer::tick_overlays(AnimationSystem& anim) {
+void SpriteRenderer::tick_overlays(const AnimationSystem& anim) {
     (void)anim;
     uint32_t now = SDL_GetTicks();
-    for (auto& ov : overlays) {
-        if (!ov.active) continue;
-        if (now - ov.last_ticks < ov.frame_ms) continue;
+    for (auto& ov: overlays) {
+        if (!ov.active)
+            continue;
+        if (now - ov.last_ticks < ov.frame_ms)
+            continue;
         ov.last_ticks = now;
         ov.current_frame++;
         if (ov.current_frame >= ov.frames.size()) {
@@ -488,10 +485,11 @@ void SpriteRenderer::tick_overlays(AnimationSystem& anim) {
 }
 
 void SpriteRenderer::render_overlays(const SDL2pp::Rect& cam) {
-    for (auto& ov : overlays) {
-        if (!ov.active) continue;
-        SDL2pp::Rect dst(ov.dst.GetX() - cam.GetX(), ov.dst.GetY() - cam.GetY(),
-                         ov.dst.GetW(), ov.dst.GetH());
+    for (auto& ov: overlays) {
+        if (!ov.active)
+            continue;
+        SDL2pp::Rect dst(ov.dst.GetX() - cam.GetX(), ov.dst.GetY() - cam.GetY(), ov.dst.GetW(),
+                         ov.dst.GetH());
         renderer.Copy(ov.frames[ov.current_frame], SDL2pp::NullOpt, dst);
     }
 }

@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "../input/chat_input.h"
 
@@ -10,7 +12,8 @@
 #include "texture_loader.h"
 
 UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
-                       const SkinConfig& skin_config, const ChatInput& chat_model):
+                       const SkinConfig& skin_config, const ChatInput& chat_model,
+                       const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites):
         renderer(renderer),
         chat_model(chat_model),
         skin_config(skin_config),
@@ -23,7 +26,8 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
                         ui_cfg.chat_input_h),
         chat_history_rect(ui_cfg.chat_history_x, ui_cfg.chat_history_y, ui_cfg.chat_history_w,
                           ui_cfg.chat_history_h),
-        ui_cfg(ui_cfg) {
+        ui_cfg(ui_cfg),
+        inventory_renderer(renderer, bar_font, ui_cfg.inventory_panel, item_sprites) {
     chat_font = TTF_OpenFont(ui_cfg.font_path.c_str(), ui_cfg.font_chat_size);
     if (!chat_font) {
         throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
@@ -32,6 +36,7 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
     if (!bar_font) {
         throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
     }
+    inventory_renderer.set_font(bar_font);
 }
 
 UIRenderer::~UIRenderer() {
@@ -180,6 +185,27 @@ void UIRenderer::render_portrait(Race race, PlayerClass player_class, uint8_t le
     }
 }
 
+void UIRenderer::set_hover(int mx, int my, const std::vector<InventorySlot>& slots,
+                           const InventorySlot equipped[4]) {
+    inventory_renderer.update_hover(mx, my, slots, equipped);
+}
+
+bool UIRenderer::is_hovering_occupied() const { return inventory_renderer.is_hovering_occupied(); }
+
+int UIRenderer::get_hovered_inv_slot() const { return inventory_renderer.get_hovered_inv_slot(); }
+
+int UIRenderer::get_hovered_equip_slot() const {
+    return inventory_renderer.get_hovered_equip_slot();
+}
+
+void UIRenderer::render_inventory(const std::vector<InventorySlot>& slots) {
+    inventory_renderer.render(slots);
+}
+
+void UIRenderer::render_equipped(const InventorySlot equipped[4]) {
+    inventory_renderer.render_equipped(equipped);
+}
+
 void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages) {
     if (!chat_font || messages.empty()) {
         return;
@@ -228,8 +254,8 @@ void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages) {
 }
 
 void UIRenderer::render_chat_text_line(int& clipped_w) const {
-    clipped_w = texture::render_text_clipped(renderer, chat_font, chat_model.get_text(),
-                                              chat_color, chat_input_rect);
+    clipped_w = texture::render_text_clipped(renderer, chat_font, chat_model.get_text(), chat_color,
+                                             chat_input_rect);
 }
 
 void UIRenderer::render_chat_cursor(int x_offset) const {

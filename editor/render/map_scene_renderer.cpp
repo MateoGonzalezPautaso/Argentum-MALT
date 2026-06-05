@@ -1,9 +1,9 @@
 #include "map_scene_renderer.h"
 
-#include <algorithm>
 #include <QGraphicsRectItem>
 #include <QPainter>
 #include <QPen>
+#include <algorithm>
 #include <utility>
 
 
@@ -50,8 +50,10 @@ QPixmap MapSceneRenderer::prop_pixmap(const TilemapDocument& doc, const std::str
     int min_x = 0, min_y = 0, max_x = 0, max_y = 0;
     {
         const auto& p0 = def.parts[0];
-        min_x = p0.offset_x; max_x = p0.offset_x + p0.src_w;
-        min_y = p0.offset_y; max_y = p0.offset_y + p0.src_h;
+        min_x = p0.offset_x;
+        max_x = p0.offset_x + p0.src_w;
+        min_y = p0.offset_y;
+        max_y = p0.offset_y + p0.src_h;
     }
     for (std::size_t i = 1; i < def.parts.size(); ++i) {
         const auto& p = def.parts[i];
@@ -68,7 +70,7 @@ QPixmap MapSceneRenderer::prop_pixmap(const TilemapDocument& doc, const std::str
     QPixmap composite(display_w, display_h);
     composite.fill(Qt::transparent);
     QPainter p(&composite);
-    for (const auto& part : def.parts) {
+    for (const auto& part: def.parts) {
         const QPixmap* atlas = atlases_->get(part.path);
         if (!atlas)
             continue;

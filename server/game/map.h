@@ -2,6 +2,7 @@
 #define SERVER_MAP_H
 
 #include "../../common/config.h"
+
 #include "prop_grid.h"
 
 class Map {

@@ -10,7 +10,8 @@ Client::Client(const ClientConfig& cfg):
         config(cfg),
         skt(cfg.network.host.c_str(), cfg.network.port.c_str()),
         protocol(std::move(skt)),
-        engine(config, command_queue),
+        audio_manager(config.sfx),
+        engine(config, command_queue, audio_manager),
         sender(protocol, command_queue),
         receiver(protocol, event_queue) {
     SDL_StartTextInput();
@@ -33,6 +34,8 @@ bool Client::run_menu() {
     bool running = true;
     uint32_t last_tick = SDL_GetTicks();
 
+    audio_manager.play_menu_music();
+
     while (running && state == GameState::Menu) {
         running = engine.dispatch_event(state);
         if (!running) {
@@ -51,7 +54,7 @@ std::optional<LoginOkEvent> Client::run_login() {
     bool login_sent = false;
 
     ServerEvent discard;
-    while (event_queue.try_pop(discard));
+    while (event_queue.try_pop(discard)) {}
 
     while (running && state == GameState::Login) {
         running = engine.dispatch_event(state);
@@ -96,6 +99,8 @@ void Client::game_loop() {
     bool running = true;
     uint32_t last_tick = SDL_GetTicks();
 
+    audio_manager.play_game_music();
+
     while (running) {
         running = engine.dispatch_event(state);
         if (!running) {
@@ -129,8 +134,7 @@ std::optional<LoginOkEvent> Client::run_create_character() {
     bool cmd_sent = false;
 
     ServerEvent discard;
-    while (event_queue.try_pop(discard))
-        ;
+    while (event_queue.try_pop(discard)) {}
 
     while (running && state == GameState::CreateCharacter) {
         running = engine.dispatch_event(state);

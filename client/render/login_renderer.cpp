@@ -21,8 +21,7 @@ LoginRenderer::LoginRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
         back_button(SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_back_default)),
                     SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_back_hover))),
         new_account_button(
-                SDL2pp::Texture(renderer,
-                                texture::load_surface(ui_cfg.asset_new_account_default)),
+                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_new_account_default)),
                 SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_new_account_hover))),
         background_rect(0, 0, ui_cfg.window_w, ui_cfg.window_h),
         logo_rect(0, 0, 0, 0),
@@ -183,8 +182,8 @@ void LoginRenderer::render_text_field(const SDL2pp::Rect& rect, const std::strin
     if (focused && (SDL_GetTicks() / ui_cfg.cursor_blink_ms) % 2U == 0U) {
         const int cursor_x = rect.GetX() + ui_cfg.cursor_padding + clipped_w;
         renderer.SetDrawColor(255, 255, 255, 255);
-        SDL2pp::Rect cursor_rect(cursor_x, rect.GetY() + ui_cfg.cursor_padding,
-                                 ui_cfg.cursor_width, rect.GetH() - ui_cfg.cursor_height_shrink);
+        SDL2pp::Rect cursor_rect(cursor_x, rect.GetY() + ui_cfg.cursor_padding, ui_cfg.cursor_width,
+                                 rect.GetH() - ui_cfg.cursor_height_shrink);
         renderer.FillRect(cursor_rect);
     }
 }
@@ -209,7 +208,8 @@ void LoginRenderer::render_error() const {
     }
 
     const int x = std::max(0, (ui_cfg.window_w - result.w) / 2);
-    const int y = new_account_button.rect.GetY() + new_account_button.rect.GetH() + ui_cfg.error_spacing;
+    const int y =
+            new_account_button.rect.GetY() + new_account_button.rect.GetH() + ui_cfg.error_spacing;
     SDL2pp::Rect dst(x, y, result.w, result.h);
     renderer.Copy(result.texture, SDL2pp::NullOpt, dst);
 }

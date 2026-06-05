@@ -16,7 +16,8 @@ class ClanManager;
 
 class CombatController {
 public:
-    CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players, Rng& rng);
+    CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
+                     const ItemCatalog& catalog);
 
     void set_clan_manager(ClanManager& mgr);
 
@@ -24,11 +25,14 @@ public:
                                       uint32_t current_tick);
     CommandResult melee_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,
                                    std::map<uint16_t, EnemyNpc>& npcs, uint32_t current_tick);
+    CommandResult melee_attack(uint16_t attacker_id, uint16_t target_id, uint32_t current_tick) {
+        return melee_attack_player(attacker_id, target_id, current_tick);
+    }
 
 private:
     bool in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x,
                   uint16_t target_y) const;
-    uint32_t calculate_damage(const Player& attacker) const;
+    uint32_t calculate_damage(const Player& attacker);
     int count_nearby_clan_members(const Player& player) const;
     double get_clan_damage_bonus(const Player& attacker) const;
     CommandResult notify_entity_attacked(Player& attacker, uint16_t target_id, uint32_t damage,
@@ -41,7 +45,8 @@ private:
     const AttackConfig& config;
     std::map<uint16_t, Player>& players;
     ClanManager* clan_manager = nullptr;
-    Rng& rng;
+    const ItemCatalog& item_catalog_;
+    Rng rng;
 };
 
 #endif

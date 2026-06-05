@@ -1,6 +1,8 @@
 #ifndef CLIENT_CREATE_CHARACTER_CONTROLLER_H
 #define CLIENT_CREATE_CHARACTER_CONTROLLER_H
 
+#include <string>
+
 #include <SDL2/SDL.h>
 
 #include "../../common/messages.h"

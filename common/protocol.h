@@ -43,6 +43,7 @@ enum class OpCode : uint8_t {
     CHANGE_MAP = 0x21,
     CHEAT_ADD_GOLD = 0x22,
     CHEAT_VELOCITY = 0x23,
+    CHEAT_REVIVE = 0x24,
     // Events (server -> client) 0x80 - 0x9B
     LOGIN_OK = 0x80,
     LOGIN_ERROR = 0x81,

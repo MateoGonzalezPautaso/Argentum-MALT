@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
-#include "server/game/player.h"
 #include "server/core/config.h"
+#include "server/game/player.h"
 
 namespace {
 
@@ -17,11 +17,13 @@ BalanceConfig make_balance() {
 }
 
 Player make_player(uint16_t id = 1) {
-    return Player(id, "hero", {100, 100}, Direction::SOUTH, Race::HUMAN, PlayerClass::WARRIOR, make_balance());
+    return Player(id, "hero", {100, 100}, Direction::SOUTH, Race::HUMAN, PlayerClass::WARRIOR,
+                  make_balance(), 20);
 }
 
 Player make_mage_player(uint16_t id = 1) {
-    return Player(id, "mage", {100, 100}, Direction::SOUTH, Race::HUMAN, PlayerClass::MAGE, make_balance());
+    return Player(id, "mage", {100, 100}, Direction::SOUTH, Race::HUMAN, PlayerClass::MAGE,
+                  make_balance(), 20);
 }
 
 }  // namespace
@@ -35,21 +37,21 @@ TEST(PlayerTest, TakeDamage_ReducesHp) {
     uint32_t damage = p.get_hp_max() / 2;
     p.take_damage(damage);
     EXPECT_EQ(p.get_hp_current(), p.get_hp_max() - damage);
-    EXPECT_FALSE(p.is_ghost());
+    EXPECT_FALSE(p.is_dead());
 }
 
 TEST(PlayerTest, TakeDamage_ExactKill) {
     auto p = make_player();
     p.take_damage(p.get_hp_max());
     EXPECT_EQ(p.get_hp_current(), 0u);
-    EXPECT_TRUE(p.is_ghost());
+    EXPECT_TRUE(p.is_dead());
 }
 
 TEST(PlayerTest, TakeDamage_OverkillClampedToZero) {
     auto p = make_player();
     p.take_damage(999);
     EXPECT_EQ(p.get_hp_current(), 0u);
-    EXPECT_TRUE(p.is_ghost());
+    EXPECT_TRUE(p.is_dead());
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -78,11 +80,11 @@ TEST(PlayerTest, Heal_CappedAtMax) {
 TEST(PlayerTest, Resurrect_RestoresHpAndMana) {
     auto p = make_player();
     p.take_damage(999);
-    ASSERT_TRUE(p.is_ghost());
+    ASSERT_TRUE(p.is_dead());
 
     p.resurrect();
 
-    EXPECT_FALSE(p.is_ghost());
+    EXPECT_FALSE(p.is_dead());
     EXPECT_EQ(p.get_hp_current(), p.get_hp_max());
     EXPECT_EQ(p.get_mana_current(), p.get_mana_max());
 }

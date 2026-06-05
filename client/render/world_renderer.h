@@ -30,7 +30,8 @@ public:
 
     void set_movable_position(int x, int y);
     void spawn_entity(uint16_t entity_id, int x, int y, const std::string& name,
-                      Race race = static_cast<Race>(0), PlayerClass player_class = static_cast<PlayerClass>(0));
+                      Race race = static_cast<Race>(0),
+                      PlayerClass player_class = static_cast<PlayerClass>(0));
     void despawn_entity(uint16_t entity_id);
     void move_entity(uint16_t entity_id, int x, int y);
     bool get_movable_position(int& x, int& y) const;

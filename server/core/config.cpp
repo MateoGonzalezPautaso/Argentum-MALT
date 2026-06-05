@@ -11,12 +11,16 @@ ServerConfig load_server_config(const std::string& path) {
     toml::table root = toml::parse_file(path);
     ServerConfig config;
 
+    // Cargar catalogo de items
+    config.item_catalog.load_from_file("config/items.toml");
+
     if (auto server = root["server"].as_table()) {
         config.port =
                 static_cast<uint16_t>(toml_get_int(*server, "port", static_cast<int>(config.port)));
         config.tick_rate_hz = toml_get_int(*server, "tick_rate_hz", config.tick_rate_hz);
         config.save_interval_seconds =
                 toml_get_int(*server, "save_interval_seconds", config.save_interval_seconds);
+        config.cheats_enabled = toml_get_bool(*server, "cheats_enabled", config.cheats_enabled);
     }
 
     config.tilemap_configs = load_all_map_configs("config/map_list.toml");
@@ -63,6 +67,11 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*attack, "clan_bonus_max", config.attack.clan_bonus_max);
         config.attack.critical_chance =
                 toml_get_double(*attack, "critical_chance", config.attack.critical_chance);
+    }
+
+    if (auto inventory = root["inventory"].as_table()) {
+        config.inventory.max_slots =
+                toml_get_int(*inventory, "max_slots", config.inventory.max_slots);
     }
 
     if (auto clan = root["clan"].as_table()) {

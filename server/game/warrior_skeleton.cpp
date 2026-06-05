@@ -4,6 +4,6 @@
 #define DAMAGE 22
 #define NAME "Warrior skeleton"
 
-WarriorSkeleton::WarriorSkeleton(Position position, Rng& rng, EquipableItems& equipable_items,
-                                 uint8_t level):
-        EnemyNpc(position, MAX_HP * level, DAMAGE * level, rng, equipable_items, level, NAME) {}
+WarriorSkeleton::WarriorSkeleton(Position position, Rng& rng, const ItemCatalog& catalog,
+                                 uint32_t level):
+        EnemyNpc(position, MAX_HP * level, DAMAGE * level, rng, catalog, level, NAME) {}

@@ -1,15 +1,15 @@
 #ifndef CLIENT_GAME_CONTROLLER_H
 #define CLIENT_GAME_CONTROLLER_H
 
+#include <string>
+
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 
 #include "../../common/messages.h"
 #include "../../common/queue.h"
-
-#include "../input/chat_input.h"
+#include "../audio/audio_manager.h"
 #include "../chat/chat_history.h"
-
 #include "../config/config.h"
 #include "../config/player_stats.h"
 #include "../input/chat_input.h"
@@ -20,7 +20,7 @@
 class GameController {
 public:
     GameController(SDL2pp::Renderer& renderer, const ClientConfig& config,
-                   Queue<ClientCommand>& command_queue);
+                   Queue<ClientCommand>& command_queue, AudioManager& audio_manager);
     ~GameController();
 
     void tick();
@@ -30,6 +30,7 @@ public:
     bool is_chat_focused() const { return chat_input.is_focused(); }
 
 private:
+    AudioManager& audio_manager;
     const ClientConfig& config;
     SDL2pp::Renderer& renderer;
     ChatInput chat_input;
@@ -44,6 +45,8 @@ private:
     MoveConfig move_config;
     SDL_Cursor* hand_cursor;
     SDL_Cursor* arrow_cursor;
+    int mouse_x = 0;
+    int mouse_y = 0;
 
     bool handle_mouse_button(const SDL_Event& event);
     bool handle_mouse_motion(const SDL_Event& event);
@@ -67,7 +70,9 @@ private:
     void handle_clan_update(const ClanUpdateEvent& e);
     void handle_map_transition(const MapTransitionEvent& e);
     void handle_heal_received(const HealReceivedEvent& e);
-
+    void handle_inventory_update(const InventoryUpdateEvent& e);
+    void handle_equip_update(const EquipUpdateEvent& e);
+    void handle_player_stats(const PlayerStatsEvent& e);
 };
 
 #endif

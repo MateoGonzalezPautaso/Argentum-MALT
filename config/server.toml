@@ -1,6 +1,7 @@
 [server]
 port = 1234
 tick_rate_hz = 20
+cheats_enabled = true
 
 [movement]
 move_step = 8
@@ -25,6 +26,9 @@ critical_chance = 0.003
 [clan]
 max_members = 16
 min_level_found = 6
+
+[inventory]
+max_slots = 20
 
 [balance]
 starting_gold = 0

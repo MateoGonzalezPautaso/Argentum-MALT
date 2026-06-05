@@ -8,8 +8,8 @@
 #include "clan_manager.h"
 
 CombatController::CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
-                                   Rng& rng):
-        config(config), players(players), rng(rng) {}
+                                   const ItemCatalog& catalog):
+        config(config), players(players), item_catalog_(catalog) {}
 
 void CombatController::set_clan_manager(ClanManager& mgr) { clan_manager = &mgr; }
 
@@ -137,12 +137,22 @@ bool CombatController::in_range(uint16_t attacker_x, uint16_t attacker_y, uint16
     return dist_sq <= range_sq;
 }
 
-uint32_t CombatController::calculate_damage(const Player& attacker) const {
-    int random_number = rng.get_random_int(1, 9);
-
-    uint32_t damage = static_cast<uint32_t>(attacker.get_strength() * random_number);
+uint32_t CombatController::calculate_damage(const Player& attacker) {
+    const InventorySlot& weapon_slot = attacker.get_equipped(EquipSlot::WEAPON);
+    const Item* weapon = nullptr;
+    if (weapon_slot.item_type != ItemType::NONE)
+        weapon = item_catalog_.find(weapon_slot.item_type);
+    uint32_t base;
+    if (weapon && weapon->max_damage > 0) {
+        int roll = rng.get_random_int(weapon->min_damage, weapon->max_damage);
+        base = attacker.get_strength() * static_cast<uint32_t>(roll);
+    } else {
+        int variance =
+                config.damage_variance > 0 ? rng.get_random_int(0, config.damage_variance) : 0;
+        base = static_cast<uint32_t>(config.base_damage + variance);
+    }
     double bonus = get_clan_damage_bonus(attacker);
-    return static_cast<uint32_t>(std::round(damage * (1.0 + bonus)));
+    return static_cast<uint32_t>(std::round(base * (1.0 + bonus)));
 }
 
 int CombatController::count_nearby_clan_members(const Player& player) const {
@@ -218,7 +228,14 @@ CommandResult CombatController::notify_entity_attacked(Player& attacker, uint16_
         }
     }
 
-    return {.private_events = {dealt},
+    PlayerStatsEvent stats{
+            .level = attacker.get_level(),
+            .experience = attacker.get_experience(),
+            .exp_to_next = attacker.exp_to_next_level(),
+            .hp_max = attacker.get_hp_max(),
+            .mana_max = attacker.get_mana_max(),
+    };
+    return {.private_events = {dealt, stats},
             .broadcast_events = std::move(broadcast),
             .targeted_events = std::move(targeted)};
 }

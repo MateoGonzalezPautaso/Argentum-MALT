@@ -77,8 +77,7 @@ TilePalette::TilePalette(TilemapConfig& config,
                         auto it = atlases_.find(def.paths[0]);
                         if (it == atlases_.end() || it->second.isNull())
                             return {};
-                        return it->second.copy(QRect(def.src_x, def.src_y,
-                                                     def.src_w, def.src_h));
+                        return it->second.copy(QRect(def.src_x, def.src_y, def.src_w, def.src_h));
                     }
                     if (def.parts.empty())
                         return {};
@@ -86,14 +85,13 @@ TilePalette::TilePalette(TilemapConfig& config,
                                       def.height > 0 ? def.height : 32);
                     composite.fill(Qt::transparent);
                     QPainter p(&composite);
-                    for (const auto& part : def.parts) {
+                    for (const auto& part: def.parts) {
                         auto it = atlases_.find(part.path);
                         if (it == atlases_.end() || it->second.isNull())
                             continue;
-                        QPixmap frame = it->second.copy(QRect(part.src_x, part.src_y,
-                                                               part.src_w, part.src_h));
-                        p.drawPixmap(part.offset_x, part.offset_y,
-                                     part.src_w, part.src_h, frame);
+                        QPixmap frame = it->second.copy(
+                                QRect(part.src_x, part.src_y, part.src_w, part.src_h));
+                        p.drawPixmap(part.offset_x, part.offset_y, part.src_w, part.src_h, frame);
                     }
                     p.end();
                     return composite;

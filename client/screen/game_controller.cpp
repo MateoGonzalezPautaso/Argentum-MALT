@@ -1,16 +1,30 @@
 #include "game_controller.h"
 
+#include <string>
+#include <unordered_map>
+#include <utility>
 #include <variant>
 
 #include "../../common/visit.h"
 
+namespace {
+const std::unordered_map<ItemType, std::string> weapon_sounds = {
+        {ItemType::SWORD, "sword"},         {ItemType::AXE, "axe"},
+        {ItemType::HAMMER, "hammer"},       {ItemType::SIMPLE_BOW, "bow"},
+        {ItemType::COMPOSITE_BOW, "bow"},   {ItemType::ASH_STAFF, "spell"},
+        {ItemType::KNOTTED_STAFF, "spell"}, {ItemType::STUDDED_STAFF, "spell"},
+        {ItemType::ELVEN_FLUTE, "flute"},
+};
+}
+
 GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& config,
-                               Queue<ClientCommand>& command_queue):
+                               Queue<ClientCommand>& command_queue, AudioManager& audio_manager):
+        audio_manager(audio_manager),
         config(config),
         renderer(renderer),
         world_renderer(renderer, config.background, config.tilemap, config.sprites, config.viewport,
                        config.font, config.skins),
-        ui_renderer(renderer, config.ui, config.skins, chat_input),
+        ui_renderer(renderer, config.ui, config.skins, chat_input, config.item_sprites),
         command_queue(command_queue),
         move_controller(this->command_queue, MoveConfig(config), SDL_GetTicks()),
         move_config(config),
@@ -41,6 +55,9 @@ void GameController::render() {
     ui_renderer.render_exp_bar(player_stats.experience, player_stats.exp_to_next);
     ui_renderer.render_chat_history(chat_history.get_messages());
     ui_renderer.render_chat_input();
+    ui_renderer.set_hover(mouse_x, mouse_y, player_stats.inventory, player_stats.equipped);
+    ui_renderer.render_inventory(player_stats.inventory);
+    ui_renderer.render_equipped(player_stats.equipped);
     renderer.Present();
 }
 
@@ -50,17 +67,30 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                        [this](const EntitySpawnEvent& e) { handle_entity_spawn(e); },
                        [this](const LoginOkEvent& e) { handle_login_ok(e); },
                        [this](const EntityDespawnEvent& e) { handle_entity_despawn(e); },
-                       [this](const DamageReceivedEvent& e) { handle_damage_received(e); },
-                       [](const DamageDealtEvent&) {},
+                       [this](const DamageReceivedEvent& e) {
+                           audio_manager.play_sfx("hit");
+                           handle_damage_received(e);
+                       },
+                       [this](const DamageDealtEvent&) {
+                           auto weapon = player_stats.equipped[0].item_type;
+                           auto it = weapon_sounds.find(weapon);
+                           if (it != weapon_sounds.end()) {
+                               audio_manager.play_sfx(it->second);
+                           }
+                       },
                        [this](const AttackDodgedEvent& e) { handle_attack_dodged(e); },
                        [this](const ChatMsgEvent& e) { handle_chat_msg(e); },
                        [this](const EntityDiedEvent& e) { handle_entity_died(e); },
+                       [this](const MeditationStartEvent&) { audio_manager.play_sfx("meditate"); },
                        [this](const PlayerRespawnedEvent& e) { handle_player_respawned(e); },
                        [this](const ClanNotificationEvent& e) { handle_clan_notification(e); },
                        [this](const ClanUpdateEvent& e) { handle_clan_update(e); },
-                        [this](const MapTransitionEvent& e) { handle_map_transition(e); },
-                        [this](const HealReceivedEvent& e) { handle_heal_received(e); },
-                        [](const auto&) {},
+                       [this](const MapTransitionEvent& e) { handle_map_transition(e); },
+                       [this](const HealReceivedEvent& e) { handle_heal_received(e); },
+                       [this](const InventoryUpdateEvent& e) { handle_inventory_update(e); },
+                       [this](const EquipUpdateEvent& e) { handle_equip_update(e); },
+                       [this](const PlayerStatsEvent& e) { handle_player_stats(e); },
+                       [](const auto&) {},
                },
                ev);
 }
@@ -129,12 +159,18 @@ void GameController::handle_damage_received(const DamageReceivedEvent& e) {
 
 void GameController::interact_with_prop(const std::string& prop_name) {
     if (prop_name == "sacerdote") {
+        audio_manager.play_sfx("priest");
         chat_history.add_message(ChatMsgType::SYSTEM, "", "Sacerdote: ¡SHALOM!");
     } else if (prop_name == "comerciante") {
-        chat_history.add_message(ChatMsgType::SYSTEM, "", "Comerciante: Pasa, todo lo que ves esta en venta.");
+        audio_manager.play_sfx("merchant");
+        chat_history.add_message(ChatMsgType::SYSTEM, "",
+                                 "Comerciante: Pasa, todo lo que ves esta en venta.");
     } else if (prop_name == "banquero") {
-        chat_history.add_message(ChatMsgType::SYSTEM, "", "Banquero: El que deposita dolares, recibira dolares...");
+        audio_manager.play_sfx("banker");
+        chat_history.add_message(ChatMsgType::SYSTEM, "",
+                                 "Banquero: El que deposita dolares, recibira dolares...");
     } else if (prop_name == "sanadora") {
+        audio_manager.play_sfx("healer");
         chat_history.add_message(ChatMsgType::SYSTEM, "", "Sanadora: Dejame ver esa herida.");
     } else if (is_transition_prop(prop_name)) {
         command_queue.push(ChangeMapCmd{prop_name});
@@ -142,9 +178,8 @@ void GameController::interact_with_prop(const std::string& prop_name) {
 }
 
 bool GameController::is_clickable_prop(const std::string& prop_name) const {
-    return prop_name == "sacerdote" || prop_name == "comerciante" ||
-           prop_name == "banquero" || prop_name == "sanadora" ||
-           is_transition_prop(prop_name);
+    return prop_name == "sacerdote" || prop_name == "comerciante" || prop_name == "banquero" ||
+           prop_name == "sanadora" || is_transition_prop(prop_name);
 }
 
 bool GameController::is_transition_prop(const std::string& prop_name) const {
@@ -209,11 +244,23 @@ void GameController::handle_clan_update(const ClanUpdateEvent& e) {
     chat_history.add_message(ChatMsgType::SYSTEM, "", msg);
 }
 
+void GameController::handle_inventory_update(const InventoryUpdateEvent& e) {
+    player_stats.inventory = e.slots;
+}
+
+void GameController::handle_equip_update(const EquipUpdateEvent& e) {
+    player_stats.equipped[0] = e.weapon;
+    player_stats.equipped[1] = e.armor;
+    player_stats.equipped[2] = e.helmet;
+    player_stats.equipped[3] = e.shield;
+}
+
 void GameController::handle_entity_died(const EntityDiedEvent& e) {
     world_renderer.set_entity_alpha(e.entity_id, 128);
     if (e.entity_id != player_stats.player_id) {
         return;
     }
+    audio_manager.play_sfx("death");
     player_is_ghost = true;
     world_renderer.set_movable_alpha(128);
 }
@@ -241,7 +288,7 @@ void GameController::apply_movement_visual(Direction dir, bool advance_frame) {
     world_renderer.set_anchor_src_y(move_config.head_src_y_for(dir));
     if (advance_frame) {
         world_renderer.step_movable_src_x(move_config.walk_src_step,
-                                           move_config.walk_src_frames_for(dir));
+                                          move_config.walk_src_frames_for(dir));
     }
 }
 
@@ -281,26 +328,37 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
         return true;
     }
 
+    if (ui_renderer.is_hovering_occupied()) {
+        int idx = ui_renderer.get_hovered_inv_slot();
+        if (idx >= 0) {
+            command_queue.push(EquipItemCmd{static_cast<uint8_t>(idx)});
+            return true;
+        }
+        int eq = ui_renderer.get_hovered_equip_slot();
+        if (eq >= 0) {
+            command_queue.push(UnequipItemCmd{static_cast<EquipSlot>(eq)});
+            return true;
+        }
+    }
+
     int world_x = 0;
     int world_y = 0;
     if (!world_renderer.screen_to_world(event.button.x, event.button.y, world_x, world_y)) {
         return true;
     }
 
-    uint16_t entity_id = 0;
-    if (player_is_ghost) {
-        return true;
-    }
+    if (!player_is_ghost) {
+        uint16_t entity_id = 0;
+        if (world_renderer.hit_test_entity(world_x, world_y, entity_id)) {
+            command_queue.push(AttackCmd{entity_id});
+            return true;
+        }
 
-    if (world_renderer.hit_test_entity(world_x, world_y, entity_id)) {
-        command_queue.push(AttackCmd{entity_id});
-        return true;
-    }
-
-    std::string prop_name;
-    if (world_renderer.hit_test_prop(world_x, world_y, prop_name)) {
-        interact_with_prop(prop_name);
-        return true;
+        std::string prop_name;
+        if (world_renderer.hit_test_prop(world_x, world_y, prop_name)) {
+            interact_with_prop(prop_name);
+            return true;
+        }
     }
 
     move_controller.set_move_target(world_x, world_y);
@@ -308,11 +366,20 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
 }
 
 bool GameController::handle_mouse_motion(const SDL_Event& event) {
+    mouse_x = event.motion.x;
+    mouse_y = event.motion.y;
+
+    ui_renderer.set_hover(mouse_x, mouse_y, player_stats.inventory, player_stats.equipped);
+    if (ui_renderer.is_hovering_occupied()) {
+        SDL_SetCursor(hand_cursor);
+        return true;
+    }
+
     int world_x = 0;
     int world_y = 0;
-    uint16_t entity_id = 0;
-    std::string prop_name;
     if (world_renderer.screen_to_world(event.motion.x, event.motion.y, world_x, world_y)) {
+        uint16_t entity_id = 0;
+        std::string prop_name;
         bool show_hand = world_renderer.hit_test_entity(world_x, world_y, entity_id);
         if (!show_hand && world_renderer.hit_test_prop(world_x, world_y, prop_name))
             show_hand = is_clickable_prop(prop_name);
@@ -342,13 +409,15 @@ bool GameController::handle_keydown(const SDL_Event& event) {
             break;
         case SDLK_UP:
             move_controller.cancel_move_target();
-            apply_movement_visual(Direction::NORTH,
-                                  move_controller.move_direction(Direction::NORTH, now).has_value());
+            apply_movement_visual(
+                    Direction::NORTH,
+                    move_controller.move_direction(Direction::NORTH, now).has_value());
             break;
         case SDLK_DOWN:
             move_controller.cancel_move_target();
-            apply_movement_visual(Direction::SOUTH,
-                                  move_controller.move_direction(Direction::SOUTH, now).has_value());
+            apply_movement_visual(
+                    Direction::SOUTH,
+                    move_controller.move_direction(Direction::SOUTH, now).has_value());
             break;
         case SDLK_h:
             if (ctrl)
@@ -380,6 +449,10 @@ bool GameController::handle_keydown(const SDL_Event& event) {
             if (ctrl)
                 command_queue.push(CheatVelocityCmd{});
             break;
+        case SDLK_r:
+            if (ctrl)
+                command_queue.push(CheatReviveCmd{});
+            break;
         default:
             break;
     }
@@ -398,6 +471,17 @@ void GameController::handle_map_transition(const MapTransitionEvent& e) {
     world_renderer.set_movable_position(e.pos_x, e.pos_y);
     move_controller.set_position(e.pos_x, e.pos_y);
     player_stats.pos = {e.pos_x, e.pos_y};
+}
+
+void GameController::handle_player_stats(const PlayerStatsEvent& e) {
+    if (e.level > player_stats.level) {
+        audio_manager.play_sfx("level_up");
+    }
+    player_stats.level = e.level;
+    player_stats.experience = e.experience;
+    player_stats.exp_to_next = e.exp_to_next;
+    player_stats.hp_max = e.hp_max;
+    player_stats.mana_max = e.mana_max;
 }
 
 void GameController::flush_pending_chat() {

@@ -7,6 +7,7 @@
 #include <string>
 
 #include "../../common/messages.h"
+
 #include "clan_manager.h"
 #include "command_result.h"
 #include "player.h"
@@ -19,8 +20,7 @@ public:
                                         const std::string& args);
 
     CommandResult notify_clan_members(const std::string& clan_name,
-                                      const ClanNotificationEvent& notif,
-                                      uint16_t exclude_id = 0);
+                                      const ClanNotificationEvent& notif, uint16_t exclude_id = 0);
 
 private:
     ClanManager& clan_manager;

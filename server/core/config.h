@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "../../common/config.h"
+#include "../../common/item_catalog.h"
 
 struct AttackConfig {
     int base_damage = 10;
@@ -89,6 +90,10 @@ struct HpConfig {
     double class_hp_factor_mage = 0.8;
 };
 
+struct InventoryConfig {
+    int max_slots = 20;
+};
+
 struct BalanceConfig {
     int starting_gold = 0;
     int starting_pos_x = 100;
@@ -111,14 +116,17 @@ struct ServerConfig {
     uint16_t port = 1234;
     int tick_rate_hz = 20;
     int save_interval_seconds = 30;
+    bool cheats_enabled = false;
     TilemapConfig tilemap;
     std::unordered_map<std::string, TilemapConfig> tilemap_configs;
     int move_step = 4;
     int sprite_width = 27;
     int sprite_height = 48;
+    InventoryConfig inventory;
     BalanceConfig balance;
     AttackConfig attack;
     ClanConfig clan;
+    ItemCatalog item_catalog;
 };
 
 ServerConfig load_server_config(const std::string& path);

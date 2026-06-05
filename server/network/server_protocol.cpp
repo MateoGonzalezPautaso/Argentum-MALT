@@ -45,8 +45,14 @@ ClientCommand ServerProtocol::recv_command() {
             return CheatAddGoldCmd{};
         case OpCode::CHEAT_VELOCITY:
             return CheatVelocityCmd{};
+        case OpCode::CHEAT_REVIVE:
+            return CheatReviveCmd{};
         case OpCode::CHANGE_MAP:
             return recv_change_map();
+        case OpCode::EQUIP_ITEM:
+            return recv_equip_item();
+        case OpCode::UNEQUIP_ITEM:
+            return recv_unequip_item();
         default:
             throw std::runtime_error("Unknown command opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
@@ -89,6 +95,16 @@ ClientCommand ServerProtocol::recv_change_map() {
     ChangeMapCmd cmd;
     cmd.prop_name = protocol.recv_str();
     return cmd;
+}
+
+ClientCommand ServerProtocol::recv_equip_item() {
+    uint8_t slot_index = protocol.recv_uint8();
+    return EquipItemCmd{slot_index};
+}
+
+ClientCommand ServerProtocol::recv_unequip_item() {
+    EquipSlot slot = static_cast<EquipSlot>(protocol.recv_uint8());
+    return UnequipItemCmd{slot};
 }
 
 void ServerProtocol::send_login_payload(const LoginOkEvent& ev) {
@@ -182,13 +198,9 @@ void ServerProtocol::send_player_respawned(const PlayerRespawnedEvent& ev) {
     protocol.send_uint32(ev.hp_max);
 }
 
-void ServerProtocol::send_meditation_start() {
-    protocol.send_opcode(OpCode::MEDITATION_START);
-}
+void ServerProtocol::send_meditation_start() { protocol.send_opcode(OpCode::MEDITATION_START); }
 
-void ServerProtocol::send_meditation_stop() {
-    protocol.send_opcode(OpCode::MEDITATION_STOP);
-}
+void ServerProtocol::send_meditation_stop() { protocol.send_opcode(OpCode::MEDITATION_STOP); }
 
 void ServerProtocol::send_chat_msg(const ChatMsgEvent& ev) {
     protocol.send_opcode(OpCode::CHAT_MSG);
@@ -225,11 +237,39 @@ void ServerProtocol::send_clan_update(const ClanUpdateEvent& ev) {
     }
 }
 
+void ServerProtocol::send_player_stats(const PlayerStatsEvent& ev) {
+    protocol.send_opcode(OpCode::PLAYER_STATS);
+    protocol.send_uint8(ev.level);
+    protocol.send_uint32(ev.experience);
+    protocol.send_uint32(ev.exp_to_next);
+    protocol.send_uint32(ev.hp_max);
+    protocol.send_uint32(ev.mana_max);
+}
+
 void ServerProtocol::send_heal_received(const HealReceivedEvent& ev) {
     protocol.send_opcode(OpCode::HEAL_RECEIVED);
     protocol.send_uint16(ev.player_id);
     protocol.send_uint32(ev.hp_current);
     protocol.send_uint32(ev.mana_current);
+}
+
+void ServerProtocol::send_inventory_update(const InventoryUpdateEvent& ev) {
+    protocol.send_opcode(OpCode::INVENTORY_UPDATE);
+    protocol.send_uint8(static_cast<uint8_t>(ev.slots.size()));
+    for (const auto& slot: ev.slots) {
+        protocol.send_uint8(slot.slot_index);
+        protocol.send_uint8(static_cast<uint8_t>(slot.item_type));
+        protocol.send_str(slot.item_name);
+    }
+}
+
+void ServerProtocol::send_equip_update(const EquipUpdateEvent& ev) {
+    protocol.send_opcode(OpCode::EQUIP_UPDATE);
+    const InventorySlot* slots[EQUIP_SLOT_COUNT] = {&ev.weapon, &ev.armor, &ev.helmet, &ev.shield};
+    for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
+        protocol.send_uint8(static_cast<uint8_t>(slots[i]->item_type));
+        protocol.send_str(slots[i]->item_name);
+    }
 }
 
 void ServerProtocol::send_event(const ServerEvent& ev) {
@@ -243,16 +283,19 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [this](const EntityMoveEvent& msg) { send_entity_move(msg); },
                        [this](const DamageDealtEvent& msg) { send_damage_dealt(msg); },
                        [this](const DamageReceivedEvent& msg) { send_damage_received(msg); },
-                         [this](const EntityDiedEvent& msg) { send_entity_died(msg); },
-                         [this](const PlayerRespawnedEvent& msg) { send_player_respawned(msg); },
-                         [this](const MeditationStartEvent&) { send_meditation_start(); },
-                         [this](const MeditationStopEvent&) { send_meditation_stop(); },
-                         [this](const ChatMsgEvent& msg) { send_chat_msg(msg); },
-                         [this](const ClanNotificationEvent& msg) { send_clan_notification(msg); },
-                         [this](const ClanUpdateEvent& msg) { send_clan_update(msg); },
-                         [this](const MapTransitionEvent& msg) { send_map_transition(msg); },
-                         [this](const HealReceivedEvent& msg) { send_heal_received(msg); },
-                        [](const auto&) { throw std::runtime_error("Event type not implemented"); },
+                       [this](const EntityDiedEvent& msg) { send_entity_died(msg); },
+                       [this](const PlayerRespawnedEvent& msg) { send_player_respawned(msg); },
+                       [this](const MeditationStartEvent&) { send_meditation_start(); },
+                       [this](const MeditationStopEvent&) { send_meditation_stop(); },
+                       [this](const ChatMsgEvent& msg) { send_chat_msg(msg); },
+                       [this](const ClanNotificationEvent& msg) { send_clan_notification(msg); },
+                       [this](const ClanUpdateEvent& msg) { send_clan_update(msg); },
+                       [this](const MapTransitionEvent& msg) { send_map_transition(msg); },
+                       [this](const PlayerStatsEvent& msg) { send_player_stats(msg); },
+                       [this](const HealReceivedEvent& msg) { send_heal_received(msg); },
+                       [this](const InventoryUpdateEvent& msg) { send_inventory_update(msg); },
+                       [this](const EquipUpdateEvent& msg) { send_equip_update(msg); },
+                       [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },
                ev);
 }

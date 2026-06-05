@@ -54,7 +54,15 @@ enum class ItemType : uint8_t {
     GOLD_DROP = 0x14
 };
 
-enum class EquipSlot : uint8_t { WEAPON = 0x00, ARMOR = 0x01, HELMET = 0x02, SHIELD = 0x03 };
+enum class EquipSlot : uint8_t {
+    WEAPON = 0x00,
+    ARMOR = 0x01,
+    HELMET = 0x02,
+    SHIELD = 0x03,
+    CONSUMABLE = 0x04
+};
+
+constexpr uint8_t EQUIP_SLOT_COUNT = 4;
 
 enum class EntityType : uint8_t { PLAYER = 0x00, NPC = 0x01 };
 
@@ -112,7 +120,6 @@ struct InventorySlot {
     uint8_t slot_index = 0;
     ItemType item_type = ItemType::NONE;
     std::string item_name;
-    uint8_t sprite_id = 0;
 };
 
 struct TileInfo {
@@ -173,10 +180,14 @@ struct PickupItemCmd {};
 struct DropItemCmd {};
 
 // 0x08
-struct EquipItemCmd {};
+struct EquipItemCmd {
+    uint8_t slot_index = 0;
+};
 
 // 0x09
-struct UnequipItemCmd {};
+struct UnequipItemCmd {
+    EquipSlot slot = EquipSlot::WEAPON;
+};
 
 // 0x0A
 struct MeditateCmd {};
@@ -231,6 +242,7 @@ struct CheatLevelUpCmd {};
 struct CheatLevelDownCmd {};
 struct CheatAddGoldCmd {};
 struct CheatVelocityCmd {};
+struct CheatReviveCmd {};
 
 struct ChangeMapCmd {
     std::string prop_name;
@@ -240,14 +252,13 @@ struct ChangeMapCmd {
  * ClientCommand es la variante que engloba todos los comandos.
  * El GameLoop hace std::visit sobre esta variante para despacharlos.
  */
-using ClientCommand =
-        std::variant<LoginCmd, CreateCharacterCmd, MoveCmd, AttackCmd, CastSpellCmd, PickupItemCmd,
-                     DropItemCmd, EquipItemCmd, UnequipItemCmd, MeditateCmd, ResurrectCmd,
-                     NpcBuyCmd, NpcSellCmd, NpcHealCmd, BankDepositCmd, BankWithdrawCmd, NpcListCmd,
-                     PrivateMsgCmd, SendChatMsgCmd, ClanFoundCmd, ClanJoinRequestCmd, ClanReviewCmd,
-                     ClanAcceptCmd, ClanRejectCmd, ClanBanCmd, ClanKickCmd, ClanLeaveCmd,
-                     CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd, CheatLevelUpCmd,
-                     CheatLevelDownCmd, CheatAddGoldCmd, CheatVelocityCmd, ChangeMapCmd>;
+using ClientCommand = std::variant<
+        LoginCmd, CreateCharacterCmd, MoveCmd, AttackCmd, CastSpellCmd, PickupItemCmd, DropItemCmd,
+        EquipItemCmd, UnequipItemCmd, MeditateCmd, ResurrectCmd, NpcBuyCmd, NpcSellCmd, NpcHealCmd,
+        BankDepositCmd, BankWithdrawCmd, NpcListCmd, PrivateMsgCmd, SendChatMsgCmd, ClanFoundCmd,
+        ClanJoinRequestCmd, ClanReviewCmd, ClanAcceptCmd, ClanRejectCmd, ClanBanCmd, ClanKickCmd,
+        ClanLeaveCmd, CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd, CheatLevelUpCmd,
+        CheatLevelDownCmd, CheatAddGoldCmd, CheatVelocityCmd, CheatReviveCmd, ChangeMapCmd>;
 
 // ---------------------------------------------------------------------------
 // Eventos: Servidor -> Cliente (sección 3.2 y 5 de protocol.md)
@@ -291,7 +302,13 @@ struct CharacterErrorEvent {
 struct MapInfoEvent {};
 
 // 0x85
-struct PlayerStatsEvent {};
+struct PlayerStatsEvent {
+    uint8_t level;
+    uint32_t experience;
+    uint32_t exp_to_next;
+    uint32_t hp_max;
+    uint32_t mana_max;
+};
 
 // 0x86
 struct EntitySpawnEvent {
@@ -353,10 +370,17 @@ struct MeditationStartEvent {};
 struct MeditationStopEvent {};
 
 // 0x90
-struct InventoryUpdateEvent {};
+struct InventoryUpdateEvent {
+    std::vector<InventorySlot> slots;
+};
 
 // 0x91
-struct EquipUpdateEvent {};
+struct EquipUpdateEvent {
+    InventorySlot weapon;
+    InventorySlot armor;
+    InventorySlot helmet;
+    InventorySlot shield;
+};
 
 // 0x92
 struct GoldUpdateEvent {};

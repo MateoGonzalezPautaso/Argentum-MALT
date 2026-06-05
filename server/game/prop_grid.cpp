@@ -1,5 +1,9 @@
 #include "prop_grid.h"
 
+#include <algorithm>
+#include <limits>
+#include <utility>
+
 PropGrid::PropGrid(const TilemapConfig& tilemap) {
     entries_.reserve(tilemap.prop_map.size() * tilemap.prop_map.front().size());
 
@@ -36,34 +40,51 @@ PropGrid::PropGrid(const TilemapConfig& tilemap) {
 }
 
 bool PropGrid::is_hitbox_at(int foot_x, int foot_y) const {
-    for (const auto& e : entries_) {
-        if (e.hb_w <= 0 || e.hb_h <= 0)
-            continue;
-        if (foot_x >= e.hb_left && foot_x < e.hb_right &&
-            foot_y >= e.hb_top && foot_y < e.hb_bottom)
-            return true;
-    }
-    return false;
+    return std::any_of(entries_.begin(), entries_.end(), [foot_x, foot_y](const Entry& e) {
+        return e.hb_w > 0 && e.hb_h > 0 && foot_x >= e.hb_left && foot_x < e.hb_right &&
+               foot_y >= e.hb_top && foot_y < e.hb_bottom;
+    });
 }
 
 const PropDef* PropGrid::find_transition_at(int foot_x, int foot_y) const {
-    for (const auto& e : entries_) {
+    for (const auto& e: entries_) {
         if (e.def->transition_map.empty())
             continue;
-        if (foot_x >= e.hb_left && foot_x < e.hb_right &&
-            foot_y >= e.hb_top && foot_y < e.hb_bottom)
+        if (foot_x >= e.hb_left && foot_x < e.hb_right && foot_y >= e.hb_top &&
+            foot_y < e.hb_bottom)
             return e.def;
     }
     return nullptr;
 }
 
 bool PropGrid::is_in_range_of(const std::string& prop_name, int px, int py, int range) const {
-    for (const auto& e : entries_) {
+    return std::any_of(entries_.begin(), entries_.end(),
+                       [&prop_name, px, py, range](const Entry& e) {
+                           return e.name == prop_name && std::abs(px - e.center_x) < range &&
+                                  std::abs(py - e.center_y) < range;
+                       });
+}
+
+bool PropGrid::find_nearest_center(const std::string& prop_name, int px, int py, int& out_cx,
+                                   int& out_cy) const {
+    int best = std::numeric_limits<int>::max();
+    bool found = false;
+
+    for (const auto& e: entries_) {
         if (e.name != prop_name)
             continue;
-        if (std::abs(px - e.center_x) < range &&
-            std::abs(py - e.center_y) < range)
-            return true;
+
+        int dx = px - e.center_x;
+        int dy = py - e.center_y;
+        int dist_sq = dx * dx + dy * dy;
+
+        if (dist_sq < best) {
+            best = dist_sq;
+            out_cx = e.center_x;
+            out_cy = e.center_y;
+            found = true;
+        }
     }
-    return false;
+
+    return found;
 }

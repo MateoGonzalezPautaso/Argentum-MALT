@@ -492,8 +492,7 @@ INSTANTIATE_TEST_SUITE_P(AllClanNotifTypes, ProtocolClanNotificationTest,
                                            ClanNotifType::MEMBER_ATTACKED,
                                            ClanNotifType::JOIN_REQUEST,
                                            ClanNotifType::JOIN_ACCEPTED,
-                                           ClanNotifType::JOIN_REJECTED,
-                                           ClanNotifType::KICKED));
+                                           ClanNotifType::JOIN_REJECTED, ClanNotifType::KICKED));
 
 // ─────────────────────────────────────────────────────────────
 // CLAN_UPDATE event
@@ -574,8 +573,9 @@ TEST_F(ProtocolTest, SendChatMsgEmptyTextRoundtrip) {
 // Zero-field commands (opcode-only)
 // ─────────────────────────────────────────────────────────────
 
-class ZeroFieldCommandTest: public ProtocolTest,
-                             public ::testing::WithParamInterface<ClientCommand> {};
+class ZeroFieldCommandTest:
+        public ProtocolTest,
+        public ::testing::WithParamInterface<ClientCommand> {};
 
 TEST_P(ZeroFieldCommandTest, Roundtrip) {
     ClientProtocol client(Socket::from_fd(fds[0]));
@@ -589,9 +589,9 @@ TEST_P(ZeroFieldCommandTest, Roundtrip) {
 INSTANTIATE_TEST_SUITE_P(
         ZeroFieldCommands, ZeroFieldCommandTest,
         ::testing::Values(ClientCommand{MeditateCmd{}}, ClientCommand{ResurrectCmd{}},
-                          ClientCommand{CheatInfiniteHpCmd{}}, ClientCommand{CheatInfiniteManaCmd{}},
-                          ClientCommand{CheatDieCmd{}}, ClientCommand{CheatLevelUpCmd{}},
-                          ClientCommand{CheatLevelDownCmd{}}));
+                          ClientCommand{CheatInfiniteHpCmd{}},
+                          ClientCommand{CheatInfiniteManaCmd{}}, ClientCommand{CheatDieCmd{}},
+                          ClientCommand{CheatLevelUpCmd{}}, ClientCommand{CheatLevelDownCmd{}}));
 
 // ─────────────────────────────────────────────────────────────
 // DAMAGE_DEALT event
@@ -619,8 +619,8 @@ TEST_F(ProtocolTest, DamageReceivedRoundtrip) {
     ServerProtocol server(Socket::from_fd(fds[0]));
     ClientProtocol client(Socket::from_fd(fds[1]));
 
-    DamageReceivedEvent sent{.target_id = 3, .attacker_id = 5, .damage = 25,
-                              .hp_current = 75, .hp_max = 100};
+    DamageReceivedEvent sent{
+            .target_id = 3, .attacker_id = 5, .damage = 25, .hp_current = 75, .hp_max = 100};
     server.send_event(sent);
 
     ServerEvent ev = client.recv_event();
@@ -696,8 +696,9 @@ TEST_F(ProtocolTest, MeditationStopRoundtrip) {
 // CHAT_MSG event - all types
 // ─────────────────────────────────────────────────────────────
 
-class ProtocolChatMsgTest: public ProtocolTest,
-                            public ::testing::WithParamInterface<ChatMsgType> {};
+class ProtocolChatMsgTest:
+        public ProtocolTest,
+        public ::testing::WithParamInterface<ChatMsgType> {};
 
 TEST_P(ProtocolChatMsgTest, RoundtripAllTypes) {
     ServerProtocol server(Socket::from_fd(fds[0]));
@@ -717,5 +718,5 @@ TEST_P(ProtocolChatMsgTest, RoundtripAllTypes) {
 }
 
 INSTANTIATE_TEST_SUITE_P(AllChatTypes, ProtocolChatMsgTest,
-                          ::testing::Values(ChatMsgType::SAY, ChatMsgType::PRIVATE,
-                                            ChatMsgType::CLAN, ChatMsgType::SYSTEM));
+                         ::testing::Values(ChatMsgType::SAY, ChatMsgType::PRIVATE,
+                                           ChatMsgType::CLAN, ChatMsgType::SYSTEM));

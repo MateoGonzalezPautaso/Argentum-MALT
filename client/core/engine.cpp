@@ -1,12 +1,14 @@
 #include "engine.h"
 
-Engine::Engine(const ClientConfig& config, Queue<ClientCommand>& command_queue):
+Engine::Engine(const ClientConfig& config, Queue<ClientCommand>& command_queue,
+               AudioManager& audio_manager):
         render_ctx(config.window.title, config.window.width, config.window.height,
                    config.viewport.logical_w, config.viewport.logical_h, config.window.fullscreen),
         menu_ctrl(render_ctx.renderer(), config.ui),
         login_ctrl(render_ctx.renderer(), config.ui),
         create_char_ctrl(render_ctx.renderer(), config.ui),
-        game_controller(render_ctx.renderer(), config, command_queue) {}
+        audio_manager(audio_manager),
+        game_controller(render_ctx.renderer(), config, command_queue, audio_manager) {}
 
 bool Engine::dispatch_event(GameState& state) {
     SDL_Event event{};
@@ -112,8 +114,8 @@ void Engine::handle_login_error(const std::string& msg) {
 
 void Engine::reset_login_state() { login_ctrl.clear_error(); }
 
-bool Engine::try_submit_create_character(std::string& username, std::string& password,
-                                         Race& race, PlayerClass& player_class) {
+bool Engine::try_submit_create_character(std::string& username, std::string& password, Race& race,
+                                         PlayerClass& player_class) {
     if (!create_char_ctrl.is_submitted())
         return false;
     create_char_ctrl.clear_error();

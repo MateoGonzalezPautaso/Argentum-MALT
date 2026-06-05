@@ -4,5 +4,5 @@
 #define DAMAGE 28
 #define NAME "Orc"
 
-Orc::Orc(Position position, Rng& rng, EquipableItems& equipable_items, uint8_t level):
-        EnemyNpc(position, MAX_HP * level, DAMAGE * level, rng, equipable_items, level, NAME) {}
+Orc::Orc(Position position, Rng& rng, const ItemCatalog& catalog, uint32_t level):
+        EnemyNpc(position, MAX_HP * level, DAMAGE * level, rng, catalog, level, NAME) {}

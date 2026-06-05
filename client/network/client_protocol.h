@@ -47,6 +47,7 @@ public:
     void send_cheat_level_down();
     void send_cheat_add_gold();
     void send_cheat_velocity();
+    void send_cheat_revive();
     void send_change_map(const ChangeMapCmd& cmd);
 
     // Envía cualquier comando usando std::visit.
@@ -82,6 +83,7 @@ private:
     ServerEvent recv_clan_update();
     ServerEvent recv_heal_received();
     ServerEvent recv_map_transition();
+    ServerEvent recv_player_stats();
 };
 
 #endif  // CLIENT_PROTOCOL_H_

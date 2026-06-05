@@ -1,5 +1,7 @@
 #include <map>
+#include <optional>
 
+#include "common/item.h"
 #include "gtest/gtest.h"
 #include "server/core/config.h"
 #include "server/game/combat_controller.h"
@@ -9,17 +11,16 @@ class CombatControllerTest: public ::testing::Test {
 protected:
     std::map<uint16_t, Player> players;
     AttackConfig config;
-    CombatController* controller = nullptr;
+    ItemCatalog item_catalog;
+    std::optional<CombatController> controller;
 
     void SetUp() override {
         config.base_damage = 10;
         config.damage_variance = 0;
         config.attack_range_px = 200;
         config.cooldown_ticks = 10;
-        controller = new CombatController(config, players);
+        controller.emplace(config, players, item_catalog);
     }
-
-    void TearDown() override { delete controller; }
 
     Player& add_player(uint16_t id, const std::string& username, Position pos = {100, 100}) {
         BalanceConfig bal;
@@ -30,14 +31,13 @@ protected:
         bal.gold_cap_base = 1000;
         bal.gold_cap_exponent = 1.0;
         players.emplace(id, Player(id, username, pos, Direction::SOUTH, Race::HUMAN,
-                                   PlayerClass::WARRIOR, bal));
+                                   PlayerClass::WARRIOR, bal, 20));
         return players.at(id);
     }
 
     // Levels a player up to the given level (from level 1)
     void set_level(Player& p, int target_level) {
-        for (int i = 1; i < target_level; ++i)
-            p.level_up();
+        for (int i = 1; i < target_level; ++i) p.level_up();
     }
 };
 
@@ -61,7 +61,7 @@ TEST_F(CombatControllerTest, SelfAttack_Blocked) {
 TEST_F(CombatControllerTest, AttackerIsNewbie_Blocked) {
     auto& attacker = add_player(1, "alice");
     auto& target = add_player(2, "bob");
-    set_level(attacker, 5);   // newbie
+    set_level(attacker, 5);  // newbie
     set_level(target, 15);
 
     auto result = controller->melee_attack(1, 2, 0);
@@ -74,7 +74,7 @@ TEST_F(CombatControllerTest, TargetIsNewbie_Blocked) {
     auto& attacker = add_player(1, "alice");
     auto& target = add_player(2, "bob");
     set_level(attacker, 15);
-    set_level(target, 5);   // newbie
+    set_level(target, 5);  // newbie
 
     auto result = controller->melee_attack(1, 2, 0);
     EXPECT_TRUE(result.broadcast_events.empty());
@@ -205,7 +205,7 @@ TEST_F(CombatControllerTest, LethalAttack_EmitsEntityDied) {
         if (std::holds_alternative<EntityDiedEvent>(ev))
             found_died = true;
     EXPECT_TRUE(found_died);
-    EXPECT_TRUE(target.is_ghost());
+    EXPECT_TRUE(target.is_dead());
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -241,7 +241,7 @@ TEST_F(CombatControllerTest, DeadAttacker_Blocked) {
     set_level(target, 15);
 
     attacker.take_damage(attacker.get_hp_max());
-    ASSERT_TRUE(attacker.is_ghost());
+    ASSERT_TRUE(attacker.is_dead());
 
     auto result = controller->melee_attack(1, 2, 0);
     EXPECT_TRUE(result.broadcast_events.empty());
@@ -255,9 +255,39 @@ TEST_F(CombatControllerTest, DeadTarget_Blocked) {
     set_level(target, 15);
 
     target.take_damage(target.get_hp_max());
-    ASSERT_TRUE(target.is_ghost());
+    ASSERT_TRUE(target.is_dead());
 
     auto result = controller->melee_attack(1, 2, 0);
     EXPECT_TRUE(result.broadcast_events.empty());
     EXPECT_TRUE(result.private_events.empty());
+}
+
+// ─────────────────────────────────────────────────────────────
+// Weapon-based damage formula
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(CombatControllerTest, WeaponEquipped_DamageUsesStrength) {
+    Item sword;
+    sword.type = ItemType::SWORD;
+    sword.name = "Espada";
+    sword.equip_slot = EquipSlot::WEAPON;
+    sword.min_damage = 5;
+    sword.max_damage = 5;  // fixed roll — no variance
+    item_catalog.add(sword);
+    controller.emplace(config, players, item_catalog);
+
+    auto& attacker = add_player(1, "alice");
+    auto& target = add_player(2, "bob");
+    set_level(attacker, 15);
+    set_level(target, 15);
+
+    attacker.add_item(ItemType::SWORD, "Espada");
+    attacker.equip(0, item_catalog);
+
+    auto result = controller->melee_attack(1, 2, 0);
+
+    ASSERT_FALSE(result.broadcast_events.empty());
+    ASSERT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.broadcast_events[0]));
+    const auto& dmg = std::get<DamageReceivedEvent>(result.broadcast_events[0]);
+    EXPECT_EQ(dmg.damage, attacker.get_strength() * 5u);
 }

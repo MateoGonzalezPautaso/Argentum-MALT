@@ -16,6 +16,9 @@ public:
 
     bool is_in_range_of(const std::string& prop_name, int px, int py, int range) const;
 
+    bool find_nearest_center(const std::string& prop_name, int px, int py, int& out_cx,
+                             int& out_cy) const;
+
 private:
     struct Entry {
         std::string name;

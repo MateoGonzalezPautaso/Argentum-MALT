@@ -2,14 +2,17 @@
 #define CLIENT_UI_RENDERER_H
 
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>
 
 #include "../../common/messages.h"
-
 #include "../chat/chat_history.h"
 #include "../config/config.h"
+
+#include "inventory_renderer.h"
 
 class ChatInput;
 
@@ -29,10 +32,12 @@ private:
     TTF_Font* bar_font = nullptr;
     SDL_Color chat_color{255, 255, 255, 255};
     UIConfig ui_cfg;
+    InventoryRenderer inventory_renderer;
 
 public:
     UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg, const SkinConfig& skin_config,
-               const ChatInput& chat_model);
+               const ChatInput& chat_model,
+               const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites);
     ~UIRenderer();
 
     void render_frame_background();
@@ -43,6 +48,13 @@ public:
     void render_exp_bar(uint32_t current, uint32_t max);
     void render_gold(uint32_t gold);
     void render_portrait(Race race, PlayerClass player_class, uint8_t level);
+    void set_hover(int mx, int my, const std::vector<InventorySlot>& slots,
+                   const InventorySlot equipped[4]);
+    bool is_hovering_occupied() const;
+    int get_hovered_inv_slot() const;
+    int get_hovered_equip_slot() const;
+    void render_inventory(const std::vector<InventorySlot>& slots);
+    void render_equipped(const InventorySlot equipped[4]);
     bool is_chat_input_hit(int x, int y) const;
 
 private:

@@ -2,6 +2,7 @@
 
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace {
 
@@ -13,27 +14,36 @@ CommandResult system_msg(const std::string& msg) {
 }  // namespace
 
 ClanCommandHandler::ClanCommandHandler(ClanManager& clan_manager,
-                                        std::map<uint16_t, Player>& players):
+                                       std::map<uint16_t, Player>& players):
         clan_manager(clan_manager), players(players) {}
 
 std::optional<CommandResult> ClanCommandHandler::handle(uint16_t player_id,
-                                                         const std::string& cmd_name,
-                                                         const std::string& args) {
-    if (cmd_name == "/fundar-clan") return handle_found_clan(player_id, args);
-    if (cmd_name == "/unirse") return handle_join_clan(player_id, args);
-    if (cmd_name == "/revisar-clan") return handle_clan_status(player_id);
-    if (cmd_name == "/clan-aceptar") return handle_clan_accept(player_id, args);
-    if (cmd_name == "/clan-rechazar") return handle_clan_reject(player_id, args);
-    if (cmd_name == "/clan-ban") return handle_clan_ban(player_id, args);
-    if (cmd_name == "/clan-kick") return handle_clan_kick(player_id, args);
-    if (cmd_name == "/dejar-clan") return handle_leave_clan(player_id);
-    if (cmd_name == "/c" || cmd_name == "/clan") return handle_clan_chat(player_id, args);
+                                                        const std::string& cmd_name,
+                                                        const std::string& args) {
+    if (cmd_name == "/fundar-clan")
+        return handle_found_clan(player_id, args);
+    if (cmd_name == "/unirse")
+        return handle_join_clan(player_id, args);
+    if (cmd_name == "/revisar-clan")
+        return handle_clan_status(player_id);
+    if (cmd_name == "/clan-aceptar")
+        return handle_clan_accept(player_id, args);
+    if (cmd_name == "/clan-rechazar")
+        return handle_clan_reject(player_id, args);
+    if (cmd_name == "/clan-ban")
+        return handle_clan_ban(player_id, args);
+    if (cmd_name == "/clan-kick")
+        return handle_clan_kick(player_id, args);
+    if (cmd_name == "/dejar-clan")
+        return handle_leave_clan(player_id);
+    if (cmd_name == "/c" || cmd_name == "/clan")
+        return handle_clan_chat(player_id, args);
     return std::nullopt;
 }
 
 CommandResult ClanCommandHandler::notify_clan_members(const std::string& clan_name,
-                                                       const ClanNotificationEvent& notif,
-                                                       uint16_t exclude_id) {
+                                                      const ClanNotificationEvent& notif,
+                                                      uint16_t exclude_id) {
     CommandResult result;
     for (const auto& [pid, p]: players) {
         if (pid == exclude_id)
@@ -126,16 +136,14 @@ CommandResult ClanCommandHandler::handle_clan_status(uint16_t player_id) {
     }
     if (!requests.empty()) {
         msg += "\nPedidos pendientes:";
-        for (const auto& r: requests)
-            msg += "\n  " + r;
+        for (const auto& r: requests) msg += "\n  " + r;
     } else {
         msg += "\nNo hay pedidos pendientes";
     }
     return system_msg(msg);
 }
 
-CommandResult ClanCommandHandler::handle_clan_accept(uint16_t player_id,
-                                                      const std::string& args) {
+CommandResult ClanCommandHandler::handle_clan_accept(uint16_t player_id, const std::string& args) {
     if (args.empty())
         return system_msg("Uso: /clan-aceptar <nick>");
 
@@ -161,14 +169,12 @@ CommandResult ClanCommandHandler::handle_clan_accept(uint16_t player_id,
         ClanNotificationEvent notif{ClanNotifType::MEMBER_ONLINE, args, clan_name};
         auto nresult = notify_clan_members(clan_name, notif, player_id);
         for (auto& [tid, tev]: nresult.targeted_events)
-            for (auto& se: tev)
-                aresult.targeted_events[tid].push_back(std::move(se));
+            for (auto& se: tev) aresult.targeted_events[tid].push_back(std::move(se));
     }
     return aresult;
 }
 
-CommandResult ClanCommandHandler::handle_clan_reject(uint16_t player_id,
-                                                      const std::string& args) {
+CommandResult ClanCommandHandler::handle_clan_reject(uint16_t player_id, const std::string& args) {
     if (args.empty())
         return system_msg("Uso: /clan-rechazar <nick>");
 

@@ -80,7 +80,8 @@ void TilemapDocument::save(const std::string& path) const {
     toml::array mapa_array;
     for (const auto& row: config_.mapa) {
         toml::array row_array;
-        for (const auto& val: row) row_array.push_back(val);
+        std::for_each(row.begin(), row.end(),
+                      [&row_array](const auto& v) { row_array.push_back(v); });
         mapa_array.push_back(std::move(row_array));
     }
     tilemap_tbl.emplace("mapa", std::move(mapa_array));
@@ -112,7 +113,8 @@ void TilemapDocument::save(const std::string& path) const {
 
             if (!def.paths.empty()) {
                 toml::array paths_arr;
-                for (const auto& val: def.paths) paths_arr.push_back(val);
+                std::for_each(def.paths.begin(), def.paths.end(),
+                              [&paths_arr](const auto& v) { paths_arr.push_back(v); });
                 prop_def.emplace("paths", std::move(paths_arr));
 
                 toml::table src;
@@ -166,7 +168,8 @@ void TilemapDocument::save(const std::string& path) const {
             toml::array prop_grid;
             for (const auto& row: config_.prop_map) {
                 toml::array row_array;
-                for (const auto& val: row) row_array.push_back(val);
+                std::for_each(row.begin(), row.end(),
+                              [&row_array](const auto& v) { row_array.push_back(v); });
                 prop_grid.push_back(std::move(row_array));
             }
             toml::table pm;

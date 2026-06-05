@@ -183,18 +183,21 @@ void parse_prop_config(const toml::table& root, TilemapConfig& config) {
     }
 }
 
-std::unordered_map<std::string, TilemapConfig> load_all_map_configs(const std::string& map_list_path) {
+std::unordered_map<std::string, TilemapConfig> load_all_map_configs(
+        const std::string& map_list_path) {
     toml::table root = toml::parse_file(map_list_path);
     std::unordered_map<std::string, TilemapConfig> result;
 
     if (auto maps = root["maps"].as_array()) {
         for (const auto& entry: *maps) {
             const auto* tbl = entry.as_table();
-            if (!tbl) continue;
+            if (!tbl)
+                continue;
 
             std::string name = toml_get_string(*tbl, "name", std::string());
             std::string path = toml_get_string(*tbl, "path", std::string());
-            if (name.empty() || path.empty()) continue;
+            if (name.empty() || path.empty())
+                continue;
 
             toml::table map_root = toml::parse_file(path);
             TilemapConfig cfg;

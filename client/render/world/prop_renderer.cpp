@@ -1,6 +1,7 @@
 #include "prop_renderer.h"
 
 #include <algorithm>
+#include <string>
 #include <utility>
 
 #include "../texture_loader.h"
@@ -62,8 +63,8 @@ void PropRenderer::load(const TilemapConfig& tilemap, int tile_size) {
 
             for (const auto& part_def: def.parts) {
                 PropPart pp;
-                pp.src = SDL2pp::Rect(part_def.src_x, part_def.src_y,
-                                      part_def.src_w, part_def.src_h);
+                pp.src = SDL2pp::Rect(part_def.src_x, part_def.src_y, part_def.src_w,
+                                      part_def.src_h);
                 pp.offset_x = part_def.offset_x;
                 pp.offset_y = part_def.offset_y;
                 pp.display_w = part_def.src_w;
@@ -74,12 +75,14 @@ void PropRenderer::load(const TilemapConfig& tilemap, int tile_size) {
             if (!pr.parts.empty() && def.width > 0 && def.height > 0) {
                 int min_x = 0, min_y = 0, max_x = 0, max_y = 0;
                 {
-                    auto& p0 = pr.parts[0];
-                    min_x = p0.offset_x; max_x = p0.offset_x + p0.display_w;
-                    min_y = p0.offset_y; max_y = p0.offset_y + p0.display_h;
+                    const auto& p0 = pr.parts[0];
+                    min_x = p0.offset_x;
+                    max_x = p0.offset_x + p0.display_w;
+                    min_y = p0.offset_y;
+                    max_y = p0.offset_y + p0.display_h;
                 }
                 for (std::size_t i = 1; i < pr.parts.size(); ++i) {
-                    auto& p = pr.parts[i];
+                    const auto& p = pr.parts[i];
                     min_x = std::min(min_x, p.offset_x);
                     min_y = std::min(min_y, p.offset_y);
                     max_x = std::max(max_x, p.offset_x + p.display_w);
@@ -90,7 +93,7 @@ void PropRenderer::load(const TilemapConfig& tilemap, int tile_size) {
                 if (nat_w > 0 && nat_h > 0) {
                     float sx = static_cast<float>(def.width) / nat_w;
                     float sy = static_cast<float>(def.height) / nat_h;
-                    for (auto& part : pr.parts) {
+                    for (auto& part: pr.parts) {
                         part.offset_x = static_cast<int>((part.offset_x - min_x) * sx);
                         part.offset_y = static_cast<int>((part.offset_y - min_y) * sy);
                         part.display_w = std::max(1, static_cast<int>(part.display_w * sx));
@@ -109,10 +112,11 @@ void PropRenderer::render_conditional(const SDL2pp::Rect& cam, int player_foot_y
     if (prop_tiles_.empty() || !has_tilemap_)
         return;
 
-    const int first_col = std::max(0, cam.GetX() / tile_size_);
-    const int first_row = std::max(0, cam.GetY() / tile_size_);
-    const int last_col = std::max(0, (cam.GetX() + cam.GetW() - 1) / tile_size_);
-    const int last_row = std::max(0, (cam.GetY() + cam.GetH() - 1) / tile_size_);
+    constexpr int extra = 2;
+    const int first_col = std::max(0, cam.GetX() / tile_size_ - extra);
+    const int first_row = std::max(0, cam.GetY() / tile_size_ - extra);
+    const int last_col = (cam.GetX() + cam.GetW() - 1) / tile_size_ + extra;
+    const int last_row = (cam.GetY() + cam.GetH() - 1) / tile_size_ + extra;
 
     for (int row = first_row; row <= last_row; ++row) {
         if (row < 0 || row >= static_cast<int>(prop_tiles_.size()))
@@ -140,9 +144,8 @@ void PropRenderer::render_conditional(const SDL2pp::Rect& cam, int player_foot_y
             if (prop.parts.empty()) {
                 renderer.Copy(prop.frames[prop.current_frame], prop.src, dst);
             } else {
-                for (auto& part : prop.parts) {
-                    SDL2pp::Rect part_dst(dst.GetX() + part.offset_x,
-                                          dst.GetY() + part.offset_y,
+                for (auto& part: prop.parts) {
+                    SDL2pp::Rect part_dst(dst.GetX() + part.offset_x, dst.GetY() + part.offset_y,
                                           part.display_w, part.display_h);
                     renderer.Copy(part.frames[part.current_frame], part.src, part_dst);
                 }
@@ -153,8 +156,10 @@ void PropRenderer::render_conditional(const SDL2pp::Rect& cam, int player_foot_y
 
 bool PropRenderer::hit_test_prop(int world_x, int world_y, std::string& out_prop_name) const {
     for (int ri = static_cast<int>(prop_tiles_.size()) - 1; ri >= 0; --ri) {
-        for (int ci = static_cast<int>(prop_tiles_[static_cast<std::size_t>(ri)].size()) - 1; ci >= 0; --ci) {
-            const auto& prop = prop_tiles_[static_cast<std::size_t>(ri)][static_cast<std::size_t>(ci)];
+        for (int ci = static_cast<int>(prop_tiles_[static_cast<std::size_t>(ri)].size()) - 1;
+             ci >= 0; --ci) {
+            const auto& prop =
+                    prop_tiles_[static_cast<std::size_t>(ri)][static_cast<std::size_t>(ci)];
             if (prop.frames.empty() && prop.parts.empty())
                 continue;
             int prop_world_x = ci * tile_size_;
@@ -182,10 +187,11 @@ void PropRenderer::render_hitboxes(const SDL2pp::Rect& cam) {
     if (prop_tiles_.empty() || !has_tilemap_)
         return;
 
-    const int first_col = std::max(0, cam.GetX() / tile_size_);
-    const int first_row = std::max(0, cam.GetY() / tile_size_);
-    const int last_col = std::max(0, (cam.GetX() + cam.GetW() - 1) / tile_size_);
-    const int last_row = std::max(0, (cam.GetY() + cam.GetH() - 1) / tile_size_);
+    constexpr int extra = 2;
+    const int first_col = std::max(0, cam.GetX() / tile_size_ - extra);
+    const int first_row = std::max(0, cam.GetY() / tile_size_ - extra);
+    const int last_col = (cam.GetX() + cam.GetW() - 1) / tile_size_ + extra;
+    const int last_row = (cam.GetY() + cam.GetH() - 1) / tile_size_ + extra;
 
     SDL_SetRenderDrawBlendMode(renderer.Get(), SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(renderer.Get(), 255, 0, 0, 128);
@@ -202,7 +208,8 @@ void PropRenderer::render_hitboxes(const SDL2pp::Rect& cam) {
             if (col < 0)
                 continue;
             auto& prop = prop_row[static_cast<std::size_t>(col)];
-            if ((prop.frames.empty() && prop.parts.empty()) || prop.hitbox_w <= 0 || prop.hitbox_h <= 0)
+            if ((prop.frames.empty() && prop.parts.empty()) || prop.hitbox_w <= 0 ||
+                prop.hitbox_h <= 0)
                 continue;
 
             const int prop_screen_x = col * tile_size_ - cam.GetX();

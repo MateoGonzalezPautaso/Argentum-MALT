@@ -66,7 +66,20 @@ cursor_blink_ms = 500
 cursor_width = 2
 cursor_padding = 4
 cursor_height_shrink = 8
-chat_line_spacing = 2
+    chat_line_spacing = 2
+
+[ui.inventory_panel]
+x = 782
+y = 202
+cols = 4
+slot_w = 50
+slot_h = 50
+gap = 4
+equip_y = 50
+equip_weapon_label = "Weapon"
+equip_armor_label = "Armor"
+equip_helmet_label = "Helmet"
+equip_shield_label = "Shield"
 
 [ui.hp_bar]
 x = 790
@@ -118,7 +131,7 @@ connect_default = "assets/interface/en_boton-conectar-default.bmp"
 connect_hover = "assets/interface/en_boton-conectar-over.bmp"
 back_default = "assets/interface/en_boton-volver-default.bmp"
 back_hover = "assets/interface/en_boton-volver-over.bmp"
-ui_frame = "assets/interface/en_ventanaprincipal_edit.bmp"
+ui_frame = "assets/interface/en_ventanaprincipal_edit_v2.bmp"
 hp_bar = "assets/interface/en_barradevida.bmp"
 mp_bar = "assets/interface/en_barrademana.bmp"
 exp_bar = "assets/interface/en_barraexperiencia.bmp"
@@ -184,4 +197,238 @@ dir_src_y_right = 144
 head_dir_src_y_down = 0
 head_dir_src_y_up = 64
 head_dir_src_y_left = 128
-head_dir_src_y_right = 192
+    head_dir_src_y_right = 192
+
+[[item_sprites]]
+item_type = "SWORD"
+path = "assets/Graficos/2101.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+category = "Arma"
+color_r = 180
+color_g = 40
+color_b = 40
+
+[[item_sprites]]
+item_type = "AXE"
+path = "assets/Graficos/2087.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+category = "Arma"
+color_r = 180
+color_g = 40
+color_b = 40
+
+[[item_sprites]]
+item_type = "HAMMER"
+path = "assets/Graficos/2084.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+category = "Arma"
+color_r = 180
+color_g = 40
+color_b = 40
+
+[[item_sprites]]
+item_type = "ASH_STAFF"
+path = "assets/Graficos/2019.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+category = "Baculo"
+color_r = 140
+color_g = 40
+color_b = 200
+
+[[item_sprites]]
+item_type = "ELVEN_FLUTE"
+path = "assets/Graficos/2089.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+category = "Baculo"
+color_r = 140
+color_g = 40
+color_b = 200
+
+[[item_sprites]]
+item_type = "KNOTTED_STAFF"
+path = "assets/Graficos/2016.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+category = "Baculo"
+color_r = 140
+color_g = 40
+color_b = 200
+
+[[item_sprites]]
+item_type = "STUDDED_STAFF"
+path = "assets/Graficos/2013.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+category = "Baculo"
+color_r = 140
+color_g = 40
+color_b = 200
+
+[[item_sprites]]
+item_type = "SIMPLE_BOW"
+path = "assets/Graficos/2044.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+category = "Arco"
+color_r = 200
+color_g = 120
+color_b = 40
+
+[[item_sprites]]
+item_type = "COMPOSITE_BOW"
+path = "assets/Graficos/2045.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+category = "Arco"
+color_r = 200
+color_g = 120
+color_b = 40
+
+[[item_sprites]]
+item_type = "LEATHER_ARMOR"
+path = "assets/Graficos/1860.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+category = "Armadura"
+color_r = 40
+color_g = 80
+color_b = 180
+
+[[item_sprites]]
+item_type = "PLATE_ARMOR"
+path = "assets/Graficos/1854.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+category = "Armadura"
+color_r = 40
+color_g = 80
+color_b = 180
+
+[[item_sprites]]
+item_type = "BLUE_TUNIC"
+path = "assets/Graficos/1981.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+category = "Armadura"
+color_r = 40
+color_g = 80
+color_b = 180
+
+[[item_sprites]]
+item_type = "HOOD"
+path = "assets/Graficos/437.png"
+src_x = 224
+src_y = 832
+src_w = 32
+src_h = 32
+category = "Casco"
+color_r = 180
+color_g = 160
+color_b = 40
+
+[[item_sprites]]
+item_type = "IRON_HELMET"
+path = "assets/Graficos/437.png"
+src_x = 416
+src_y = 800
+src_w = 32
+src_h = 32
+category = "Casco"
+color_r = 180
+color_g = 160
+color_b = 40
+
+[[item_sprites]]
+item_type = "TURTLE_SHIELD"
+path = "assets/Graficos/2368.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+category = "Escudo"
+color_r = 40
+color_g = 160
+color_b = 180
+
+[[item_sprites]]
+item_type = "IRON_SHIELD"
+path = "assets/Graficos/2322.png"
+src_x = 0
+src_y = 224
+src_w = 32
+src_h = 32
+category = "Escudo"
+color_r = 40
+color_g = 160
+color_b = 180
+
+[[item_sprites]]
+item_type = "MAGIC_HAT"
+path = "assets/Graficos/437.png"
+src_x = 96
+src_y = 800
+src_w = 32
+src_h = 32
+category = "Casco"
+color_r = 180
+color_g = 160
+color_b = 40
+
+[[item_sprites]]
+item_type = "HEALTH_POTION"
+category = "Pocion de vida"
+color_r = 40
+color_g = 140
+color_b = 60
+
+[[item_sprites]]
+item_type = "MANA_POTION"
+category = "Pocion de mana"
+color_r = 40
+color_g = 140
+color_b = 60
+
+[sfx]
+death = "11.ogg"
+meditate = "20.ogg"
+hit = "345.ogg"
+merchant = "600.ogg"
+banker = "611.ogg"
+priest = "620.ogg"
+healer = "701.ogg"
+bow = "65.ogg"
+spell = "133.ogg"
+axe = "136.ogg"
+flute = "154.ogg"
+sword = "180.ogg"
+hammer = "159.ogg"
+level_up = "112.ogg"
