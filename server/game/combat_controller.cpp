@@ -102,9 +102,18 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
                                                        static_cast<int>(attacker.get_level()) + 10,
                                                0));
 
-    return notify_entity_attacked(attacker, npc_target_id, damage, npc_target.get_hp_current(),
-                                  npc_target.get_hp_max(), npc_target.get_name(), "",
-                                  npc_target.is_dead(), npc_target.get_level());
+    CommandResult result =
+            notify_entity_attacked(attacker, npc_target_id, damage, npc_target.get_hp_current(),
+                                   npc_target.get_hp_max(), npc_target.get_name(), "",
+                                   npc_target.is_dead(), npc_target.get_level());
+
+    if (npc_target.is_dead()) {
+        EnemyDrop drop = npc_target.get_kill_reward();
+        if (drop.gold > 0)
+            attacker.gain_gold(drop.gold);
+    }
+
+    return result;
 }
 
 bool CombatController::in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x,
