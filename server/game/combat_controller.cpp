@@ -75,8 +75,11 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
 
     if (target.is_dead()) {
         uint32_t excess = target.take_excess_gold();
-        if (excess > 0)
+        if (excess > 0) {
             attacker.gain_gold(excess);
+            result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
+            result.targeted_events[target_id].push_back(GoldUpdateEvent{target.get_gold()});
+        }
     }
 
     return result;
@@ -118,8 +121,10 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
 
     if (npc_target.is_dead()) {
         EnemyDrop drop = npc_target.get_kill_reward();
-        if (drop.gold > 0)
+        if (drop.gold > 0) {
             attacker.gain_gold(drop.gold);
+            result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
+        }
     }
 
     return result;
@@ -226,7 +231,9 @@ CommandResult CombatController::notify_entity_attacked(Player& attacker, uint16_
             .level = attacker.get_level(),
             .experience = attacker.get_experience(),
             .exp_to_next = attacker.exp_to_next_level(),
+            .hp_current = attacker.get_hp_current(),
             .hp_max = attacker.get_hp_max(),
+            .mana_current = attacker.get_mana_current(),
             .mana_max = attacker.get_mana_max(),
     };
     return {.private_events = {dealt, stats},
