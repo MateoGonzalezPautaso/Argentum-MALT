@@ -128,6 +128,10 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                         return cheats_enabled ? handle_cheat_fill_inventory(player_id) :
                                                 CommandResult{};
                     },
+                    [&](const CheatResetManaCmd&) {
+                        return cheats_enabled ? handle_cheat_reset_mana(player_id) :
+                                                CommandResult{};
+                    },
                     [&](const ChangeMapCmd& cmd) { return handle_change_map(player_id, cmd); },
                     [&](const EquipItemCmd& cmd) { return handle_equip(player_id, cmd); },
                     [&](const UnequipItemCmd& cmd) { return handle_unequip(player_id, cmd); },
@@ -706,6 +710,23 @@ CommandResult Game::handle_cheat_reset_gold(uint16_t player_id) {
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Oro reseteado a 0"};
     GoldUpdateEvent gold{player.get_gold()};
     return {.private_events = {msg, gold}, .broadcast_events = {}, .targeted_events = {}};
+}
+
+CommandResult Game::handle_cheat_reset_mana(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+    player.use_mana(player.get_mana_current());
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Mana reseteado a 0"};
+    PlayerStatsEvent stats{.level = player.get_level(),
+                           .experience = player.get_experience(),
+                           .exp_to_next = player.exp_to_next_level(),
+                           .hp_current = player.get_hp_current(),
+                           .hp_max = player.get_hp_max(),
+                           .mana_current = player.get_mana_current(),
+                           .mana_max = player.get_mana_max()};
+    return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_cheat_velocity(uint16_t player_id) {

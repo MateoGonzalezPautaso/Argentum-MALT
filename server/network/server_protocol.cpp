@@ -53,6 +53,8 @@ ClientCommand ServerProtocol::recv_command() {
             return CheatReviveCmd{};
         case OpCode::CHEAT_FILL_INVENTORY:
             return CheatFillInventoryCmd{};
+        case OpCode::CHEAT_RESET_MANA:
+            return CheatResetManaCmd{};
         case OpCode::CHANGE_MAP:
             return recv_change_map();
         case OpCode::EQUIP_ITEM:
