@@ -478,8 +478,8 @@ void SpriteRenderer::trigger_spell_overlay_at(int world_x, int world_y) {
     for (auto& ov: spell_overlays) {
         if (ov.active)
             continue;
-        ov.dst.SetX(world_x - ov.dst.GetW() / 2);
-        ov.dst.SetY(world_y - ov.dst.GetH() / 2);
+        ov.dst.SetX(world_x - ov.dst.GetW() / 2 - 7);
+        ov.dst.SetY(world_y - ov.dst.GetH() / 2 - 15);
         ov.current_frame = 0;
         ov.last_ticks = SDL_GetTicks();
         ov.active = true;
