@@ -73,6 +73,10 @@ void ClientProtocol::send_cheat_velocity() { protocol.send_opcode(OpCode::CHEAT_
 
 void ClientProtocol::send_cheat_revive() { protocol.send_opcode(OpCode::CHEAT_REVIVE); }
 
+void ClientProtocol::send_cheat_fill_inventory() {
+    protocol.send_opcode(OpCode::CHEAT_FILL_INVENTORY);
+}
+
 void ClientProtocol::send_change_map(const ChangeMapCmd& cmd) {
     protocol.send_opcode(OpCode::CHANGE_MAP);
     protocol.send_str(cmd.prop_name);
@@ -105,8 +109,9 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const CheatAddGoldCmd&) { send_cheat_add_gold(); },
                        [this](const CheatResetGoldCmd&) { send_cheat_reset_gold(); },
                        [this](const CheatVelocityCmd&) { send_cheat_velocity(); },
-                       [this](const CheatReviveCmd&) { send_cheat_revive(); },
-                       [this](const ChangeMapCmd& msg) { send_change_map(msg); },
+                        [this](const CheatReviveCmd&) { send_cheat_revive(); },
+                        [this](const CheatFillInventoryCmd&) { send_cheat_fill_inventory(); },
+                        [this](const ChangeMapCmd& msg) { send_change_map(msg); },
                        [this](const EquipItemCmd& msg) { send_equip_item(msg); },
                        [this](const UnequipItemCmd& msg) { send_unequip_item(msg); },
                        [this](const NpcHealCmd& msg) { send_npc_heal(msg); },

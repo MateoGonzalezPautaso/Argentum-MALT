@@ -124,6 +124,10 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const CheatReviveCmd&) {
                         return cheats_enabled ? handle_cheat_revive(player_id) : CommandResult{};
                     },
+                    [&](const CheatFillInventoryCmd&) {
+                        return cheats_enabled ? handle_cheat_fill_inventory(player_id) :
+                                                CommandResult{};
+                    },
                     [&](const ChangeMapCmd& cmd) { return handle_change_map(player_id, cmd); },
                     [&](const EquipItemCmd& cmd) { return handle_equip(player_id, cmd); },
                     [&](const UnequipItemCmd& cmd) { return handle_unequip(player_id, cmd); },
@@ -408,6 +412,8 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             return handle_resurrect(player_id);
         if (cmd_name == "/curar")
             return handle_npc_heal(player_id);
+        if (cmd_name == "/refill_inventory" && cheats_enabled)
+            return handle_cheat_fill_inventory(player_id);
 
         if (cmd_name == "/equipar") {
             try {
@@ -711,6 +717,22 @@ CommandResult Game::handle_cheat_velocity(uint16_t player_id) {
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      std::string("[Cheat] Velocidad: ") + (active ? "ON" : "OFF")};
     return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+}
+
+CommandResult Game::handle_cheat_fill_inventory(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+    for (const auto& item: item_catalog.all()) {
+        if (item.type == ItemType::NONE || item.type == ItemType::GOLD_DROP)
+            continue;
+        player.add_item(item.type, item.name);
+    }
+    std::vector<InventorySlot> slots = player.dump_inventory();
+    InventoryUpdateEvent inv{.slots = std::move(slots)};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Inventario lleno con todos los items!"};
+    return {.private_events = {msg, inv}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_meditate(uint16_t player_id) {

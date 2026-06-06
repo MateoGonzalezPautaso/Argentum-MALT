@@ -49,6 +49,7 @@ public:
     void send_cheat_reset_gold();
     void send_cheat_velocity();
     void send_cheat_revive();
+    void send_cheat_fill_inventory();
     void send_change_map(const ChangeMapCmd& cmd);
 
     // Envía cualquier comando usando std::visit.
