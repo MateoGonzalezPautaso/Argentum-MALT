@@ -85,6 +85,7 @@ private:
     ServerEvent recv_clan_notification();
     ServerEvent recv_clan_update();
     ServerEvent recv_heal_received();
+    ServerEvent recv_spell_effect();
     ServerEvent recv_map_transition();
     ServerEvent recv_player_stats();
 };

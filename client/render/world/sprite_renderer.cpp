@@ -456,8 +456,8 @@ void SpriteRenderer::load_spell_overlay() {
             ov.frames.emplace_back(renderer, SDL2pp::Surface(sub));
         }
         ov.frame_ms = 100;
-        ov.dst.SetW(128);
-        ov.dst.SetH(135);
+        ov.dst.SetW(77);
+        ov.dst.SetH(81);
     }
 }
 
