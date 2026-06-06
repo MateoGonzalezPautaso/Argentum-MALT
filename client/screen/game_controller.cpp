@@ -194,8 +194,11 @@ bool GameController::is_transition_prop(const std::string& prop_name) const {
     return !prop_it->second.transition_map.empty();
 }
 
-void GameController::handle_attack_dodged(const AttackDodgedEvent&) {
-    chat_history.add_message(ChatMsgType::SYSTEM, "", "El ataque fue esquivado");
+void GameController::handle_attack_dodged(const AttackDodgedEvent& e) {
+    if (e.player_id == player_stats.player_id)
+        chat_history.add_message(ChatMsgType::SYSTEM, "", "Esquivaste el ataque");
+    else
+        chat_history.add_message(ChatMsgType::SYSTEM, "", "El ataque fue esquivado");
 }
 
 void GameController::handle_chat_msg(const ChatMsgEvent& e) {
@@ -468,6 +471,10 @@ bool GameController::handle_keydown(const SDL_Event& event) {
         case SDLK_0:
             if (ctrl)
                 command_queue.push(CheatResetGoldCmd{});
+            break;
+        case SDLK_9:
+            if (ctrl)
+                command_queue.push(CheatResetManaCmd{});
             break;
         case SDLK_f:
             if (ctrl)

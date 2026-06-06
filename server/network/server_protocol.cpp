@@ -55,6 +55,8 @@ ClientCommand ServerProtocol::recv_command() {
             return CheatReviveCmd{};
         case OpCode::CHEAT_FILL_INVENTORY:
             return CheatFillInventoryCmd{};
+        case OpCode::CHEAT_RESET_MANA:
+            return CheatResetManaCmd{};
         case OpCode::CHANGE_MAP:
             return recv_change_map();
         case OpCode::EQUIP_ITEM:
@@ -190,8 +192,9 @@ void ServerProtocol::send_damage_dealt(const DamageDealtEvent& ev) {
     protocol.send_uint32(ev.damage);
 }
 
-void ServerProtocol::send_attack_dodged(const AttackDodgedEvent&) {
+void ServerProtocol::send_attack_dodged(const AttackDodgedEvent& ev) {
     protocol.send_opcode(OpCode::ATTACK_DODGED);
+    protocol.send_uint16(ev.player_id);
 }
 
 void ServerProtocol::send_damage_received(const DamageReceivedEvent& ev) {

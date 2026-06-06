@@ -46,6 +46,7 @@ enum class OpCode : uint8_t {
     CHEAT_REVIVE = 0x24,
     CHEAT_RESET_GOLD = 0x25,
     CHEAT_FILL_INVENTORY = 0x26,
+    CHEAT_RESET_MANA = 0x27,
     // Events (server -> client) 0x80 - 0x9B
     LOGIN_OK = 0x80,
     LOGIN_ERROR = 0x81,
