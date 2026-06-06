@@ -442,8 +442,40 @@ void SpriteRenderer::load_damage_overlay() {
     }
 }
 
+void SpriteRenderer::load_spell_overlay() {
+    std::string path = "assets/Graficos/3470.png";
+    SDL2pp::Surface sheet = texture::load_surface(path);
+    spell_overlays.resize(3);
+    for (auto& ov: spell_overlays) {
+        ov.frames.reserve(5);
+        for (int i = 0; i < 5; ++i) {
+            SDL_Surface* sub = SDL_CreateRGBSurfaceWithFormat(0, 128, 135, 32,
+                    sheet.Get()->format->format);
+            SDL_Rect src{i * 128, 0, 128, 135};
+            SDL_BlitSurface(sheet.Get(), &src, sub, nullptr);
+            ov.frames.emplace_back(renderer, SDL2pp::Surface(sub));
+        }
+        ov.frame_ms = 100;
+        ov.dst.SetW(128);
+        ov.dst.SetH(135);
+    }
+}
+
 void SpriteRenderer::trigger_damage_overlay_at(int world_x, int world_y) {
     for (auto& ov: overlays) {
+        if (ov.active)
+            continue;
+        ov.dst.SetX(world_x - ov.dst.GetW() / 2);
+        ov.dst.SetY(world_y - ov.dst.GetH() / 2);
+        ov.current_frame = 0;
+        ov.last_ticks = SDL_GetTicks();
+        ov.active = true;
+        return;
+    }
+}
+
+void SpriteRenderer::trigger_spell_overlay_at(int world_x, int world_y) {
+    for (auto& ov: spell_overlays) {
         if (ov.active)
             continue;
         ov.dst.SetX(world_x - ov.dst.GetW() / 2);
@@ -471,27 +503,35 @@ bool SpriteRenderer::get_entity_world_position(uint16_t entity_id, int& x, int& 
 void SpriteRenderer::tick_overlays(const AnimationSystem& anim) {
     (void)anim;
     uint32_t now = SDL_GetTicks();
-    for (auto& ov: overlays) {
-        if (!ov.active)
-            continue;
-        if (now - ov.last_ticks < ov.frame_ms)
-            continue;
-        ov.last_ticks = now;
-        ov.current_frame++;
-        if (ov.current_frame >= ov.frames.size()) {
-            ov.active = false;
+    auto tick_pool = [&](std::vector<OverlayEffect>& pool) {
+        for (auto& ov: pool) {
+            if (!ov.active)
+                continue;
+            if (now - ov.last_ticks < ov.frame_ms)
+                continue;
+            ov.last_ticks = now;
+            ov.current_frame++;
+            if (ov.current_frame >= ov.frames.size()) {
+                ov.active = false;
+            }
         }
-    }
+    };
+    tick_pool(overlays);
+    tick_pool(spell_overlays);
 }
 
 void SpriteRenderer::render_overlays(const SDL2pp::Rect& cam) {
-    for (auto& ov: overlays) {
-        if (!ov.active)
-            continue;
-        SDL2pp::Rect dst(ov.dst.GetX() - cam.GetX(), ov.dst.GetY() - cam.GetY(), ov.dst.GetW(),
-                         ov.dst.GetH());
-        renderer.Copy(ov.frames[ov.current_frame], SDL2pp::NullOpt, dst);
-    }
+    auto render_pool = [&](std::vector<OverlayEffect>& pool) {
+        for (auto& ov: pool) {
+            if (!ov.active)
+                continue;
+            SDL2pp::Rect dst(ov.dst.GetX() - cam.GetX(), ov.dst.GetY() - cam.GetY(),
+                             ov.dst.GetW(), ov.dst.GetH());
+            renderer.Copy(ov.frames[ov.current_frame], SDL2pp::NullOpt, dst);
+        }
+    };
+    render_pool(overlays);
+    render_pool(spell_overlays);
 }
 
 void SpriteRenderer::tick_animations(AnimationSystem& anim) {
