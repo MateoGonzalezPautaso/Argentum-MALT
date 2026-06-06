@@ -145,9 +145,12 @@ void GameController::handle_login_ok(const LoginOkEvent& e) {
     player_stats.mana_max = e.mana_max;
     player_stats.gold = e.gold;
     player_stats.pos = e.pos;
+    player_is_ghost = (e.hp_current == 0);
     move_controller.set_position(e.pos.x, e.pos.y);
     world_renderer.set_movable_position(e.pos.x, e.pos.y);
     world_renderer.set_local_player_info(e.race, e.player_class);
+    if (player_is_ghost)
+        world_renderer.set_movable_alpha(128);
 }
 
 void GameController::handle_entity_despawn(const EntityDespawnEvent& e) {
