@@ -187,20 +187,8 @@ void WorldRenderer::trigger_damage_overlay_at(int world_x, int world_y) {
     sprite_renderer.trigger_damage_overlay_at(world_x, world_y);
 }
 
-void WorldRenderer::trigger_spell_overlay_at(int world_x, int world_y) {
-    sprite_renderer.trigger_spell_overlay_at(world_x, world_y);
-}
-
-void WorldRenderer::trigger_target_spell_overlay_at(int world_x, int world_y) {
-    sprite_renderer.trigger_target_spell_overlay_at(world_x, world_y);
-}
-
-void WorldRenderer::trigger_missile_overlay_at(int world_x, int world_y) {
-    sprite_renderer.trigger_missile_overlay_at(world_x, world_y);
-}
-
-void WorldRenderer::trigger_explosion_overlay_at(int world_x, int world_y) {
-    sprite_renderer.trigger_explosion_overlay_at(world_x, world_y);
+void WorldRenderer::trigger_spell_effect(uint8_t effect_type, int world_x, int world_y) {
+    sprite_renderer.trigger_spell_effect(effect_type, world_x, world_y);
 }
 
 bool WorldRenderer::get_entity_world_position(uint16_t entity_id, int& x, int& y) const {

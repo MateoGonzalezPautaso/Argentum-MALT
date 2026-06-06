@@ -467,10 +467,10 @@ void SpriteRenderer::load_spell_sheets() {
             ov.dst.SetH(display_h);
         }
     };
-    load_sheet("assets/Graficos/3470.png", 128, 135, 5, 1, 77, 81, 100, spell_overlays);
-    load_sheet("assets/Graficos/3449.png", 128, 128, 4, 4, 77, 77, 70, target_spell_overlays);
-    load_sheet("assets/Graficos/3460.png", 128, 128, 4, 4, 77, 77, 70, missile_overlays);
-    load_sheet("assets/Graficos/3451.png", 128, 128, 4, 4, 77, 77, 70, explosion_overlays);
+    load_sheet("assets/Graficos/3470.png", 128, 135, 5, 1, 77, 81, 100, spell_overlay_pools[0]);
+    load_sheet("assets/Graficos/3449.png", 128, 128, 4, 4, 77, 77, 70, spell_overlay_pools[1]);
+    load_sheet("assets/Graficos/3460.png", 128, 128, 4, 4, 77, 77, 70, spell_overlay_pools[2]);
+    load_sheet("assets/Graficos/3451.png", 128, 128, 4, 4, 77, 77, 70, spell_overlay_pools[3]);
 }
 
 void SpriteRenderer::trigger_damage_overlay_at(int world_x, int world_y) {
@@ -486,51 +486,20 @@ void SpriteRenderer::trigger_damage_overlay_at(int world_x, int world_y) {
     }
 }
 
-void SpriteRenderer::trigger_spell_overlay_at(int world_x, int world_y) {
-    for (auto& ov: spell_overlays) {
-        if (ov.active)
-            continue;
-        ov.dst.SetX(world_x - ov.dst.GetW() / 2 - 7);
-        ov.dst.SetY(world_y - ov.dst.GetH() / 2 - 15);
-        ov.current_frame = 0;
-        ov.last_ticks = SDL_GetTicks();
-        ov.active = true;
+void SpriteRenderer::trigger_spell_effect(uint8_t effect_type, int world_x, int world_y) {
+    auto it = spell_overlay_pools.find(effect_type);
+    if (it == spell_overlay_pools.end())
         return;
-    }
-}
-
-void SpriteRenderer::trigger_target_spell_overlay_at(int world_x, int world_y) {
-    for (auto& ov: target_spell_overlays) {
+    for (auto& ov: it->second) {
         if (ov.active)
             continue;
-        ov.dst.SetX(world_x - ov.dst.GetW() / 2);
-        ov.dst.SetY(world_y - ov.dst.GetH() / 2);
-        ov.current_frame = 0;
-        ov.last_ticks = SDL_GetTicks();
-        ov.active = true;
-        return;
-    }
-}
-
-void SpriteRenderer::trigger_missile_overlay_at(int world_x, int world_y) {
-    for (auto& ov: missile_overlays) {
-        if (ov.active)
-            continue;
-        ov.dst.SetX(world_x - ov.dst.GetW() / 2);
-        ov.dst.SetY(world_y - ov.dst.GetH() / 2);
-        ov.current_frame = 0;
-        ov.last_ticks = SDL_GetTicks();
-        ov.active = true;
-        return;
-    }
-}
-
-void SpriteRenderer::trigger_explosion_overlay_at(int world_x, int world_y) {
-    for (auto& ov: explosion_overlays) {
-        if (ov.active)
-            continue;
-        ov.dst.SetX(world_x - ov.dst.GetW() / 2);
-        ov.dst.SetY(world_y - ov.dst.GetH() / 2);
+        int ox = 0, oy = 0;
+        if (effect_type == 0) {
+            ox = -7;
+            oy = -15;
+        }
+        ov.dst.SetX(world_x - ov.dst.GetW() / 2 + ox);
+        ov.dst.SetY(world_y - ov.dst.GetH() / 2 + oy);
         ov.current_frame = 0;
         ov.last_ticks = SDL_GetTicks();
         ov.active = true;
@@ -568,10 +537,8 @@ void SpriteRenderer::tick_overlays(const AnimationSystem& anim) {
         }
     };
     tick_pool(overlays);
-    tick_pool(spell_overlays);
-    tick_pool(target_spell_overlays);
-    tick_pool(missile_overlays);
-    tick_pool(explosion_overlays);
+    for (auto& [key, pool]: spell_overlay_pools)
+        tick_pool(pool);
 }
 
 void SpriteRenderer::render_overlays(const SDL2pp::Rect& cam) {
@@ -585,10 +552,8 @@ void SpriteRenderer::render_overlays(const SDL2pp::Rect& cam) {
         }
     };
     render_pool(overlays);
-    render_pool(spell_overlays);
-    render_pool(target_spell_overlays);
-    render_pool(missile_overlays);
-    render_pool(explosion_overlays);
+    for (auto& [key, pool]: spell_overlay_pools)
+        render_pool(pool);
 }
 
 void SpriteRenderer::tick_animations(AnimationSystem& anim) {

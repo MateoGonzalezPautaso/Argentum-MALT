@@ -100,14 +100,7 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                             } else if (!world_renderer.get_entity_world_position(e.target_id, wx, wy)) {
                                 return;
                             }
-                            if (e.effect_type == 1)
-                                world_renderer.trigger_target_spell_overlay_at(wx, wy);
-                            else if (e.effect_type == 2)
-                                world_renderer.trigger_missile_overlay_at(wx, wy);
-                            else if (e.effect_type == 3)
-                                world_renderer.trigger_explosion_overlay_at(wx, wy);
-                            else
-                                world_renderer.trigger_spell_overlay_at(wx, wy);
+                            world_renderer.trigger_spell_effect(e.effect_type, wx, wy);
                         },
                         [this](const GoldUpdateEvent& e) { player_stats.gold = e.gold; },
                         [](const auto&) {},

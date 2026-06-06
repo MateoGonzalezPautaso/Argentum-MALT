@@ -50,10 +50,7 @@ public:
     void set_movable_alpha(uint8_t alpha);
     void set_local_player_info(Race race, PlayerClass player_class);
     void trigger_damage_overlay_at(int world_x, int world_y);
-    void trigger_spell_overlay_at(int world_x, int world_y);
-    void trigger_target_spell_overlay_at(int world_x, int world_y);
-    void trigger_missile_overlay_at(int world_x, int world_y);
-    void trigger_explosion_overlay_at(int world_x, int world_y);
+    void trigger_spell_effect(uint8_t effect_type, int world_x, int world_y);
     bool get_entity_world_position(uint16_t entity_id, int& x, int& y) const;
     void set_show_hitboxes(bool v) { show_hitboxes_ = v; }
     bool get_show_hitboxes() const { return show_hitboxes_; }
