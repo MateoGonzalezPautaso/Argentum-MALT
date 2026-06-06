@@ -63,10 +63,11 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
         return {};
 
     uint32_t damage = calculate_damage(attacker);
+    bool esquivado = false;
     if (is_critical_attack(attacker)) {
         damage *= 2;
     } else {
-        bool esquivado = pow(rng.get_random_double(0, 1), target.get_agility()) < 0.001;
+        esquivado = pow(rng.get_random_double(0, 1), target.get_agility()) < 0.001;
         if (esquivado)
             damage = 0;
     }
@@ -82,7 +83,8 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
     CommandResult result =
             notify_entity_attacked(attacker, target_id, damage, target.get_hp_current(),
                                    target.get_hp_max(), target.get_username(),
-                                   target.get_clan_name(), target.is_dead(), target.get_level());
+                                   target.get_clan_name(), target.is_dead(), target.get_level(),
+                                   esquivado);
 
     if (target.is_dead()) {
         target.lose_experience_on_death();
@@ -143,7 +145,7 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
     CommandResult result =
             notify_entity_attacked(attacker, npc_target_id, damage, npc_target.get_hp_current(),
                                    npc_target.get_hp_max(), npc_target.get_name(), "",
-                                   npc_target.is_dead(), npc_target.get_level());
+                                   npc_target.is_dead(), npc_target.get_level(), false);
 
     if (npc_target.is_dead()) {
         EnemyDrop drop = npc_target.get_kill_reward();
@@ -247,34 +249,38 @@ CommandResult CombatController::notify_entity_attacked(Player& attacker, uint16_
                                                        uint32_t target_hp_max,
                                                        const std::string& target_name,
                                                        const std::string& target_clan_name,
-                                                       bool target_is_dead, uint8_t target_level) {
+                                                       bool target_is_dead, uint8_t target_level,
+                                                       bool esquivado) {
     DamageDealtEvent dealt{attacker.get_id(), damage};
     std::vector<ServerEvent> broadcast;
     std::map<uint16_t, std::vector<ServerEvent>> targeted;
 
-    DamageReceivedEvent received{target_id, attacker.get_id(), damage, target_hp_current,
-                                 target_hp_max};
-    ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
-                          attacker.get_username() + " ataco a " + target_name + " por " +
-                                  std::to_string(damage) + " de daño"};
-
-    targeted[target_id].push_back(received);
-    targeted[target_id].push_back(chat_msg);
-    targeted[attacker.get_id()].push_back(chat_msg);
-
-    if (target_is_dead) {
-        EntityDiedEvent died{target_id};
-        broadcast.push_back(died);
-
-        double random_double = rng.get_random_double(0, 0.1);
-        attacker.gain_experience(random_double * target_hp_max *
-                                 std::max(static_cast<int>(target_level) -
-                                                  static_cast<int>(attacker.get_level()) + 10,
-                                          0));
-    } else if (damage == 0) {
+    if (esquivado) {
         AttackDodgedEvent dodged{target_id};
         targeted[target_id].push_back(dodged);
         targeted[attacker.get_id()].push_back(dodged);
+    } else {
+        DamageReceivedEvent received{target_id, attacker.get_id(), damage, target_hp_current,
+                                     target_hp_max};
+        ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
+                              attacker.get_username() + " ataco a " + target_name + " por " +
+                                      std::to_string(damage) + " de daño"};
+        targeted[target_id].push_back(received);
+        targeted[target_id].push_back(chat_msg);
+        targeted[attacker.get_id()].push_back(chat_msg);
+
+        if (target_is_dead) {
+            EntityDiedEvent died{target_id};
+            broadcast.push_back(died);
+            broadcast.push_back(ChatMsgEvent{ChatMsgType::SYSTEM, "",
+                                             attacker.get_username() + " mato a " + target_name});
+
+            double random_double = rng.get_random_double(0, 0.1);
+            attacker.gain_experience(random_double * target_hp_max *
+                                     std::max(static_cast<int>(target_level) -
+                                                      static_cast<int>(attacker.get_level()) + 10,
+                                              0));
+        }
     }
 
     // Notify clan members when someone is attacked

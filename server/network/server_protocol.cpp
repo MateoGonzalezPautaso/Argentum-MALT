@@ -183,8 +183,9 @@ void ServerProtocol::send_damage_dealt(const DamageDealtEvent& ev) {
     protocol.send_uint32(ev.damage);
 }
 
-void ServerProtocol::send_attack_dodged(const AttackDodgedEvent&) {
+void ServerProtocol::send_attack_dodged(const AttackDodgedEvent& ev) {
     protocol.send_opcode(OpCode::ATTACK_DODGED);
+    protocol.send_uint16(ev.player_id);
 }
 
 void ServerProtocol::send_damage_received(const DamageReceivedEvent& ev) {

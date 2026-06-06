@@ -143,7 +143,7 @@ ServerEvent ClientProtocol::recv_event() {
         case OpCode::DAMAGE_RECEIVED:
             return recv_damage_received();
         case OpCode::ATTACK_DODGED:
-            return AttackDodgedEvent{};
+            return AttackDodgedEvent{protocol.recv_uint16()};
         case OpCode::ENTITY_DIED:
             return recv_entity_died();
         case OpCode::PLAYER_RESPAWNED:
