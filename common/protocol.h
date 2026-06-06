@@ -78,6 +78,7 @@ enum class OpCode : uint8_t {
     SERVER_MSG = 0x9B,
     HEAL_RECEIVED = 0x9C,
     MAP_TRANSITION = 0x9D,
+    SPELL_EFFECT = 0x9E,
 };
 
 class Protocol {

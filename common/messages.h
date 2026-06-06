@@ -442,6 +442,11 @@ struct MapTransitionEvent {
     uint16_t pos_y;
 };
 
+struct SpellEffectEvent {
+    uint16_t target_id;
+    uint8_t effect_type;  // 0 = HEAL
+};
+
 struct HealReceivedEvent {
     uint16_t player_id;
     uint32_t hp_current;
@@ -460,6 +465,6 @@ using ServerEvent =
                      MeditationStopEvent, InventoryUpdateEvent, EquipUpdateEvent, GoldUpdateEvent,
                      ItemDroppedEvent, ItemPickedEvent, NpcItemListEvent, TransactionOkEvent,
                      TransactionErrorEvent, ChatMsgEvent, ClanNotificationEvent, ClanUpdateEvent,
-                     ServerMsgEvent, MapTransitionEvent, HealReceivedEvent>;
+                     ServerMsgEvent, MapTransitionEvent, HealReceivedEvent, SpellEffectEvent>;
 
 #endif  // MESSAGES_H_
