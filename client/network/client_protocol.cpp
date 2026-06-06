@@ -47,6 +47,11 @@ void ClientProtocol::send_chat_msg(const SendChatMsgCmd& cmd) {
 
 #include "../../common/visit.h"
 
+void ClientProtocol::send_cast_spell(const CastSpellCmd& cmd) {
+    protocol.send_opcode(OpCode::CAST_SPELL);
+    protocol.send_uint16(cmd.target_id);
+}
+
 void ClientProtocol::send_meditate() { protocol.send_opcode(OpCode::MEDITATE); }
 
 void ClientProtocol::send_resurrect() { protocol.send_opcode(OpCode::RESURRECT); }
@@ -101,8 +106,9 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const CreateCharacterCmd& msg) { send_create_character(msg); },
                        [this](const AttackCmd& msg) { send_attack(msg); },
                        [this](const SendChatMsgCmd& msg) { send_chat_msg(msg); },
-                       [this](const MeditateCmd&) { send_meditate(); },
-                       [this](const ResurrectCmd&) { send_resurrect(); },
+                        [this](const CastSpellCmd& msg) { send_cast_spell(msg); },
+                        [this](const MeditateCmd&) { send_meditate(); },
+                        [this](const ResurrectCmd&) { send_resurrect(); },
                        [this](const CheatInfiniteHpCmd&) { send_cheat_infinite_hp(); },
                        [this](const CheatInfiniteManaCmd&) { send_cheat_infinite_mana(); },
                        [this](const CheatDieCmd&) { send_cheat_die(); },

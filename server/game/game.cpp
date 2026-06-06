@@ -132,6 +132,7 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                         return cheats_enabled ? handle_cheat_reset_mana(player_id) :
                                                 CommandResult{};
                     },
+                    [&](const CastSpellCmd& cmd) { return handle_cast_spell(player_id, cmd); },
                     [&](const ChangeMapCmd& cmd) { return handle_change_map(player_id, cmd); },
                     [&](const EquipItemCmd& cmd) { return handle_equip(player_id, cmd); },
                     [&](const UnequipItemCmd& cmd) { return handle_unequip(player_id, cmd); },
@@ -356,6 +357,67 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
         result = combat_controller.melee_attack_npc(player_id, cmd.target_id, npcs, tick_count);
 
     // Convert combat broadcasts to per-map events
+    result.map_events = std::move(result.broadcast_events);
+    return result;
+}
+
+CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cmd) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+    if (player.is_dead())
+        return {};
+
+    const InventorySlot& weapon_slot = player.get_equipped(EquipSlot::WEAPON);
+    if (weapon_slot.item_type == ItemType::NONE) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No tienes un arma equipada"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    const Item* item = item_catalog.find(weapon_slot.item_type);
+    if (!item || item->mana_consumed == 0) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El arma equipada no es magica"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    if (player.get_mana_current() < item->mana_consumed) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Mana insuficiente"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    player.use_mana(item->mana_consumed);
+    player.set_meditating(false);
+
+    if (weapon_slot.item_type == ItemType::ELVEN_FLUTE) {
+        uint32_t heal_amount = player.get_hp_max() / 2;
+        player.heal(heal_amount);
+        HealReceivedEvent heal_ev{player_id, player.get_hp_current(), player.get_mana_current()};
+        PlayerStatsEvent stats{.level = player.get_level(),
+                               .experience = player.get_experience(),
+                               .exp_to_next = player.exp_to_next_level(),
+                               .hp_current = player.get_hp_current(),
+                               .hp_max = player.get_hp_max(),
+                               .mana_current = player.get_mana_current(),
+                               .mana_max = player.get_mana_max()};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Te has curado!"};
+        DamageDealtEvent spell_ev{player_id, 0};
+        return {.private_events = {msg, heal_ev, stats, spell_ev},
+                .broadcast_events = {},
+                .targeted_events = {}};
+    }
+
+    if (cmd.target_id == player_id) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacarte a ti mismo"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    CommandResult result;
+    auto target_it = npcs.find(cmd.target_id);
+    if (target_it == npcs.end())
+        result = combat_controller.spell_attack_player(player_id, cmd.target_id, tick_count);
+    else
+        result = combat_controller.spell_attack_npc(player_id, cmd.target_id, npcs, tick_count);
     result.map_events = std::move(result.broadcast_events);
     return result;
 }
@@ -602,10 +664,20 @@ CommandResult Game::handle_cheat_infinite_mana(uint16_t player_id) {
     auto it = players.find(player_id);
     if (it == players.end())
         return {};
-    bool active = it->second.toggle_cheat_infinite_mana();
+    Player& player = it->second;
+    bool active = player.toggle_cheat_infinite_mana();
+    if (active)
+        player.restore_mana(player.get_mana_max());
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      active ? "[Cheat] Mana infinito: ON" : "[Cheat] Mana infinito: OFF"};
-    return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    PlayerStatsEvent stats{.level = player.get_level(),
+                           .experience = player.get_experience(),
+                           .exp_to_next = player.exp_to_next_level(),
+                           .hp_current = player.get_hp_current(),
+                           .hp_max = player.get_hp_max(),
+                           .mana_current = player.get_mana_current(),
+                           .mana_max = player.get_mana_max()};
+    return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_cheat_die(uint16_t player_id) {
@@ -753,6 +825,7 @@ CommandResult Game::handle_cheat_fill_inventory(uint16_t player_id) {
     std::vector<InventorySlot> slots = player.dump_inventory();
     InventoryUpdateEvent inv{.slots = std::move(slots)};
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Inventario lleno con todos los items!"};
+    player_data_service.save_player(player);
     return {.private_events = {msg, inv}, .broadcast_events = {}, .targeted_events = {}};
 }
 

@@ -33,6 +33,8 @@ ClientCommand ServerProtocol::recv_command() {
             return ResurrectCmd{};
         case OpCode::NPC_HEAL:
             return NpcHealCmd{};
+        case OpCode::CAST_SPELL:
+            return recv_cast_spell();
         case OpCode::CHEAT_INFINITE_HP:
             return CheatInfiniteHpCmd{};
         case OpCode::CHEAT_INFINITE_MANA:
@@ -65,6 +67,11 @@ ClientCommand ServerProtocol::recv_command() {
             throw std::runtime_error("Unknown command opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
     }
+}
+
+ClientCommand ServerProtocol::recv_cast_spell() {
+    uint16_t target_id = protocol.recv_uint16();
+    return CastSpellCmd{target_id};
 }
 
 ClientCommand ServerProtocol::recv_move() {

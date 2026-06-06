@@ -29,9 +29,16 @@ public:
         return melee_attack_player(attacker_id, target_id, current_tick);
     }
 
+    CommandResult spell_attack_player(uint16_t attacker_id, uint16_t target_id,
+                                      uint32_t current_tick);
+    CommandResult spell_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,
+                                   std::map<uint16_t, EnemyNpc>& npcs, uint32_t current_tick);
+
 private:
     bool in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x,
                   uint16_t target_y) const;
+    bool in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x,
+                  uint16_t target_y, uint32_t range_px) const;
     uint32_t calculate_damage(const Player& attacker);
     int count_nearby_clan_members(const Player& player) const;
     double get_clan_damage_bonus(const Player& attacker) const;

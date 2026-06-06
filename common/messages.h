@@ -171,7 +171,9 @@ struct AttackCmd {
 };
 
 // 0x05
-struct CastSpellCmd {};
+struct CastSpellCmd {
+    uint16_t target_id = 0;
+};
 
 // 0x06
 struct PickupItemCmd {};

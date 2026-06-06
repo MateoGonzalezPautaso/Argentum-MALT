@@ -67,6 +67,8 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*attack, "clan_bonus_max", config.attack.clan_bonus_max);
         config.attack.critical_chance =
                 toml_get_double(*attack, "critical_chance", config.attack.critical_chance);
+        config.attack.spell_attack_range_px = toml_get_int(
+                *attack, "spell_attack_range_px", config.attack.spell_attack_range_px);
     }
 
     if (auto inventory = root["inventory"].as_table()) {
