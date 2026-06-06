@@ -459,6 +459,10 @@ bool GameController::handle_keydown(const SDL_Event& event) {
             else
                 world_renderer.set_show_hitboxes(!world_renderer.get_show_hitboxes());
             break;
+        case SDLK_i:
+            if (ctrl)
+                command_queue.push(CheatFillInventoryCmd{});
+            break;
         case SDLK_m:
             if (ctrl)
                 command_queue.push(CheatInfiniteManaCmd{});

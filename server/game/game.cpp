@@ -484,9 +484,6 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             return handle_resurrect(player_id);
         if (cmd_name == "/curar")
             return handle_npc_heal(player_id);
-        if (cmd_name == "/refill_inventory" && cheats_enabled)
-            return handle_cheat_fill_inventory(player_id);
-
         if (cmd_name == "/equipar") {
             try {
                 int idx = std::stoi(args);
