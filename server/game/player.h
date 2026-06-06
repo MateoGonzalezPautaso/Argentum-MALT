@@ -55,8 +55,7 @@ public:
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
            PlayerClass player_class, const BalanceConfig& balance, uint8_t level,
            uint32_t experience, uint32_t hp_current, uint32_t hp_max, uint32_t mana_current,
-           uint32_t mana_max, uint32_t gold, uint8_t inv_capacity, uint32_t strength,
-           uint32_t agility);
+           uint32_t mana_max, uint32_t gold, uint8_t inv_capacity);
 
     uint16_t get_id() const { return id; }
     const std::string& get_username() const { return username; }

@@ -38,8 +38,7 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
                PlayerClass player_class, const BalanceConfig& balance, uint8_t level,
                uint32_t experience, uint32_t hp_current, uint32_t hp_max, uint32_t mana_current,
-               uint32_t mana_max, uint32_t gold, uint8_t inv_capacity, uint32_t strength,
-               uint32_t agility):
+               uint32_t mana_max, uint32_t gold, uint8_t inv_capacity):
         id(id),
         username(username),
         pos(pos),
@@ -54,9 +53,10 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         mana_max(mana_max),
         gold(gold),
         balance(balance),
-        inventory(inv_capacity),
-        strength(strength),
-        agility(agility) {
+        inventory(inv_capacity) {
+    UpdateStats stats = update_stats();
+    strength = stats.strength;
+    agility = stats.agility;
     for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
         equipped[i] = InventorySlot{};
         equipped[i].item_type = ItemType::NONE;
