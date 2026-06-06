@@ -654,10 +654,20 @@ CommandResult Game::handle_cheat_infinite_mana(uint16_t player_id) {
     auto it = players.find(player_id);
     if (it == players.end())
         return {};
-    bool active = it->second.toggle_cheat_infinite_mana();
+    Player& player = it->second;
+    bool active = player.toggle_cheat_infinite_mana();
+    if (active)
+        player.restore_mana(player.get_mana_max());
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      active ? "[Cheat] Mana infinito: ON" : "[Cheat] Mana infinito: OFF"};
-    return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    PlayerStatsEvent stats{.level = player.get_level(),
+                           .experience = player.get_experience(),
+                           .exp_to_next = player.exp_to_next_level(),
+                           .hp_current = player.get_hp_current(),
+                           .hp_max = player.get_hp_max(),
+                           .mana_current = player.get_mana_current(),
+                           .mana_max = player.get_mana_max()};
+    return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_cheat_die(uint16_t player_id) {
@@ -788,6 +798,7 @@ CommandResult Game::handle_cheat_fill_inventory(uint16_t player_id) {
     std::vector<InventorySlot> slots = player.dump_inventory();
     InventoryUpdateEvent inv{.slots = std::move(slots)};
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Inventario lleno con todos los items!"};
+    player_data_service.save_player(player);
     return {.private_events = {msg, inv}, .broadcast_events = {}, .targeted_events = {}};
 }
 
