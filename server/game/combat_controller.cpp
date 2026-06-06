@@ -63,6 +63,17 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
         return {};
 
     uint32_t damage = calculate_damage(attacker);
+    if (is_critical_attack(attacker)) {
+        damage *= 2;
+    } else {
+        bool esquivado = pow(rng.get_random_double(0, 1), target.get_agility()) < 0.001;
+        if (esquivado)
+            damage = 0;
+    }
+
+    uint32_t defense = calculate_defense(target);
+    damage = damage > defense ? (damage - defense) : 0;
+
     target.take_damage(damage);
     attacker.gain_experience(damage * std::max(static_cast<int>(target.get_level()) -
                                                        static_cast<int>(attacker.get_level()) + 10,
@@ -120,6 +131,10 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
         return {};
 
     uint32_t damage = calculate_damage(attacker);
+    if (is_critical_attack(attacker)) {
+        damage *= 2;
+    }
+
     npc_target.take_damage(damage);
     attacker.gain_experience(damage * std::max(static_cast<int>(npc_target.get_level()) -
                                                        static_cast<int>(attacker.get_level()) + 10,
@@ -139,6 +154,15 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
     }
 
     return result;
+}
+
+bool CombatController::is_critical_attack(const Player& attacker) {
+    double critic_probability = attacker.get_strength() * config.critical_chance * 100;
+    double random_number = rng.get_random_double(0, 99);
+
+    if (random_number < critic_probability)
+        return true;
+    return false;
 }
 
 bool CombatController::in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x,
@@ -166,6 +190,25 @@ uint32_t CombatController::calculate_damage(const Player& attacker) {
     }
     double bonus = get_clan_damage_bonus(attacker);
     return static_cast<uint32_t>(std::round(base * (1.0 + bonus)));
+}
+
+uint32_t CombatController::calculate_defense(const Player& target) {
+    const InventorySlot& armor_slot = target.get_equipped(EquipSlot::ARMOR);
+    const InventorySlot& shield_slot = target.get_equipped(EquipSlot::SHIELD);
+    const InventorySlot& helmet_slot = target.get_equipped(EquipSlot::HELMET);
+
+    return calculate_object_defense(armor_slot) + calculate_object_defense(shield_slot) +
+           calculate_object_defense(helmet_slot);
+}
+
+uint32_t CombatController::calculate_object_defense(const InventorySlot& object_slot) {
+    uint32_t object_defense = 0;
+    if (object_slot.item_type != ItemType::NONE) {
+        const Item* object = item_catalog_.find(object_slot.item_type);
+        int defense = rng.get_random_int(object->min_defense, object->max_defense);
+        object_defense = static_cast<uint32_t>(defense);
+    }
+    return object_defense;
 }
 
 int CombatController::count_nearby_clan_members(const Player& player) const {
@@ -206,12 +249,18 @@ CommandResult CombatController::notify_entity_attacked(Player& attacker, uint16_
                                                        const std::string& target_clan_name,
                                                        bool target_is_dead, uint8_t target_level) {
     DamageDealtEvent dealt{attacker.get_id(), damage};
+    std::vector<ServerEvent> broadcast;
+    std::map<uint16_t, std::vector<ServerEvent>> targeted;
+
     DamageReceivedEvent received{target_id, attacker.get_id(), damage, target_hp_current,
                                  target_hp_max};
     ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
                           attacker.get_username() + " ataco a " + target_name + " por " +
                                   std::to_string(damage) + " de daño"};
-    std::vector<ServerEvent> broadcast = {received, chat_msg};
+
+    targeted[target_id].push_back(received);
+    targeted[target_id].push_back(chat_msg);
+    targeted[attacker.get_id()].push_back(chat_msg);
 
     if (target_is_dead) {
         EntityDiedEvent died{target_id};
@@ -222,9 +271,12 @@ CommandResult CombatController::notify_entity_attacked(Player& attacker, uint16_
                                  std::max(static_cast<int>(target_level) -
                                                   static_cast<int>(attacker.get_level()) + 10,
                                           0));
+    } else if (damage == 0) {
+        AttackDodgedEvent dodged{target_id};
+        targeted[target_id].push_back(dodged);
+        targeted[attacker.get_id()].push_back(dodged);
     }
 
-    std::map<uint16_t, std::vector<ServerEvent>> targeted;
     // Notify clan members when someone is attacked
     if (clan_manager && !target_clan_name.empty()) {
         ClanNotificationEvent notif{ClanNotifType::MEMBER_ATTACKED, target_name,

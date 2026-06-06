@@ -28,6 +28,7 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
     mana_max = stats.mana_max;
     mana_current = mana_max;
     strength = stats.strength;
+    agility = stats.agility;
     for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
         equipped[i] = InventorySlot{};
         equipped[i].item_type = ItemType::NONE;
@@ -37,7 +38,8 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
                PlayerClass player_class, const BalanceConfig& balance, uint8_t level,
                uint32_t experience, uint32_t hp_current, uint32_t hp_max, uint32_t mana_current,
-               uint32_t mana_max, uint32_t gold, uint8_t inv_capacity, uint32_t strength):
+               uint32_t mana_max, uint32_t gold, uint8_t inv_capacity, uint32_t strength,
+               uint32_t agility):
         id(id),
         username(username),
         pos(pos),
@@ -53,7 +55,8 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         gold(gold),
         balance(balance),
         inventory(inv_capacity),
-        strength(strength) {
+        strength(strength),
+        agility(agility) {
     for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
         equipped[i] = InventorySlot{};
         equipped[i].item_type = ItemType::NONE;
@@ -93,6 +96,7 @@ void Player::level_up() {
     hp_max = stats_updated.hp_max;
     mana_max = stats_updated.mana_max;
     strength = stats_updated.strength;
+    agility = stats_updated.agility;
     gain_gold(static_cast<uint32_t>(balance.gold_per_level * level));
     hp_current = hp_max;
     mana_current = mana_max;
@@ -182,6 +186,7 @@ void Player::level_down() {
     hp_max = stats_updated.hp_max;
     mana_max = stats_updated.mana_max;
     strength = stats_updated.strength;
+    agility = stats_updated.agility;
     hp_current = hp_max;
     mana_current = mana_max;
 }
@@ -192,6 +197,7 @@ UpdateStats Player::update_stats() const {
     int intelligence = 0;
     double f_mana_race = 0.0;
     double f_strength_race = 0.0;
+    double f_agility_race = 0.0;
     switch (race) {
         case Race::HUMAN:
             constitution = balance.hp.constitution_human;
@@ -199,6 +205,7 @@ UpdateStats Player::update_stats() const {
             intelligence = balance.mana.intelligence_human;
             f_mana_race = balance.mana.race_mana_factor_human;
             f_strength_race = balance.strength.race_strength_factor_human;
+            f_agility_race = balance.agility.race_agility_factor_human;
             break;
         case Race::ELF:
             constitution = balance.hp.constitution_elf;
@@ -206,6 +213,7 @@ UpdateStats Player::update_stats() const {
             intelligence = balance.mana.intelligence_elf;
             f_mana_race = balance.mana.race_mana_factor_elf;
             f_strength_race = balance.strength.race_strength_factor_elf;
+            f_agility_race = balance.agility.race_agility_factor_elf;
             break;
         case Race::DWARF:
             constitution = balance.hp.constitution_dwarf;
@@ -213,6 +221,7 @@ UpdateStats Player::update_stats() const {
             intelligence = balance.mana.intelligence_dwarf;
             f_mana_race = balance.mana.race_mana_factor_dwarf;
             f_strength_race = balance.strength.race_strength_factor_dwarf;
+            f_agility_race = balance.agility.race_agility_factor_dwarf;
             break;
         case Race::GNOME:
             constitution = balance.hp.constitution_gnome;
@@ -220,32 +229,38 @@ UpdateStats Player::update_stats() const {
             intelligence = balance.mana.intelligence_gnome;
             f_mana_race = balance.mana.race_mana_factor_gnome;
             f_strength_race = balance.strength.race_strength_factor_gnome;
+            f_agility_race = balance.agility.race_agility_factor_gnome;
             break;
     }
 
     double f_hp_class = 0.0;
     double f_mana_class = 0.0;
     double f_strength_class = 0.0;
+    double f_agility_class = 0.0;
     switch (player_class) {
         case PlayerClass::WARRIOR:
             f_hp_class = balance.hp.class_hp_factor_warrior;
             f_mana_class = balance.mana.class_mana_factor_warrior;
             f_strength_class = balance.strength.class_strength_factor_warrior;
+            f_agility_class = balance.agility.class_agility_factor_warrior;
             break;
         case PlayerClass::PALADIN:
             f_hp_class = balance.hp.class_hp_factor_paladin;
             f_mana_class = balance.mana.class_mana_factor_paladin;
             f_strength_class = balance.strength.class_strength_factor_paladin;
+            f_agility_class = balance.agility.class_agility_factor_paladin;
             break;
         case PlayerClass::CLERIC:
             f_hp_class = balance.hp.class_hp_factor_cleric;
             f_mana_class = balance.mana.class_mana_factor_cleric;
             f_strength_class = balance.strength.class_strength_factor_cleric;
+            f_agility_class = balance.agility.class_agility_factor_cleric;
             break;
         case PlayerClass::MAGE:
             f_hp_class = balance.hp.class_hp_factor_mage;
             f_mana_class = balance.mana.class_mana_factor_mage;
             f_strength_class = balance.strength.class_strength_factor_mage;
+            f_agility_class = balance.agility.class_agility_factor_mage;
             break;
     }
 
@@ -254,6 +269,7 @@ UpdateStats Player::update_stats() const {
     stats_updated.mana_max =
             static_cast<uint32_t>(intelligence * f_mana_race * f_mana_class * level);
     stats_updated.strength = static_cast<uint32_t>(f_strength_race * f_strength_class * level);
+    stats_updated.agility = static_cast<uint32_t>(f_agility_race * f_agility_class * level);
     return stats_updated;
 }
 

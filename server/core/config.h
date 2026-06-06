@@ -19,6 +19,7 @@ struct AttackConfig {
     int clan_bonus_range_px = 200;
     double clan_bonus_per_member = 0.05;
     double clan_bonus_max = 0.25;
+    double critical_chance = 0.003;
 };
 
 struct ClanConfig {
@@ -63,6 +64,17 @@ struct StrengthConfig {
     double class_strength_factor_mage = 0.5;
 };
 
+struct AgilityConfig {
+    double race_agility_factor_human = 0.9;
+    double race_agility_factor_elf = 1.5;
+    double race_agility_factor_dwarf = 0.6;
+    double race_agility_factor_gnome = 1.0;
+    double class_agility_factor_warrior = 0.7;
+    double class_agility_factor_paladin = 0.9;
+    double class_agility_factor_cleric = 1.1;
+    double class_agility_factor_mage = 1.0;
+};
+
 struct HpConfig {
     int constitution_human = 20;
     int constitution_elf = 15;
@@ -97,6 +109,7 @@ struct BalanceConfig {
     HpConfig hp;
     ManaConfig mana;
     StrengthConfig strength;
+    AgilityConfig agility;
 };
 
 struct ServerConfig {

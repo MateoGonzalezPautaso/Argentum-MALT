@@ -15,6 +15,7 @@ struct UpdateStats {
     uint32_t mana_max;
     uint32_t hp_max;
     uint32_t strength;
+    uint32_t agility;
 };
 
 class Player {
@@ -43,6 +44,7 @@ private:
     Inventory inventory;
     InventorySlot equipped[EQUIP_SLOT_COUNT];
     uint32_t strength;
+    uint32_t agility;
 
     UpdateStats update_stats() const;
 
@@ -53,7 +55,8 @@ public:
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
            PlayerClass player_class, const BalanceConfig& balance, uint8_t level,
            uint32_t experience, uint32_t hp_current, uint32_t hp_max, uint32_t mana_current,
-           uint32_t mana_max, uint32_t gold, uint8_t inv_capacity, uint32_t strength);
+           uint32_t mana_max, uint32_t gold, uint8_t inv_capacity, uint32_t strength,
+           uint32_t agility);
 
     uint16_t get_id() const { return id; }
     const std::string& get_username() const { return username; }
@@ -72,6 +75,7 @@ public:
     uint32_t get_mana_max() const { return mana_max; }
     uint32_t get_gold() const { return gold; }
     uint32_t get_strength() const { return strength; }
+    uint32_t get_agility() const { return agility; }
 
     const std::string& get_clan_name() const { return clan_name; }
     void set_clan_name(const std::string& name) { clan_name = name; }

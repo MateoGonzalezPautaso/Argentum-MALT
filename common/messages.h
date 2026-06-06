@@ -353,7 +353,9 @@ struct DamageReceivedEvent {
 };
 
 // 0x8B
-struct AttackDodgedEvent {};
+struct AttackDodgedEvent {
+    uint16_t player_id;
+};
 
 // 0x8C
 struct EntityDiedEvent {
