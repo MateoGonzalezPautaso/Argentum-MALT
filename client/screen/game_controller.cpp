@@ -319,26 +319,24 @@ bool GameController::handle_event(const SDL_Event& event) {
 }
 
 bool GameController::handle_mouse_button(const SDL_Event& event) {
-    if (event.button.button != SDL_BUTTON_LEFT) {
-        return true;
-    }
-
     chat_input.set_focus(ui_renderer.is_chat_input_hit(event.button.x, event.button.y));
 
     if (chat_input.is_focused()) {
         return true;
     }
 
-    if (ui_renderer.is_hovering_occupied()) {
-        int idx = ui_renderer.get_hovered_inv_slot();
-        if (idx >= 0) {
-            command_queue.push(EquipItemCmd{static_cast<uint8_t>(idx)});
-            return true;
-        }
-        int eq = ui_renderer.get_hovered_equip_slot();
-        if (eq >= 0) {
-            command_queue.push(UnequipItemCmd{static_cast<EquipSlot>(eq)});
-            return true;
+    if (event.button.button == SDL_BUTTON_LEFT) {
+        if (ui_renderer.is_hovering_occupied()) {
+            int idx = ui_renderer.get_hovered_inv_slot();
+            if (idx >= 0) {
+                command_queue.push(EquipItemCmd{static_cast<uint8_t>(idx)});
+                return true;
+            }
+            int eq = ui_renderer.get_hovered_equip_slot();
+            if (eq >= 0) {
+                command_queue.push(UnequipItemCmd{static_cast<EquipSlot>(eq)});
+                return true;
+            }
         }
     }
 
@@ -351,18 +349,26 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
     if (!player_is_ghost) {
         uint16_t entity_id = 0;
         if (world_renderer.hit_test_entity(world_x, world_y, entity_id)) {
-            command_queue.push(AttackCmd{entity_id});
+            if (event.button.button == SDL_BUTTON_RIGHT) {
+                command_queue.push(CastSpellCmd{entity_id});
+            } else {
+                command_queue.push(AttackCmd{entity_id});
+            }
             return true;
         }
 
-        std::string prop_name;
-        if (world_renderer.hit_test_prop(world_x, world_y, prop_name)) {
-            interact_with_prop(prop_name);
-            return true;
+        if (event.button.button == SDL_BUTTON_LEFT) {
+            std::string prop_name;
+            if (world_renderer.hit_test_prop(world_x, world_y, prop_name)) {
+                interact_with_prop(prop_name);
+                return true;
+            }
         }
     }
 
-    move_controller.set_move_target(world_x, world_y);
+    if (event.button.button == SDL_BUTTON_LEFT) {
+        move_controller.set_move_target(world_x, world_y);
+    }
     return true;
 }
 
