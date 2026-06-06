@@ -195,6 +195,10 @@ void WorldRenderer::trigger_target_spell_overlay_at(int world_x, int world_y) {
     sprite_renderer.trigger_target_spell_overlay_at(world_x, world_y);
 }
 
+void WorldRenderer::trigger_missile_overlay_at(int world_x, int world_y) {
+    sprite_renderer.trigger_missile_overlay_at(world_x, world_y);
+}
+
 bool WorldRenderer::get_entity_world_position(uint16_t entity_id, int& x, int& y) const {
     return sprite_renderer.get_entity_world_position(entity_id, x, y);
 }

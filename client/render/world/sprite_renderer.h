@@ -65,6 +65,7 @@ public:
     void load_spell_sheets();
     void trigger_spell_overlay_at(int world_x, int world_y);
     void trigger_target_spell_overlay_at(int world_x, int world_y);
+    void trigger_missile_overlay_at(int world_x, int world_y);
     bool get_entity_world_position(uint16_t entity_id, int& x, int& y) const;
     void tick_overlays(const AnimationSystem& anim);
     void render_overlays(const SDL2pp::Rect& cam);
@@ -136,6 +137,7 @@ private:
     std::vector<OverlayEffect> overlays;
     std::vector<OverlayEffect> spell_overlays;
     std::vector<OverlayEffect> target_spell_overlays;
+    std::vector<OverlayEffect> missile_overlays;
     int window_w;
     int window_h;
     bool has_tilemap;

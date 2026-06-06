@@ -469,6 +469,7 @@ void SpriteRenderer::load_spell_sheets() {
     };
     load_sheet("assets/Graficos/3470.png", 128, 135, 5, 1, 77, 81, 100, spell_overlays);
     load_sheet("assets/Graficos/3449.png", 128, 128, 4, 4, 77, 77, 70, target_spell_overlays);
+    load_sheet("assets/Graficos/3460.png", 128, 128, 4, 4, 77, 77, 70, missile_overlays);
 }
 
 void SpriteRenderer::trigger_damage_overlay_at(int world_x, int world_y) {
@@ -499,6 +500,19 @@ void SpriteRenderer::trigger_spell_overlay_at(int world_x, int world_y) {
 
 void SpriteRenderer::trigger_target_spell_overlay_at(int world_x, int world_y) {
     for (auto& ov: target_spell_overlays) {
+        if (ov.active)
+            continue;
+        ov.dst.SetX(world_x - ov.dst.GetW() / 2);
+        ov.dst.SetY(world_y - ov.dst.GetH() / 2);
+        ov.current_frame = 0;
+        ov.last_ticks = SDL_GetTicks();
+        ov.active = true;
+        return;
+    }
+}
+
+void SpriteRenderer::trigger_missile_overlay_at(int world_x, int world_y) {
+    for (auto& ov: missile_overlays) {
         if (ov.active)
             continue;
         ov.dst.SetX(world_x - ov.dst.GetW() / 2);
@@ -542,6 +556,7 @@ void SpriteRenderer::tick_overlays(const AnimationSystem& anim) {
     tick_pool(overlays);
     tick_pool(spell_overlays);
     tick_pool(target_spell_overlays);
+    tick_pool(missile_overlays);
 }
 
 void SpriteRenderer::render_overlays(const SDL2pp::Rect& cam) {
@@ -557,6 +572,7 @@ void SpriteRenderer::render_overlays(const SDL2pp::Rect& cam) {
     render_pool(overlays);
     render_pool(spell_overlays);
     render_pool(target_spell_overlays);
+    render_pool(missile_overlays);
 }
 
 void SpriteRenderer::tick_animations(AnimationSystem& anim) {
