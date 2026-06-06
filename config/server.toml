@@ -13,7 +13,7 @@ height = 48
 [attack]
 base_damage = 10
 attack_range_px = 80
-spell_attack_range_px = 200
+spell_attack_range_px = 400
 damage_variance = 5
 cooldown_ticks = 10
 xp_per_level_kill = 100
