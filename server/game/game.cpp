@@ -128,6 +128,7 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                         return cheats_enabled ? handle_cheat_fill_inventory(player_id) :
                                                 CommandResult{};
                     },
+                    [&](const CastSpellCmd&) { return CommandResult{}; },
                     [&](const ChangeMapCmd& cmd) { return handle_change_map(player_id, cmd); },
                     [&](const EquipItemCmd& cmd) { return handle_equip(player_id, cmd); },
                     [&](const UnequipItemCmd& cmd) { return handle_unequip(player_id, cmd); },

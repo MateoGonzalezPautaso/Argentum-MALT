@@ -65,6 +65,7 @@ private:
     ClientCommand recv_attack();
     ClientCommand recv_send_chat_msg();
     ClientCommand recv_change_map();
+    ClientCommand recv_cast_spell();
     ClientCommand recv_equip_item();
     ClientCommand recv_unequip_item();
 };
