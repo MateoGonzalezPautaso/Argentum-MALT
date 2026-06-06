@@ -41,7 +41,7 @@ private:
                   uint16_t target_y, uint32_t range_px) const;
     uint32_t calculate_damage(const Player& attacker);
     int count_nearby_clan_members(const Player& player) const;
-    double get_clan_damage_bonus(const Player& attacker) const;
+    double get_clan_bonus(const Player& player) const;
     CommandResult notify_entity_attacked(Player& attacker, uint16_t target_id, uint32_t damage,
                                          uint32_t target_hp_current, uint32_t target_hp_max,
                                          const std::string& target_name,

@@ -348,7 +348,7 @@ uint32_t CombatController::calculate_damage(const Player& attacker) {
                 config.damage_variance > 0 ? rng.get_random_int(0, config.damage_variance) : 0;
         base = static_cast<uint32_t>(config.base_damage + variance);
     }
-    double bonus = get_clan_damage_bonus(attacker);
+    double bonus = get_clan_bonus(attacker);
     return static_cast<uint32_t>(std::round(base * (1.0 + bonus)));
 }
 
@@ -357,8 +357,10 @@ uint32_t CombatController::calculate_defense(const Player& target) {
     const InventorySlot& shield_slot = target.get_equipped(EquipSlot::SHIELD);
     const InventorySlot& helmet_slot = target.get_equipped(EquipSlot::HELMET);
 
-    return calculate_object_defense(armor_slot) + calculate_object_defense(shield_slot) +
-           calculate_object_defense(helmet_slot);
+    uint32_t base = calculate_object_defense(armor_slot) + calculate_object_defense(shield_slot) +
+                    calculate_object_defense(helmet_slot);
+    double bonus = get_clan_bonus(target);
+    return static_cast<uint32_t>(std::round(base * (1.0 + bonus)));
 }
 
 uint32_t CombatController::calculate_object_defense(const InventorySlot& object_slot) {
@@ -392,14 +394,11 @@ int CombatController::count_nearby_clan_members(const Player& player) const {
     return count;
 }
 
-// Clan proximity bonus: increase attack damage based on nearby clan members
-double CombatController::get_clan_damage_bonus(const Player& attacker) const {
-    double bonus = 0;
-    if (clan_manager && !attacker.get_clan_name().empty()) {
-        int nearby_allies = count_nearby_clan_members(attacker);
-        bonus = std::min(config.clan_bonus_per_member * nearby_allies, config.clan_bonus_max);
-    }
-    return bonus;
+double CombatController::get_clan_bonus(const Player& player) const {
+    if (!clan_manager || player.get_clan_name().empty())
+        return 0;
+    int nearby_allies = count_nearby_clan_members(player);
+    return std::min(config.clan_bonus_per_member * nearby_allies, config.clan_bonus_max);
 }
 
 CommandResult CombatController::notify_entity_attacked(Player& attacker, uint16_t target_id,
