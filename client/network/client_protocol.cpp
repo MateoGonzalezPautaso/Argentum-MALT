@@ -65,6 +65,8 @@ void ClientProtocol::send_cheat_level_down() { protocol.send_opcode(OpCode::CHEA
 
 void ClientProtocol::send_cheat_add_gold() { protocol.send_opcode(OpCode::CHEAT_ADD_GOLD); }
 
+void ClientProtocol::send_cheat_reset_gold() { protocol.send_opcode(OpCode::CHEAT_RESET_GOLD); }
+
 void ClientProtocol::send_cheat_velocity() { protocol.send_opcode(OpCode::CHEAT_VELOCITY); }
 
 void ClientProtocol::send_cheat_revive() { protocol.send_opcode(OpCode::CHEAT_REVIVE); }
@@ -99,6 +101,7 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const CheatLevelUpCmd&) { send_cheat_level_up(); },
                        [this](const CheatLevelDownCmd&) { send_cheat_level_down(); },
                        [this](const CheatAddGoldCmd&) { send_cheat_add_gold(); },
+                       [this](const CheatResetGoldCmd&) { send_cheat_reset_gold(); },
                        [this](const CheatVelocityCmd&) { send_cheat_velocity(); },
                        [this](const CheatReviveCmd&) { send_cheat_revive(); },
                        [this](const ChangeMapCmd& msg) { send_change_map(msg); },

@@ -446,6 +446,10 @@ bool GameController::handle_keydown(const SDL_Event& event) {
             if (ctrl)
                 command_queue.push(CheatAddGoldCmd{});
             break;
+        case SDLK_0:
+            if (ctrl)
+                command_queue.push(CheatResetGoldCmd{});
+            break;
         case SDLK_f:
             if (ctrl)
                 command_queue.push(CheatVelocityCmd{});

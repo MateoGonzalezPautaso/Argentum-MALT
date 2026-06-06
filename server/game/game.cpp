@@ -115,6 +115,9 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const CheatAddGoldCmd&) {
                         return cheats_enabled ? handle_cheat_add_gold(player_id) : CommandResult{};
                     },
+                    [&](const CheatResetGoldCmd&) {
+                        return cheats_enabled ? handle_cheat_reset_gold(player_id) : CommandResult{};
+                    },
                     [&](const CheatVelocityCmd&) {
                         return cheats_enabled ? handle_cheat_velocity(player_id) : CommandResult{};
                     },
@@ -681,6 +684,17 @@ CommandResult Game::handle_cheat_add_gold(uint16_t player_id) {
     player.gain_gold(1000);
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      "[Cheat] +1000 oro (total: " + std::to_string(player.get_gold()) + ")"};
+    GoldUpdateEvent gold{player.get_gold()};
+    return {.private_events = {msg, gold}, .broadcast_events = {}, .targeted_events = {}};
+}
+
+CommandResult Game::handle_cheat_reset_gold(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+    player.spend_gold(player.get_gold());
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Oro reseteado a 0"};
     GoldUpdateEvent gold{player.get_gold()};
     return {.private_events = {msg, gold}, .broadcast_events = {}, .targeted_events = {}};
 }

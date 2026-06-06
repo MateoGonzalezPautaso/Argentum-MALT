@@ -43,6 +43,8 @@ ClientCommand ServerProtocol::recv_command() {
             return CheatLevelDownCmd{};
         case OpCode::CHEAT_ADD_GOLD:
             return CheatAddGoldCmd{};
+        case OpCode::CHEAT_RESET_GOLD:
+            return CheatResetGoldCmd{};
         case OpCode::CHEAT_VELOCITY:
             return CheatVelocityCmd{};
         case OpCode::CHEAT_REVIVE:
