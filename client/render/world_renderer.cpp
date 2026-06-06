@@ -143,6 +143,10 @@ void WorldRenderer::reset_body_sprite() {
     sprite_renderer.reset_body_sprite();
 }
 
+void WorldRenderer::set_direction_src_y(int down, int up, int left, int right) {
+    sprite_renderer.set_direction_src_y(down, up, left, right);
+}
+
 void WorldRenderer::despawn_entity(uint16_t entity_id) {
     sprite_renderer.despawn_entity(entity_id);
 }

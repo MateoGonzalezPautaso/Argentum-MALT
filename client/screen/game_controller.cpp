@@ -30,7 +30,10 @@ GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& c
         move_controller(this->command_queue, MoveConfig(config), SDL_GetTicks()),
         move_config(config),
         hand_cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND)),
-        arrow_cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW)) {}
+        arrow_cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW)) {
+    world_renderer.set_direction_src_y(config.dir_src_y_down, config.dir_src_y_up,
+                                        config.dir_src_y_left, config.dir_src_y_right);
+}
 
 GameController::~GameController() {
     SDL_FreeCursor(hand_cursor);

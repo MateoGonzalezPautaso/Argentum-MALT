@@ -64,6 +64,8 @@ public:
     void set_body_sprite(const std::string& path);
     void reset_body_sprite();
 
+    void set_direction_src_y(int down, int up, int left, int right);
+
     void render(const SDL2pp::Rect& cam);
     void render_entity_names(const SDL2pp::Rect& cam);
     void tick_animations(AnimationSystem& anim);
@@ -143,6 +145,10 @@ private:
     std::vector<OverlayEffect> overlays;
     EquipOverlay equip_overlays_[EQUIP_SLOT_COUNT];
     std::string default_body_path_;
+    int dir_src_y_down_ = 0;
+    int dir_src_y_up_ = 48;
+    int dir_src_y_left_ = 96;
+    int dir_src_y_right_ = 144;
     int window_w;
     int window_h;
     bool has_tilemap;

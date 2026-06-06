@@ -251,6 +251,13 @@ void SpriteRenderer::reset_body_sprite() {
     set_body_sprite(default_body_path_);
 }
 
+void SpriteRenderer::set_direction_src_y(int down, int up, int left, int right) {
+    dir_src_y_down_ = down;
+    dir_src_y_up_ = up;
+    dir_src_y_left_ = left;
+    dir_src_y_right_ = right;
+}
+
 void SpriteRenderer::move_entity(uint16_t entity_id, int x, int y) {
     auto it = entity_sprites.find(entity_id);
     if (it == entity_sprites.end()) {
@@ -413,6 +420,9 @@ void SpriteRenderer::render(const SDL2pp::Rect& cam) {
 
     SpriteRender* movable = find_movable_sprite();
     if (movable && movable->use_src) {
+        int body_foot_y = movable->dst.GetY() + movable->dst.GetH();
+        int src_y = movable->src.GetY();
+        bool behind = (src_y == dir_src_y_up_ || src_y == dir_src_y_right_);
         for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
             if (i == static_cast<uint8_t>(EquipSlot::ARMOR))
                 continue;
@@ -423,9 +433,9 @@ void SpriteRenderer::render(const SDL2pp::Rect& cam) {
                 continue;
             SDL2pp::Rect dst(movable->dst.GetX() - cam.GetX(), movable->dst.GetY() - cam.GetY(),
                              movable->dst.GetW(), movable->dst.GetH());
+            int overlay_foot_y = behind ? (body_foot_y - 1 - i) : (body_foot_y + 1 + i);
             drawables.push_back(Drawable{&overlay.frames[0], &movable->src, dst,
-                                         movable->dst.GetY() + movable->dst.GetH() + 1 + i,
-                                         movable->alpha});
+                                         overlay_foot_y, movable->alpha});
         }
     }
 

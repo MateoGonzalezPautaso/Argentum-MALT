@@ -53,6 +53,7 @@ public:
     void clear_equipment_overlay(uint8_t slot);
     void set_body_sprite(const std::string& path);
     void reset_body_sprite();
+    void set_direction_src_y(int down, int up, int left, int right);
     void trigger_damage_overlay_at(int world_x, int world_y);
     bool get_entity_world_position(uint16_t entity_id, int& x, int& y) const;
     void set_show_hitboxes(bool v) { show_hitboxes_ = v; }
