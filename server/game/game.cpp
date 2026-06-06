@@ -620,10 +620,24 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     rec.hp_max = player.get_hp_max();
     rec.mana_current = player.get_mana_current();
     rec.mana_max = player.get_mana_max();
-    player_data_service.save_new_player(cmd.username, rec);
 
-    // ITEM INICIAL ESPADA (PARA TESTING, LUEGO QUITAR)
-    player.add_item(ItemType::SWORD, "Espada");
+    const StartingItemsConfig& starting = balance.starting_items;
+    const std::vector<ItemType>* items = nullptr;
+    switch (cmd.player_class) {
+        case PlayerClass::WARRIOR: items = &starting.warrior; break;
+        case PlayerClass::MAGE: items = &starting.mage; break;
+        case PlayerClass::CLERIC: items = &starting.cleric; break;
+        case PlayerClass::PALADIN: items = &starting.paladin; break;
+    }
+    if (items) {
+        for (ItemType type : *items) {
+            const Item* def = item_catalog.find(type);
+            if (def) {
+                player.add_item(type, def->name);
+            }
+        }
+    }
+
     player_data_service.save_player(player);
 
     auto it = players.emplace(player_id, std::move(player)).first;

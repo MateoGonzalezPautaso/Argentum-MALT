@@ -114,3 +114,9 @@ warrior = 0.7
 paladin = 0.9
 cleric = 1.1
 mage = 1.0
+
+[starting_items]
+warrior = ["SWORD"]
+mage = ["ASH_STAFF"]
+paladin = ["SWORD"]
+cleric = ["KNOTTED_STAFF"]
