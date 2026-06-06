@@ -76,6 +76,8 @@ void Player::apply_move(Direction new_dir, int dx, int dy) {
     pos.y = static_cast<uint16_t>(static_cast<int>(pos.y) + dy);
 }
 
+void Player::lose_experience_on_death() { experience = experience * 0.9; }
+
 void Player::gain_experience(uint32_t exp) {
     experience += exp;
     uint32_t threshold = static_cast<uint32_t>(balance.level_exp_base *
@@ -95,7 +97,7 @@ void Player::level_up() {
     mana_max = stats_updated.mana_max;
     strength = stats_updated.strength;
     agility = stats_updated.agility;
-    gold += balance.gold_per_level * level;
+    gain_gold(static_cast<uint32_t>(balance.gold_per_level * level));
     hp_current = hp_max;
     mana_current = mana_max;
 }
@@ -164,6 +166,16 @@ void Player::spend_gold(uint32_t amount) {
     } else {
         gold -= amount;
     }
+}
+
+uint32_t Player::take_excess_gold() {
+    uint32_t oro_max = static_cast<uint32_t>(balance.gold_cap_base *
+                                             std::pow(level, balance.gold_cap_exponent));
+    if (gold <= oro_max)
+        return 0;
+    uint32_t excess = gold - oro_max;
+    gold = oro_max;
+    return excess;
 }
 
 void Player::level_down() {

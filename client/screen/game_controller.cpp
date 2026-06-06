@@ -90,6 +90,7 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                        [this](const InventoryUpdateEvent& e) { handle_inventory_update(e); },
                        [this](const EquipUpdateEvent& e) { handle_equip_update(e); },
                        [this](const PlayerStatsEvent& e) { handle_player_stats(e); },
+                       [this](const GoldUpdateEvent& e) { player_stats.gold = e.gold; },
                        [](const auto&) {},
                },
                ev);
@@ -445,6 +446,10 @@ bool GameController::handle_keydown(const SDL_Event& event) {
             if (ctrl)
                 command_queue.push(CheatAddGoldCmd{});
             break;
+        case SDLK_0:
+            if (ctrl)
+                command_queue.push(CheatResetGoldCmd{});
+            break;
         case SDLK_f:
             if (ctrl)
                 command_queue.push(CheatVelocityCmd{});
@@ -480,7 +485,9 @@ void GameController::handle_player_stats(const PlayerStatsEvent& e) {
     player_stats.level = e.level;
     player_stats.experience = e.experience;
     player_stats.exp_to_next = e.exp_to_next;
+    player_stats.hp_current = e.hp_current;
     player_stats.hp_max = e.hp_max;
+    player_stats.mana_current = e.mana_current;
     player_stats.mana_max = e.mana_max;
 }
 

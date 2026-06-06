@@ -68,6 +68,7 @@ private:
     CommandResult handle_cheat_level_up(uint16_t player_id);
     CommandResult handle_cheat_level_down(uint16_t player_id);
     CommandResult handle_cheat_add_gold(uint16_t player_id);
+    CommandResult handle_cheat_reset_gold(uint16_t player_id);
     CommandResult handle_cheat_velocity(uint16_t player_id);
     CommandResult handle_cheat_revive(uint16_t player_id);
     CommandResult handle_change_map(uint16_t player_id, const ChangeMapCmd& cmd);

@@ -65,6 +65,8 @@ void ClientProtocol::send_cheat_level_down() { protocol.send_opcode(OpCode::CHEA
 
 void ClientProtocol::send_cheat_add_gold() { protocol.send_opcode(OpCode::CHEAT_ADD_GOLD); }
 
+void ClientProtocol::send_cheat_reset_gold() { protocol.send_opcode(OpCode::CHEAT_RESET_GOLD); }
+
 void ClientProtocol::send_cheat_velocity() { protocol.send_opcode(OpCode::CHEAT_VELOCITY); }
 
 void ClientProtocol::send_cheat_revive() { protocol.send_opcode(OpCode::CHEAT_REVIVE); }
@@ -99,6 +101,7 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const CheatLevelUpCmd&) { send_cheat_level_up(); },
                        [this](const CheatLevelDownCmd&) { send_cheat_level_down(); },
                        [this](const CheatAddGoldCmd&) { send_cheat_add_gold(); },
+                       [this](const CheatResetGoldCmd&) { send_cheat_reset_gold(); },
                        [this](const CheatVelocityCmd&) { send_cheat_velocity(); },
                        [this](const CheatReviveCmd&) { send_cheat_revive(); },
                        [this](const ChangeMapCmd& msg) { send_change_map(msg); },
@@ -180,6 +183,8 @@ ServerEvent ClientProtocol::recv_event() {
             return recv_map_transition();
         case OpCode::PLAYER_STATS:
             return recv_player_stats();
+        case OpCode::GOLD_UPDATE:
+            return GoldUpdateEvent{protocol.recv_uint32()};
         default:
             throw std::runtime_error("Unknown event opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
@@ -254,7 +259,9 @@ ServerEvent ClientProtocol::recv_player_stats() {
     ev.level = protocol.recv_uint8();
     ev.experience = protocol.recv_uint32();
     ev.exp_to_next = protocol.recv_uint32();
+    ev.hp_current = protocol.recv_uint32();
     ev.hp_max = protocol.recv_uint32();
+    ev.mana_current = protocol.recv_uint32();
     ev.mana_max = protocol.recv_uint32();
     return ev;
 }

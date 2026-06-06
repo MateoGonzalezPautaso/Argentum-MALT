@@ -43,6 +43,8 @@ ClientCommand ServerProtocol::recv_command() {
             return CheatLevelDownCmd{};
         case OpCode::CHEAT_ADD_GOLD:
             return CheatAddGoldCmd{};
+        case OpCode::CHEAT_RESET_GOLD:
+            return CheatResetGoldCmd{};
         case OpCode::CHEAT_VELOCITY:
             return CheatVelocityCmd{};
         case OpCode::CHEAT_REVIVE:
@@ -242,7 +244,9 @@ void ServerProtocol::send_player_stats(const PlayerStatsEvent& ev) {
     protocol.send_uint8(ev.level);
     protocol.send_uint32(ev.experience);
     protocol.send_uint32(ev.exp_to_next);
+    protocol.send_uint32(ev.hp_current);
     protocol.send_uint32(ev.hp_max);
+    protocol.send_uint32(ev.mana_current);
     protocol.send_uint32(ev.mana_max);
 }
 
@@ -261,6 +265,11 @@ void ServerProtocol::send_inventory_update(const InventoryUpdateEvent& ev) {
         protocol.send_uint8(static_cast<uint8_t>(slot.item_type));
         protocol.send_str(slot.item_name);
     }
+}
+
+void ServerProtocol::send_gold_update(const GoldUpdateEvent& ev) {
+    protocol.send_opcode(OpCode::GOLD_UPDATE);
+    protocol.send_uint32(ev.gold);
 }
 
 void ServerProtocol::send_equip_update(const EquipUpdateEvent& ev) {
@@ -295,6 +304,7 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [this](const HealReceivedEvent& msg) { send_heal_received(msg); },
                        [this](const InventoryUpdateEvent& msg) { send_inventory_update(msg); },
                        [this](const EquipUpdateEvent& msg) { send_equip_update(msg); },
+                       [this](const GoldUpdateEvent& msg) { send_gold_update(msg); },
                        [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },
                ev);

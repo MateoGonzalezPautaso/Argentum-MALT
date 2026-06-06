@@ -79,9 +79,32 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
                                                        static_cast<int>(attacker.get_level()) + 10,
                                                0));
 
-    return notify_entity_attacked(attacker, target_id, damage, target.get_hp_current(),
-                                  target.get_hp_max(), target.get_username(),
-                                  target.get_clan_name(), target.is_dead(), target.get_level());
+    CommandResult result =
+            notify_entity_attacked(attacker, target_id, damage, target.get_hp_current(),
+                                   target.get_hp_max(), target.get_username(),
+                                   target.get_clan_name(), target.is_dead(), target.get_level());
+
+    if (target.is_dead()) {
+        target.lose_experience_on_death();
+        result.targeted_events[target_id].push_back(PlayerStatsEvent{
+                .level = target.get_level(),
+                .experience = target.get_experience(),
+                .exp_to_next = target.exp_to_next_level(),
+                .hp_current = target.get_hp_current(),
+                .hp_max = target.get_hp_max(),
+                .mana_current = target.get_mana_current(),
+                .mana_max = target.get_mana_max(),
+        });
+
+        uint32_t excess = target.take_excess_gold();
+        if (excess > 0) {
+            attacker.gain_gold(excess);
+            result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
+            result.targeted_events[target_id].push_back(GoldUpdateEvent{target.get_gold()});
+        }
+    }
+
+    return result;
 }
 
 CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,
@@ -117,9 +140,20 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
                                                        static_cast<int>(attacker.get_level()) + 10,
                                                0));
 
-    return notify_entity_attacked(attacker, npc_target_id, damage, npc_target.get_hp_current(),
-                                  npc_target.get_hp_max(), npc_target.get_name(), "",
-                                  npc_target.is_dead(), npc_target.get_level());
+    CommandResult result =
+            notify_entity_attacked(attacker, npc_target_id, damage, npc_target.get_hp_current(),
+                                   npc_target.get_hp_max(), npc_target.get_name(), "",
+                                   npc_target.is_dead(), npc_target.get_level());
+
+    if (npc_target.is_dead()) {
+        EnemyDrop drop = npc_target.get_kill_reward();
+        if (drop.gold > 0) {
+            attacker.gain_gold(drop.gold);
+            result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
+        }
+    }
+
+    return result;
 }
 
 bool CombatController::is_critical_attack(const Player& attacker) {
@@ -260,7 +294,9 @@ CommandResult CombatController::notify_entity_attacked(Player& attacker, uint16_
             .level = attacker.get_level(),
             .experience = attacker.get_experience(),
             .exp_to_next = attacker.exp_to_next_level(),
+            .hp_current = attacker.get_hp_current(),
             .hp_max = attacker.get_hp_max(),
+            .mana_current = attacker.get_mana_current(),
             .mana_max = attacker.get_mana_max(),
     };
     return {.private_events = {dealt, stats},

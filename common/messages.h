@@ -241,6 +241,7 @@ struct CheatDieCmd {};
 struct CheatLevelUpCmd {};
 struct CheatLevelDownCmd {};
 struct CheatAddGoldCmd {};
+struct CheatResetGoldCmd {};
 struct CheatVelocityCmd {};
 struct CheatReviveCmd {};
 
@@ -258,7 +259,8 @@ using ClientCommand = std::variant<
         BankDepositCmd, BankWithdrawCmd, NpcListCmd, PrivateMsgCmd, SendChatMsgCmd, ClanFoundCmd,
         ClanJoinRequestCmd, ClanReviewCmd, ClanAcceptCmd, ClanRejectCmd, ClanBanCmd, ClanKickCmd,
         ClanLeaveCmd, CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd, CheatLevelUpCmd,
-        CheatLevelDownCmd, CheatAddGoldCmd, CheatVelocityCmd, CheatReviveCmd, ChangeMapCmd>;
+        CheatLevelDownCmd, CheatAddGoldCmd, CheatResetGoldCmd, CheatVelocityCmd, CheatReviveCmd,
+        ChangeMapCmd>;
 
 // ---------------------------------------------------------------------------
 // Eventos: Servidor -> Cliente (sección 3.2 y 5 de protocol.md)
@@ -306,7 +308,9 @@ struct PlayerStatsEvent {
     uint8_t level;
     uint32_t experience;
     uint32_t exp_to_next;
+    uint32_t hp_current;
     uint32_t hp_max;
+    uint32_t mana_current;
     uint32_t mana_max;
 };
 
@@ -383,7 +387,9 @@ struct EquipUpdateEvent {
 };
 
 // 0x92
-struct GoldUpdateEvent {};
+struct GoldUpdateEvent {
+    uint32_t gold;
+};
 
 // 0x93
 struct ItemDroppedEvent {};

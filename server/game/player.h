@@ -100,6 +100,7 @@ public:
     void set_pos(uint16_t x, uint16_t y) { pos = {x, y}; }
     void resurrect();
     void gain_experience(uint32_t exp);
+    void lose_experience_on_death();
     void level_up();
     void take_damage(uint32_t damage);
     void heal(uint32_t amount);
@@ -107,6 +108,7 @@ public:
     void use_mana(uint32_t amount);
     void gain_gold(uint32_t amount);
     void spend_gold(uint32_t amount);
+    uint32_t take_excess_gold();
 
     uint32_t exp_to_next_level() const;
 
