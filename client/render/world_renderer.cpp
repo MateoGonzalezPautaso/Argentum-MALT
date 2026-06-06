@@ -135,6 +135,14 @@ void WorldRenderer::clear_equipment_overlay(uint8_t slot) {
     sprite_renderer.clear_equipment_overlay(slot);
 }
 
+void WorldRenderer::set_body_sprite(const std::string& path) {
+    sprite_renderer.set_body_sprite(path);
+}
+
+void WorldRenderer::reset_body_sprite() {
+    sprite_renderer.reset_body_sprite();
+}
+
 void WorldRenderer::despawn_entity(uint16_t entity_id) {
     sprite_renderer.despawn_entity(entity_id);
 }

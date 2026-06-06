@@ -259,18 +259,35 @@ void GameController::handle_equip_update(const EquipUpdateEvent& e) {
     player_stats.equipped[2] = e.helmet;
     player_stats.equipped[3] = e.shield;
 
-    const InventorySlot slots[EQUIP_SLOT_COUNT] = {e.weapon, e.armor, e.helmet, e.shield};
-    for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
-        ItemType type = slots[i].item_type;
+    static constexpr uint8_t overlay_slots[] = {
+            static_cast<uint8_t>(EquipSlot::WEAPON),
+            static_cast<uint8_t>(EquipSlot::HELMET),
+            static_cast<uint8_t>(EquipSlot::SHIELD),
+    };
+
+    for (uint8_t slot : overlay_slots) {
+        ItemType type = player_stats.equipped[slot].item_type;
         if (type == ItemType::NONE) {
-            world_renderer.clear_equipment_overlay(i);
+            world_renderer.clear_equipment_overlay(slot);
         } else {
             auto it = config.equip_overlays.find(static_cast<uint8_t>(type));
             if (it != config.equip_overlays.end()) {
-                world_renderer.update_equipment_overlay(i, it->second.path);
+                world_renderer.update_equipment_overlay(slot, it->second.path);
             } else {
-                world_renderer.clear_equipment_overlay(i);
+                world_renderer.clear_equipment_overlay(slot);
             }
+        }
+    }
+
+    ItemType armor_type = player_stats.equipped[static_cast<uint8_t>(EquipSlot::ARMOR)].item_type;
+    if (armor_type == ItemType::NONE) {
+        world_renderer.reset_body_sprite();
+    } else {
+        auto it = config.equip_overlays.find(static_cast<uint8_t>(armor_type));
+        if (it != config.equip_overlays.end()) {
+            world_renderer.set_body_sprite(it->second.path);
+        } else {
+            world_renderer.reset_body_sprite();
         }
     }
 }

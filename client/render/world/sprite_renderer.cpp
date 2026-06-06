@@ -222,8 +222,33 @@ void SpriteRenderer::set_local_player_info(Race race, PlayerClass player_class) 
     for (std::size_t i = 0; i < entity_part_configs.size() && i < sprites.size(); ++i) {
         const auto& config = entity_part_configs[i];
         SpriteConfig selected = resolve_entity_skin(config, race, player_class);
+        if (config.movable && !config.anchor_to_movable) {
+            default_body_path_ = selected.paths.empty() ? "" : selected.paths[0];
+        }
         sprites[i] = build_sprite_render(selected);
     }
+}
+
+void SpriteRenderer::set_body_sprite(const std::string& path) {
+    SpriteRender* movable = find_movable_sprite();
+    if (!movable || path.empty()) {
+        return;
+    }
+    try {
+        SDL2pp::Surface surface = texture::load_surface(path);
+        movable->frames.clear();
+        movable->frames.emplace_back(renderer, surface);
+        movable->current_frame = 0;
+    } catch (...) {
+        reset_body_sprite();
+    }
+}
+
+void SpriteRenderer::reset_body_sprite() {
+    if (default_body_path_.empty()) {
+        return;
+    }
+    set_body_sprite(default_body_path_);
 }
 
 void SpriteRenderer::move_entity(uint16_t entity_id, int x, int y) {
@@ -389,6 +414,8 @@ void SpriteRenderer::render(const SDL2pp::Rect& cam) {
     SpriteRender* movable = find_movable_sprite();
     if (movable && movable->use_src) {
         for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
+            if (i == static_cast<uint8_t>(EquipSlot::ARMOR))
+                continue;
             EquipOverlay& overlay = equip_overlays_[i];
             if (!overlay.active || overlay.frames.empty())
                 continue;

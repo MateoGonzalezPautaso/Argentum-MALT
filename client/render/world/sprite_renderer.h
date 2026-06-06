@@ -61,6 +61,8 @@ public:
 
     void update_equipment_overlay(uint8_t slot, const std::string& path);
     void clear_equipment_overlay(uint8_t slot);
+    void set_body_sprite(const std::string& path);
+    void reset_body_sprite();
 
     void render(const SDL2pp::Rect& cam);
     void render_entity_names(const SDL2pp::Rect& cam);
@@ -140,6 +142,7 @@ private:
     SkinConfig skin_config;
     std::vector<OverlayEffect> overlays;
     EquipOverlay equip_overlays_[EQUIP_SLOT_COUNT];
+    std::string default_body_path_;
     int window_w;
     int window_h;
     bool has_tilemap;
