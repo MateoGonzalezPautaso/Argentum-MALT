@@ -402,6 +402,11 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
                 .targeted_events = {}};
     }
 
+    if (cmd.target_id == player_id) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacarte a ti mismo"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
     CommandResult result;
     auto target_it = npcs.find(cmd.target_id);
     if (target_it == npcs.end())

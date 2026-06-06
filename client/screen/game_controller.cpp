@@ -6,6 +6,7 @@
 #include <variant>
 
 #include "../../common/visit.h"
+#include "../render/geometry.h"
 
 namespace {
 const std::unordered_map<ItemType, std::string> weapon_sounds = {
@@ -355,6 +356,18 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
                 command_queue.push(AttackCmd{entity_id});
             }
             return true;
+        }
+
+        if (event.button.button == SDL_BUTTON_RIGHT) {
+            int sx, sy;
+            if (world_renderer.get_movable_position(sx, sy)) {
+                SDL2pp::Rect self_rect(sx, sy, world_renderer.movable_w(),
+                                       world_renderer.movable_h());
+                if (point_in_rect(world_x, world_y, self_rect)) {
+                    command_queue.push(CastSpellCmd{player_stats.player_id});
+                    return true;
+                }
+            }
         }
 
         if (event.button.button == SDL_BUTTON_LEFT) {
