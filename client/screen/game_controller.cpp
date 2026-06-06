@@ -104,6 +104,8 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                                 world_renderer.trigger_target_spell_overlay_at(wx, wy);
                             else if (e.effect_type == 2)
                                 world_renderer.trigger_missile_overlay_at(wx, wy);
+                            else if (e.effect_type == 3)
+                                world_renderer.trigger_explosion_overlay_at(wx, wy);
                             else
                                 world_renderer.trigger_spell_overlay_at(wx, wy);
                         },

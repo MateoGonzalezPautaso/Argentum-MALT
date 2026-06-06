@@ -421,7 +421,14 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
     else
         result = combat_controller.spell_attack_npc(player_id, cmd.target_id, npcs, tick_count);
     result.map_events = std::move(result.broadcast_events);
-    result.map_events.push_back(SpellEffectEvent{cmd.target_id, 1});
+    uint8_t effect_type;
+    if (weapon_slot.item_type == ItemType::KNOTTED_STAFF)
+        effect_type = 2;
+    else if (weapon_slot.item_type == ItemType::STUDDED_STAFF)
+        effect_type = 3;
+    else
+        effect_type = 1;
+    result.map_events.push_back(SpellEffectEvent{cmd.target_id, effect_type});
     return result;
 }
 

@@ -53,6 +53,7 @@ public:
     void trigger_spell_overlay_at(int world_x, int world_y);
     void trigger_target_spell_overlay_at(int world_x, int world_y);
     void trigger_missile_overlay_at(int world_x, int world_y);
+    void trigger_explosion_overlay_at(int world_x, int world_y);
     bool get_entity_world_position(uint16_t entity_id, int& x, int& y) const;
     void set_show_hitboxes(bool v) { show_hitboxes_ = v; }
     bool get_show_hitboxes() const { return show_hitboxes_; }
