@@ -100,7 +100,10 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                             } else if (!world_renderer.get_entity_world_position(e.target_id, wx, wy)) {
                                 return;
                             }
-                            world_renderer.trigger_spell_overlay_at(wx, wy);
+                            if (e.effect_type == 1)
+                                world_renderer.trigger_target_spell_overlay_at(wx, wy);
+                            else
+                                world_renderer.trigger_spell_overlay_at(wx, wy);
                         },
                         [this](const GoldUpdateEvent& e) { player_stats.gold = e.gold; },
                         [](const auto&) {},

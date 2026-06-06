@@ -62,8 +62,9 @@ public:
 
     void load_damage_overlay();
     void trigger_damage_overlay_at(int world_x, int world_y);
-    void load_spell_overlay();
+    void load_spell_sheets();
     void trigger_spell_overlay_at(int world_x, int world_y);
+    void trigger_target_spell_overlay_at(int world_x, int world_y);
     bool get_entity_world_position(uint16_t entity_id, int& x, int& y) const;
     void tick_overlays(const AnimationSystem& anim);
     void render_overlays(const SDL2pp::Rect& cam);
@@ -134,6 +135,7 @@ private:
     SkinConfig skin_config;
     std::vector<OverlayEffect> overlays;
     std::vector<OverlayEffect> spell_overlays;
+    std::vector<OverlayEffect> target_spell_overlays;
     int window_w;
     int window_h;
     bool has_tilemap;

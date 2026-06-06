@@ -442,23 +442,33 @@ void SpriteRenderer::load_damage_overlay() {
     }
 }
 
-void SpriteRenderer::load_spell_overlay() {
-    std::string path = "assets/Graficos/3470.png";
-    SDL2pp::Surface sheet = texture::load_surface(path);
-    spell_overlays.resize(3);
-    for (auto& ov: spell_overlays) {
-        ov.frames.reserve(5);
-        for (int i = 0; i < 5; ++i) {
-            SDL_Surface* sub = SDL_CreateRGBSurfaceWithFormat(0, 128, 135, 32,
-                    sheet.Get()->format->format);
-            SDL_Rect src{i * 128, 0, 128, 135};
-            SDL_BlitSurface(sheet.Get(), &src, sub, nullptr);
-            ov.frames.emplace_back(renderer, SDL2pp::Surface(sub));
+void SpriteRenderer::load_spell_sheets() {
+    auto load_sheet = [&](const std::string& path, int frame_w, int frame_h,
+                          int cols, int rows, int display_w, int display_h,
+                          uint32_t frame_ms, std::vector<OverlayEffect>& pool) {
+        SDL2pp::Surface sheet = texture::load_surface(path);
+        pool.resize(3);
+        int total = cols * rows;
+        for (auto& ov: pool) {
+            ov.frames.reserve(total);
+            for (int r = 0; r < rows; ++r) {
+                for (int c = 0; c < cols; ++c) {
+                    SDL_Surface* sub = SDL_CreateRGBSurfaceWithFormat(0, frame_w, frame_h, 32,
+                            SDL_PIXELFORMAT_ABGR8888);
+                    SDL_Rect src{c * frame_w, r * frame_h, frame_w, frame_h};
+                    SDL_SetSurfaceBlendMode(sheet.Get(), SDL_BLENDMODE_NONE);
+                    SDL_BlitSurface(sheet.Get(), &src, sub, nullptr);
+                    auto& tex = ov.frames.emplace_back(renderer, SDL2pp::Surface(sub));
+                    tex.SetBlendMode(SDL_BLENDMODE_BLEND);
+                }
+            }
+            ov.frame_ms = frame_ms;
+            ov.dst.SetW(display_w);
+            ov.dst.SetH(display_h);
         }
-        ov.frame_ms = 100;
-        ov.dst.SetW(77);
-        ov.dst.SetH(81);
-    }
+    };
+    load_sheet("assets/Graficos/3470.png", 128, 135, 5, 1, 77, 81, 100, spell_overlays);
+    load_sheet("assets/Graficos/3449.png", 128, 128, 4, 4, 77, 77, 70, target_spell_overlays);
 }
 
 void SpriteRenderer::trigger_damage_overlay_at(int world_x, int world_y) {
@@ -480,6 +490,19 @@ void SpriteRenderer::trigger_spell_overlay_at(int world_x, int world_y) {
             continue;
         ov.dst.SetX(world_x - ov.dst.GetW() / 2 - 7);
         ov.dst.SetY(world_y - ov.dst.GetH() / 2 - 15);
+        ov.current_frame = 0;
+        ov.last_ticks = SDL_GetTicks();
+        ov.active = true;
+        return;
+    }
+}
+
+void SpriteRenderer::trigger_target_spell_overlay_at(int world_x, int world_y) {
+    for (auto& ov: target_spell_overlays) {
+        if (ov.active)
+            continue;
+        ov.dst.SetX(world_x - ov.dst.GetW() / 2);
+        ov.dst.SetY(world_y - ov.dst.GetH() / 2);
         ov.current_frame = 0;
         ov.last_ticks = SDL_GetTicks();
         ov.active = true;
@@ -518,6 +541,7 @@ void SpriteRenderer::tick_overlays(const AnimationSystem& anim) {
     };
     tick_pool(overlays);
     tick_pool(spell_overlays);
+    tick_pool(target_spell_overlays);
 }
 
 void SpriteRenderer::render_overlays(const SDL2pp::Rect& cam) {
@@ -532,6 +556,7 @@ void SpriteRenderer::render_overlays(const SDL2pp::Rect& cam) {
     };
     render_pool(overlays);
     render_pool(spell_overlays);
+    render_pool(target_spell_overlays);
 }
 
 void SpriteRenderer::tick_animations(AnimationSystem& anim) {
