@@ -275,6 +275,12 @@ void ServerProtocol::send_heal_received(const HealReceivedEvent& ev) {
     protocol.send_uint32(ev.mana_current);
 }
 
+void ServerProtocol::send_spell_effect(const SpellEffectEvent& ev) {
+    protocol.send_opcode(OpCode::SPELL_EFFECT);
+    protocol.send_uint16(ev.target_id);
+    protocol.send_uint8(ev.effect_type);
+}
+
 void ServerProtocol::send_inventory_update(const InventoryUpdateEvent& ev) {
     protocol.send_opcode(OpCode::INVENTORY_UPDATE);
     protocol.send_uint8(static_cast<uint8_t>(ev.slots.size()));
@@ -320,7 +326,8 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [this](const ClanUpdateEvent& msg) { send_clan_update(msg); },
                        [this](const MapTransitionEvent& msg) { send_map_transition(msg); },
                        [this](const PlayerStatsEvent& msg) { send_player_stats(msg); },
-                       [this](const HealReceivedEvent& msg) { send_heal_received(msg); },
+                        [this](const HealReceivedEvent& msg) { send_heal_received(msg); },
+                        [this](const SpellEffectEvent& msg) { send_spell_effect(msg); },
                        [this](const InventoryUpdateEvent& msg) { send_inventory_update(msg); },
                        [this](const EquipUpdateEvent& msg) { send_equip_update(msg); },
                        [this](const GoldUpdateEvent& msg) { send_gold_update(msg); },
