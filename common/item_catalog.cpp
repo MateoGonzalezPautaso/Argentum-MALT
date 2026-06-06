@@ -92,6 +92,7 @@ void ItemCatalog::load_from_file(const std::string& path) {
         item.mana_consumed = static_cast<uint8_t>(toml_get_int(*tbl, "mana_cost", 0));
         item.min_defense = static_cast<uint8_t>(toml_get_int(*tbl, "min_defense", 0));
         item.max_defense = static_cast<uint8_t>(toml_get_int(*tbl, "max_defense", 0));
+        item.attack_range = static_cast<uint16_t>(toml_get_int(*tbl, "attack_range", 0));
 
         items_.push_back(item);
     }

@@ -15,6 +15,7 @@ struct Item {
     uint8_t mana_consumed = 0;
     uint8_t min_defense = 0;
     uint8_t max_defense = 0;
+    uint16_t attack_range = 0;
 };
 
 #endif

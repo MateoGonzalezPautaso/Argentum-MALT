@@ -61,9 +61,9 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
 
     uint32_t range = config.attack_range_px;
     const InventorySlot& weapon_slot2 = attacker.get_equipped(EquipSlot::WEAPON);
-    if (weapon_slot2.item_type == ItemType::SIMPLE_BOW ||
-        weapon_slot2.item_type == ItemType::COMPOSITE_BOW)
-        range = config.spell_attack_range_px;
+    const Item* weapon_def2 = item_catalog_.find(weapon_slot2.item_type);
+    if (weapon_def2 && weapon_def2->attack_range > 0)
+        range = weapon_def2->attack_range;
 
     if (!in_range(attacker.pos_x(), attacker.pos_y(), target.pos_x(), target.pos_y(), range))
         return {};
@@ -137,9 +137,9 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
 
     uint32_t range = config.attack_range_px;
     const InventorySlot& weapon_slot2 = attacker.get_equipped(EquipSlot::WEAPON);
-    if (weapon_slot2.item_type == ItemType::SIMPLE_BOW ||
-        weapon_slot2.item_type == ItemType::COMPOSITE_BOW)
-        range = config.spell_attack_range_px;
+    const Item* weapon_def2 = item_catalog_.find(weapon_slot2.item_type);
+    if (weapon_def2 && weapon_def2->attack_range > 0)
+        range = weapon_def2->attack_range;
 
     if (!in_range(attacker.pos_x(), attacker.pos_y(), npc_target.pos_x(), npc_target.pos_y(), range))
         return {};
