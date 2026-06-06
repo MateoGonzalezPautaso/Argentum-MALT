@@ -127,6 +127,14 @@ void WorldRenderer::set_local_player_info(Race race, PlayerClass player_class) {
     sprite_renderer.set_local_player_info(race, player_class);
 }
 
+void WorldRenderer::update_equipment_overlay(uint8_t slot, const std::string& path) {
+    sprite_renderer.update_equipment_overlay(slot, path);
+}
+
+void WorldRenderer::clear_equipment_overlay(uint8_t slot) {
+    sprite_renderer.clear_equipment_overlay(slot);
+}
+
 void WorldRenderer::despawn_entity(uint16_t entity_id) {
     sprite_renderer.despawn_entity(entity_id);
 }

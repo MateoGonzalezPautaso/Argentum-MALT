@@ -24,6 +24,11 @@ struct OverlayEffect {
     bool active = false;
 };
 
+struct EquipOverlay {
+    std::vector<SDL2pp::Texture> frames;
+    bool active = false;
+};
+
 class SpriteRenderer {
 public:
     SpriteRenderer(SDL2pp::Renderer& renderer, TTF_Font* name_font, int window_w, int window_h,
@@ -53,6 +58,9 @@ public:
     void update_anchor_positions();
     void set_local_player_info(Race race, PlayerClass player_class);
     void set_skin_config(const SkinConfig& skin_config);
+
+    void update_equipment_overlay(uint8_t slot, const std::string& path);
+    void clear_equipment_overlay(uint8_t slot);
 
     void render(const SDL2pp::Rect& cam);
     void render_entity_names(const SDL2pp::Rect& cam);
@@ -131,6 +139,7 @@ private:
     std::unordered_map<uint16_t, EntityNameRender> entity_name_render;
     SkinConfig skin_config;
     std::vector<OverlayEffect> overlays;
+    EquipOverlay equip_overlays_[EQUIP_SLOT_COUNT];
     int window_w;
     int window_h;
     bool has_tilemap;

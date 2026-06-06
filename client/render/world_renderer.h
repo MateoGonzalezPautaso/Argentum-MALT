@@ -49,6 +49,8 @@ public:
     void set_entity_alpha(uint16_t entity_id, uint8_t alpha);
     void set_movable_alpha(uint8_t alpha);
     void set_local_player_info(Race race, PlayerClass player_class);
+    void update_equipment_overlay(uint8_t slot, const std::string& path);
+    void clear_equipment_overlay(uint8_t slot);
     void trigger_damage_overlay_at(int world_x, int world_y);
     bool get_entity_world_position(uint16_t entity_id, int& x, int& y) const;
     void set_show_hitboxes(bool v) { show_hitboxes_ = v; }

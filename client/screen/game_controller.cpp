@@ -258,6 +258,21 @@ void GameController::handle_equip_update(const EquipUpdateEvent& e) {
     player_stats.equipped[1] = e.armor;
     player_stats.equipped[2] = e.helmet;
     player_stats.equipped[3] = e.shield;
+
+    const InventorySlot slots[EQUIP_SLOT_COUNT] = {e.weapon, e.armor, e.helmet, e.shield};
+    for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
+        ItemType type = slots[i].item_type;
+        if (type == ItemType::NONE) {
+            world_renderer.clear_equipment_overlay(i);
+        } else {
+            auto it = config.equip_overlays.find(static_cast<uint8_t>(type));
+            if (it != config.equip_overlays.end()) {
+                world_renderer.update_equipment_overlay(i, it->second.path);
+            } else {
+                world_renderer.clear_equipment_overlay(i);
+            }
+        }
+    }
 }
 
 void GameController::handle_entity_died(const EntityDiedEvent& e) {

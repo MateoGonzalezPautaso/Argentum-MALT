@@ -191,6 +191,29 @@ void SpriteRenderer::clear_all_entities() {
 
 void SpriteRenderer::set_skin_config(const SkinConfig& cfg) { skin_config = cfg; }
 
+void SpriteRenderer::update_equipment_overlay(uint8_t slot, const std::string& path) {
+    if (slot >= EQUIP_SLOT_COUNT)
+        return;
+    EquipOverlay& overlay = equip_overlays_[slot];
+    try {
+        SDL2pp::Surface surface = texture::load_surface(path);
+        overlay.frames.clear();
+        overlay.frames.emplace_back(renderer, surface);
+        overlay.active = true;
+    } catch (...) {
+        overlay.frames.clear();
+        overlay.active = false;
+    }
+}
+
+void SpriteRenderer::clear_equipment_overlay(uint8_t slot) {
+    if (slot >= EQUIP_SLOT_COUNT)
+        return;
+    EquipOverlay& overlay = equip_overlays_[slot];
+    overlay.frames.clear();
+    overlay.active = false;
+}
+
 void SpriteRenderer::set_local_player_info(Race race, PlayerClass player_class) {
     if (entity_part_configs.empty()) {
         return;
@@ -362,6 +385,23 @@ void SpriteRenderer::render(const SDL2pp::Rect& cam) {
     std::vector<Drawable> drawables;
 
     append_sprite_drawables(sprites, cam, drawables);
+
+    SpriteRender* movable = find_movable_sprite();
+    if (movable && movable->use_src) {
+        for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
+            EquipOverlay& overlay = equip_overlays_[i];
+            if (!overlay.active || overlay.frames.empty())
+                continue;
+            if (!is_visible(*movable, cam))
+                continue;
+            SDL2pp::Rect dst(movable->dst.GetX() - cam.GetX(), movable->dst.GetY() - cam.GetY(),
+                             movable->dst.GetW(), movable->dst.GetH());
+            drawables.push_back(Drawable{&overlay.frames[0], &movable->src, dst,
+                                         movable->dst.GetY() + movable->dst.GetH() + 1 + i,
+                                         movable->alpha});
+        }
+    }
+
     for (auto& pair: entity_sprites) {
         append_sprite_drawables(pair.second, cam, drawables);
     }
