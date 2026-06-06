@@ -127,6 +127,7 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const ChangeMapCmd& cmd) { return handle_change_map(player_id, cmd); },
                     [&](const EquipItemCmd& cmd) { return handle_equip(player_id, cmd); },
                     [&](const UnequipItemCmd& cmd) { return handle_unequip(player_id, cmd); },
+                    [&](const NpcHealCmd&) { return handle_npc_heal(player_id); },
                     [](const auto&) { return CommandResult{}; },
             },
             cmd);
@@ -405,6 +406,8 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             return handle_meditate(player_id);
         if (cmd_name == "/resucitar")
             return handle_resurrect(player_id);
+        if (cmd_name == "/curar")
+            return handle_npc_heal(player_id);
 
         if (cmd_name == "/equipar") {
             try {
@@ -920,6 +923,40 @@ CommandResult Game::handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
 
     return {.private_events = {equip_ev, inv_ev}, .broadcast_events = {}, .targeted_events = {}};
+}
+
+CommandResult Game::handle_npc_heal(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+
+    Player& player = it->second;
+
+    if (player.is_dead()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden ser curados"};
+        return {.private_events = {msg}};
+    }
+
+    const std::string& current_map = player.get_current_map();
+    auto map_it = maps.find(current_map);
+    if (map_it == maps.end())
+        return {};
+
+    const int range = map_it->second.tile_size() * 3;
+    const int px = static_cast<int>(player.pos_x());
+    const int py = static_cast<int>(player.pos_y());
+
+    if (!map_it->second.prop_grid().is_in_range_of("sacerdote", px, py, range)) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un sacerdote cerca"};
+        return {.private_events = {msg}};
+    }
+
+    player.heal(player.get_hp_max());
+    player.restore_mana(player.get_mana_max());
+
+    HealReceivedEvent heal_ev{player_id, player.get_hp_current(), player.get_mana_current()};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Sacerdote: ¡Que la luz te sane!"};
+    return {.private_events = {heal_ev, msg}};
 }
 
 CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {

@@ -31,6 +31,8 @@ ClientCommand ServerProtocol::recv_command() {
             return MeditateCmd{};
         case OpCode::RESURRECT:
             return ResurrectCmd{};
+        case OpCode::NPC_HEAL:
+            return NpcHealCmd{};
         case OpCode::CHEAT_INFINITE_HP:
             return CheatInfiniteHpCmd{};
         case OpCode::CHEAT_INFINITE_MANA:
@@ -179,6 +181,10 @@ void ServerProtocol::send_damage_dealt(const DamageDealtEvent& ev) {
     protocol.send_uint32(ev.damage);
 }
 
+void ServerProtocol::send_attack_dodged(const AttackDodgedEvent&) {
+    protocol.send_opcode(OpCode::ATTACK_DODGED);
+}
+
 void ServerProtocol::send_damage_received(const DamageReceivedEvent& ev) {
     protocol.send_opcode(OpCode::DAMAGE_RECEIVED);
     protocol.send_uint16(ev.target_id);
@@ -292,6 +298,7 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [this](const EntityMoveEvent& msg) { send_entity_move(msg); },
                        [this](const DamageDealtEvent& msg) { send_damage_dealt(msg); },
                        [this](const DamageReceivedEvent& msg) { send_damage_received(msg); },
+                       [this](const AttackDodgedEvent& msg) { send_attack_dodged(msg); },
                        [this](const EntityDiedEvent& msg) { send_entity_died(msg); },
                        [this](const PlayerRespawnedEvent& msg) { send_player_respawned(msg); },
                        [this](const MeditationStartEvent&) { send_meditation_start(); },
