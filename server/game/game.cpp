@@ -402,9 +402,11 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
                                .mana_max = player.get_mana_max()};
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Te has curado!"};
         DamageDealtEvent spell_ev{player_id, 0};
+        SpellEffectEvent effect_ev{player_id, 0};
         return {.private_events = {msg, heal_ev, stats, spell_ev},
                 .broadcast_events = {},
-                .targeted_events = {}};
+                .targeted_events = {},
+                .map_events = {effect_ev}};
     }
 
     if (cmd.target_id == player_id) {
@@ -419,6 +421,10 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
     else
         result = combat_controller.spell_attack_npc(player_id, cmd.target_id, npcs, tick_count);
     result.map_events = std::move(result.broadcast_events);
+    uint8_t effect_type = item->spell_effect_id;
+    if (effect_type == 0)
+        effect_type = 1;
+    result.map_events.push_back(SpellEffectEvent{cmd.target_id, effect_type});
     return result;
 }
 

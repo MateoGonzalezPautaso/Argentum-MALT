@@ -44,6 +44,7 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig&
 
     sprite_renderer.load_sprites(sprites_config);
     sprite_renderer.load_damage_overlay();
+    sprite_renderer.load_spell_sheets();
     sprite_renderer.set_skin_config(skin_config);
 
     if (sprite_renderer.empty()) {
@@ -184,6 +185,10 @@ void WorldRenderer::set_movable_alpha(uint8_t alpha) { sprite_renderer.set_movab
 
 void WorldRenderer::trigger_damage_overlay_at(int world_x, int world_y) {
     sprite_renderer.trigger_damage_overlay_at(world_x, world_y);
+}
+
+void WorldRenderer::trigger_spell_effect(uint8_t effect_type, int world_x, int world_y) {
+    sprite_renderer.trigger_spell_effect(effect_type, world_x, world_y);
 }
 
 bool WorldRenderer::get_entity_world_position(uint16_t entity_id, int& x, int& y) const {

@@ -91,8 +91,19 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                        [this](const InventoryUpdateEvent& e) { handle_inventory_update(e); },
                        [this](const EquipUpdateEvent& e) { handle_equip_update(e); },
                        [this](const PlayerStatsEvent& e) { handle_player_stats(e); },
-                       [this](const GoldUpdateEvent& e) { player_stats.gold = e.gold; },
-                       [](const auto&) {},
+                        [this](const SpellEffectEvent& e) {
+                            int wx, wy;
+                            if (e.target_id == player_stats.player_id) {
+                                world_renderer.get_movable_position(wx, wy);
+                                wx += world_renderer.movable_w() / 2;
+                                wy += world_renderer.movable_h() / 2;
+                            } else if (!world_renderer.get_entity_world_position(e.target_id, wx, wy)) {
+                                return;
+                            }
+                            world_renderer.trigger_spell_effect(e.effect_type, wx, wy);
+                        },
+                        [this](const GoldUpdateEvent& e) { player_stats.gold = e.gold; },
+                        [](const auto&) {},
                },
                ev);
 }

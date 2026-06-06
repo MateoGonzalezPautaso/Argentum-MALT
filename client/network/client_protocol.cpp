@@ -196,6 +196,8 @@ ServerEvent ClientProtocol::recv_event() {
             return recv_clan_update();
         case OpCode::HEAL_RECEIVED:
             return recv_heal_received();
+        case OpCode::SPELL_EFFECT:
+            return recv_spell_effect();
         case OpCode::MAP_TRANSITION:
             return recv_map_transition();
         case OpCode::PLAYER_STATS:
@@ -269,6 +271,12 @@ ServerEvent ClientProtocol::recv_heal_received() {
     uint32_t hp_current = protocol.recv_uint32();
     uint32_t mana_current = protocol.recv_uint32();
     return HealReceivedEvent{player_id, hp_current, mana_current};
+}
+
+ServerEvent ClientProtocol::recv_spell_effect() {
+    uint16_t target_id = protocol.recv_uint16();
+    uint8_t effect_type = protocol.recv_uint8();
+    return SpellEffectEvent{target_id, effect_type};
 }
 
 ServerEvent ClientProtocol::recv_player_stats() {
