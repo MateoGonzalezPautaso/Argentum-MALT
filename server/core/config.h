@@ -20,6 +20,7 @@ struct AttackConfig {
     double clan_bonus_per_member = 0.05;
     double clan_bonus_max = 0.25;
     double critical_chance = 0.003;
+    uint32_t spell_attack_range_px = 200;
 };
 
 struct ClanConfig {

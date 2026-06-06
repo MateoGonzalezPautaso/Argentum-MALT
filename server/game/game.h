@@ -61,6 +61,7 @@ private:
     CommandResult handle_create_character(uint16_t player_id, const CreateCharacterCmd& cmd);
     CommandResult handle_move(uint16_t player_id, const MoveCmd& cmd);
     CommandResult handle_attack(uint16_t player_id, const AttackCmd& cmd);
+    CommandResult handle_cast_spell(uint16_t player_id, const CastSpellCmd& cmd);
     CommandResult handle_send_chat_msg(uint16_t player_id, const SendChatMsgCmd& cmd);
     CommandResult handle_cheat_infinite_hp(uint16_t player_id);
     CommandResult handle_cheat_infinite_mana(uint16_t player_id);
