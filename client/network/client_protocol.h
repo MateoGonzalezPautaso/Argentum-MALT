@@ -50,6 +50,7 @@ public:
     void send_cheat_velocity();
     void send_cheat_revive();
     void send_cheat_fill_inventory();
+    void send_cheat_clear_inventory();
     void send_cheat_reset_mana();
     void send_change_map(const ChangeMapCmd& cmd);
 

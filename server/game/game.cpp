@@ -128,6 +128,10 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                         return cheats_enabled ? handle_cheat_fill_inventory(player_id) :
                                                 CommandResult{};
                     },
+                    [&](const CheatClearInventoryCmd&) {
+                        return cheats_enabled ? handle_cheat_clear_inventory(player_id) :
+                                                CommandResult{};
+                    },
                     [&](const CheatResetManaCmd&) {
                         return cheats_enabled ? handle_cheat_reset_mana(player_id) :
                                                 CommandResult{};
@@ -828,6 +832,19 @@ CommandResult Game::handle_cheat_fill_inventory(uint16_t player_id) {
     std::vector<InventorySlot> slots = player.dump_inventory();
     InventoryUpdateEvent inv{.slots = std::move(slots)};
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Inventario lleno con todos los items!"};
+    player_data_service.save_player(player);
+    return {.private_events = {msg, inv}, .broadcast_events = {}, .targeted_events = {}};
+}
+
+CommandResult Game::handle_cheat_clear_inventory(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+    player.clear_inventory();
+    std::vector<InventorySlot> slots = player.dump_inventory();
+    InventoryUpdateEvent inv{.slots = std::move(slots)};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Inventario vaciado!"};
     player_data_service.save_player(player);
     return {.private_events = {msg, inv}, .broadcast_events = {}, .targeted_events = {}};
 }

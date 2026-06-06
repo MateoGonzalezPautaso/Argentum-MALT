@@ -73,6 +73,7 @@ private:
     CommandResult handle_cheat_velocity(uint16_t player_id);
     CommandResult handle_cheat_revive(uint16_t player_id);
     CommandResult handle_cheat_fill_inventory(uint16_t player_id);
+    CommandResult handle_cheat_clear_inventory(uint16_t player_id);
     CommandResult handle_cheat_reset_mana(uint16_t player_id);
     CommandResult handle_change_map(uint16_t player_id, const ChangeMapCmd& cmd);
     CommandResult handle_resurrect(uint16_t player_id);

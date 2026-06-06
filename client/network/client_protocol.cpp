@@ -82,6 +82,10 @@ void ClientProtocol::send_cheat_fill_inventory() {
     protocol.send_opcode(OpCode::CHEAT_FILL_INVENTORY);
 }
 
+void ClientProtocol::send_cheat_clear_inventory() {
+    protocol.send_opcode(OpCode::CHEAT_CLEAR_INVENTORY);
+}
+
 void ClientProtocol::send_cheat_reset_mana() { protocol.send_opcode(OpCode::CHEAT_RESET_MANA); }
 
 void ClientProtocol::send_change_map(const ChangeMapCmd& cmd) {
@@ -119,6 +123,7 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const CheatVelocityCmd&) { send_cheat_velocity(); },
                         [this](const CheatReviveCmd&) { send_cheat_revive(); },
                         [this](const CheatFillInventoryCmd&) { send_cheat_fill_inventory(); },
+                        [this](const CheatClearInventoryCmd&) { send_cheat_clear_inventory(); },
                         [this](const CheatResetManaCmd&) { send_cheat_reset_mana(); },
                         [this](const ChangeMapCmd& msg) { send_change_map(msg); },
                        [this](const EquipItemCmd& msg) { send_equip_item(msg); },

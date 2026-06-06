@@ -351,6 +351,8 @@ void Player::restore_equipment(const InventorySlot equipment[EQUIP_SLOT_COUNT]) 
 
 std::vector<InventorySlot> Player::dump_inventory() const { return inventory.dump_slots(); }
 
+void Player::clear_inventory() { inventory.load_slots({}); }
+
 void Player::load_inventory(const std::vector<InventorySlotRecord>& records) {
     inventory.from_records(records);
 }
