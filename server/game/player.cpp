@@ -73,6 +73,8 @@ void Player::apply_move(Direction new_dir, int dx, int dy) {
     pos.y = static_cast<uint16_t>(static_cast<int>(pos.y) + dy);
 }
 
+void Player::lose_experience_on_death() { experience = experience * 0.9; }
+
 void Player::gain_experience(uint32_t exp) {
     experience += exp;
     uint32_t threshold = static_cast<uint32_t>(balance.level_exp_base *

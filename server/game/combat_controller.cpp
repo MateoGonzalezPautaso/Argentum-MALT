@@ -74,6 +74,17 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
                                    target.get_clan_name(), target.is_dead(), target.get_level());
 
     if (target.is_dead()) {
+        target.lose_experience_on_death();
+        result.targeted_events[target_id].push_back(PlayerStatsEvent{
+                .level = target.get_level(),
+                .experience = target.get_experience(),
+                .exp_to_next = target.exp_to_next_level(),
+                .hp_current = target.get_hp_current(),
+                .hp_max = target.get_hp_max(),
+                .mana_current = target.get_mana_current(),
+                .mana_max = target.get_mana_max(),
+        });
+
         uint32_t excess = target.take_excess_gold();
         if (excess > 0) {
             attacker.gain_gold(excess);
