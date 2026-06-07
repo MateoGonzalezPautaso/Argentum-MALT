@@ -255,12 +255,14 @@ ItemCatalog make_test_catalog() {
     health_potion.type = ItemType::HEALTH_POTION;
     health_potion.name = "Pocion";
     health_potion.equip_slot = EquipSlot::CONSUMABLE;
+    health_potion.restore_hp_percent = 100;
     catalog.add(health_potion);
 
     Item mana_potion;
     mana_potion.type = ItemType::MANA_POTION;
     mana_potion.name = "Mana";
     mana_potion.equip_slot = EquipSlot::CONSUMABLE;
+    mana_potion.restore_mana_percent = 100;
     catalog.add(mana_potion);
 
     Item helmet;

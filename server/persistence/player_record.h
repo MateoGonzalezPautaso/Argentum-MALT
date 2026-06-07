@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <iosfwd>
 #include <string>
 
 // Binary structure for storing player data in the database.
@@ -41,5 +42,8 @@ struct PlayerRecord {
     void set_current_map(const std::string& name);
     std::string get_current_map() const;
 };
+
+void write_player_record(std::ostream& os, const PlayerRecord& rec);
+bool read_player_record(std::istream& is, PlayerRecord& rec);
 
 #endif  // SERVER_PLAYER_RECORD_H

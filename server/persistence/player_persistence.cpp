@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "../game/player.h"
+#include "endian_io.h"
 
 PlayerPersistence::PlayerPersistence(const std::string& data_path, const std::string& index_path):
         data_path(data_path), index_path(index_path) {
@@ -21,8 +22,7 @@ void PlayerPersistence::load_index() {
 
     while (idx.peek() != EOF) {
         uint32_t name_len = 0;
-        idx.read(reinterpret_cast<char*>(&name_len), sizeof(name_len));
-        if (!idx)
+        if (!endian_io::read_u32_le(idx, name_len))
             break;
 
         std::string name(name_len, '\0');
@@ -31,8 +31,7 @@ void PlayerPersistence::load_index() {
             break;
 
         uint32_t offset = 0;
-        idx.read(reinterpret_cast<char*>(&offset), sizeof(offset));
-        if (!idx)
+        if (!endian_io::read_u32_le(idx, offset))
             break;
 
         index.emplace(std::move(name), offset);
@@ -47,9 +46,9 @@ void PlayerPersistence::save_index() {
 
     for (const auto& [name, offset]: index) {
         uint32_t name_len = static_cast<uint32_t>(name.size());
-        idx.write(reinterpret_cast<const char*>(&name_len), sizeof(name_len));
+        endian_io::write_u32_le(idx, name_len);
         idx.write(name.data(), name_len);
-        idx.write(reinterpret_cast<const char*>(&offset), sizeof(offset));
+        endian_io::write_u32_le(idx, offset);
     }
 }
 
@@ -69,8 +68,7 @@ bool PlayerPersistence::load(const std::string& username, PlayerRecord& out) {
         return false;
     }
 
-    data.read(reinterpret_cast<char*>(&out), sizeof(PlayerRecord));
-    return static_cast<bool>(data);
+    return read_player_record(data, out);
 }
 
 void PlayerPersistence::save(const std::string& username, const PlayerRecord& record) {
@@ -82,7 +80,7 @@ void PlayerPersistence::save(const std::string& username, const PlayerRecord& re
             std::ifstream in(data_path, std::ios::binary);
             if (in.is_open()) {
                 in.seekg(it->second);
-                in.read(reinterpret_cast<char*>(&previous), sizeof(PlayerRecord));
+                read_player_record(in, previous);
             }
         }
 
@@ -96,7 +94,7 @@ void PlayerPersistence::save(const std::string& username, const PlayerRecord& re
             return;
         }
         data.seekp(it->second);
-        data.write(reinterpret_cast<const char*>(&merged), sizeof(PlayerRecord));
+        write_player_record(data, merged);
     } else {
         // Append new record at the end
         std::fstream data(data_path, std::ios::binary | std::ios::in | std::ios::out);
@@ -108,7 +106,7 @@ void PlayerPersistence::save(const std::string& username, const PlayerRecord& re
         }
         data.seekp(0, std::ios::end);
         uint32_t offset = static_cast<uint32_t>(data.tellp());
-        data.write(reinterpret_cast<const char*>(&record), sizeof(PlayerRecord));
+        write_player_record(data, record);
         data.flush();
 
         index.emplace(username, offset);

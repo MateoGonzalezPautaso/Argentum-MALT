@@ -1,5 +1,10 @@
 #include "player_record.h"
 
+#include <istream>
+#include <ostream>
+
+#include "endian_io.h"
+
 PlayerRecord::PlayerRecord() {
     std::memset(username, 0, sizeof(username));
     std::memset(password, 0, sizeof(password));
@@ -47,4 +52,64 @@ void PlayerRecord::set_password(const std::string& pw) {
 
 bool PlayerRecord::check_password(const std::string& pw) const {
     return std::strncmp(password, pw.c_str(), PASSWORD_MAX) == 0;
+}
+
+void write_player_record(std::ostream& os, const PlayerRecord& rec) {
+    os.write(rec.username, PlayerRecord::USERNAME_MAX);
+    os.write(rec.password, PlayerRecord::PASSWORD_MAX);
+    endian_io::write_u16_le(os, rec.pos_x);
+    endian_io::write_u16_le(os, rec.pos_y);
+    os.put(static_cast<char>(rec.dir));
+    os.put(static_cast<char>(rec.race));
+    os.put(static_cast<char>(rec.player_class));
+    os.put(static_cast<char>(rec.level));
+    endian_io::write_u32_le(os, rec.experience);
+    endian_io::write_u32_le(os, rec.hp_current);
+    endian_io::write_u32_le(os, rec.hp_max);
+    endian_io::write_u32_le(os, rec.mana_current);
+    endian_io::write_u32_le(os, rec.mana_max);
+    endian_io::write_u32_le(os, rec.gold);
+    os.write(rec.current_map, PlayerRecord::MAP_NAME_MAX);
+    os.write(reinterpret_cast<const char*>(rec.equipped_type), PlayerRecord::EQUIPPED_SLOTS);
+    for (std::size_t i = 0; i < PlayerRecord::EQUIPPED_SLOTS; ++i)
+        os.write(rec.equipped_name[i], PlayerRecord::EQUIPPED_NAME_MAX);
+}
+
+bool read_player_record(std::istream& is, PlayerRecord& rec) {
+    is.read(rec.username, PlayerRecord::USERNAME_MAX);
+    is.read(rec.password, PlayerRecord::PASSWORD_MAX);
+    if (!is)
+        return false;
+    if (!endian_io::read_u16_le(is, rec.pos_x))
+        return false;
+    if (!endian_io::read_u16_le(is, rec.pos_y))
+        return false;
+
+    char small[4];
+    is.read(small, sizeof(small));
+    if (!is)
+        return false;
+    rec.dir = static_cast<uint8_t>(small[0]);
+    rec.race = static_cast<uint8_t>(small[1]);
+    rec.player_class = static_cast<uint8_t>(small[2]);
+    rec.level = static_cast<uint8_t>(small[3]);
+
+    if (!endian_io::read_u32_le(is, rec.experience))
+        return false;
+    if (!endian_io::read_u32_le(is, rec.hp_current))
+        return false;
+    if (!endian_io::read_u32_le(is, rec.hp_max))
+        return false;
+    if (!endian_io::read_u32_le(is, rec.mana_current))
+        return false;
+    if (!endian_io::read_u32_le(is, rec.mana_max))
+        return false;
+    if (!endian_io::read_u32_le(is, rec.gold))
+        return false;
+
+    is.read(rec.current_map, PlayerRecord::MAP_NAME_MAX);
+    is.read(reinterpret_cast<char*>(rec.equipped_type), PlayerRecord::EQUIPPED_SLOTS);
+    for (std::size_t i = 0; i < PlayerRecord::EQUIPPED_SLOTS; ++i)
+        is.read(rec.equipped_name[i], PlayerRecord::EQUIPPED_NAME_MAX);
+    return static_cast<bool>(is);
 }
