@@ -1,5 +1,6 @@
 #include "game.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <string>
@@ -1272,15 +1273,11 @@ CommandResult Game::handle_npc_sell(uint16_t player_id, const std::string& item_
     }
 
     std::vector<InventorySlot> slots = player.dump_inventory();
-    int found_slot = -1;
-    for (const auto& slot: slots) {
-        if (slot.item_type == item_def->type) {
-            found_slot = slot.slot_index;
-            break;
-        }
-    }
+    auto slot_it = std::find_if(slots.begin(), slots.end(), [&](const InventorySlot& slot) {
+        return slot.item_type == item_def->type;
+    });
 
-    if (found_slot < 0) {
+    if (slot_it == slots.end()) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                          "No tenés '" + item_def->name + "' en el inventario"};
         return {.private_events = {msg}};
@@ -1289,7 +1286,7 @@ CommandResult Game::handle_npc_sell(uint16_t player_id, const std::string& item_
     uint32_t sell_price =
             static_cast<uint32_t>(item_def->price * balance.merchant.sell_price_ratio);
 
-    player.remove_inventory_item(static_cast<uint8_t>(found_slot));
+    player.remove_inventory_item(static_cast<uint8_t>(slot_it->slot_index));
     player.gain_gold(sell_price);
 
     InventoryUpdateEvent inv_ev{player.dump_inventory()};

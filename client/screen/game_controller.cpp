@@ -144,8 +144,8 @@ void GameController::handle_entity_spawn(const EntitySpawnEvent& e) {
             static_cast<uint8_t>(EquipSlot::HELMET),
             static_cast<uint8_t>(EquipSlot::SHIELD),
     };
-    ItemType equipped_types[EQUIP_SLOT_COUNT] = {e.weapon_type, e.armor_type, e.helmet_type,
-                                                 e.shield_type};
+    const ItemType equipped_types[EQUIP_SLOT_COUNT] = {e.weapon_type, e.armor_type, e.helmet_type,
+                                                       e.shield_type};
     for (uint8_t slot: overlay_slots) {
         ItemType type = equipped_types[slot];
         if (type == ItemType::NONE) {

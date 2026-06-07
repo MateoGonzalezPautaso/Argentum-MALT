@@ -1,5 +1,6 @@
 #include "item_catalog.h"
 
+#include <algorithm>
 #include <cctype>
 #include <stdexcept>
 
@@ -111,16 +112,17 @@ void ItemCatalog::add(const Item& item) {
 }
 
 static std::string to_lower(std::string s) {
-    for (char& c: s) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    std::transform(s.begin(), s.end(), s.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
     return s;
 }
 
 const Item* ItemCatalog::find_by_name(const std::string& name) const {
     const std::string lower_name = to_lower(name);
-    for (const Item& item: items_) {
-        if (to_lower(item.name) == lower_name)
-            return &item;
-    }
+    auto it = std::find_if(items_.begin(), items_.end(),
+                           [&](const Item& item) { return to_lower(item.name) == lower_name; });
+    if (it != items_.end())
+        return &*it;
     return nullptr;
 }
 

@@ -178,12 +178,12 @@ void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::s
     entity_sprites[entity_id] = std::move(parts);
 
     EntityEquipRenderState equip_state;
-    for (const auto& config: entity_part_configs) {
-        if (config.movable && !config.anchor_to_movable) {
-            SpriteConfig selected = resolve_entity_skin(config, race, player_class);
-            equip_state.default_body_path = selected.paths.empty() ? "" : selected.paths[0];
-            break;
-        }
+    auto body_it = std::find_if(
+            entity_part_configs.begin(), entity_part_configs.end(),
+            [](const auto& config) { return config.movable && !config.anchor_to_movable; });
+    if (body_it != entity_part_configs.end()) {
+        SpriteConfig selected = resolve_entity_skin(*body_it, race, player_class);
+        equip_state.default_body_path = selected.paths.empty() ? "" : selected.paths[0];
     }
     entity_equip_state_[entity_id] = std::move(equip_state);
 
