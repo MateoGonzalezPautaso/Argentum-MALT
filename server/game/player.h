@@ -40,7 +40,7 @@ private:
     bool cheat_infinite_mana = false;
     bool cheat_fast_velocity = false;
     std::string clan_name;
-    std::string current_map = "main";
+    std::string current_map = "city";
     Inventory inventory;
     InventorySlot equipped[EQUIP_SLOT_COUNT];
     uint32_t strength;

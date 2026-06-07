@@ -29,7 +29,7 @@ ServerConfig load_server_config(const std::string& path) {
         throw std::runtime_error("server config requires at least one map in map_list.toml");
     }
 
-    auto main_it = config.tilemap_configs.find("main");
+    auto main_it = config.tilemap_configs.find("city");
     if (main_it != config.tilemap_configs.end()) {
         config.tilemap = main_it->second;
     } else {

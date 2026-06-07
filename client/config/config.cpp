@@ -381,7 +381,7 @@ ClientConfig load_client_config(const std::string& path) {
 
     config.tilemap_configs = load_all_map_configs("config/map_list.toml");
 
-    auto main_it = config.tilemap_configs.find("main");
+    auto main_it = config.tilemap_configs.find("city");
     if (main_it != config.tilemap_configs.end()) {
         config.tilemap = main_it->second;
     } else if (!config.tilemap_configs.empty()) {

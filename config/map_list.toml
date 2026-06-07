@@ -1,4 +1,4 @@
 maps = [
-    { name = "main", path = "config/common_tilemap.toml" },
+    { name = "city", path = "config/city.toml" },
     { name = "dungeon", path = "config/dungeon.toml" }
 ]

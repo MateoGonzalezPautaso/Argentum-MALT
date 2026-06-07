@@ -601,7 +601,7 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
                                   equipped_slots[3]};
         private_events.push_back(equip_ev);
 
-        if (p.get_current_map() != "main") {
+        if (p.get_current_map() != "city") {
             private_events.push_back(MapTransitionEvent{
                     .map_name = p.get_current_map(),
                     .pos_x = p.pos_x(),
@@ -974,7 +974,7 @@ std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id,
 std::string Game::get_player_map_name(uint16_t player_id) const {
     auto it = players.find(player_id);
     if (it == players.end())
-        return "main";
+        return "city";
     return it->second.get_current_map();
 }
 
@@ -1051,11 +1051,11 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
         int dist_tiles = dist_px / tile_size;
         wait_ticks = static_cast<uint32_t>(dist_tiles * tick_rate_hz);
     } else {
-        auto main_it = maps.find("main");
+        auto main_it = maps.find("city");
         if (main_it == maps.end() ||
             !main_it->second.prop_grid().find_nearest_center("sanadora", 0, 0, san_cx, san_cy))
             return {};
-        target_map = "main";
+        target_map = "city";
         wait_ticks = static_cast<uint32_t>(10 * tick_rate_hz);
     }
 

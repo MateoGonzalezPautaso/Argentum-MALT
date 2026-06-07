@@ -27,7 +27,7 @@ void PlayerRecord::set_current_map(const std::string& name) {
 
 std::string PlayerRecord::get_current_map() const {
     if (current_map[0] == '\0')
-        return "main";
+        return "city";
     return std::string(current_map, std::strlen(current_map));
 }
 
