@@ -256,6 +256,14 @@ if (auto ca = root["class_agility_factor"].as_table()) {
         config.balance.starting_items.cleric = parse_item_list(*si, "cleric");
     }
 
+    if (auto merchant = root["merchant"].as_table()) {
+        config.balance.merchant.interaction_range_tiles = toml_get_int(
+                *merchant, "interaction_range_tiles",
+                config.balance.merchant.interaction_range_tiles);
+        config.balance.merchant.sell_price_ratio = toml_get_double(
+                *merchant, "sell_price_ratio", config.balance.merchant.sell_price_ratio);
+    }
+
     if (auto vendors = root["vendors"].as_table()) {
         for (const auto& [vendor_name, value] : *vendors) {
             auto arr = value.as_array();

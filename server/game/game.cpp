@@ -1144,37 +1144,47 @@ CommandResult Game::handle_npc_heal(uint16_t player_id) {
     return {.private_events = {heal_ev, msg}};
 }
 
-CommandResult Game::handle_npc_buy(uint16_t player_id, const std::string& item_name) {
+std::variant<Game::VendorContext, CommandResult> Game::resolve_vendor_ctx(
+        uint16_t player_id, const std::string& item_name, const std::string& action) {
     auto it = players.find(player_id);
     if (it == players.end())
-        return {};
+        return CommandResult{};
 
     Player& player = it->second;
 
     if (player.is_dead()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden comprar"};
-        return {.private_events = {msg}};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden " + action};
+        return CommandResult{.private_events = {msg}};
     }
 
     if (item_name.empty()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                         "Uso: /comprar <nombre del objeto>"};
-        return {.private_events = {msg}};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Uso: /" + action + " <nombre del objeto>"};
+        return CommandResult{.private_events = {msg}};
     }
 
-    const std::string& current_map = player.get_current_map();
-    auto map_it = maps.find(current_map);
+    auto map_it = maps.find(player.get_current_map());
     if (map_it == maps.end())
-        return {};
+        return CommandResult{};
 
-    const int range = map_it->second.tile_size() * 3;
-    const int px = static_cast<int>(player.pos_x());
-    const int py = static_cast<int>(player.pos_y());
+    Map& map = map_it->second;
+    return VendorContext{.player = &player,
+                         .map = &map,
+                         .px = static_cast<int>(player.pos_x()),
+                         .py = static_cast<int>(player.pos_y()),
+                         .range = map.tile_size() * balance.merchant.interaction_range_tiles};
+}
+
+CommandResult Game::handle_npc_buy(uint16_t player_id, const std::string& item_name) {
+    auto ctx_or_err = resolve_vendor_ctx(player_id, item_name, "comprar");
+    if (auto* err = std::get_if<CommandResult>(&ctx_or_err))
+        return std::move(*err);
+    VendorContext ctx = std::get<VendorContext>(ctx_or_err);
+    Player& player = *ctx.player;
 
     const bool near_sacerdote =
-            map_it->second.prop_grid().is_in_range_of("sacerdote", px, py, range);
+            ctx.map->prop_grid().is_in_range_of("sacerdote", ctx.px, ctx.py, ctx.range);
     const bool near_comerciante =
-            map_it->second.prop_grid().is_in_range_of("comerciante", px, py, range);
+            ctx.map->prop_grid().is_in_range_of("comerciante", ctx.px, ctx.py, ctx.range);
 
     if (!near_sacerdote && !near_comerciante) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
@@ -1230,32 +1240,13 @@ CommandResult Game::handle_npc_buy(uint16_t player_id, const std::string& item_n
 }
 
 CommandResult Game::handle_npc_sell(uint16_t player_id, const std::string& item_name) {
-    auto it = players.find(player_id);
-    if (it == players.end())
-        return {};
+    auto ctx_or_err = resolve_vendor_ctx(player_id, item_name, "vender");
+    if (auto* err = std::get_if<CommandResult>(&ctx_or_err))
+        return std::move(*err);
+    VendorContext ctx = std::get<VendorContext>(ctx_or_err);
+    Player& player = *ctx.player;
 
-    Player& player = it->second;
-
-    if (player.is_dead()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden vender"};
-        return {.private_events = {msg}};
-    }
-
-    if (item_name.empty()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Uso: /vender <nombre del objeto>"};
-        return {.private_events = {msg}};
-    }
-
-    const std::string& current_map = player.get_current_map();
-    auto map_it = maps.find(current_map);
-    if (map_it == maps.end())
-        return {};
-
-    const int range = map_it->second.tile_size() * 3;
-    const int px = static_cast<int>(player.pos_x());
-    const int py = static_cast<int>(player.pos_y());
-
-    if (!map_it->second.prop_grid().is_in_range_of("comerciante", px, py, range)) {
+    if (!ctx.map->prop_grid().is_in_range_of("comerciante", ctx.px, ctx.py, ctx.range)) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un comerciante cerca"};
         return {.private_events = {msg}};
     }
@@ -1287,7 +1278,8 @@ CommandResult Game::handle_npc_sell(uint16_t player_id, const std::string& item_
         return {.private_events = {msg}};
     }
 
-    uint32_t sell_price = item_def->price / 2;
+    uint32_t sell_price =
+            static_cast<uint32_t>(item_def->price * balance.merchant.sell_price_ratio);
 
     player.remove_inventory_item(static_cast<uint8_t>(found_slot));
     player.gain_gold(sell_price);

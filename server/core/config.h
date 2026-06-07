@@ -105,6 +105,11 @@ struct VendorsConfig {
     std::unordered_map<std::string, std::unordered_set<ItemType>> by_vendor;
 };
 
+struct MerchantConfig {
+    int interaction_range_tiles = 3;
+    double sell_price_ratio = 0.5;
+};
+
 struct InventoryConfig {
     int max_slots = 20;
 };
@@ -127,6 +132,7 @@ struct BalanceConfig {
     AgilityConfig agility;
     StartingItemsConfig starting_items;
     VendorsConfig vendors;
+    MerchantConfig merchant;
 };
 
 struct ServerConfig {
