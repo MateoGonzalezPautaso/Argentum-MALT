@@ -59,7 +59,8 @@ enum class EquipSlot : uint8_t {
     ARMOR = 0x01,
     HELMET = 0x02,
     SHIELD = 0x03,
-    CONSUMABLE = 0x04
+    CONSUMABLE = 0x04,
+    NONE = 0xFF
 };
 
 constexpr uint8_t EQUIP_SLOT_COUNT = 4;

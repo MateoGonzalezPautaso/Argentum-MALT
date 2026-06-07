@@ -303,6 +303,8 @@ bool Player::equip(uint8_t inv_slot_index, const ItemCatalog& catalog) {
     }
 
     uint8_t eslot = static_cast<uint8_t>(def->equip_slot);
+    if (eslot >= EQUIP_SLOT_COUNT)
+        return false;
 
     if (equipped[eslot].item_type == ItemType::NONE) {
         equipped[eslot] = slot;
