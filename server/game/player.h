@@ -117,6 +117,7 @@ public:
     std::vector<InventorySlot> dump_inventory() const;
     void load_inventory(const std::vector<InventorySlotRecord>& records);
     bool add_item(ItemType type, const std::string& name);
+    void remove_inventory_item(uint8_t slot_index);
     void clear_inventory();
     std::vector<InventorySlotRecord> dump_inventory_records() const;
 

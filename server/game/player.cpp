@@ -361,6 +361,8 @@ bool Player::add_item(ItemType type, const std::string& name) {
     return inventory.place(type, name);
 }
 
+void Player::remove_inventory_item(uint8_t slot_index) { inventory.clear(slot_index); }
+
 std::vector<InventorySlotRecord> Player::dump_inventory_records() const {
     return inventory.to_records();
 }
