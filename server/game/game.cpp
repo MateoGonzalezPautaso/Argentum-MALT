@@ -41,6 +41,20 @@ std::string trim(const std::string& s) {
     return s.substr(start, end - start + 1);
 }
 
+bool is_sacerdote_item(ItemType type) {
+    switch (type) {
+        case ItemType::ASH_STAFF:
+        case ItemType::ELVEN_FLUTE:
+        case ItemType::KNOTTED_STAFF:
+        case ItemType::STUDDED_STAFF:
+        case ItemType::HEALTH_POTION:
+        case ItemType::MANA_POTION:
+            return true;
+        default:
+            return false;
+    }
+}
+
 }  // namespace
 
 Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
@@ -488,6 +502,8 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             return handle_resurrect(player_id);
         if (cmd_name == "/curar")
             return handle_npc_heal(player_id);
+        if (cmd_name == "/comprar")
+            return handle_npc_buy(player_id, args);
         if (cmd_name == "/equipar") {
             try {
                 int idx = std::stoi(args);
@@ -965,7 +981,7 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     if (it == players.end())
         return {};
 
-    const Player& player = it->second;
+    Player& player = it->second;
     if (!player.is_dead()) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No estás muerto"};
         return {.private_events = {msg}};
@@ -984,7 +1000,20 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     const int tile_size = map_it->second.tile_size();
     const int px = static_cast<int>(player.pos_x());
     const int py = static_cast<int>(player.pos_y());
+    const int range = tile_size * 3;
 
+    // If the ghost is near a sacerdote, resurrect immediately
+    if (map_it->second.prop_grid().is_in_range_of("sacerdote", px, py, range)) {
+        player.resurrect();
+        PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Sacerdote: ¡Que la luz te devuelva a la vida!"};
+        CommandResult result;
+        result.private_events = {msg};
+        result.map_events = {respawn};
+        return result;
+    }
+
+    
     int san_cx, san_cy;
     std::string target_map;
     uint32_t wait_ticks;
@@ -1093,6 +1122,72 @@ CommandResult Game::handle_npc_heal(uint16_t player_id) {
     HealReceivedEvent heal_ev{player_id, player.get_hp_current(), player.get_mana_current()};
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Sacerdote: ¡Que la luz te sane!"};
     return {.private_events = {heal_ev, msg}};
+}
+
+CommandResult Game::handle_npc_buy(uint16_t player_id, const std::string& item_name) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+
+    Player& player = it->second;
+
+    if (player.is_dead()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden comprar"};
+        return {.private_events = {msg}};
+    }
+
+    if (item_name.empty()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                         "Uso: /comprar <nombre del objeto>"};
+        return {.private_events = {msg}};
+    }
+
+    const std::string& current_map = player.get_current_map();
+    auto map_it = maps.find(current_map);
+    if (map_it == maps.end())
+        return {};
+
+    const int range = map_it->second.tile_size() * 3;
+    const int px = static_cast<int>(player.pos_x());
+    const int py = static_cast<int>(player.pos_y());
+
+    if (!map_it->second.prop_grid().is_in_range_of("sacerdote", px, py, range)) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un sacerdote cerca"};
+        return {.private_events = {msg}};
+    }
+
+    const Item* found = item_catalog.find_by_name(item_name);
+
+    if (!found) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Objeto '" + item_name + "' no encontrado"};
+        return {.private_events = {msg}};
+    }
+
+    if (!is_sacerdote_item(found->type) || found->price == 0) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El sacerdote no vende ese objeto"};
+        return {.private_events = {msg}};
+    }
+
+    if (player.get_gold() < found->price) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                         "Oro insuficiente. El " + found->name + " cuesta " +
+                                 std::to_string(found->price) + " de oro"};
+        return {.private_events = {msg}};
+    }
+
+    player.spend_gold(found->price);
+
+    if (!player.add_item(found->type, found->name)) {
+        player.gain_gold(found->price);
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Inventario lleno"};
+        return {.private_events = {msg}};
+    }
+
+    InventoryUpdateEvent inv_ev{player.dump_inventory()};
+    GoldUpdateEvent gold_ev{player.get_gold()};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                     "Compraste " + found->name + " por " + std::to_string(found->price) + " de oro"};
+    return {.private_events = {msg, inv_ev, gold_ev}};
 }
 
 CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
