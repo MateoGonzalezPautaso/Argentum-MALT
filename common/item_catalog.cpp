@@ -1,5 +1,6 @@
 #include "item_catalog.h"
 
+#include <cctype>
 #include <stdexcept>
 
 #include <toml++/toml.h>
@@ -106,6 +107,21 @@ void ItemCatalog::load_from_file(const std::string& path) {
 void ItemCatalog::add(const Item& item) {
     by_index_[item.type] = items_.size();
     items_.push_back(item);
+}
+
+static std::string to_lower(std::string s) {
+    for (char& c: s)
+        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    return s;
+}
+
+const Item* ItemCatalog::find_by_name(const std::string& name) const {
+    const std::string lower_name = to_lower(name);
+    for (const Item& item: items_) {
+        if (to_lower(item.name) == lower_name)
+            return &item;
+    }
+    return nullptr;
 }
 
 const Item* ItemCatalog::find(ItemType type) const {

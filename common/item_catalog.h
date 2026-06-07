@@ -17,6 +17,7 @@ public:
     void add(const Item& item);
 
     const Item* find(ItemType type) const;
+    const Item* find_by_name(const std::string& name) const;
     const Item& get(ItemType type) const;
     const Item& random_equipable(Rng& rng) const;
 
