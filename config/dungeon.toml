@@ -1094,10 +1094,10 @@ width = 27
 [prop.tiles.entrada_dungeon]
 height = 545
 paths = [ 'assets/Graficos/5097.png' ]
-width = 670
-transition_map = "city"
+transition_map = 'city'
 transition_x = 640
 transition_y = 640
+width = 670
 
     [prop.tiles.entrada_dungeon.hitbox]
     h = 300

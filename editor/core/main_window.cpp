@@ -46,9 +46,9 @@ MainWindow::MainWindow(const std::string& config_path, QWidget* parent): QMainWi
     }
 
     atlas_loader_.load(doc_.config());
-    file_manager_ = new FileManager(this);
+    file_manager_ = std::make_unique<FileManager>(this);
     setup_ui();
-    renderer_ = new MapSceneRenderer(scene_, atlas_loader_);
+    renderer_ = std::make_unique<MapSceneRenderer>(scene_, atlas_loader_);
     renderer_->render_all(doc_, show_walkable_overlay_);
     renderer_->rebuild_grid(doc_);
     renderer_->rebuild_spawn_overlay(doc_);

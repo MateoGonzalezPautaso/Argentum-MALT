@@ -107,6 +107,12 @@ void TomlSerializer::save(const std::string& path, const TilemapConfig& config) 
                 hb.emplace("h", def.hitbox.h);
                 prop_def.emplace("hitbox", std::move(hb));
             }
+            if (!def.transition_map.empty()) {
+                prop_def.emplace("transition_map", def.transition_map);
+                prop_def.emplace("transition_x", def.transition_x);
+                prop_def.emplace("transition_y", def.transition_y);
+            }
+
             if (!def.parts.empty()) {
                 toml::array parts_arr;
                 for (const auto& part : def.parts) {

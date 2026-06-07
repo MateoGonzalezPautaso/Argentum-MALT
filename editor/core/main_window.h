@@ -2,12 +2,15 @@
 #define EDITOR_MAIN_WINDOW_H
 
 #include <QMainWindow>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "../document/tilemap_document.h"
 #include "../input/map_interaction.h"
+#include "../io/file_manager.h"
 #include "../render/atlas_loader.h"
+#include "../render/map_scene_renderer.h"
 
 class QAction;
 class QActionGroup;
@@ -17,8 +20,6 @@ class QGraphicsView;
 class QSplitter;
 class QSpinBox;
 class TilePalette;
-class MapSceneRenderer;
-class FileManager;
 
 class MainWindow: public QMainWindow {
     Q_OBJECT
@@ -63,8 +64,8 @@ private:
     TilemapDocument doc_;
     AtlasLoader atlas_loader_;
     MapInteraction interaction_;
-    MapSceneRenderer* renderer_ = nullptr;
-    FileManager* file_manager_ = nullptr;
+    std::unique_ptr<MapSceneRenderer> renderer_;
+    std::unique_ptr<FileManager> file_manager_;
 
     QGraphicsScene* scene_ = nullptr;
     QGraphicsView* view_ = nullptr;
