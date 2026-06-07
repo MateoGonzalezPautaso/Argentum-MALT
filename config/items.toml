@@ -199,6 +199,7 @@ max_damage = 0
 mana_cost = 0
 min_defense = 0
 max_defense = 0
+restore_hp_percent = 100
 price = 30
 
 [[item]]
@@ -210,4 +211,5 @@ max_damage = 0
 mana_cost = 0
 min_defense = 0
 max_defense = 0
+restore_mana_percent = 100
 price = 30

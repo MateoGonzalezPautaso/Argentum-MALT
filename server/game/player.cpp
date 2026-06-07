@@ -290,16 +290,14 @@ bool Player::equip(uint8_t inv_slot_index, const ItemCatalog& catalog) {
         return false;
 
     if (def->equip_slot == EquipSlot::CONSUMABLE) {
-        switch (def->type) {
-            case ItemType::HEALTH_POTION:
-                heal(hp_max);
-                break;
-            case ItemType::MANA_POTION:
-                mana_current = mana_max;
-                break;
-            default:
-                return false;
-        }
+        if (def->restore_hp_percent == 0 && def->restore_mana_percent == 0)
+            return false;  // consumable with no defined effect
+        if (def->restore_hp_percent > 0)
+            heal(static_cast<uint32_t>(static_cast<uint64_t>(hp_max) * def->restore_hp_percent /
+                                       100));
+        if (def->restore_mana_percent > 0)
+            restore_mana(static_cast<uint32_t>(static_cast<uint64_t>(mana_max) *
+                                               def->restore_mana_percent / 100));
         inventory.clear(inv_slot_index);
         return true;
     }

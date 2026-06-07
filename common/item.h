@@ -16,7 +16,9 @@ struct Item {
     uint8_t min_defense = 0;
     uint8_t max_defense = 0;
     uint8_t spell_effect_id = 0;
-    uint32_t price = 0;  // 0 = not for sale
+    uint8_t restore_hp_percent = 0;
+    uint8_t restore_mana_percent = 0;
+    uint32_t price = 0;
     uint16_t attack_range = 0;
 };
 
