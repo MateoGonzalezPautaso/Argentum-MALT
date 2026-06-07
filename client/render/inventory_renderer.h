@@ -37,13 +37,13 @@ public:
     void set_font(TTF_Font* f) { font = f; }
 
     void update_hover(int mx, int my, const std::vector<InventorySlot>& slots,
-                      const InventorySlot equipped[4]);
+                      const InventorySlot equipped[EQUIP_SLOT_COUNT]);
     bool is_hovering_occupied() const;
     int get_hovered_inv_slot() const { return hovered_inv_slot; }
     int get_hovered_equip_slot() const { return hovered_equip_slot; }
 
     void render(const std::vector<InventorySlot>& slots);
-    void render_equipped(const InventorySlot equipped[4]);
+    void render_equipped(const InventorySlot equipped[EQUIP_SLOT_COUNT]);
 };
 
 #endif  // CLIENT_INVENTORY_RENDERER_H
