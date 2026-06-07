@@ -571,7 +571,7 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
                                   equipped_slots[2], equipped_slots[3]};
         private_events.push_back(equip_ev);
 
-        if (p.get_current_map() != "main") {
+        if (p.get_current_map() != "city") {
             private_events.push_back(MapTransitionEvent{
                     .map_name = p.get_current_map(),
                     .pos_x = p.pos_x(),
@@ -975,7 +975,7 @@ std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id,
 std::string Game::get_player_map_name(uint16_t player_id) const {
     auto it = players.find(player_id);
     if (it == players.end())
-        return "main";
+        return "city";
     return it->second.get_current_map();
 }
 
@@ -1052,11 +1052,11 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
         int dist_tiles = dist_px / tile_size;
         wait_ticks = static_cast<uint32_t>(dist_tiles * tick_rate_hz);
     } else {
-        auto main_it = maps.find("main");
+        auto main_it = maps.find("city");
         if (main_it == maps.end() ||
             !main_it->second.prop_grid().find_nearest_center("sanadora", 0, 0, san_cx, san_cy))
             return {};
-        target_map = "main";
+        target_map = "city";
         wait_ticks = static_cast<uint32_t>(10 * tick_rate_hz);
     }
 
@@ -1380,7 +1380,7 @@ void Game::do_transition(Player& player, CommandResult& result, const PropDef& p
     if (dest_it == maps.end())
         return;
 
-    Position spawn = compute_spawn_position(dest_it->second.config(), prop);
+    Position spawn = compute_spawn_position(dest_it->second, old_map_name, prop);
 
     despawn_player(result, player.get_id(), old_map_name);
 
@@ -1393,12 +1393,19 @@ void Game::do_transition(Player& player, CommandResult& result, const PropDef& p
     notify_others_spawn(result, player, prop.transition_map);
 }
 
-Position Game::compute_spawn_position(const TilemapConfig& dest_cfg, const PropDef& prop) const {
-    int x = prop.transition_x;
-    int y = prop.transition_y;
+Position Game::compute_spawn_position(const Map& dest_map, const std::string& old_map_name,
+                                       const PropDef& source_prop) const {
+    int cx, cy, hb_left, hb_bottom;
+    if (dest_map.prop_grid().find_first_transition(old_map_name, cx, cy, hb_left, hb_bottom)) {
+        int spawn_x = hb_left - dest_map.tile_size();
+        int spawn_y = hb_bottom - dest_map.tile_size();
+        return {static_cast<uint16_t>(spawn_x), static_cast<uint16_t>(spawn_y)};
+    }
+    int x = source_prop.transition_x;
+    int y = source_prop.transition_y;
     if (x == 0 && y == 0) {
-        x = dest_cfg.tile_size * 2;
-        y = dest_cfg.tile_size * 2;
+        x = dest_map.tile_size() * 2;
+        y = dest_map.tile_size() * 2;
     }
     return {static_cast<uint16_t>(x), static_cast<uint16_t>(y)};
 }

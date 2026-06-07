@@ -22,7 +22,7 @@ bool FileManager::save(TilemapDocument& doc) {
 bool FileManager::save_as(TilemapDocument& doc) {
     QString path = QFileDialog::getSaveFileName(
             parent_, "Save Map As",
-            QString::fromStdString(doc.path().empty() ? "config/common_tilemap.toml" : doc.path()),
+            QString::fromStdString(doc.path().empty() ? "config/city.toml" : doc.path()),
             "TOML files (*.toml)");
     if (path.isEmpty())
         return false;

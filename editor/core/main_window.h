@@ -2,20 +2,20 @@
 #define EDITOR_MAIN_WINDOW_H
 
 #include <QMainWindow>
+#include <memory>
 #include <string>
 
-#include "../document/tilemap_document.h"
 #include "../input/map_interaction.h"
-#include "../render/atlas_loader.h"
+#include "../ui/tile_palette.h"
+#include "editor_controller.h"
 
+class QAction;
+class QActionGroup;
 class QGraphicsRectItem;
 class QGraphicsScene;
 class QGraphicsView;
 class QSplitter;
 class QSpinBox;
-class TilePalette;
-class MapSceneRenderer;
-class FileManager;
 
 class MainWindow: public QMainWindow {
     Q_OBJECT
@@ -30,7 +30,6 @@ protected:
 private:
     void setup_ui();
     void connect_palette_signals();
-    void full_rebuild();
     void rebuild_palette();
 
     void save_map();
@@ -38,18 +37,13 @@ private:
     void open_map();
     void new_map();
     void resize_map(int cols, int rows);
-    void toggle_walkable_overlay();
-
-    void place_tile_or_prop(int row, int col, const std::string& name);
-    void fill_rect(int r1, int c1, int r2, int c2, const std::string& name);
+    void update_title();
+    void change_map_type(QAction* action);
     void update_drag_preview(int r1, int c1, int r2, int c2);
     void destroy_drag_preview();
 
-    TilemapDocument doc_;
-    AtlasLoader atlas_loader_;
+    std::unique_ptr<EditorController> controller_;
     MapInteraction interaction_;
-    MapSceneRenderer* renderer_ = nullptr;
-    FileManager* file_manager_ = nullptr;
 
     QGraphicsScene* scene_ = nullptr;
     QGraphicsView* view_ = nullptr;
@@ -58,9 +52,11 @@ private:
     QSpinBox* width_spin_ = nullptr;
     QSpinBox* height_spin_ = nullptr;
 
-    bool first_show_ = true;
-    bool show_walkable_overlay_ = true;
+    QActionGroup* map_type_group_ = nullptr;
+    QAction* spawn_zone_mode_action_ = nullptr;
 
+    bool first_show_ = true;
+    bool spawn_zone_mode_ = false;
     bool dragging_ = false;
     int drag_start_row_ = -1;
     int drag_start_col_ = -1;

@@ -17,7 +17,9 @@ class TilePalette: public QWidget {
     Q_OBJECT
 
 public:
-    TilePalette(TilemapConfig& config, const std::unordered_map<std::string, QPixmap>& atlases,
+    TilePalette(const TilemapConfig& config,
+                const std::unordered_map<std::string, QPixmap>& atlases,
+                std::function<void(const std::string&, bool)> on_toggle_walkable,
                 QWidget* parent = nullptr);
 
     std::string selected_tile() const { return selected_tile_; }
@@ -38,12 +40,23 @@ private:
                                 std::function<void(const std::string& name)> on_click,
                                 bool enable_walkable_menu);
     void toggle_walkable(const std::string& name);
-    void update_button_visual(QToolButton* btn, const std::string& name) const;
+    void update_button_visual(QToolButton* btn, const std::string& name, bool walkable) const;
+
+    template<typename Map>
+    static std::vector<std::string> sorted_keys(const Map& map) {
+        std::vector<std::string> names;
+        names.reserve(map.size());
+        std::transform(map.begin(), map.end(), std::back_inserter(names),
+                       [](const auto& kv) { return kv.first; });
+        std::sort(names.begin(), names.end());
+        return names;
+    }
 
     std::string selected_tile_;
     QButtonGroup* button_group_ = nullptr;
-    TilemapConfig& config_;
+    const TilemapConfig& config_;
     const std::unordered_map<std::string, QPixmap>& atlases_;
+    std::function<void(const std::string&, bool)> on_toggle_walkable_;
     std::unordered_map<std::string, QToolButton*> tile_buttons_;
     std::vector<SectionWidgets> sections_;
 };

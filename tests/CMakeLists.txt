@@ -22,6 +22,7 @@ target_sources(taller_tests
     ${CMAKE_SOURCE_DIR}/server/game/enemy_npc.cpp
     ${CMAKE_SOURCE_DIR}/server/persistence/clan_persistence.cpp
     ${CMAKE_SOURCE_DIR}/server/persistence/clan_record.cpp
+    ${CMAKE_SOURCE_DIR}/editor/io/toml_serializer.cpp
     PUBLIC
     ${SERVER_HEADERS}
 )

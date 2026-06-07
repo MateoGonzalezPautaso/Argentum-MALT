@@ -6,7 +6,7 @@ int main(int argc, char* argv[]) {
     qputenv("QT_QPA_PLATFORM", "xcb");
     QApplication app(argc, argv);
 
-    std::string config_path = "config/common_tilemap.toml";
+    std::string config_path = "config/city.toml";
     if (argc > 1) {
         config_path = argv[1];
     }
