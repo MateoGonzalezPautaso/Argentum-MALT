@@ -1,6 +1,7 @@
 #include "player_data_service.h"
 
 #include <cstring>
+#include <iostream>
 #include <vector>
 
 PlayerDataService::PlayerDataService(const std::string& data_dir, const ServerConfig& config):
@@ -33,8 +34,9 @@ std::optional<Player> PlayerDataService::load_player(uint16_t player_id,
     std::vector<InventorySlotRecord> inv_records;
     if (inventory_persistence.load(username, inv_records)) {
         player.load_inventory(inv_records);
-    } else {
-        inventory_persistence.save(username, player.dump_inventory_records());
+    } else if (!inventory_persistence.save(username, player.dump_inventory_records())) {
+        std::cerr << "[PlayerDataService] could not initialize inventory for '" << username
+                  << "'\n";
     }
 
     InventorySlot rec_equipped[EQUIP_SLOT_COUNT];
@@ -76,7 +78,10 @@ void PlayerDataService::save_player(const Player& player) {
 
     player_persistence.save(player.get_username(), rec);
 
-    inventory_persistence.save(player.get_username(), player.dump_inventory_records());
+    if (!inventory_persistence.save(player.get_username(), player.dump_inventory_records())) {
+        std::cerr << "[PlayerDataService] failed to save inventory for '" << player.get_username()
+                  << "'\n";
+    }
 }
 
 void PlayerDataService::save_new_player(const std::string& username, const PlayerRecord& record) {
