@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 #include "../../common/config.h"
 #include "../../common/item_catalog.h"
@@ -98,6 +100,11 @@ struct StartingItemsConfig {
     std::vector<ItemType> cleric;
 };
 
+struct VendorsConfig {
+    // npc_name, items
+    std::unordered_map<std::string, std::unordered_set<ItemType>> by_vendor;
+};
+
 struct InventoryConfig {
     int max_slots = 20;
 };
@@ -119,6 +126,7 @@ struct BalanceConfig {
     StrengthConfig strength;
     AgilityConfig agility;
     StartingItemsConfig starting_items;
+    VendorsConfig vendors;
 };
 
 struct ServerConfig {

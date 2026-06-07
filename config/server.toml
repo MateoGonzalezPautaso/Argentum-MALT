@@ -120,3 +120,11 @@ warrior = ["SWORD"]
 mage = ["ASH_STAFF"]
 paladin = ["SWORD"]
 cleric = ["KNOTTED_STAFF"]
+
+[vendors]
+sacerdote = ["ASH_STAFF", "ELVEN_FLUTE", "KNOTTED_STAFF", "STUDDED_STAFF",
+             "HEALTH_POTION", "MANA_POTION"]
+comerciante = ["SWORD", "AXE", "HAMMER", "SIMPLE_BOW", "COMPOSITE_BOW",
+               "LEATHER_ARMOR", "PLATE_ARMOR", "BLUE_TUNIC", "HOOD",
+               "IRON_HELMET", "MAGIC_HAT", "TURTLE_SHIELD", "IRON_SHIELD",
+               "HEALTH_POTION", "MANA_POTION"]

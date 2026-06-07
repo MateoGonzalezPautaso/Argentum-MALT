@@ -256,5 +256,23 @@ if (auto ca = root["class_agility_factor"].as_table()) {
         config.balance.starting_items.cleric = parse_item_list(*si, "cleric");
     }
 
+    if (auto vendors = root["vendors"].as_table()) {
+        for (const auto& [vendor_name, value] : *vendors) {
+            auto arr = value.as_array();
+            if (!arr)
+                continue;
+            std::unordered_set<ItemType> sold;
+            for (const auto& elem : *arr) {
+                if (auto val = elem.value<std::string>()) {
+                    ItemType type = parse_item_type(*val);
+                    if (type != ItemType::NONE)
+                        sold.insert(type);
+                }
+            }
+            config.balance.vendors.by_vendor.emplace(std::string(vendor_name.str()),
+                                                     std::move(sold));
+        }
+    }
+
     return config;
 }

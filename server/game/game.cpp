@@ -41,41 +41,9 @@ std::string trim(const std::string& s) {
     return s.substr(start, end - start + 1);
 }
 
-bool is_sacerdote_item(ItemType type) {
-    switch (type) {
-        case ItemType::ASH_STAFF:
-        case ItemType::ELVEN_FLUTE:
-        case ItemType::KNOTTED_STAFF:
-        case ItemType::STUDDED_STAFF:
-        case ItemType::HEALTH_POTION:
-        case ItemType::MANA_POTION:
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool is_comerciante_item(ItemType type) {
-    switch (type) {
-        case ItemType::SWORD:
-        case ItemType::AXE:
-        case ItemType::HAMMER:
-        case ItemType::SIMPLE_BOW:
-        case ItemType::COMPOSITE_BOW:
-        case ItemType::LEATHER_ARMOR:
-        case ItemType::PLATE_ARMOR:
-        case ItemType::BLUE_TUNIC:
-        case ItemType::HOOD:
-        case ItemType::IRON_HELMET:
-        case ItemType::MAGIC_HAT:
-        case ItemType::TURTLE_SHIELD:
-        case ItemType::IRON_SHIELD:
-        case ItemType::HEALTH_POTION:
-        case ItemType::MANA_POTION:
-            return true;
-        default:
-            return false;
-    }
+bool vendor_sells(const VendorsConfig& vendors, const std::string& vendor, ItemType type) {
+    auto it = vendors.by_vendor.find(vendor);
+    return it != vendors.by_vendor.end() && it->second.count(type) > 0;
 }
 
 }  // namespace
@@ -1221,18 +1189,21 @@ CommandResult Game::handle_npc_buy(uint16_t player_id, const std::string& item_n
         return {.private_events = {msg}};
     }
 
-    if (near_sacerdote && is_sacerdote_item(found->type) && found->price > 0) {
-        // handled below
-    } else if (near_comerciante && is_comerciante_item(found->type) && found->price > 0) {
-        // handled below
-    } else if (near_sacerdote && !near_comerciante) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El sacerdote no vende ese objeto"};
-        return {.private_events = {msg}};
-    } else if (near_comerciante && !near_sacerdote) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El comerciante no vende ese objeto"};
-        return {.private_events = {msg}};
-    } else {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Ningún NPC vende ese objeto"};
+    const VendorsConfig& vendors = balance.vendors;
+    const bool sacerdote_sells = near_sacerdote && vendor_sells(vendors, "sacerdote", found->type);
+    const bool comerciante_sells =
+            near_comerciante && vendor_sells(vendors, "comerciante", found->type);
+
+    if (found->price == 0 || (!sacerdote_sells && !comerciante_sells)) {
+        std::string vendor_label;
+        if (near_sacerdote && near_comerciante) {
+            vendor_label = "Ningún NPC cercano";
+        } else if (near_comerciante) {
+            vendor_label = "El comerciante";
+        } else {
+            vendor_label = "El sacerdote";
+        }
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", vendor_label + " no vende ese objeto"};
         return {.private_events = {msg}};
     }
 
@@ -1296,7 +1267,7 @@ CommandResult Game::handle_npc_sell(uint16_t player_id, const std::string& item_
         return {.private_events = {msg}};
     }
 
-    if (!is_comerciante_item(item_def->type)) {
+    if (!vendor_sells(balance.vendors, "comerciante", item_def->type)) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El comerciante no compra ese tipo de objeto"};
         return {.private_events = {msg}};
     }
