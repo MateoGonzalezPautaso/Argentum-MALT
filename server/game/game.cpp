@@ -1385,7 +1385,7 @@ void Game::do_transition(Player& player, CommandResult& result, const PropDef& p
     if (dest_it == maps.end())
         return;
 
-    Position spawn = compute_spawn_position(dest_it->second.config(), prop);
+    Position spawn = compute_spawn_position(dest_it->second, old_map_name, prop);
 
     despawn_player(result, player.get_id(), old_map_name);
 
@@ -1398,12 +1398,19 @@ void Game::do_transition(Player& player, CommandResult& result, const PropDef& p
     notify_others_spawn(result, player, prop.transition_map);
 }
 
-Position Game::compute_spawn_position(const TilemapConfig& dest_cfg, const PropDef& prop) const {
-    int x = prop.transition_x;
-    int y = prop.transition_y;
+Position Game::compute_spawn_position(const Map& dest_map, const std::string& old_map_name,
+                                       const PropDef& source_prop) const {
+    int cx, cy, hb_left, hb_bottom;
+    if (dest_map.prop_grid().find_first_transition(old_map_name, cx, cy, hb_left, hb_bottom)) {
+        int spawn_x = hb_left - dest_map.tile_size();
+        int spawn_y = hb_bottom - dest_map.tile_size();
+        return {static_cast<uint16_t>(spawn_x), static_cast<uint16_t>(spawn_y)};
+    }
+    int x = source_prop.transition_x;
+    int y = source_prop.transition_y;
     if (x == 0 && y == 0) {
-        x = dest_cfg.tile_size * 2;
-        y = dest_cfg.tile_size * 2;
+        x = dest_map.tile_size() * 2;
+        y = dest_map.tile_size() * 2;
     }
     return {static_cast<uint16_t>(x), static_cast<uint16_t>(y)};
 }

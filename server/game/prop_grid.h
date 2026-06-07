@@ -19,6 +19,10 @@ public:
     bool find_nearest_center(const std::string& prop_name, int px, int py, int& out_cx,
                              int& out_cy) const;
 
+    bool find_first_transition(const std::string& target_map, int& out_cx,
+                               int& out_cy, int& out_hb_left,
+                               int& out_hb_bottom) const;
+
 private:
     struct Entry {
         std::string name;
