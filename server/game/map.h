@@ -27,6 +27,8 @@ public:
     bool is_mob_spawn_tile(int row, int col) const;
     std::optional<std::pair<int, int>> find_random_mob_spawn_pos(Rng& rng) const;
 
+    bool is_position_in_spawn_zone(int x, int y) const;
+
 private:
     const TilemapConfig* tilemap_;
     PropGrid prop_grid_;

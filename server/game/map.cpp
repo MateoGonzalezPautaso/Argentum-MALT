@@ -69,6 +69,14 @@ bool Map::is_mob_spawn_tile(int row, int col) const {
     return tilemap_->mob_spawn_zones[r][c];
 }
 
+bool Map::is_position_in_spawn_zone(int x, int y) const {
+    if (tilemap_->mob_spawn_zones.empty() || tilemap_->tile_size <= 0)
+        return false;
+    int col = x / tilemap_->tile_size;
+    int row = y / tilemap_->tile_size;
+    return is_mob_spawn_tile(row, col);
+}
+
 std::optional<std::pair<int, int>> Map::find_random_mob_spawn_pos(Rng& rng) const {
     if (tilemap_->mob_spawn_zones.empty())
         return std::nullopt;

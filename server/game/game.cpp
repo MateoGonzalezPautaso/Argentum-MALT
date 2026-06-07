@@ -361,6 +361,11 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
     if (it != players.end())
         it->second.set_meditating(false);
     CommandResult result;
+    const Map& map = player_map(it->second);
+    if (!map.is_position_in_spawn_zone(it->second.pos_x(), it->second.pos_y())) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar en una zona segura"};
+        return {.private_events = {msg}};
+    }
     auto target_it = npcs.find(cmd.target_id);
     if (target_it == npcs.end())
         result = combat_controller.melee_attack_player(player_id, cmd.target_id, tick_count);
@@ -395,6 +400,12 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
     if (player.get_mana_current() < item->mana_consumed) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Mana insuficiente"};
         return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    const Map& map = player_map(player);
+    if (!map.is_position_in_spawn_zone(player.pos_x(), player.pos_y())) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes lanzar hechizos en una zona segura"};
+        return {.private_events = {msg}};
     }
 
     player.use_mana(item->mana_consumed);
