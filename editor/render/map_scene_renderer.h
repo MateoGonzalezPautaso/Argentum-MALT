@@ -24,6 +24,7 @@ public:
     void clear_all();
 
     void rebuild_spawn_overlay(const TilemapDocument& doc);
+    void update_spawn_overlay_tile(int row, int col, bool is_zone, int tile_size);
     void set_show_spawn_overlay(bool show);
     bool show_spawn_overlay() const { return show_spawn_overlay_; }
 

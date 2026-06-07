@@ -165,6 +165,31 @@ void MapSceneRenderer::rebuild_spawn_overlay(const TilemapDocument& doc) {
     }
 }
 
+void MapSceneRenderer::update_spawn_overlay_tile(int row, int col, bool is_zone, int tsz) {
+    auto r = static_cast<std::size_t>(row);
+    auto c = static_cast<std::size_t>(col);
+    if (r >= spawn_overlay_.size()) {
+        return;
+    }
+    if (c >= spawn_overlay_[r].size()) {
+        return;
+    }
+
+    auto*& item = spawn_overlay_[r][c];
+    if (item) {
+        scene_->removeItem(item);
+        delete item;
+        item = nullptr;
+    }
+
+    if (is_zone && show_spawn_overlay_) {
+        item = scene_->addRect(col * tsz, row * tsz, tsz, tsz,
+                               QPen(Qt::NoPen),
+                               QBrush(QColor(0, 200, 0, 80)));
+        item->setZValue(0.8);
+    }
+}
+
 void MapSceneRenderer::set_show_spawn_overlay(bool show) {
     show_spawn_overlay_ = show;
 }

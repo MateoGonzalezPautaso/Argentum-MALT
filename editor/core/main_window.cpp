@@ -50,6 +50,7 @@ MainWindow::MainWindow(const std::string& config_path, QWidget* parent): QMainWi
     renderer_ = new MapSceneRenderer(scene_, atlas_loader_);
     renderer_->render_all(doc_, show_walkable_overlay_);
     renderer_->rebuild_grid(doc_);
+    renderer_->rebuild_spawn_overlay(doc_);
 
     update_title();
     resize(1200, 800);
@@ -114,6 +115,19 @@ void MainWindow::setup_ui() {
     connect(resize_btn, &QPushButton::clicked, this,
             [this]() { resize_map(width_spin_->value(), height_spin_->value()); });
 
+    auto* spawn_btn = new QPushButton("Set Spawn Zone");
+    spawn_btn->setCheckable(true);
+    spawn_btn->setChecked(false);
+    toolbar->addSeparator();
+    toolbar->addWidget(spawn_btn);
+    connect(spawn_btn, &QPushButton::toggled, this, [this](bool checked) {
+        spawn_zone_mode_ = checked;
+        statusBar()->showMessage(checked ? QString("Spawn Zone Mode: click tiles to mark spawn zones")
+                                         : QString("Spawn Zone Mode: off"),
+                                 3000);
+    });
+    spawn_zone_mode_action_ = toolbar->addWidget(spawn_btn);
+
     auto* file_menu = menuBar()->addMenu("&File");
 
     auto* new_action = file_menu->addAction("&New Map");
@@ -155,6 +169,11 @@ void MainWindow::setup_ui() {
     walkable_action->setCheckable(true);
     walkable_action->setChecked(show_walkable_overlay_);
     connect(walkable_action, &QAction::triggered, this, &MainWindow::toggle_walkable_overlay);
+
+    auto* spawn_overlay_action = view_menu->addAction("Show Spawn &Zone Overlay");
+    spawn_overlay_action->setCheckable(true);
+    spawn_overlay_action->setChecked(true);
+    connect(spawn_overlay_action, &QAction::triggered, this, &MainWindow::toggle_spawn_overlay);
 }
 
 void MainWindow::connect_palette_signals() {
@@ -178,6 +197,7 @@ void MainWindow::full_rebuild() {
     renderer_->clear_all();
     renderer_->render_all(doc_, show_walkable_overlay_);
     renderer_->rebuild_grid(doc_);
+    renderer_->rebuild_spawn_overlay(doc_);
     width_spin_->setValue(doc_.width());
     height_spin_->setValue(doc_.height());
     view_->fitInView(scene_->sceneRect(), Qt::KeepAspectRatio);
@@ -200,6 +220,23 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
                                                    doc_.width());
         if (!click.valid)
             return false;
+
+        if (spawn_zone_mode_) {
+            if (click.button == Qt::LeftButton) {
+                dragging_ = true;
+                drag_start_row_ = click.row;
+                drag_start_col_ = click.col;
+                doc_.set_mob_spawn_zone(click.row, click.col, true);
+                renderer_->update_spawn_overlay_tile(click.row, click.col, true, doc_.tile_size());
+                return true;
+            }
+            if (click.button == Qt::RightButton) {
+                doc_.set_mob_spawn_zone(click.row, click.col, false);
+                renderer_->update_spawn_overlay_tile(click.row, click.col, false,
+                                                     doc_.tile_size());
+                return true;
+            }
+        }
 
         if (click.button == Qt::LeftButton && interaction_.has_selection()) {
             dragging_ = true;
@@ -243,8 +280,18 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
         dragging_ = false;
         destroy_drag_preview();
 
-        if (click.valid && interaction_.has_selection() &&
-            (click.row != drag_start_row_ || click.col != drag_start_col_)) {
+        if (!click.valid) {
+            drag_start_row_ = -1;
+            drag_start_col_ = -1;
+            return true;
+        }
+
+        if (spawn_zone_mode_) {
+            if (click.row != drag_start_row_ || click.col != drag_start_col_) {
+                fill_spawn_zone_rect(drag_start_row_, drag_start_col_, click.row, click.col);
+            }
+        } else if (interaction_.has_selection() &&
+                   (click.row != drag_start_row_ || click.col != drag_start_col_)) {
             fill_rect(drag_start_row_, drag_start_col_, click.row, click.col,
                       interaction_.selected());
         }
@@ -409,6 +456,7 @@ void MainWindow::resize_map(int cols, int rows) {
     doc_.resize(rows, cols, "");
     renderer_->render_all(doc_, show_walkable_overlay_);
     renderer_->rebuild_grid(doc_);
+    renderer_->rebuild_spawn_overlay(doc_);
 
     width_spin_->setValue(doc_.width());
     height_spin_->setValue(doc_.height());
@@ -445,6 +493,37 @@ void MainWindow::change_map_type(QAction* action) {
     update_title();
     statusBar()->showMessage(QString("Map type changed to %1")
                                      .arg(action->text().toLower()), 3000);
+}
+
+void MainWindow::fill_spawn_zone_rect(int r1, int c1, int r2, int c2) {
+    int r_min = std::min(r1, r2);
+    int r_max = std::max(r1, r2);
+    int c_min = std::min(c1, c2);
+    int c_max = std::max(c1, c2);
+
+    for (int r = r_min; r <= r_max; ++r) {
+        for (int c = c_min; c <= c_max; ++c) {
+            doc_.set_mob_spawn_zone(r, c, true);
+            renderer_->update_spawn_overlay_tile(r, c, true, doc_.tile_size());
+        }
+    }
+}
+
+void MainWindow::toggle_spawn_zone_mode() {
+    spawn_zone_mode_ = !spawn_zone_mode_;
+    statusBar()->showMessage(
+            spawn_zone_mode_ ? QString("Spawn Zone Mode: click tiles to mark spawn zones")
+                             : QString("Spawn Zone Mode: off"),
+            3000);
+}
+
+void MainWindow::toggle_spawn_overlay() {
+    bool show = !renderer_->show_spawn_overlay();
+    renderer_->set_show_spawn_overlay(show);
+    renderer_->rebuild_spawn_overlay(doc_);
+    statusBar()->showMessage(show ? QString("Spawn zone overlay: visible")
+                                  : QString("Spawn zone overlay: hidden"),
+                             3000);
 }
 
 void MainWindow::showEvent(QShowEvent* event) {

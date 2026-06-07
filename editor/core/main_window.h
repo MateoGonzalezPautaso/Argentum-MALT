@@ -8,6 +8,7 @@
 #include "../input/map_interaction.h"
 #include "../render/atlas_loader.h"
 
+class QAction;
 class QActionGroup;
 class QGraphicsRectItem;
 class QGraphicsScene;
@@ -43,11 +44,14 @@ private:
 
     void place_tile_or_prop(int row, int col, const std::string& name);
     void fill_rect(int r1, int c1, int r2, int c2, const std::string& name);
+    void fill_spawn_zone_rect(int r1, int c1, int r2, int c2);
     void update_drag_preview(int r1, int c1, int r2, int c2);
     void destroy_drag_preview();
 
     void update_title();
     void change_map_type(QAction* action);
+    void toggle_spawn_zone_mode();
+    void toggle_spawn_overlay();
     bool validate_city_map() const;
 
     TilemapConfig default_tile_config_;
@@ -68,6 +72,9 @@ private:
     bool show_walkable_overlay_ = true;
 
     QActionGroup* map_type_group_ = nullptr;
+
+    QAction* spawn_zone_mode_action_ = nullptr;
+    bool spawn_zone_mode_ = false;
 
     bool dragging_ = false;
     int drag_start_row_ = -1;
