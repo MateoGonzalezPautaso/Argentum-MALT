@@ -8,6 +8,12 @@
 
 #include <toml++/toml.h>
 
+enum class MapType : uint8_t {
+    NONE = 0,
+    CITY,
+    DUNGEON
+};
+
 struct TileDef {
     int x = 0;
     int y = 0;
@@ -51,6 +57,7 @@ struct PropDef {
 struct TilemapConfig {
     std::string path;
     int tile_size = 128;
+    MapType map_type = MapType::NONE;
     std::unordered_map<std::string, TileDef> tiles;
     std::vector<std::vector<std::string>> mapa;
     std::unordered_map<std::string, PropDef> props;

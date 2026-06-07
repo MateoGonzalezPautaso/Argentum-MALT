@@ -104,6 +104,13 @@ void TilemapDocument::save(const std::string& path) const {
     toml::table root;
     root.emplace("tilemap", std::move(tilemap_tbl));
 
+    if (config_.map_type != MapType::NONE) {
+        toml::table metadata;
+        std::string type_str = config_.map_type == MapType::CITY ? "city" : "dungeon";
+        metadata.emplace("type", type_str);
+        root.emplace("metadata", std::move(metadata));
+    }
+
     if (!config_.props.empty()) {
         toml::table prop_tbl;
 

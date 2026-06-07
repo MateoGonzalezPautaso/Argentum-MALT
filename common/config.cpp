@@ -105,6 +105,15 @@ void parse_tilemap_config(const toml::table& root, TilemapConfig& config) {
 
         config.mapa = parse_map_grid(*tilemap);
     }
+
+    if (auto metadata = root["metadata"].as_table()) {
+        std::string type_str = toml_get_string(*metadata, "type", "");
+        if (type_str == "city") {
+            config.map_type = MapType::CITY;
+        } else if (type_str == "dungeon") {
+            config.map_type = MapType::DUNGEON;
+        }
+    }
 }
 
 void parse_prop_config(const toml::table& root, TilemapConfig& config) {
