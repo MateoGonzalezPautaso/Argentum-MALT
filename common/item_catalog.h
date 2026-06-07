@@ -27,6 +27,8 @@ public:
 private:
     std::vector<Item> items_;
     std::unordered_map<ItemType, size_t> by_index_;
+    std::unordered_map<std::string, size_t> by_lower_name_;
+    std::vector<size_t> equippable_item_indexes_;
 };
 
 ItemType parse_item_type(const std::string& str);

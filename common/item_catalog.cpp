@@ -67,10 +67,18 @@ EquipSlot parse_equip_slot(const std::string& str) {
     return EquipSlot::WEAPON;
 }
 
+static std::string to_lower(std::string s) {
+    std::transform(s.begin(), s.end(), s.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    return s;
+}
+
 void ItemCatalog::load_from_file(const std::string& path) {
     auto root = toml::parse_file(path);
     items_.clear();
     by_index_.clear();
+    by_lower_name_.clear();
+    equippable_item_indexes_.clear();
 
     auto arr = root["item"].as_array();
     if (!arr) {
@@ -102,32 +110,24 @@ void ItemCatalog::load_from_file(const std::string& path) {
         item.price = static_cast<uint32_t>(toml_get_int(*tbl, "price", 0));
         item.attack_range = static_cast<uint16_t>(toml_get_int(*tbl, "attack_range", 0));
 
-        items_.push_back(item);
-    }
-
-    for (size_t i = 0; i < items_.size(); ++i) {
-        by_index_[items_[i].type] = i;
+        add(item);
     }
 }
 
 void ItemCatalog::add(const Item& item) {
-    by_index_[item.type] = items_.size();
+    const size_t idx = items_.size();
     items_.push_back(item);
-}
-
-static std::string to_lower(std::string s) {
-    std::transform(s.begin(), s.end(), s.begin(),
-                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-    return s;
+    by_index_[item.type] = idx;
+    by_lower_name_[to_lower(item.name)] = idx;
+    if (item.equip_slot != EquipSlot::CONSUMABLE && item.type != ItemType::NONE)
+        equippable_item_indexes_.push_back(idx);
 }
 
 const Item* ItemCatalog::find_by_name(const std::string& name) const {
-    const std::string lower_name = to_lower(name);
-    auto it = std::find_if(items_.begin(), items_.end(),
-                           [&](const Item& item) { return to_lower(item.name) == lower_name; });
-    if (it != items_.end())
-        return &*it;
-    return nullptr;
+    auto it = by_lower_name_.find(to_lower(name));
+    if (it == by_lower_name_.end())
+        return nullptr;
+    return &items_[it->second];
 }
 
 const Item* ItemCatalog::find(ItemType type) const {
@@ -146,14 +146,9 @@ const Item& ItemCatalog::get(ItemType type) const {
 }
 
 const Item& ItemCatalog::random_equipable(Rng& rng) const {
-    std::vector<size_t> indices;
-    for (size_t i = 0; i < items_.size(); ++i) {
-        if (items_[i].equip_slot != EquipSlot::CONSUMABLE && items_[i].type != ItemType::NONE)
-            indices.push_back(i);
-    }
-    if (indices.empty()) {
+    if (equippable_item_indexes_.empty()) {
         throw std::runtime_error("No equipable items in catalog");
     }
-    int idx = rng.get_random_int(0, static_cast<int>(indices.size()) - 1);
-    return items_[indices[idx]];
+    int idx = rng.get_random_int(0, static_cast<int>(equippable_item_indexes_.size()) - 1);
+    return items_[equippable_item_indexes_[idx]];
 }
