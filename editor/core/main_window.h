@@ -8,6 +8,7 @@
 #include "../input/map_interaction.h"
 #include "../render/atlas_loader.h"
 
+class QActionGroup;
 class QGraphicsRectItem;
 class QGraphicsScene;
 class QGraphicsView;
@@ -45,6 +46,9 @@ private:
     void update_drag_preview(int r1, int c1, int r2, int c2);
     void destroy_drag_preview();
 
+    void update_title();
+    void change_map_type(QAction* action);
+
     TilemapDocument doc_;
     AtlasLoader atlas_loader_;
     MapInteraction interaction_;
@@ -60,6 +64,8 @@ private:
 
     bool first_show_ = true;
     bool show_walkable_overlay_ = true;
+
+    QActionGroup* map_type_group_ = nullptr;
 
     bool dragging_ = false;
     int drag_start_row_ = -1;

@@ -1,5 +1,6 @@
 #include "main_window.h"
 
+#include <QActionGroup>
 #include <QApplication>
 #include <QGraphicsRectItem>
 #include <QGraphicsScene>
@@ -43,7 +44,7 @@ MainWindow::MainWindow(const std::string& config_path, QWidget* parent): QMainWi
     renderer_->render_all(doc_, show_walkable_overlay_);
     renderer_->rebuild_grid(doc_);
 
-    setWindowTitle(QString::fromStdString("Map Editor - " + config_path));
+    update_title();
     resize(1200, 800);
 }
 
@@ -125,6 +126,22 @@ void MainWindow::setup_ui() {
     auto* save_as_action = file_menu->addAction("Save &As...");
     save_as_action->setShortcut(QKeySequence::SaveAs);
     connect(save_as_action, &QAction::triggered, this, &MainWindow::save_map_as);
+
+    auto* map_menu = menuBar()->addMenu("&Map");
+    auto* map_type_menu = map_menu->addMenu("Map &Type");
+    map_type_group_ = new QActionGroup(this);
+
+    auto add_type_action = [&](const QString& label, MapType type) {
+        auto* action = map_type_menu->addAction(label);
+        action->setCheckable(true);
+        action->setData(static_cast<int>(type));
+        action->setChecked(doc_.config().map_type == type);
+        map_type_group_->addAction(action);
+    };
+    add_type_action("&None", MapType::NONE);
+    add_type_action("&City", MapType::CITY);
+    add_type_action("&Dungeon", MapType::DUNGEON);
+    connect(map_type_group_, &QActionGroup::triggered, this, &MainWindow::change_map_type);
 
     auto* view_menu = menuBar()->addMenu("&View");
     auto* walkable_action = view_menu->addAction("Show &Walkable Overlay");
@@ -283,7 +300,7 @@ void MainWindow::destroy_drag_preview() {
 
 void MainWindow::save_map() {
     if (file_manager_->save(doc_)) {
-        setWindowTitle(QString::fromStdString("Map Editor - " + doc_.path()));
+        update_title();
         statusBar()->showMessage(QString("Saved to %1").arg(QString::fromStdString(doc_.path())),
                                  3000);
     }
@@ -291,7 +308,7 @@ void MainWindow::save_map() {
 
 void MainWindow::save_map_as() {
     if (file_manager_->save_as(doc_)) {
-        setWindowTitle(QString::fromStdString("Map Editor - " + doc_.path()));
+        update_title();
         statusBar()->showMessage(QString("Saved to %1").arg(QString::fromStdString(doc_.path())),
                                  3000);
     }
@@ -307,7 +324,10 @@ void MainWindow::open_map() {
     rebuild_palette();
     full_rebuild();
 
-    setWindowTitle(QString::fromStdString("Map Editor - " + doc_.path()));
+    update_title();
+    for (auto* action : map_type_group_->actions()) {
+        action->setChecked(static_cast<MapType>(action->data().toInt()) == doc_.config().map_type);
+    }
     statusBar()->showMessage(QString("Opened %1").arg(QString::fromStdString(doc_.path())), 3000);
 }
 
@@ -326,7 +346,10 @@ void MainWindow::new_map() {
     rebuild_palette();
     full_rebuild();
 
-    setWindowTitle("Map Editor - Untitled");
+    update_title();
+    for (auto* action : map_type_group_->actions()) {
+        action->setChecked(static_cast<MapType>(action->data().toInt()) == doc_.config().map_type);
+    }
     statusBar()->showMessage(
             QString("New map: %1 x %2 tiles").arg(result.width).arg(result.height));
 }
@@ -351,6 +374,29 @@ void MainWindow::toggle_walkable_overlay() {
     show_walkable_overlay_ = !show_walkable_overlay_;
     renderer_->clear_tiles_and_props();
     renderer_->render_all(doc_, show_walkable_overlay_);
+}
+
+void MainWindow::update_title() {
+    QString title = "Map Editor";
+    if (!doc_.path().empty()) {
+        title += " - " + QString::fromStdString(doc_.path());
+    } else {
+        title += " - Untitled";
+    }
+    switch (doc_.config().map_type) {
+        case MapType::CITY:    title += " [City]";    break;
+        case MapType::DUNGEON: title += " [Dungeon]"; break;
+        default: break;
+    }
+    setWindowTitle(title);
+}
+
+void MainWindow::change_map_type(QAction* action) {
+    auto type = static_cast<MapType>(action->data().toInt());
+    doc_.config().map_type = type;
+    update_title();
+    statusBar()->showMessage(QString("Map type changed to %1")
+                                     .arg(action->text().toLower()), 3000);
 }
 
 void MainWindow::showEvent(QShowEvent* event) {
