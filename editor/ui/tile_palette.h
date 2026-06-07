@@ -42,6 +42,16 @@ private:
     void toggle_walkable(const std::string& name);
     void update_button_visual(QToolButton* btn, const std::string& name, bool walkable) const;
 
+    template<typename Map>
+    static std::vector<std::string> sorted_keys(const Map& map) {
+        std::vector<std::string> names;
+        names.reserve(map.size());
+        std::transform(map.begin(), map.end(), std::back_inserter(names),
+                       [](const auto& kv) { return kv.first; });
+        std::sort(names.begin(), names.end());
+        return names;
+    }
+
     std::string selected_tile_;
     QButtonGroup* button_group_ = nullptr;
     const TilemapConfig& config_;

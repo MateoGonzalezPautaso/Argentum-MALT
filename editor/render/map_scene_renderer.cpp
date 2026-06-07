@@ -109,28 +109,8 @@ void MapSceneRenderer::apply_prop_pos(QGraphicsPixmapItem* item, int col, int ro
     item->setZValue(0.5);
 }
 
-void MapSceneRenderer::clear_grid(std::vector<std::vector<QGraphicsPixmapItem*>>& grid) {
-    for (const auto& row: grid) {
-        for (auto* item: row) {
-            if (item) {
-                scene_->removeItem(item);
-                delete item;
-            }
-        }
-    }
-    grid.clear();
-}
-
 void MapSceneRenderer::clear_spawn_overlay() {
-    for (const auto& row : spawn_overlay_) {
-        for (auto* item : row) {
-            if (item) {
-                scene_->removeItem(item);
-                delete item;
-            }
-        }
-    }
-    spawn_overlay_.clear();
+    clear_grid(spawn_overlay_);
 }
 
 void MapSceneRenderer::rebuild_spawn_overlay(const TilemapDocument& doc) {

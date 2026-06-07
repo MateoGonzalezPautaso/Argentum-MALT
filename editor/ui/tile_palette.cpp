@@ -41,14 +41,9 @@ TilePalette::TilePalette(const TilemapConfig& config,
     int tsz = config_.tile_size;
     int preview_size = 64;
 
-    std::vector<std::string> sorted_names;
-    sorted_names.reserve(config_.tiles.size());
-    std::transform(config_.tiles.begin(), config_.tiles.end(), std::back_inserter(sorted_names),
-                   [](const auto& kv) { return kv.first; });
-    std::sort(sorted_names.begin(), sorted_names.end());
-
-    auto section = make_section(
-            "Tiles", sorted_names, preview_size,
+    auto sorted_tiles = sorted_keys(config_.tiles);
+    auto tile_section = make_section(
+            "Tiles", sorted_tiles, preview_size,
             [this, tsz](const std::string& name) -> QPixmap {
                 const auto& def = config_.tiles.at(name);
                 std::string atlas_path = def.path.empty() ? config_.path : def.path;
@@ -62,14 +57,10 @@ TilePalette::TilePalette(const TilemapConfig& config,
                 emit tile_selected(name);
             },
             true);
-    sections_.push_back(std::move(section));
+    sections_.push_back(std::move(tile_section));
     scroll_layout->addWidget(sections_.back().header->parentWidget());
 
-    std::vector<std::string> sorted_props;
-    sorted_props.reserve(config_.props.size());
-    std::transform(config_.props.begin(), config_.props.end(), std::back_inserter(sorted_props),
-                   [](const auto& kv) { return kv.first; });
-    std::sort(sorted_props.begin(), sorted_props.end());
+    auto sorted_props = sorted_keys(config_.props);
 
     if (!sorted_props.empty()) {
         auto props_section = make_section(

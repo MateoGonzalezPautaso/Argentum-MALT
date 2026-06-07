@@ -108,30 +108,15 @@ void EditorController::place_tile_or_prop(int row, int col, const std::string& n
 }
 
 void EditorController::fill_rect(int r1, int c1, int r2, int c2, const std::string& name) {
-    int r_min = std::min(r1, r2);
-    int r_max = std::max(r1, r2);
-    int c_min = std::min(c1, c2);
-    int c_max = std::max(c1, c2);
-
-    for (int r = r_min; r <= r_max; ++r) {
-        for (int c = c_min; c <= c_max; ++c) {
-            place_tile_or_prop(r, c, name);
-        }
-    }
+    for_each_cell(r1, c1, r2, c2,
+                  [this, &name](int r, int c) { place_tile_or_prop(r, c, name); });
 }
 
 void EditorController::fill_spawn_zone_rect(int r1, int c1, int r2, int c2) {
-    int r_min = std::min(r1, r2);
-    int r_max = std::max(r1, r2);
-    int c_min = std::min(c1, c2);
-    int c_max = std::max(c1, c2);
-
-    for (int r = r_min; r <= r_max; ++r) {
-        for (int c = c_min; c <= c_max; ++c) {
-            doc_.set_mob_spawn_zone(r, c, true);
-            renderer_->update_spawn_overlay_tile(r, c, true, doc_.tile_size());
-        }
-    }
+    for_each_cell(r1, c1, r2, c2, [this](int r, int c) {
+        doc_.set_mob_spawn_zone(r, c, true);
+        renderer_->update_spawn_overlay_tile(r, c, true, doc_.tile_size());
+    });
 }
 
 void EditorController::set_map_type(MapType type) {

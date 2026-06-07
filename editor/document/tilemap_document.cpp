@@ -64,18 +64,9 @@ void TilemapDocument::set_mob_spawn_zone(int row, int col, bool value) {
 }
 
 void TilemapDocument::resize(int new_rows, int new_cols, const std::string& default_tile) {
-    config_.mapa.resize(static_cast<std::size_t>(new_rows));
-    for (auto& row: config_.mapa) {
-        row.resize(static_cast<std::size_t>(new_cols), default_tile);
-    }
-    config_.prop_map.resize(static_cast<std::size_t>(new_rows));
-    for (auto& row: config_.prop_map) {
-        row.resize(static_cast<std::size_t>(new_cols), "");
-    }
-    config_.mob_spawn_zones.resize(static_cast<std::size_t>(new_rows));
-    for (auto& row: config_.mob_spawn_zones) {
-        row.resize(static_cast<std::size_t>(new_cols), false);
-    }
+    resize_grid(config_.mapa, new_rows, new_cols, default_tile);
+    resize_grid(config_.prop_map, new_rows, new_cols, std::string{});
+    resize_grid(config_.mob_spawn_zones, new_rows, new_cols, false);
 }
 
 void TilemapDocument::create_new(int rows, int cols, const TilemapConfig& tile_config,
@@ -84,14 +75,11 @@ void TilemapDocument::create_new(int rows, int cols, const TilemapConfig& tile_c
     config_.path = tile_config.path;
     config_.tile_size = tile_config.tile_size;
     config_.tiles = tile_config.tiles;
-    config_.mapa.assign(static_cast<std::size_t>(rows),
-                        std::vector<std::string>(static_cast<std::size_t>(cols), ""));
     config_.props = tile_config.props;
-    config_.prop_map.assign(static_cast<std::size_t>(rows),
-                            std::vector<std::string>(static_cast<std::size_t>(cols), ""));
-    config_.mob_spawn_zones.assign(static_cast<std::size_t>(rows),
-                                   std::vector<bool>(static_cast<std::size_t>(cols), false));
     config_.map_type = map_type;
+    resize_grid(config_.mapa, rows, cols, std::string{});
+    resize_grid(config_.prop_map, rows, cols, std::string{});
+    resize_grid(config_.mob_spawn_zones, rows, cols, false);
     path_.clear();
 }
 

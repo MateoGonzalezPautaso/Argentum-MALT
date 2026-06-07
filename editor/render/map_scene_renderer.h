@@ -33,8 +33,20 @@ private:
     void apply_prop_pos(QGraphicsPixmapItem* item, int col, int row, const std::string& prop_name,
                         const TilemapDocument& doc) const;
     void add_non_walkable_indicator(QGraphicsPixmapItem* item, int tsz);
-    void clear_grid(std::vector<std::vector<QGraphicsPixmapItem*>>& grid);
     void clear_spawn_overlay();
+
+    template<typename T>
+    void clear_grid(std::vector<std::vector<T*>>& grid) {
+        for (const auto& row: grid) {
+            for (auto* item: row) {
+                if (item) {
+                    scene_->removeItem(item);
+                    delete item;
+                }
+            }
+        }
+        grid.clear();
+    }
 
     QPixmap tile_pixmap(const TilemapDocument& doc, const std::string& name) const;
     QPixmap prop_pixmap(const TilemapDocument& doc, const std::string& name) const;
