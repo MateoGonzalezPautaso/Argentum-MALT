@@ -41,6 +41,9 @@ public:
     void set_tile_walkable(const std::string& name, bool walkable);
     void toggle_walkable_overlay();
     void toggle_spawn_overlay();
+    void set_spawn_zone(int row, int col, bool enabled);
+    void erase_prop(int row, int col);
+    void erase_tile(int row, int col);
 
     void full_rebuild();
 

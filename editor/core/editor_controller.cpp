@@ -161,3 +161,18 @@ void EditorController::toggle_spawn_overlay() {
     renderer_->set_show_spawn_overlay(show);
     renderer_->rebuild_spawn_overlay(doc_);
 }
+
+void EditorController::set_spawn_zone(int row, int col, bool enabled) {
+    doc_.set_mob_spawn_zone(row, col, enabled);
+    renderer_->update_spawn_overlay_tile(row, col, enabled, doc_.tile_size());
+}
+
+void EditorController::erase_prop(int row, int col) {
+    doc_.set_prop(row, col, "");
+    renderer_->update_prop(row, col, "", doc_);
+}
+
+void EditorController::erase_tile(int row, int col) {
+    doc_.set_tile(row, col, "");
+    renderer_->update_tile(row, col, "", doc_, show_walkable_overlay_);
+}

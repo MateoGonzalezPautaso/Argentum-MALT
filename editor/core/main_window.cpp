@@ -221,15 +221,11 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
                 dragging_ = true;
                 drag_start_row_ = click.row;
                 drag_start_col_ = click.col;
-                doc.set_mob_spawn_zone(click.row, click.col, true);
-                controller_->renderer().update_spawn_overlay_tile(click.row, click.col, true,
-                                                                   doc.tile_size());
+                controller_->set_spawn_zone(click.row, click.col, true);
                 return true;
             }
             if (click.button == Qt::RightButton) {
-                doc.set_mob_spawn_zone(click.row, click.col, false);
-                controller_->renderer().update_spawn_overlay_tile(click.row, click.col, false,
-                                                                   doc.tile_size());
+                controller_->set_spawn_zone(click.row, click.col, false);
                 return true;
             }
         }
@@ -243,12 +239,9 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
         }
         if (click.button == Qt::RightButton) {
             if (!doc.prop_name(click.row, click.col).empty()) {
-                doc.set_prop(click.row, click.col, "");
-                controller_->renderer().update_prop(click.row, click.col, "", doc);
+                controller_->erase_prop(click.row, click.col);
             } else {
-                doc.set_tile(click.row, click.col, "");
-                controller_->renderer().update_tile(click.row, click.col, "", doc,
-                                                    controller_->show_walkable_overlay());
+                controller_->erase_tile(click.row, click.col);
             }
             return true;
         }
