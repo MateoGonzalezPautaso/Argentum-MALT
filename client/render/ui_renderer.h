@@ -42,7 +42,7 @@ public:
 
     void render_frame_background();
     void render_chat_input();
-    void render_chat_history(const std::vector<ChatMessage>& messages);
+    void render_chat_history(const std::vector<ChatMessage>& messages, int scroll_offset = 0);
     void render_hp_bar(uint32_t current, uint32_t max);
     void render_mp_bar(uint32_t current, uint32_t max);
     void render_exp_bar(uint32_t current, uint32_t max);

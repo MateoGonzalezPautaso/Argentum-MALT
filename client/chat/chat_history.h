@@ -17,12 +17,15 @@ struct ChatMessage {
 class ChatHistory {
 private:
     std::vector<ChatMessage> messages;
+    bool new_message_flag = false;
     static constexpr size_t MAX_MESSAGES = 100;
 
 public:
     void add_message(ChatMsgType type, const std::string& sender, const std::string& text);
     const std::vector<ChatMessage>& get_messages() const;
     void clear();
+    bool has_new_message() const { return new_message_flag; }
+    void consume_new_message() { new_message_flag = false; }
 };
 
 #endif

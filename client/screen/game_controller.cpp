@@ -54,7 +54,9 @@ void GameController::render() {
     ui_renderer.render_hp_bar(player_stats.hp_current, player_stats.hp_max);
     ui_renderer.render_mp_bar(player_stats.mana_current, player_stats.mana_max);
     ui_renderer.render_exp_bar(player_stats.experience, player_stats.exp_to_next);
-    ui_renderer.render_chat_history(chat_history.get_messages());
+    if (chat_history.has_new_message() && chat_scroll == 0)
+        chat_history.consume_new_message();
+    ui_renderer.render_chat_history(chat_history.get_messages(), chat_scroll);
     ui_renderer.render_chat_input();
     ui_renderer.set_hover(mouse_x, mouse_y, player_stats.inventory, player_stats.equipped);
     ui_renderer.render_inventory(player_stats.inventory);
@@ -318,6 +320,13 @@ bool GameController::handle_event(const SDL_Event& event) {
 
     if (chat_input.consume_event(event)) {
         flush_pending_chat();
+        return true;
+    }
+
+    if (event.type == SDL_MOUSEWHEEL) {
+        int max_scroll = static_cast<int>(chat_history.get_messages().size()) - 1;
+        chat_scroll = std::clamp(chat_scroll + event.wheel.y, 0, std::max(0, max_scroll));
+        chat_history.consume_new_message();
         return true;
     }
 

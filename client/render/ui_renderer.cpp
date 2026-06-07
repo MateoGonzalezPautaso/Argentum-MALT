@@ -206,7 +206,7 @@ void UIRenderer::render_equipped(const InventorySlot equipped[4]) {
     inventory_renderer.render_equipped(equipped);
 }
 
-void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages) {
+void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages, int scroll_offset) {
     if (!chat_font || messages.empty()) {
         return;
     }
@@ -214,7 +214,12 @@ void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages) {
     int y_offset = chat_history_rect.GetY() + chat_history_rect.GetH();
     int line_spacing = ui_cfg.chat_line_spacing;
 
+    int skipped = 0;
     for (auto it = messages.rbegin(); it != messages.rend(); ++it) {
+        if (skipped < scroll_offset) {
+            ++skipped;
+            continue;
+        }
         std::string display;
         SDL_Color color = chat_color;
 
