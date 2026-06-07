@@ -638,6 +638,7 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
         }
     }
 
+    player_data_service.save_new_player(cmd.username, rec);
     player_data_service.save_player(player);
 
     auto it = players.emplace(player_id, std::move(player)).first;
