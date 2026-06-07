@@ -19,16 +19,19 @@
 #include <QToolBar>
 #include <QVBoxLayout>
 #include <QWidget>
-#include <algorithm>
 
-#include "../io/file_manager.h"
-#include "../render/map_scene_renderer.h"
+#include "../input/map_interaction.h"
 #include "../ui/dialogs.h"
-#include "../ui/tile_palette.h"
+
+#include "editor_controller.h"
 
 MainWindow::MainWindow(const std::string& config_path, QWidget* parent): QMainWindow(parent) {
+    scene_ = new QGraphicsScene(this);
+
+    controller_ = std::make_unique<EditorController>(scene_);
+
     try {
-        doc_.load(config_path);
+        controller_->load_document(config_path);
     } catch (const std::exception& e) {
         QMessageBox::critical(this, "Load Error",
                               QString("Failed to load %1:\n%2")
@@ -37,22 +40,11 @@ MainWindow::MainWindow(const std::string& config_path, QWidget* parent): QMainWi
         return;
     }
 
-    try {
-        toml::table root = toml::parse_file("config/common_tilemap.toml");
-        parse_tilemap_config(root, default_tile_config_);
-        parse_prop_config(root, default_tile_config_);
-    } catch (const std::exception& e) {
-        qWarning("Failed to load default tile config: %s", e.what());
-    }
+    controller_->load_default_tile_config("config/common_tilemap.toml");
+    controller_->reload_atlas();
+    controller_->full_rebuild();
 
-    atlas_loader_.load(doc_.config());
-    file_manager_ = std::make_unique<FileManager>(this);
     setup_ui();
-    renderer_ = std::make_unique<MapSceneRenderer>(scene_, atlas_loader_);
-    renderer_->render_all(doc_, show_walkable_overlay_);
-    renderer_->rebuild_grid(doc_);
-    renderer_->rebuild_spawn_overlay(doc_);
-
     update_title();
     resize(1200, 800);
 }
@@ -70,7 +62,6 @@ void MainWindow::setup_ui() {
     auto* canvas_layout = new QVBoxLayout(canvas_container);
     canvas_layout->setContentsMargins(0, 0, 0, 0);
 
-    scene_ = new QGraphicsScene(this);
     view_ = new QGraphicsView(scene_, this);
     view_->setRenderHint(QPainter::Antialiasing, false);
     view_->setDragMode(QGraphicsView::NoDrag);
@@ -80,9 +71,10 @@ void MainWindow::setup_ui() {
 
     splitter_->addWidget(canvas_container);
 
-    palette_ = new TilePalette(doc_.config(), atlas_loader_.all(),
+    const auto& doc = controller_->document();
+    palette_ = new TilePalette(doc.config(), controller_->atlas_loader().all(),
                                [this](const std::string& name, bool walkable) {
-                                   doc_.set_tile_walkable(name, walkable);
+                                   controller_->set_tile_walkable(name, walkable);
                                }, this);
     splitter_->addWidget(palette_);
 
@@ -92,9 +84,9 @@ void MainWindow::setup_ui() {
     splitter_->setStretchFactor(1, 1);
 
     statusBar()->showMessage(QString("Map: %1 x %2 tiles  |  Tile size: %3 px")
-                                     .arg(doc_.width())
-                                     .arg(doc_.height())
-                                     .arg(doc_.tile_size()));
+                                     .arg(doc.width())
+                                     .arg(doc.height())
+                                     .arg(doc.tile_size()));
 
     auto* toolbar = addToolBar("Map");
     toolbar->setMovable(false);
@@ -102,12 +94,12 @@ void MainWindow::setup_ui() {
     auto* width_label = new QLabel("Width:");
     width_spin_ = new QSpinBox();
     width_spin_->setRange(1, kMaxMapDimension);
-    width_spin_->setValue(doc_.width());
+    width_spin_->setValue(doc.width());
 
     auto* height_label = new QLabel("  Height:");
     height_spin_ = new QSpinBox();
     height_spin_->setRange(1, kMaxMapDimension);
-    height_spin_->setValue(doc_.height());
+    height_spin_->setValue(doc.height());
 
     auto* resize_btn = new QPushButton("Resize");
     toolbar->addWidget(width_label);
@@ -157,7 +149,7 @@ void MainWindow::setup_ui() {
         auto* action = map_type_menu->addAction(label);
         action->setCheckable(true);
         action->setData(static_cast<int>(type));
-        action->setChecked(doc_.config().map_type == type);
+        action->setChecked(controller_->document().config().map_type == type);
         map_type_group_->addAction(action);
     };
     add_type_action("&None", MapType::NONE);
@@ -168,47 +160,44 @@ void MainWindow::setup_ui() {
     auto* view_menu = menuBar()->addMenu("&View");
     auto* walkable_action = view_menu->addAction("Show &Walkable Overlay");
     walkable_action->setCheckable(true);
-    walkable_action->setChecked(show_walkable_overlay_);
-    connect(walkable_action, &QAction::triggered, this, &MainWindow::toggle_walkable_overlay);
+    walkable_action->setChecked(controller_->show_walkable_overlay());
+    connect(walkable_action, &QAction::triggered, this, [this]() {
+        controller_->toggle_walkable_overlay();
+    });
 
     auto* spawn_overlay_action = view_menu->addAction("Show Spawn &Zone Overlay");
     spawn_overlay_action->setCheckable(true);
     spawn_overlay_action->setChecked(true);
-    connect(spawn_overlay_action, &QAction::triggered, this, &MainWindow::toggle_spawn_overlay);
+    connect(spawn_overlay_action, &QAction::triggered, this, [this]() {
+        controller_->toggle_spawn_overlay();
+    });
 }
 
 void MainWindow::connect_palette_signals() {
     connect(palette_, &TilePalette::tile_selected, this, [this](const std::string& name) {
         interaction_.set_selected(name);
+        const auto& doc = controller_->document();
         statusBar()->showMessage(QString("Selected tile: %1  |  Map: %2 x %3")
                                          .arg(QString::fromStdString(name))
-                                         .arg(doc_.width())
-                                         .arg(doc_.height()));
+                                         .arg(doc.width())
+                                         .arg(doc.height()));
     });
     connect(palette_, &TilePalette::prop_selected, this, [this](const std::string& name) {
         interaction_.set_selected(name);
+        const auto& doc = controller_->document();
         statusBar()->showMessage(QString("Selected prop: %1  |  Map: %2 x %3")
                                          .arg(QString::fromStdString(name))
-                                         .arg(doc_.width())
-                                         .arg(doc_.height()));
+                                         .arg(doc.width())
+                                         .arg(doc.height()));
     });
-}
-
-void MainWindow::full_rebuild() {
-    renderer_->clear_all();
-    renderer_->render_all(doc_, show_walkable_overlay_);
-    renderer_->rebuild_grid(doc_);
-    renderer_->rebuild_spawn_overlay(doc_);
-    width_spin_->setValue(doc_.width());
-    height_spin_->setValue(doc_.height());
-    view_->fitInView(scene_->sceneRect(), Qt::KeepAspectRatio);
 }
 
 void MainWindow::rebuild_palette() {
     delete palette_;
-    palette_ = new TilePalette(doc_.config(), atlas_loader_.all(),
+    const auto& doc = controller_->document();
+    palette_ = new TilePalette(doc.config(), controller_->atlas_loader().all(),
                                [this](const std::string& name, bool walkable) {
-                                   doc_.set_tile_walkable(name, walkable);
+                                   controller_->set_tile_walkable(name, walkable);
                                }, this);
     splitter_->addWidget(palette_);
     connect_palette_signals();
@@ -218,10 +207,12 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
     if (obj != view_->viewport())
         return QMainWindow::eventFilter(obj, event);
 
+    auto& doc = controller_->document();
+
     if (event->type() == QEvent::MouseButtonPress) {
         auto* me = static_cast<QMouseEvent*>(event);
-        auto click = MapInteraction::resolve_click(me, view_, doc_.tile_size(), doc_.height(),
-                                                   doc_.width());
+        auto click = MapInteraction::resolve_click(me, view_, doc.tile_size(), doc.height(),
+                                                   doc.width());
         if (!click.valid)
             return false;
 
@@ -230,14 +221,15 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
                 dragging_ = true;
                 drag_start_row_ = click.row;
                 drag_start_col_ = click.col;
-                doc_.set_mob_spawn_zone(click.row, click.col, true);
-                renderer_->update_spawn_overlay_tile(click.row, click.col, true, doc_.tile_size());
+                doc.set_mob_spawn_zone(click.row, click.col, true);
+                controller_->renderer().update_spawn_overlay_tile(click.row, click.col, true,
+                                                                   doc.tile_size());
                 return true;
             }
             if (click.button == Qt::RightButton) {
-                doc_.set_mob_spawn_zone(click.row, click.col, false);
-                renderer_->update_spawn_overlay_tile(click.row, click.col, false,
-                                                     doc_.tile_size());
+                doc.set_mob_spawn_zone(click.row, click.col, false);
+                controller_->renderer().update_spawn_overlay_tile(click.row, click.col, false,
+                                                                   doc.tile_size());
                 return true;
             }
         }
@@ -246,16 +238,17 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
             dragging_ = true;
             drag_start_row_ = click.row;
             drag_start_col_ = click.col;
-            place_tile_or_prop(click.row, click.col, interaction_.selected());
+            controller_->place_tile_or_prop(click.row, click.col, interaction_.selected());
             return true;
         }
         if (click.button == Qt::RightButton) {
-            if (!doc_.prop_name(click.row, click.col).empty()) {
-                doc_.set_prop(click.row, click.col, "");
-                renderer_->update_prop(click.row, click.col, "", doc_);
+            if (!doc.prop_name(click.row, click.col).empty()) {
+                doc.set_prop(click.row, click.col, "");
+                controller_->renderer().update_prop(click.row, click.col, "", doc);
             } else {
-                doc_.set_tile(click.row, click.col, "");
-                renderer_->update_tile(click.row, click.col, "", doc_, show_walkable_overlay_);
+                doc.set_tile(click.row, click.col, "");
+                controller_->renderer().update_tile(click.row, click.col, "", doc,
+                                                    controller_->show_walkable_overlay());
             }
             return true;
         }
@@ -264,11 +257,11 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
     if (event->type() == QEvent::MouseMove && dragging_) {
         auto* me = static_cast<QMouseEvent*>(event);
         QPointF scene_pos = view_->mapToScene(me->pos());
-        int tsz = doc_.tile_size();
+        int tsz = doc.tile_size();
         int cur_row = static_cast<int>(scene_pos.y()) / tsz;
         int cur_col = static_cast<int>(scene_pos.x()) / tsz;
 
-        if (cur_row >= 0 && cur_row < doc_.height() && cur_col >= 0 && cur_col < doc_.width()) {
+        if (cur_row >= 0 && cur_row < doc.height() && cur_col >= 0 && cur_col < doc.width()) {
             update_drag_preview(drag_start_row_, drag_start_col_, cur_row, cur_col);
         }
         return true;
@@ -279,8 +272,8 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
         if (me->button() != Qt::LeftButton)
             return false;
 
-        auto click = MapInteraction::resolve_click(me, view_, doc_.tile_size(), doc_.height(),
-                                                   doc_.width());
+        auto click = MapInteraction::resolve_click(me, view_, doc.tile_size(), doc.height(),
+                                                   doc.width());
         dragging_ = false;
         destroy_drag_preview();
 
@@ -292,12 +285,13 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
 
         if (spawn_zone_mode_) {
             if (click.row != drag_start_row_ || click.col != drag_start_col_) {
-                fill_spawn_zone_rect(drag_start_row_, drag_start_col_, click.row, click.col);
+                controller_->fill_spawn_zone_rect(drag_start_row_, drag_start_col_, click.row,
+                                                  click.col);
             }
         } else if (interaction_.has_selection() &&
                    (click.row != drag_start_row_ || click.col != drag_start_col_)) {
-            fill_rect(drag_start_row_, drag_start_col_, click.row, click.col,
-                      interaction_.selected());
+            controller_->fill_rect(drag_start_row_, drag_start_col_, click.row, click.col,
+                                   interaction_.selected());
         }
 
         drag_start_row_ = -1;
@@ -308,31 +302,103 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
     return QMainWindow::eventFilter(obj, event);
 }
 
-void MainWindow::place_tile_or_prop(int row, int col, const std::string& name) {
-    if (doc_.is_prop(name)) {
-        doc_.set_prop(row, col, name);
-        renderer_->update_prop(row, col, name, doc_);
-    } else {
-        doc_.set_tile(row, col, name);
-        renderer_->update_tile(row, col, name, doc_, show_walkable_overlay_);
-    }
+void MainWindow::save_map() {
+    if (!controller_->save())
+        return;
+    update_title();
+    statusBar()->showMessage(
+            QString("Saved to %1").arg(QString::fromStdString(controller_->document().path())),
+            3000);
 }
 
-void MainWindow::fill_rect(int r1, int c1, int r2, int c2, const std::string& name) {
-    int r_min = std::min(r1, r2);
-    int r_max = std::max(r1, r2);
-    int c_min = std::min(c1, c2);
-    int c_max = std::max(c1, c2);
+void MainWindow::save_map_as() {
+    if (!controller_->save_as())
+        return;
+    update_title();
+    statusBar()->showMessage(
+            QString("Saved to %1").arg(QString::fromStdString(controller_->document().path())),
+            3000);
+}
 
-    for (int r = r_min; r <= r_max; ++r) {
-        for (int c = c_min; c <= c_max; ++c) {
-            place_tile_or_prop(r, c, name);
-        }
+void MainWindow::open_map() {
+    if (!controller_->open())
+        return;
+
+    rebuild_palette();
+    controller_->full_rebuild();
+
+    update_title();
+    const auto& doc = controller_->document();
+    for (auto* action : map_type_group_->actions()) {
+        action->setChecked(static_cast<MapType>(action->data().toInt()) == doc.config().map_type);
     }
+    statusBar()->showMessage(QString("Opened %1").arg(QString::fromStdString(doc.path())), 3000);
+}
+
+void MainWindow::new_map() {
+    auto result = show_new_map_dialog(this);
+    if (!result.accepted)
+        return;
+
+    dragging_ = false;
+    drag_preview_ = nullptr;
+    controller_->create_new_map(result.height, result.width, result.map_type);
+
+    rebuild_palette();
+
+    const auto& doc = controller_->document();
+    width_spin_->setValue(doc.width());
+    height_spin_->setValue(doc.height());
+    view_->fitInView(scene_->sceneRect(), Qt::KeepAspectRatio);
+
+    update_title();
+    for (auto* action : map_type_group_->actions()) {
+        action->setChecked(static_cast<MapType>(action->data().toInt()) == doc.config().map_type);
+    }
+    statusBar()->showMessage(
+            QString("New map: %1 x %2 tiles").arg(result.width).arg(result.height));
+}
+
+void MainWindow::resize_map(int cols, int rows) {
+    dragging_ = false;
+    drag_preview_ = nullptr;
+    controller_->resize_map(cols, rows);
+
+    const auto& doc = controller_->document();
+    width_spin_->setValue(doc.width());
+    height_spin_->setValue(doc.height());
+    view_->fitInView(scene_->sceneRect(), Qt::KeepAspectRatio);
+
+    statusBar()->showMessage(
+            QString("Map resized to %1 x %2 tiles").arg(doc.width()).arg(doc.height()));
+}
+
+void MainWindow::update_title() {
+    const auto& doc = controller_->document();
+    QString title = "Map Editor";
+    if (!doc.path().empty()) {
+        title += " - " + QString::fromStdString(doc.path());
+    } else {
+        title += " - Untitled";
+    }
+    switch (doc.config().map_type) {
+        case MapType::CITY:    title += " [City]";    break;
+        case MapType::DUNGEON: title += " [Dungeon]"; break;
+        default: break;
+    }
+    setWindowTitle(title);
+}
+
+void MainWindow::change_map_type(QAction* action) {
+    auto type = static_cast<MapType>(action->data().toInt());
+    controller_->set_map_type(type);
+    update_title();
+    statusBar()->showMessage(QString("Map type changed to %1")
+                                     .arg(action->text().toLower()), 3000);
 }
 
 void MainWindow::update_drag_preview(int r1, int c1, int r2, int c2) {
-    int tsz = doc_.tile_size();
+    int tsz = controller_->document().tile_size();
     int r_min = std::min(r1, r2);
     int r_max = std::max(r1, r2);
     int c_min = std::min(c1, c2);
@@ -354,178 +420,6 @@ void MainWindow::destroy_drag_preview() {
         delete drag_preview_;
         drag_preview_ = nullptr;
     }
-}
-
-bool MainWindow::validate_city_map() const {
-    if (doc_.config().map_type != MapType::CITY) {
-        return true;
-    }
-
-    QStringList missing;
-    for (const auto& npc : kCityRequiredNpcs) {
-        bool found = false;
-        for (const auto& row : doc_.config().prop_map) {
-            for (const auto& cell : row) {
-                if (cell == npc) {
-                    found = true;
-                    break;
-                }
-            }
-            if (found) break;
-        }
-        if (!found) missing << QString::fromStdString(npc);
-    }
-
-    if (missing.isEmpty()) {
-        return true;
-    }
-
-    QMessageBox::critical(
-            const_cast<MainWindow*>(this), "Cannot save City map",
-            QString("A City map must contain the following NPCs:\n\n"
-                    "  - %1\n\n"
-                    "Please place them on the map before saving.")
-                    .arg(missing.join("\n  - ")));
-    return false;
-}
-
-void MainWindow::save_map() {
-    if (!validate_city_map()) {
-        return;
-    }
-    if (file_manager_->save(doc_)) {
-        update_title();
-        statusBar()->showMessage(QString("Saved to %1").arg(QString::fromStdString(doc_.path())),
-                                 3000);
-    }
-}
-
-void MainWindow::save_map_as() {
-    if (!validate_city_map()) {
-        return;
-    }
-    if (file_manager_->save_as(doc_)) {
-        update_title();
-        statusBar()->showMessage(QString("Saved to %1").arg(QString::fromStdString(doc_.path())),
-                                 3000);
-    }
-}
-
-void MainWindow::open_map() {
-    if (!file_manager_->open(doc_))
-        return;
-
-    atlas_loader_.clear();
-    atlas_loader_.load(doc_.config());
-
-    rebuild_palette();
-    full_rebuild();
-
-    update_title();
-    for (auto* action : map_type_group_->actions()) {
-        action->setChecked(static_cast<MapType>(action->data().toInt()) == doc_.config().map_type);
-    }
-    statusBar()->showMessage(QString("Opened %1").arg(QString::fromStdString(doc_.path())), 3000);
-}
-
-void MainWindow::new_map() {
-    auto result = show_new_map_dialog(this);
-    if (!result.accepted)
-        return;
-
-    dragging_ = false;
-    drag_preview_ = nullptr;
-    renderer_->clear_all();
-    doc_.create_new(result.height, result.width, default_tile_config_, result.map_type);
-    atlas_loader_.clear();
-    atlas_loader_.load(doc_.config());
-
-    rebuild_palette();
-    full_rebuild();
-
-    update_title();
-    for (auto* action : map_type_group_->actions()) {
-        action->setChecked(static_cast<MapType>(action->data().toInt()) == doc_.config().map_type);
-    }
-    statusBar()->showMessage(
-            QString("New map: %1 x %2 tiles").arg(result.width).arg(result.height));
-}
-
-void MainWindow::resize_map(int cols, int rows) {
-    dragging_ = false;
-    drag_preview_ = nullptr;
-    renderer_->clear_all();
-    doc_.resize(rows, cols, "");
-    renderer_->render_all(doc_, show_walkable_overlay_);
-    renderer_->rebuild_grid(doc_);
-    renderer_->rebuild_spawn_overlay(doc_);
-
-    width_spin_->setValue(doc_.width());
-    height_spin_->setValue(doc_.height());
-    view_->fitInView(scene_->sceneRect(), Qt::KeepAspectRatio);
-
-    statusBar()->showMessage(
-            QString("Map resized to %1 x %2 tiles").arg(doc_.width()).arg(doc_.height()));
-}
-
-void MainWindow::toggle_walkable_overlay() {
-    show_walkable_overlay_ = !show_walkable_overlay_;
-    renderer_->clear_tiles_and_props();
-    renderer_->render_all(doc_, show_walkable_overlay_);
-}
-
-void MainWindow::update_title() {
-    QString title = "Map Editor";
-    if (!doc_.path().empty()) {
-        title += " - " + QString::fromStdString(doc_.path());
-    } else {
-        title += " - Untitled";
-    }
-    switch (doc_.config().map_type) {
-        case MapType::CITY:    title += " [City]";    break;
-        case MapType::DUNGEON: title += " [Dungeon]"; break;
-        default: break;
-    }
-    setWindowTitle(title);
-}
-
-void MainWindow::change_map_type(QAction* action) {
-    auto type = static_cast<MapType>(action->data().toInt());
-    doc_.set_map_type(type);
-    update_title();
-    statusBar()->showMessage(QString("Map type changed to %1")
-                                     .arg(action->text().toLower()), 3000);
-}
-
-void MainWindow::fill_spawn_zone_rect(int r1, int c1, int r2, int c2) {
-    int r_min = std::min(r1, r2);
-    int r_max = std::max(r1, r2);
-    int c_min = std::min(c1, c2);
-    int c_max = std::max(c1, c2);
-
-    for (int r = r_min; r <= r_max; ++r) {
-        for (int c = c_min; c <= c_max; ++c) {
-            doc_.set_mob_spawn_zone(r, c, true);
-            renderer_->update_spawn_overlay_tile(r, c, true, doc_.tile_size());
-        }
-    }
-}
-
-void MainWindow::toggle_spawn_zone_mode() {
-    spawn_zone_mode_ = !spawn_zone_mode_;
-    statusBar()->showMessage(
-            spawn_zone_mode_ ? QString("Spawn Zone Mode: click tiles to mark spawn zones")
-                             : QString("Spawn Zone Mode: off"),
-            3000);
-}
-
-void MainWindow::toggle_spawn_overlay() {
-    bool show = !renderer_->show_spawn_overlay();
-    renderer_->set_show_spawn_overlay(show);
-    renderer_->rebuild_spawn_overlay(doc_);
-    statusBar()->showMessage(show ? QString("Spawn zone overlay: visible")
-                                  : QString("Spawn zone overlay: hidden"),
-                             3000);
 }
 
 void MainWindow::showEvent(QShowEvent* event) {
