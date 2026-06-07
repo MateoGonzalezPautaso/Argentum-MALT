@@ -135,6 +135,24 @@ void WorldRenderer::clear_equipment_overlay(uint8_t slot) {
     sprite_renderer.clear_equipment_overlay(slot);
 }
 
+void WorldRenderer::update_entity_equipment_overlay(uint16_t entity_id, uint8_t slot,
+                                                    const std::string& path, int offset_y,
+                                                    bool static_frame) {
+    sprite_renderer.update_entity_equipment_overlay(entity_id, slot, path, offset_y, static_frame);
+}
+
+void WorldRenderer::clear_entity_equipment_overlay(uint16_t entity_id, uint8_t slot) {
+    sprite_renderer.clear_entity_equipment_overlay(entity_id, slot);
+}
+
+void WorldRenderer::set_entity_body_sprite(uint16_t entity_id, const std::string& path) {
+    sprite_renderer.set_entity_body_sprite(entity_id, path);
+}
+
+void WorldRenderer::reset_entity_body_sprite(uint16_t entity_id) {
+    sprite_renderer.reset_entity_body_sprite(entity_id);
+}
+
 void WorldRenderer::set_body_sprite(const std::string& path) {
     sprite_renderer.set_body_sprite(path);
 }

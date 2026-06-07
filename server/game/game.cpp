@@ -549,8 +549,8 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
         // Send equipment state after login
         InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
         p.dump_equipped(equipped_slots);
-        EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
-                                  equipped_slots[3]};
+        EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1],
+                                  equipped_slots[2], equipped_slots[3]};
         private_events.push_back(equip_ev);
 
         if (p.get_current_map() != "main") {
@@ -654,8 +654,8 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
 
     InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
     p.dump_equipped(equipped_slots);
-    EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
-                              equipped_slots[3]};
+    EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1],
+                              equipped_slots[2], equipped_slots[3]};
     private_events.push_back(equip_ev);
 
     CommandResult r;
@@ -890,6 +890,10 @@ LoginOkEvent Game::make_login_ok(const Player& p) const {
 }
 
 EntitySpawnEvent Game::make_entity_spawn(const Player& p) const {
+    const ItemType weapon_type = p.get_equipped(EquipSlot::WEAPON).item_type;
+    const ItemType armor_type = p.get_equipped(EquipSlot::ARMOR).item_type;
+    const ItemType helmet_type = p.get_equipped(EquipSlot::HELMET).item_type;
+    const ItemType shield_type = p.get_equipped(EquipSlot::SHIELD).item_type;
     return EntitySpawnEvent{
             .entity_id = p.get_id(),
             .entity_type = EntityType::PLAYER,
@@ -898,6 +902,10 @@ EntitySpawnEvent Game::make_entity_spawn(const Player& p) const {
             .entity_name = p.get_username(),
             .entity_race = p.get_race(),
             .entity_class = p.get_player_class(),
+            .weapon_type = weapon_type,
+            .armor_type = armor_type,
+            .helmet_type = helmet_type,
+            .shield_type = shield_type,
     };
 }
 
@@ -1026,14 +1034,15 @@ CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
 
     InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
     player.dump_equipped(equipped_slots);
-    EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
+    EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1], equipped_slots[2],
                               equipped_slots[3]};
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
 
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Equipaste slot " + std::to_string(cmd.slot_index)};
-    return {.private_events = {equip_ev, inv_ev, msg},
+    return {.private_events = {inv_ev, msg},
             .broadcast_events = {},
-            .targeted_events = {}};
+            .targeted_events = {},
+            .map_events = {equip_ev}};
 }
 
 CommandResult Game::handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd) {
@@ -1048,11 +1057,14 @@ CommandResult Game::handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd
 
     InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
     player.dump_equipped(equipped_slots);
-    EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
+    EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1], equipped_slots[2],
                               equipped_slots[3]};
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
 
-    return {.private_events = {equip_ev, inv_ev}, .broadcast_events = {}, .targeted_events = {}};
+    return {.private_events = {inv_ev},
+            .broadcast_events = {},
+            .targeted_events = {},
+            .map_events = {equip_ev}};
 }
 
 CommandResult Game::handle_npc_heal(uint16_t player_id) {

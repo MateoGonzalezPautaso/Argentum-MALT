@@ -63,6 +63,11 @@ public:
 
     void update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y = 0, bool static_frame = false);
     void clear_equipment_overlay(uint8_t slot);
+    void update_entity_equipment_overlay(uint16_t entity_id, uint8_t slot, const std::string& path,
+                                         int offset_y = 0, bool static_frame = false);
+    void clear_entity_equipment_overlay(uint16_t entity_id, uint8_t slot);
+    void set_entity_body_sprite(uint16_t entity_id, const std::string& path);
+    void reset_entity_body_sprite(uint16_t entity_id);
     void set_body_sprite(const std::string& path);
     void reset_body_sprite();
 
@@ -118,6 +123,8 @@ private:
     void create_entity_name_label(uint16_t entity_id, const std::string& name);
     SpriteRender* find_movable_sprite();
     const SpriteRender* find_movable_sprite() const;
+    SpriteRender* find_entity_movable_sprite(uint16_t entity_id);
+    const SpriteRender* find_entity_movable_sprite(uint16_t entity_id) const;
 
     int clamp_x(int value, int sprite_w) const;
     int clamp_y(int value, int sprite_h) const;
@@ -133,6 +140,12 @@ private:
         uint8_t alpha;
     };
 
+    struct EntityEquipRenderState {
+        EquipOverlay overlays[EQUIP_SLOT_COUNT];
+        SDL2pp::Rect static_cache[EQUIP_SLOT_COUNT];
+        std::string default_body_path;
+    };
+
     void append_sprite_drawables(std::vector<SpriteRender>& src, const SDL2pp::Rect& cam,
                                  std::vector<Drawable>& out);
     void sort_and_render_drawables(std::vector<Drawable>& drawables);
@@ -143,6 +156,7 @@ private:
     std::vector<SpriteConfig> entity_part_configs;
     std::unordered_map<uint16_t, std::vector<SpriteRender>> entity_sprites;
     std::unordered_map<uint16_t, EntityNameRender> entity_name_render;
+    std::unordered_map<uint16_t, EntityEquipRenderState> entity_equip_state_;
     SkinConfig skin_config;
     std::vector<OverlayEffect> overlays;
     EquipOverlay equip_overlays_[EQUIP_SLOT_COUNT];

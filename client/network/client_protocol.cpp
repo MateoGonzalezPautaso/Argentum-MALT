@@ -182,6 +182,7 @@ ServerEvent ClientProtocol::recv_event() {
                 return s;
             };
             EquipUpdateEvent ev;
+            ev.entity_id = protocol.recv_uint16();
             ev.weapon = read_slot();
             ev.armor = read_slot();
             ev.helmet = read_slot();
@@ -301,6 +302,10 @@ ServerEvent ClientProtocol::recv_entity_spawn() {
     ev.entity_name = protocol.recv_str();
     ev.entity_race = static_cast<Race>(protocol.recv_uint8());
     ev.entity_class = static_cast<PlayerClass>(protocol.recv_uint8());
+    ev.weapon_type = static_cast<ItemType>(protocol.recv_uint8());
+    ev.armor_type = static_cast<ItemType>(protocol.recv_uint8());
+    ev.helmet_type = static_cast<ItemType>(protocol.recv_uint8());
+    ev.shield_type = static_cast<ItemType>(protocol.recv_uint8());
     return ev;
 }
 
