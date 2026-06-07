@@ -59,7 +59,9 @@ void TilemapDocument::resize(int new_rows, int new_cols, const std::string& defa
     }
 }
 
-void TilemapDocument::create_new(int rows, int cols, const TilemapConfig& tile_config) {
+void TilemapDocument::create_new(int rows, int cols, const TilemapConfig& tile_config,
+                                 MapType map_type) {
+    config_ = {};
     config_.path = tile_config.path;
     config_.tile_size = tile_config.tile_size;
     config_.tiles = tile_config.tiles;
@@ -68,6 +70,7 @@ void TilemapDocument::create_new(int rows, int cols, const TilemapConfig& tile_c
     config_.props = tile_config.props;
     config_.prop_map.assign(static_cast<std::size_t>(rows),
                             std::vector<std::string>(static_cast<std::size_t>(cols), ""));
+    config_.map_type = map_type;
     path_.clear();
 }
 

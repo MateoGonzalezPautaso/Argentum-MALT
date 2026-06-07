@@ -319,7 +319,7 @@ void MainWindow::new_map() {
     dragging_ = false;
     drag_preview_ = nullptr;
     renderer_->clear_all();
-    doc_.create_new(result.height, result.width, doc_.config());
+    doc_.create_new(result.height, result.width, doc_.config(), result.map_type);
     atlas_loader_.clear();
     atlas_loader_.load(doc_.config());
 
