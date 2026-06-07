@@ -62,6 +62,7 @@ struct TilemapConfig {
     std::vector<std::vector<std::string>> mapa;
     std::unordered_map<std::string, PropDef> props;
     std::vector<std::vector<std::string>> prop_map;
+    std::vector<std::vector<bool>> mob_spawn_zones;
 };
 
 int toml_get_int(const toml::table& tbl, const char* key, int fallback);

@@ -114,6 +114,26 @@ void parse_tilemap_config(const toml::table& root, TilemapConfig& config) {
             config.map_type = MapType::DUNGEON;
         }
     }
+
+    if (auto zones = root["mob_spawn_zones"].as_table()) {
+        if (auto arr = (*zones)["data"].as_array()) {
+            for (const auto& row_node : *arr) {
+                const auto* row_arr = row_node.as_array();
+                if (!row_arr) {
+                    continue;
+                }
+                std::vector<bool> row;
+                for (const auto& cell : *row_arr) {
+                    if (auto v = cell.value<bool>()) {
+                        row.push_back(*v);
+                    }
+                }
+                if (!row.empty()) {
+                    config.mob_spawn_zones.push_back(std::move(row));
+                }
+            }
+        }
+    }
 }
 
 void parse_prop_config(const toml::table& root, TilemapConfig& config) {
