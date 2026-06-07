@@ -115,18 +115,15 @@ void MainWindow::setup_ui() {
     connect(resize_btn, &QPushButton::clicked, this,
             [this]() { resize_map(width_spin_->value(), height_spin_->value()); });
 
-    auto* spawn_btn = new QPushButton("Set Spawn Zone");
-    spawn_btn->setCheckable(true);
-    spawn_btn->setChecked(false);
     toolbar->addSeparator();
-    toolbar->addWidget(spawn_btn);
-    connect(spawn_btn, &QPushButton::toggled, this, [this](bool checked) {
+    spawn_zone_mode_action_ = toolbar->addAction("Set Spawn Zone");
+    spawn_zone_mode_action_->setCheckable(true);
+    connect(spawn_zone_mode_action_, &QAction::toggled, this, [this](bool checked) {
         spawn_zone_mode_ = checked;
         statusBar()->showMessage(checked ? QString("Spawn Zone Mode: click tiles to mark spawn zones")
                                          : QString("Spawn Zone Mode: off"),
                                  3000);
     });
-    spawn_zone_mode_action_ = toolbar->addWidget(spawn_btn);
 
     auto* file_menu = menuBar()->addMenu("&File");
 
