@@ -55,6 +55,29 @@ bool is_sacerdote_item(ItemType type) {
     }
 }
 
+bool is_comerciante_item(ItemType type) {
+    switch (type) {
+        case ItemType::SWORD:
+        case ItemType::AXE:
+        case ItemType::HAMMER:
+        case ItemType::SIMPLE_BOW:
+        case ItemType::COMPOSITE_BOW:
+        case ItemType::LEATHER_ARMOR:
+        case ItemType::PLATE_ARMOR:
+        case ItemType::BLUE_TUNIC:
+        case ItemType::HOOD:
+        case ItemType::IRON_HELMET:
+        case ItemType::MAGIC_HAT:
+        case ItemType::TURTLE_SHIELD:
+        case ItemType::IRON_SHIELD:
+        case ItemType::HEALTH_POTION:
+        case ItemType::MANA_POTION:
+            return true;
+        default:
+            return false;
+    }
+}
+
 }  // namespace
 
 Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
@@ -504,6 +527,8 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             return handle_npc_heal(player_id);
         if (cmd_name == "/comprar")
             return handle_npc_buy(player_id, args);
+        if (cmd_name == "/vender")
+            return handle_npc_sell(player_id, args);
         if (cmd_name == "/equipar") {
             try {
                 int idx = std::stoi(args);
@@ -1151,8 +1176,14 @@ CommandResult Game::handle_npc_buy(uint16_t player_id, const std::string& item_n
     const int px = static_cast<int>(player.pos_x());
     const int py = static_cast<int>(player.pos_y());
 
-    if (!map_it->second.prop_grid().is_in_range_of("sacerdote", px, py, range)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un sacerdote cerca"};
+    const bool near_sacerdote =
+            map_it->second.prop_grid().is_in_range_of("sacerdote", px, py, range);
+    const bool near_comerciante =
+            map_it->second.prop_grid().is_in_range_of("comerciante", px, py, range);
+
+    if (!near_sacerdote && !near_comerciante) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                         "No hay un sacerdote ni un comerciante cerca"};
         return {.private_events = {msg}};
     }
 
@@ -1163,8 +1194,18 @@ CommandResult Game::handle_npc_buy(uint16_t player_id, const std::string& item_n
         return {.private_events = {msg}};
     }
 
-    if (!is_sacerdote_item(found->type) || found->price == 0) {
+    if (near_sacerdote && is_sacerdote_item(found->type) && found->price > 0) {
+        // handled below
+    } else if (near_comerciante && is_comerciante_item(found->type) && found->price > 0) {
+        // handled below
+    } else if (near_sacerdote && !near_comerciante) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El sacerdote no vende ese objeto"};
+        return {.private_events = {msg}};
+    } else if (near_comerciante && !near_sacerdote) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El comerciante no vende ese objeto"};
+        return {.private_events = {msg}};
+    } else {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Ningún NPC vende ese objeto"};
         return {.private_events = {msg}};
     }
 
@@ -1187,6 +1228,76 @@ CommandResult Game::handle_npc_buy(uint16_t player_id, const std::string& item_n
     GoldUpdateEvent gold_ev{player.get_gold()};
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      "Compraste " + found->name + " por " + std::to_string(found->price) + " de oro"};
+    return {.private_events = {msg, inv_ev, gold_ev}};
+}
+
+CommandResult Game::handle_npc_sell(uint16_t player_id, const std::string& item_name) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+
+    Player& player = it->second;
+
+    if (player.is_dead()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden vender"};
+        return {.private_events = {msg}};
+    }
+
+    if (item_name.empty()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Uso: /vender <nombre del objeto>"};
+        return {.private_events = {msg}};
+    }
+
+    const std::string& current_map = player.get_current_map();
+    auto map_it = maps.find(current_map);
+    if (map_it == maps.end())
+        return {};
+
+    const int range = map_it->second.tile_size() * 3;
+    const int px = static_cast<int>(player.pos_x());
+    const int py = static_cast<int>(player.pos_y());
+
+    if (!map_it->second.prop_grid().is_in_range_of("comerciante", px, py, range)) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un comerciante cerca"};
+        return {.private_events = {msg}};
+    }
+
+    const Item* item_def = item_catalog.find_by_name(item_name);
+    if (!item_def) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                         "Objeto '" + item_name + "' no encontrado"};
+        return {.private_events = {msg}};
+    }
+
+    if (!is_comerciante_item(item_def->type)) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El comerciante no compra ese tipo de objeto"};
+        return {.private_events = {msg}};
+    }
+
+    std::vector<InventorySlot> slots = player.dump_inventory();
+    int found_slot = -1;
+    for (const auto& slot : slots) {
+        if (slot.item_type == item_def->type) {
+            found_slot = slot.slot_index;
+            break;
+        }
+    }
+
+    if (found_slot < 0) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                         "No tenés '" + item_def->name + "' en el inventario"};
+        return {.private_events = {msg}};
+    }
+
+    uint32_t sell_price = item_def->price / 2;
+
+    player.remove_inventory_item(static_cast<uint8_t>(found_slot));
+    player.gain_gold(sell_price);
+
+    InventoryUpdateEvent inv_ev{player.dump_inventory()};
+    GoldUpdateEvent gold_ev{player.get_gold()};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                     "Vendiste " + item_name + " por " + std::to_string(sell_price) + " de oro"};
     return {.private_events = {msg, inv_ev, gold_ev}};
 }
 
