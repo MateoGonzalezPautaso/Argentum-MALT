@@ -1081,6 +1081,15 @@ CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
     Player& player = it->second;
     player.set_meditating(false);
 
+    bool consumed_potion = false;
+    std::vector<InventorySlot> inv_before = player.dump_inventory();
+    if (cmd.slot_index < inv_before.size()) {
+        const Item* def = item_catalog.find(inv_before[cmd.slot_index].item_type);
+        if (def && def->equip_slot == EquipSlot::CONSUMABLE &&
+            (def->restore_hp_percent > 0 || def->restore_mana_percent > 0))
+            consumed_potion = true;
+    }
+
     bool changed = player.equip(cmd.slot_index, item_catalog);
     if (!changed)
         return {};
@@ -1092,7 +1101,11 @@ CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
 
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Equipaste slot " + std::to_string(cmd.slot_index)};
-    return {.private_events = {inv_ev, msg},
+    std::vector<ServerEvent> private_events{inv_ev, msg};
+    if (consumed_potion)
+        private_events.push_back(
+                HealReceivedEvent{player_id, player.get_hp_current(), player.get_mana_current()});
+    return {.private_events = private_events,
             .broadcast_events = {},
             .targeted_events = {},
             .map_events = {equip_ev}};
