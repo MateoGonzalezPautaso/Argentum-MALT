@@ -204,7 +204,8 @@ void SpriteRenderer::clear_all_entities() {
 
 void SpriteRenderer::set_skin_config(const SkinConfig& cfg) { skin_config = cfg; }
 
-void SpriteRenderer::update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y, bool static_frame) {
+void SpriteRenderer::update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y,
+                                              bool static_frame) {
     if (slot >= EQUIP_SLOT_COUNT)
         return;
     EquipOverlay& overlay = equip_overlays_[slot];
@@ -490,7 +491,7 @@ void SpriteRenderer::render(const SDL2pp::Rect& cam) {
 
     append_sprite_drawables(sprites, cam, drawables);
 
-SpriteRender* movable = find_movable_sprite();
+    SpriteRender* movable = find_movable_sprite();
     if (movable && movable->use_src) {
         int body_foot_y = movable->dst.GetY() + movable->dst.GetH();
         int src_y = movable->src.GetY();
@@ -504,17 +505,17 @@ SpriteRender* movable = find_movable_sprite();
             if (!is_visible(*movable, cam))
                 continue;
             SDL2pp::Rect dst(movable->dst.GetX() - cam.GetX(),
-                              movable->dst.GetY() - cam.GetY() + overlay.offset_y,
-                              movable->dst.GetW(), movable->dst.GetH());
+                             movable->dst.GetY() - cam.GetY() + overlay.offset_y,
+                             movable->dst.GetW(), movable->dst.GetH());
             int overlay_foot_y = behind ? (body_foot_y - 1 - i) : (body_foot_y + 1 + i);
             if (overlay.static_frame) {
                 static_cache_[i] = movable->src;
                 static_cache_[i].SetX(0);
                 drawables.push_back(Drawable{&overlay.frames[0], &static_cache_[i], dst,
-                                              overlay_foot_y, movable->alpha});
+                                             overlay_foot_y, movable->alpha});
             } else {
-                drawables.push_back(Drawable{&overlay.frames[0], &movable->src, dst,
-                                              overlay_foot_y, movable->alpha});
+                drawables.push_back(Drawable{&overlay.frames[0], &movable->src, dst, overlay_foot_y,
+                                             movable->alpha});
             }
         }
     }
@@ -639,9 +640,9 @@ void SpriteRenderer::load_damage_overlay() {
 }
 
 void SpriteRenderer::load_spell_sheets() {
-    auto load_sheet = [&](const std::string& path, int frame_w, int frame_h,
-                          int cols, int rows, int display_w, int display_h,
-                          uint32_t frame_ms, std::vector<OverlayEffect>& pool) {
+    auto load_sheet = [&](const std::string& path, int frame_w, int frame_h, int cols, int rows,
+                          int display_w, int display_h, uint32_t frame_ms,
+                          std::vector<OverlayEffect>& pool) {
         SDL2pp::Surface sheet = texture::load_surface(path);
         pool.resize(3);
         int total = cols * rows;
@@ -650,7 +651,7 @@ void SpriteRenderer::load_spell_sheets() {
             for (int r = 0; r < rows; ++r) {
                 for (int c = 0; c < cols; ++c) {
                     SDL_Surface* sub = SDL_CreateRGBSurfaceWithFormat(0, frame_w, frame_h, 32,
-                            SDL_PIXELFORMAT_ABGR8888);
+                                                                      SDL_PIXELFORMAT_ABGR8888);
                     SDL_Rect src{c * frame_w, r * frame_h, frame_w, frame_h};
                     SDL_SetSurfaceBlendMode(sheet.Get(), SDL_BLENDMODE_NONE);
                     SDL_BlitSurface(sheet.Get(), &src, sub, nullptr);
@@ -733,8 +734,7 @@ void SpriteRenderer::tick_overlays(const AnimationSystem& anim) {
         }
     };
     tick_pool(overlays);
-    for (auto& [key, pool]: spell_overlay_pools)
-        tick_pool(pool);
+    for (auto& [key, pool]: spell_overlay_pools) tick_pool(pool);
 }
 
 void SpriteRenderer::render_overlays(const SDL2pp::Rect& cam) {
@@ -742,14 +742,13 @@ void SpriteRenderer::render_overlays(const SDL2pp::Rect& cam) {
         for (auto& ov: pool) {
             if (!ov.active)
                 continue;
-            SDL2pp::Rect dst(ov.dst.GetX() - cam.GetX(), ov.dst.GetY() - cam.GetY(),
-                             ov.dst.GetW(), ov.dst.GetH());
+            SDL2pp::Rect dst(ov.dst.GetX() - cam.GetX(), ov.dst.GetY() - cam.GetY(), ov.dst.GetW(),
+                             ov.dst.GetH());
             renderer.Copy(ov.frames[ov.current_frame], SDL2pp::NullOpt, dst);
         }
     };
     render_pool(overlays);
-    for (auto& [key, pool]: spell_overlay_pools)
-        render_pool(pool);
+    for (auto& [key, pool]: spell_overlay_pools) render_pool(pool);
 }
 
 void SpriteRenderer::tick_animations(AnimationSystem& anim) {

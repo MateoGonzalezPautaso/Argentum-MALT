@@ -128,7 +128,8 @@ void WorldRenderer::set_local_player_info(Race race, PlayerClass player_class) {
     sprite_renderer.set_local_player_info(race, player_class);
 }
 
-void WorldRenderer::update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y, bool static_frame) {
+void WorldRenderer::update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y,
+                                             bool static_frame) {
     sprite_renderer.update_equipment_overlay(slot, path, offset_y, static_frame);
 }
 
@@ -158,9 +159,7 @@ void WorldRenderer::set_body_sprite(const std::string& path) {
     sprite_renderer.set_body_sprite(path);
 }
 
-void WorldRenderer::reset_body_sprite() {
-    sprite_renderer.reset_body_sprite();
-}
+void WorldRenderer::reset_body_sprite() { sprite_renderer.reset_body_sprite(); }
 
 void WorldRenderer::set_direction_src_y(int down, int up, int left, int right) {
     sprite_renderer.set_direction_src_y(down, up, left, right);

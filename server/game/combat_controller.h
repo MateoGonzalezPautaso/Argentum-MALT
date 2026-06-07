@@ -37,8 +37,8 @@ public:
 private:
     bool in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x,
                   uint16_t target_y) const;
-    bool in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x,
-                  uint16_t target_y, uint32_t range_px) const;
+    bool in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x, uint16_t target_y,
+                  uint32_t range_px) const;
     uint32_t calculate_damage(const Player& attacker);
     int count_nearby_clan_members(const Player& player) const;
     double get_clan_bonus(const Player& player) const;

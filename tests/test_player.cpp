@@ -314,7 +314,7 @@ TEST(PlayerTest, Equip_ReplacesExistingEquippedItem) {
     p.equip(0, catalog);  // WEAPON = Espada, inventory slot 0 now empty
 
     p.add_item(ItemType::SWORD, "SegundaEspada");  // goes to slot 0
-    p.equip(0, catalog);  // WEAPON = SegundaEspada, old goes to slot 0
+    p.equip(0, catalog);                           // WEAPON = SegundaEspada, old goes to slot 0
 
     const InventorySlot& weapon_slot = p.get_equipped(EquipSlot::WEAPON);
     EXPECT_EQ(weapon_slot.item_type, ItemType::SWORD);

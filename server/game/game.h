@@ -92,7 +92,9 @@ private:
         int py;
         int range;
     };
-    std::variant<VendorContext, CommandResult> resolve_vendor_ctx(uint16_t player_id, const std::string& item_name, const std::string& action);
+    std::variant<VendorContext, CommandResult> resolve_vendor_ctx(uint16_t player_id,
+                                                                  const std::string& item_name,
+                                                                  const std::string& action);
     bool is_username_logged_in(const std::string& username) const;
     LoginOkEvent make_login_ok(const Player& p) const;
     EntitySpawnEvent make_entity_spawn(const Player& p) const;

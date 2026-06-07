@@ -49,11 +49,11 @@ public:
     void set_entity_alpha(uint16_t entity_id, uint8_t alpha);
     void set_movable_alpha(uint8_t alpha);
     void set_local_player_info(Race race, PlayerClass player_class);
-    void update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y = 0, bool static_frame = false);
+    void update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y = 0,
+                                  bool static_frame = false);
     void clear_equipment_overlay(uint8_t slot);
-    void update_entity_equipment_overlay(uint16_t entity_id, uint8_t slot,
-                                         const std::string& path, int offset_y = 0,
-                                         bool static_frame = false);
+    void update_entity_equipment_overlay(uint16_t entity_id, uint8_t slot, const std::string& path,
+                                         int offset_y = 0, bool static_frame = false);
     void clear_entity_equipment_overlay(uint16_t entity_id, uint8_t slot);
     void set_entity_body_sprite(uint16_t entity_id, const std::string& path);
     void reset_entity_body_sprite(uint16_t entity_id);

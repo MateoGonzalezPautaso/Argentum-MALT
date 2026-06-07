@@ -67,8 +67,8 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*attack, "clan_bonus_max", config.attack.clan_bonus_max);
         config.attack.critical_chance =
                 toml_get_double(*attack, "critical_chance", config.attack.critical_chance);
-        config.attack.spell_attack_range_px = toml_get_int(
-                *attack, "spell_attack_range_px", config.attack.spell_attack_range_px);
+        config.attack.spell_attack_range_px =
+                toml_get_int(*attack, "spell_attack_range_px", config.attack.spell_attack_range_px);
     }
 
     if (auto inventory = root["inventory"].as_table()) {
@@ -224,7 +224,7 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*r, "gnome", config.balance.agility.race_agility_factor_gnome);
     }
 
-if (auto ca = root["class_agility_factor"].as_table()) {
+    if (auto ca = root["class_agility_factor"].as_table()) {
         config.balance.agility.class_agility_factor_warrior = toml_get_double(
                 *ca, "warrior", config.balance.agility.class_agility_factor_warrior);
         config.balance.agility.class_agility_factor_paladin = toml_get_double(
@@ -239,7 +239,7 @@ if (auto ca = root["class_agility_factor"].as_table()) {
         auto parse_item_list = [](const toml::table& tbl, const std::string& key) {
             std::vector<ItemType> result;
             if (auto arr = tbl[key].as_array()) {
-                for (const auto& elem : *arr) {
+                for (const auto& elem: *arr) {
                     if (auto val = elem.value<std::string>()) {
                         ItemType type = parse_item_type(*val);
                         if (type != ItemType::NONE) {
@@ -257,20 +257,20 @@ if (auto ca = root["class_agility_factor"].as_table()) {
     }
 
     if (auto merchant = root["merchant"].as_table()) {
-        config.balance.merchant.interaction_range_tiles = toml_get_int(
-                *merchant, "interaction_range_tiles",
-                config.balance.merchant.interaction_range_tiles);
+        config.balance.merchant.interaction_range_tiles =
+                toml_get_int(*merchant, "interaction_range_tiles",
+                             config.balance.merchant.interaction_range_tiles);
         config.balance.merchant.sell_price_ratio = toml_get_double(
                 *merchant, "sell_price_ratio", config.balance.merchant.sell_price_ratio);
     }
 
     if (auto vendors = root["vendors"].as_table()) {
-        for (const auto& [vendor_name, value] : *vendors) {
+        for (const auto& [vendor_name, value]: *vendors) {
             auto arr = value.as_array();
             if (!arr)
                 continue;
             std::unordered_set<ItemType> sold;
-            for (const auto& elem : *arr) {
+            for (const auto& elem: *arr) {
                 if (auto val = elem.value<std::string>()) {
                     ItemType type = parse_item_type(*val);
                     if (type != ItemType::NONE)

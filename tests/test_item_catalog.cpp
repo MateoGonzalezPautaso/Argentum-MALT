@@ -1,6 +1,6 @@
-#include "gtest/gtest.h"
 #include "common/item_catalog.h"
 #include "common/rng.h"
+#include "gtest/gtest.h"
 
 TEST(ItemCatalogTest, ParseItemType_KnownValues) {
     EXPECT_EQ(parse_item_type("SWORD"), ItemType::SWORD);

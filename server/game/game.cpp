@@ -121,7 +121,8 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                         return cheats_enabled ? handle_cheat_add_gold(player_id) : CommandResult{};
                     },
                     [&](const CheatResetGoldCmd&) {
-                        return cheats_enabled ? handle_cheat_reset_gold(player_id) : CommandResult{};
+                        return cheats_enabled ? handle_cheat_reset_gold(player_id) :
+                                                CommandResult{};
                     },
                     [&](const CheatVelocityCmd&) {
                         return cheats_enabled ? handle_cheat_velocity(player_id) : CommandResult{};
@@ -640,13 +641,21 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     const StartingItemsConfig& starting = balance.starting_items;
     const std::vector<ItemType>* items = nullptr;
     switch (cmd.player_class) {
-        case PlayerClass::WARRIOR: items = &starting.warrior; break;
-        case PlayerClass::MAGE: items = &starting.mage; break;
-        case PlayerClass::CLERIC: items = &starting.cleric; break;
-        case PlayerClass::PALADIN: items = &starting.paladin; break;
+        case PlayerClass::WARRIOR:
+            items = &starting.warrior;
+            break;
+        case PlayerClass::MAGE:
+            items = &starting.mage;
+            break;
+        case PlayerClass::CLERIC:
+            items = &starting.cleric;
+            break;
+        case PlayerClass::PALADIN:
+            items = &starting.paladin;
+            break;
     }
     if (items) {
-        for (ItemType type : *items) {
+        for (ItemType type: *items) {
             const Item* def = item_catalog.find(type);
             if (def) {
                 player.add_item(type, def->name);
@@ -671,8 +680,8 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
 
     InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
     p.dump_equipped(equipped_slots);
-    EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1],
-                              equipped_slots[2], equipped_slots[3]};
+    EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1], equipped_slots[2],
+                              equipped_slots[3]};
     private_events.push_back(equip_ev);
 
     CommandResult r;
@@ -1029,7 +1038,7 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
         return result;
     }
 
-    
+
     int san_cx, san_cy;
     std::string target_map;
     uint32_t wait_ticks;
@@ -1187,8 +1196,7 @@ CommandResult Game::handle_npc_buy(uint16_t player_id, const std::string& item_n
             ctx.map->prop_grid().is_in_range_of("comerciante", ctx.px, ctx.py, ctx.range);
 
     if (!near_sacerdote && !near_comerciante) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                         "No hay un sacerdote ni un comerciante cerca"};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un sacerdote ni un comerciante cerca"};
         return {.private_events = {msg}};
     }
 
@@ -1234,8 +1242,9 @@ CommandResult Game::handle_npc_buy(uint16_t player_id, const std::string& item_n
 
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
     GoldUpdateEvent gold_ev{player.get_gold()};
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     "Compraste " + found->name + " por " + std::to_string(found->price) + " de oro"};
+    ChatMsgEvent msg{
+            ChatMsgType::SYSTEM, "",
+            "Compraste " + found->name + " por " + std::to_string(found->price) + " de oro"};
     return {.private_events = {msg, inv_ev, gold_ev}};
 }
 
@@ -1253,8 +1262,7 @@ CommandResult Game::handle_npc_sell(uint16_t player_id, const std::string& item_
 
     const Item* item_def = item_catalog.find_by_name(item_name);
     if (!item_def) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                         "Objeto '" + item_name + "' no encontrado"};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Objeto '" + item_name + "' no encontrado"};
         return {.private_events = {msg}};
     }
 
@@ -1265,7 +1273,7 @@ CommandResult Game::handle_npc_sell(uint16_t player_id, const std::string& item_
 
     std::vector<InventorySlot> slots = player.dump_inventory();
     int found_slot = -1;
-    for (const auto& slot : slots) {
+    for (const auto& slot: slots) {
         if (slot.item_type == item_def->type) {
             found_slot = slot.slot_index;
             break;

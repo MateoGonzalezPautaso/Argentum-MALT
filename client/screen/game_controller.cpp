@@ -32,7 +32,7 @@ GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& c
         hand_cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND)),
         arrow_cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW)) {
     world_renderer.set_direction_src_y(config.dir_src_y_down, config.dir_src_y_up,
-                                        config.dir_src_y_left, config.dir_src_y_right);
+                                       config.dir_src_y_left, config.dir_src_y_right);
 }
 
 GameController::~GameController() {
@@ -68,49 +68,50 @@ void GameController::render() {
 }
 
 void GameController::apply_server_event(const ServerEvent& ev) {
-    std::visit(overloaded{
-                       [this](const EntityMoveEvent& e) { handle_entity_move(e); },
-                       [this](const EntitySpawnEvent& e) { handle_entity_spawn(e); },
-                       [this](const LoginOkEvent& e) { handle_login_ok(e); },
-                       [this](const EntityDespawnEvent& e) { handle_entity_despawn(e); },
-                       [this](const DamageReceivedEvent& e) {
-                           audio_manager.play_sfx("hit");
-                           handle_damage_received(e);
-                       },
-                       [this](const DamageDealtEvent&) {
-                           auto weapon = player_stats.equipped[0].item_type;
-                           auto it = weapon_sounds.find(weapon);
-                           if (it != weapon_sounds.end()) {
-                               audio_manager.play_sfx(it->second);
-                           }
-                       },
-                       [this](const AttackDodgedEvent& e) { handle_attack_dodged(e); },
-                       [this](const ChatMsgEvent& e) { handle_chat_msg(e); },
-                       [this](const EntityDiedEvent& e) { handle_entity_died(e); },
-                       [this](const MeditationStartEvent&) { audio_manager.play_sfx("meditate"); },
-                       [this](const PlayerRespawnedEvent& e) { handle_player_respawned(e); },
-                       [this](const ClanNotificationEvent& e) { handle_clan_notification(e); },
-                       [this](const ClanUpdateEvent& e) { handle_clan_update(e); },
-                       [this](const MapTransitionEvent& e) { handle_map_transition(e); },
-                       [this](const HealReceivedEvent& e) { handle_heal_received(e); },
-                       [this](const InventoryUpdateEvent& e) { handle_inventory_update(e); },
-                       [this](const EquipUpdateEvent& e) { handle_equip_update(e); },
-                       [this](const PlayerStatsEvent& e) { handle_player_stats(e); },
-                        [this](const SpellEffectEvent& e) {
-                            int wx, wy;
-                            if (e.target_id == player_stats.player_id) {
-                                world_renderer.get_movable_position(wx, wy);
-                                wx += world_renderer.movable_w() / 2;
-                                wy += world_renderer.movable_h() / 2;
-                            } else if (!world_renderer.get_entity_world_position(e.target_id, wx, wy)) {
-                                return;
-                            }
-                            world_renderer.trigger_spell_effect(e.effect_type, wx, wy);
-                        },
-                        [this](const GoldUpdateEvent& e) { player_stats.gold = e.gold; },
-                        [](const auto&) {},
-               },
-               ev);
+    std::visit(
+            overloaded{
+                    [this](const EntityMoveEvent& e) { handle_entity_move(e); },
+                    [this](const EntitySpawnEvent& e) { handle_entity_spawn(e); },
+                    [this](const LoginOkEvent& e) { handle_login_ok(e); },
+                    [this](const EntityDespawnEvent& e) { handle_entity_despawn(e); },
+                    [this](const DamageReceivedEvent& e) {
+                        audio_manager.play_sfx("hit");
+                        handle_damage_received(e);
+                    },
+                    [this](const DamageDealtEvent&) {
+                        auto weapon = player_stats.equipped[0].item_type;
+                        auto it = weapon_sounds.find(weapon);
+                        if (it != weapon_sounds.end()) {
+                            audio_manager.play_sfx(it->second);
+                        }
+                    },
+                    [this](const AttackDodgedEvent& e) { handle_attack_dodged(e); },
+                    [this](const ChatMsgEvent& e) { handle_chat_msg(e); },
+                    [this](const EntityDiedEvent& e) { handle_entity_died(e); },
+                    [this](const MeditationStartEvent&) { audio_manager.play_sfx("meditate"); },
+                    [this](const PlayerRespawnedEvent& e) { handle_player_respawned(e); },
+                    [this](const ClanNotificationEvent& e) { handle_clan_notification(e); },
+                    [this](const ClanUpdateEvent& e) { handle_clan_update(e); },
+                    [this](const MapTransitionEvent& e) { handle_map_transition(e); },
+                    [this](const HealReceivedEvent& e) { handle_heal_received(e); },
+                    [this](const InventoryUpdateEvent& e) { handle_inventory_update(e); },
+                    [this](const EquipUpdateEvent& e) { handle_equip_update(e); },
+                    [this](const PlayerStatsEvent& e) { handle_player_stats(e); },
+                    [this](const SpellEffectEvent& e) {
+                        int wx, wy;
+                        if (e.target_id == player_stats.player_id) {
+                            world_renderer.get_movable_position(wx, wy);
+                            wx += world_renderer.movable_w() / 2;
+                            wy += world_renderer.movable_h() / 2;
+                        } else if (!world_renderer.get_entity_world_position(e.target_id, wx, wy)) {
+                            return;
+                        }
+                        world_renderer.trigger_spell_effect(e.effect_type, wx, wy);
+                    },
+                    [this](const GoldUpdateEvent& e) { player_stats.gold = e.gold; },
+                    [](const auto&) {},
+            },
+            ev);
 }
 
 void GameController::handle_entity_move(const EntityMoveEvent& e) {
@@ -337,9 +338,8 @@ void GameController::handle_equip_update(const EquipUpdateEvent& e) {
             auto it = config.equip_overlays.find(static_cast<uint8_t>(type));
             if (it != config.equip_overlays.end()) {
                 if (is_local) {
-                    world_renderer.update_equipment_overlay(slot, it->second.path,
-                                                           it->second.offset_y,
-                                                           it->second.static_frame);
+                    world_renderer.update_equipment_overlay(
+                            slot, it->second.path, it->second.offset_y, it->second.static_frame);
                 } else {
                     world_renderer.update_entity_equipment_overlay(
                             e.entity_id, slot, it->second.path, it->second.offset_y,

@@ -86,11 +86,10 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
                                                        static_cast<int>(attacker.get_level()) + 10,
                                                0));
 
-    CommandResult result =
-            notify_entity_attacked(attacker, target_id, damage, target.get_hp_current(),
-                                   target.get_hp_max(), target.get_username(),
-                                   target.get_clan_name(), target.is_dead(), target.get_level(),
-                                   esquivado);
+    CommandResult result = notify_entity_attacked(attacker, target_id, damage,
+                                                  target.get_hp_current(), target.get_hp_max(),
+                                                  target.get_username(), target.get_clan_name(),
+                                                  target.is_dead(), target.get_level(), esquivado);
 
     if (target.is_dead()) {
         target.lose_experience_on_death();
@@ -141,7 +140,8 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
     if (weapon_def2 && weapon_def2->attack_range > 0)
         range = weapon_def2->attack_range;
 
-    if (!in_range(attacker.pos_x(), attacker.pos_y(), npc_target.pos_x(), npc_target.pos_y(), range))
+    if (!in_range(attacker.pos_x(), attacker.pos_y(), npc_target.pos_x(), npc_target.pos_y(),
+                  range))
         return {};
 
     uint32_t damage = calculate_damage(attacker);
@@ -155,10 +155,9 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
                                                0));
 
     bool esquivado_npc = false;
-    CommandResult result =
-            notify_entity_attacked(attacker, npc_target_id, damage, npc_target.get_hp_current(),
-                                   npc_target.get_hp_max(), npc_target.get_name(), "",
-                                   npc_target.is_dead(), npc_target.get_level(), esquivado_npc);
+    CommandResult result = notify_entity_attacked(
+            attacker, npc_target_id, damage, npc_target.get_hp_current(), npc_target.get_hp_max(),
+            npc_target.get_name(), "", npc_target.is_dead(), npc_target.get_level(), esquivado_npc);
 
     if (npc_target.is_dead()) {
         EnemyDrop drop = npc_target.get_kill_reward();
@@ -235,11 +234,10 @@ CommandResult CombatController::spell_attack_player(uint16_t attacker_id, uint16
                                                        static_cast<int>(attacker.get_level()) + 10,
                                                0));
 
-    CommandResult result =
-            notify_entity_attacked(attacker, target_id, damage, target.get_hp_current(),
-                                   target.get_hp_max(), target.get_username(),
-                                   target.get_clan_name(), target.is_dead(), target.get_level(),
-                                   esquivado);
+    CommandResult result = notify_entity_attacked(attacker, target_id, damage,
+                                                  target.get_hp_current(), target.get_hp_max(),
+                                                  target.get_username(), target.get_clan_name(),
+                                                  target.is_dead(), target.get_level(), esquivado);
 
     if (target.is_dead()) {
         target.lose_experience_on_death();
@@ -265,8 +263,7 @@ CommandResult CombatController::spell_attack_player(uint16_t attacker_id, uint16
 }
 
 CommandResult CombatController::spell_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,
-                                                 std::map<uint16_t, EnemyNpc>& npcs,
-                                                 uint32_t) {
+                                                 std::map<uint16_t, EnemyNpc>& npcs, uint32_t) {
     auto attacker_it = players.find(attacker_id);
     if (attacker_it == players.end())
         return {};
@@ -295,10 +292,9 @@ CommandResult CombatController::spell_attack_npc(uint16_t attacker_id, uint16_t 
                                                        static_cast<int>(attacker.get_level()) + 10,
                                                0));
 
-    CommandResult result =
-            notify_entity_attacked(attacker, npc_target_id, damage, npc_target.get_hp_current(),
-                                   npc_target.get_hp_max(), npc_target.get_name(), "",
-                                   npc_target.is_dead(), npc_target.get_level(), false);
+    CommandResult result = notify_entity_attacked(
+            attacker, npc_target_id, damage, npc_target.get_hp_current(), npc_target.get_hp_max(),
+            npc_target.get_name(), "", npc_target.is_dead(), npc_target.get_level(), false);
 
     if (npc_target.is_dead()) {
         EnemyDrop drop = npc_target.get_kill_reward();
@@ -401,13 +397,10 @@ double CombatController::get_clan_bonus(const Player& player) const {
     return std::min(config.clan_bonus_per_member * nearby_allies, config.clan_bonus_max);
 }
 
-CommandResult CombatController::notify_entity_attacked(Player& attacker, uint16_t target_id,
-                                                       uint32_t damage, uint32_t target_hp_current,
-                                                       uint32_t target_hp_max,
-                                                       const std::string& target_name,
-                                                       const std::string& target_clan_name,
-                                                       bool target_is_dead, uint8_t target_level,
-                                                       bool esquivado) {
+CommandResult CombatController::notify_entity_attacked(
+        Player& attacker, uint16_t target_id, uint32_t damage, uint32_t target_hp_current,
+        uint32_t target_hp_max, const std::string& target_name, const std::string& target_clan_name,
+        bool target_is_dead, uint8_t target_level, bool esquivado) {
     DamageDealtEvent dealt{attacker.get_id(), damage};
     std::vector<ServerEvent> broadcast;
     std::map<uint16_t, std::vector<ServerEvent>> targeted;

@@ -61,7 +61,8 @@ public:
     void set_local_player_info(Race race, PlayerClass player_class);
     void set_skin_config(const SkinConfig& skin_config);
 
-    void update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y = 0, bool static_frame = false);
+    void update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y = 0,
+                                  bool static_frame = false);
     void clear_equipment_overlay(uint8_t slot);
     void update_entity_equipment_overlay(uint16_t entity_id, uint8_t slot, const std::string& path,
                                          int offset_y = 0, bool static_frame = false);
