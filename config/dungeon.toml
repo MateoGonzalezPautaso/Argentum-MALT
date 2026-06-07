@@ -1,3 +1,6 @@
+[metadata]
+type = "dungeon"
+
 [prop.prop_map]
 data = [
     [ '', 'huesos1', '', '', '', '', 'arbol_dung2', '', 'pinchos2', '', '', '', '', '', '', '', '', '', '', '' ],

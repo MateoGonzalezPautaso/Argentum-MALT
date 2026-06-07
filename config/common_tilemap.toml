@@ -1,3 +1,6 @@
+[metadata]
+type = 'city'
+
 [prop.prop_map]
 data = [
     [ '', 'arbol6', '', '', '', 'arbol4', 'arbol9', '', '', '', '', '', '', 'banderita', '', '', '', '', '', '' ],
@@ -552,9 +555,6 @@ width = 27
 height = 545
 paths = [ 'assets/Graficos/5097.png' ]
 width = 670
-transition_map = "dungeon"
-transition_x = 640
-transition_y = 640
 
     [prop.tiles.entrada_dungeon.hitbox]
     h = 300

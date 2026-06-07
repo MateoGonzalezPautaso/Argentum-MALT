@@ -48,6 +48,7 @@ private:
 
     void update_title();
     void change_map_type(QAction* action);
+    bool validate_city_map() const;
 
     TilemapDocument doc_;
     AtlasLoader atlas_loader_;

@@ -298,7 +298,45 @@ void MainWindow::destroy_drag_preview() {
     }
 }
 
+bool MainWindow::validate_city_map() const {
+    if (doc_.config().map_type != MapType::CITY) {
+        return true;
+    }
+
+    bool has_merchant = false;
+    bool has_banker = false;
+    bool has_priest = false;
+
+    for (const auto& row : doc_.config().prop_map) {
+        for (const auto& cell : row) {
+            if (cell == "comerciante") has_merchant = true;
+            if (cell == "banquero")    has_banker = true;
+            if (cell == "sacerdote")   has_priest = true;
+        }
+    }
+
+    QStringList missing;
+    if (!has_merchant) missing << "comerciante";
+    if (!has_banker)   missing << "banquero";
+    if (!has_priest)   missing << "sacerdote";
+
+    if (missing.isEmpty()) {
+        return true;
+    }
+
+    QMessageBox::critical(
+            const_cast<MainWindow*>(this), "Cannot save City map",
+            QString("A City map must contain the following NPCs:\n\n"
+                    "  - %1\n\n"
+                    "Please place them on the map before saving.")
+                    .arg(missing.join("\n  - ")));
+    return false;
+}
+
 void MainWindow::save_map() {
+    if (!validate_city_map()) {
+        return;
+    }
     if (file_manager_->save(doc_)) {
         update_title();
         statusBar()->showMessage(QString("Saved to %1").arg(QString::fromStdString(doc_.path())),
@@ -307,6 +345,9 @@ void MainWindow::save_map() {
 }
 
 void MainWindow::save_map_as() {
+    if (!validate_city_map()) {
+        return;
+    }
     if (file_manager_->save_as(doc_)) {
         update_title();
         statusBar()->showMessage(QString("Saved to %1").arg(QString::fromStdString(doc_.path())),
