@@ -13,9 +13,12 @@
 #include <utility>
 #include <vector>
 
-TilePalette::TilePalette(TilemapConfig& config,
-                         const std::unordered_map<std::string, QPixmap>& atlases, QWidget* parent):
-        QWidget(parent), config_(config), atlases_(atlases) {
+TilePalette::TilePalette(const TilemapConfig& config,
+                         const std::unordered_map<std::string, QPixmap>& atlases,
+                         std::function<void(const std::string&, bool)> on_toggle_walkable,
+                         QWidget* parent):
+        QWidget(parent), config_(config), atlases_(atlases),
+        on_toggle_walkable_(std::move(on_toggle_walkable)) {
     auto* layout = new QVBoxLayout(this);
     layout->setContentsMargins(4, 4, 4, 4);
 
@@ -210,20 +213,18 @@ void TilePalette::toggle_walkable(const std::string& name) {
     if (it == config_.tiles.end())
         return;
 
-    it->second.walkable = !it->second.walkable;
+    bool new_value = !it->second.walkable;
+    if (on_toggle_walkable_)
+        on_toggle_walkable_(name, new_value);
 
     auto btn_it = tile_buttons_.find(name);
     if (btn_it != tile_buttons_.end()) {
-        update_button_visual(btn_it->second, name);
+        update_button_visual(btn_it->second, name, new_value);
     }
 }
 
-void TilePalette::update_button_visual(QToolButton* btn, const std::string& name) const {
-    auto it = config_.tiles.find(name);
-    if (it == config_.tiles.end())
-        return;
-
-    const auto& def = it->second;
-    btn->setToolTip(QString::fromStdString(name + (def.walkable ? " (walkable)" : " (blocked)")));
-    btn->setStyleSheet(def.walkable ? "" : "QToolButton { border: 2px solid red; }");
+void TilePalette::update_button_visual(QToolButton* btn, const std::string& name,
+                                       bool walkable) const {
+    btn->setToolTip(QString::fromStdString(name + (walkable ? " (walkable)" : " (blocked)")));
+    btn->setStyleSheet(walkable ? "" : "QToolButton { border: 2px solid red; }");
 }

@@ -56,6 +56,12 @@ bool TilemapDocument::is_mob_spawn_zone(int row, int col) const {
     return config_.mob_spawn_zones[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)];
 }
 
+void TilemapDocument::set_tile_walkable(const std::string& name, bool walkable) {
+    auto it = config_.tiles.find(name);
+    if (it != config_.tiles.end())
+        it->second.walkable = walkable;
+}
+
 void TilemapDocument::set_mob_spawn_zone(int row, int col, bool value) {
     config_.mob_spawn_zones[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = value;
 }

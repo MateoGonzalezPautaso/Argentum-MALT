@@ -28,7 +28,9 @@ public:
     }
 
     const TilemapConfig& config() const { return config_; }
-    TilemapConfig& config() { return config_; }
+
+    void set_map_type(MapType t) { config_.map_type = t; }
+    void set_tile_walkable(const std::string& name, bool walkable);
     const std::string& path() const { return path_; }
     void set_path(const std::string& path) { path_ = path; }
 

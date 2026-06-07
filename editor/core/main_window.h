@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <string>
+#include <vector>
 
 #include "../document/tilemap_document.h"
 #include "../input/map_interaction.h"
@@ -53,6 +54,10 @@ private:
     void toggle_spawn_zone_mode();
     void toggle_spawn_overlay();
     bool validate_city_map() const;
+
+    static inline const std::vector<std::string> kCityRequiredNpcs = {
+        "comerciante", "banquero", "sacerdote"
+    };
 
     TilemapConfig default_tile_config_;
     TilemapDocument doc_;

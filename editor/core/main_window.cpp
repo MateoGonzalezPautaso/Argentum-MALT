@@ -41,7 +41,8 @@ MainWindow::MainWindow(const std::string& config_path, QWidget* parent): QMainWi
         toml::table root = toml::parse_file("config/common_tilemap.toml");
         parse_tilemap_config(root, default_tile_config_);
         parse_prop_config(root, default_tile_config_);
-    } catch (...) {
+    } catch (const std::exception& e) {
+        qWarning("Failed to load default tile config: %s", e.what());
     }
 
     atlas_loader_.load(doc_.config());
@@ -79,7 +80,10 @@ void MainWindow::setup_ui() {
 
     splitter_->addWidget(canvas_container);
 
-    palette_ = new TilePalette(doc_.config(), atlas_loader_.all(), this);
+    palette_ = new TilePalette(doc_.config(), atlas_loader_.all(),
+                               [this](const std::string& name, bool walkable) {
+                                   doc_.set_tile_walkable(name, walkable);
+                               }, this);
     splitter_->addWidget(palette_);
 
     connect_palette_signals();
@@ -202,7 +206,10 @@ void MainWindow::full_rebuild() {
 
 void MainWindow::rebuild_palette() {
     delete palette_;
-    palette_ = new TilePalette(doc_.config(), atlas_loader_.all(), this);
+    palette_ = new TilePalette(doc_.config(), atlas_loader_.all(),
+                               [this](const std::string& name, bool walkable) {
+                                   doc_.set_tile_walkable(name, walkable);
+                               }, this);
     splitter_->addWidget(palette_);
     connect_palette_signals();
 }
@@ -354,22 +361,20 @@ bool MainWindow::validate_city_map() const {
         return true;
     }
 
-    bool has_merchant = false;
-    bool has_banker = false;
-    bool has_priest = false;
-
-    for (const auto& row : doc_.config().prop_map) {
-        for (const auto& cell : row) {
-            if (cell == "comerciante") has_merchant = true;
-            if (cell == "banquero")    has_banker = true;
-            if (cell == "sacerdote")   has_priest = true;
-        }
-    }
-
     QStringList missing;
-    if (!has_merchant) missing << "comerciante";
-    if (!has_banker)   missing << "banquero";
-    if (!has_priest)   missing << "sacerdote";
+    for (const auto& npc : kCityRequiredNpcs) {
+        bool found = false;
+        for (const auto& row : doc_.config().prop_map) {
+            for (const auto& cell : row) {
+                if (cell == npc) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found) break;
+        }
+        if (!found) missing << QString::fromStdString(npc);
+    }
 
     if (missing.isEmpty()) {
         return true;
@@ -486,7 +491,7 @@ void MainWindow::update_title() {
 
 void MainWindow::change_map_type(QAction* action) {
     auto type = static_cast<MapType>(action->data().toInt());
-    doc_.config().map_type = type;
+    doc_.set_map_type(type);
     update_title();
     statusBar()->showMessage(QString("Map type changed to %1")
                                      .arg(action->text().toLower()), 3000);
