@@ -17,6 +17,8 @@ public:
     void set_tile(int row, int col, const std::string& name);
     const std::string& prop_name(int row, int col) const;
     void set_prop(int row, int col, const std::string& name);
+    bool is_mob_spawn_zone(int row, int col) const;
+    void set_mob_spawn_zone(int row, int col, bool value);
     void resize(int new_rows, int new_cols, const std::string& default_tile = "");
     void create_new(int rows, int cols, const TilemapConfig& tile_config,
                     MapType map_type = MapType::NONE);

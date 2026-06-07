@@ -19,6 +19,10 @@ void TilemapDocument::load(const std::string& path) {
         config_.prop_map.resize(config_.mapa.size(),
                                 std::vector<std::string>(config_.mapa[0].size(), ""));
     }
+    if (config_.mob_spawn_zones.empty()) {
+        config_.mob_spawn_zones.resize(config_.mapa.size(),
+                                       std::vector<bool>(config_.mapa[0].size(), false));
+    }
     path_ = path;
 }
 
@@ -48,6 +52,14 @@ void TilemapDocument::set_prop(int row, int col, const std::string& name) {
     config_.prop_map[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = name;
 }
 
+bool TilemapDocument::is_mob_spawn_zone(int row, int col) const {
+    return config_.mob_spawn_zones[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)];
+}
+
+void TilemapDocument::set_mob_spawn_zone(int row, int col, bool value) {
+    config_.mob_spawn_zones[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = value;
+}
+
 void TilemapDocument::resize(int new_rows, int new_cols, const std::string& default_tile) {
     config_.mapa.resize(static_cast<std::size_t>(new_rows));
     for (auto& row: config_.mapa) {
@@ -56,6 +68,10 @@ void TilemapDocument::resize(int new_rows, int new_cols, const std::string& defa
     config_.prop_map.resize(static_cast<std::size_t>(new_rows));
     for (auto& row: config_.prop_map) {
         row.resize(static_cast<std::size_t>(new_cols), "");
+    }
+    config_.mob_spawn_zones.resize(static_cast<std::size_t>(new_rows));
+    for (auto& row: config_.mob_spawn_zones) {
+        row.resize(static_cast<std::size_t>(new_cols), false);
     }
 }
 
@@ -70,6 +86,8 @@ void TilemapDocument::create_new(int rows, int cols, const TilemapConfig& tile_c
     config_.props = tile_config.props;
     config_.prop_map.assign(static_cast<std::size_t>(rows),
                             std::vector<std::string>(static_cast<std::size_t>(cols), ""));
+    config_.mob_spawn_zones.assign(static_cast<std::size_t>(rows),
+                                   std::vector<bool>(static_cast<std::size_t>(cols), false));
     config_.map_type = map_type;
     path_.clear();
 }
@@ -112,6 +130,25 @@ void TilemapDocument::save(const std::string& path) const {
         std::string type_str = config_.map_type == MapType::CITY ? "city" : "dungeon";
         metadata.emplace("type", type_str);
         root.emplace("metadata", std::move(metadata));
+    }
+
+    auto row_has_zone = [](const auto& row) {
+        return std::any_of(row.begin(), row.end(), [](bool v) { return v; });
+    };
+    bool has_zones = std::any_of(config_.mob_spawn_zones.begin(),
+                                  config_.mob_spawn_zones.end(), row_has_zone);
+    if (has_zones) {
+        toml::array zones_grid;
+        for (const auto& row : config_.mob_spawn_zones) {
+            toml::array row_array;
+            for (bool v : row) {
+                row_array.push_back(v);
+            }
+            zones_grid.push_back(std::move(row_array));
+        }
+        toml::table zones_tbl;
+        zones_tbl.emplace("data", std::move(zones_grid));
+        root.emplace("mob_spawn_zones", std::move(zones_tbl));
     }
 
     if (!config_.props.empty()) {
