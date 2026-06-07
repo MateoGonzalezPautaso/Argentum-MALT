@@ -88,6 +88,7 @@ mana_cost = 0
 min_defense = 0
 max_defense = 0
 price = 70
+attack_range = 400
 
 [[item]]
 item_type = "COMPOSITE_BOW"
@@ -99,6 +100,7 @@ mana_cost = 0
 min_defense = 0
 max_defense = 0
 price = 200
+attack_range = 400
 
 [[item]]
 item_type = "LEATHER_ARMOR"

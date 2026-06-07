@@ -173,6 +173,10 @@ void ServerProtocol::send_entity_spawn(const EntitySpawnEvent& ev) {
     protocol.send_str(ev.entity_name);
     protocol.send_uint8(static_cast<uint8_t>(ev.entity_race));
     protocol.send_uint8(static_cast<uint8_t>(ev.entity_class));
+    protocol.send_uint8(static_cast<uint8_t>(ev.weapon_type));
+    protocol.send_uint8(static_cast<uint8_t>(ev.armor_type));
+    protocol.send_uint8(static_cast<uint8_t>(ev.helmet_type));
+    protocol.send_uint8(static_cast<uint8_t>(ev.shield_type));
 }
 
 void ServerProtocol::send_entity_despawn(const EntityDespawnEvent& ev) {
@@ -300,6 +304,7 @@ void ServerProtocol::send_gold_update(const GoldUpdateEvent& ev) {
 
 void ServerProtocol::send_equip_update(const EquipUpdateEvent& ev) {
     protocol.send_opcode(OpCode::EQUIP_UPDATE);
+    protocol.send_uint16(ev.entity_id);
     const InventorySlot* slots[EQUIP_SLOT_COUNT] = {&ev.weapon, &ev.armor, &ev.helmet, &ev.shield};
     for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
         protocol.send_uint8(static_cast<uint8_t>(slots[i]->item_type));

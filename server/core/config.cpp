@@ -224,7 +224,7 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*r, "gnome", config.balance.agility.race_agility_factor_gnome);
     }
 
-    if (auto ca = root["class_agility_factor"].as_table()) {
+if (auto ca = root["class_agility_factor"].as_table()) {
         config.balance.agility.class_agility_factor_warrior = toml_get_double(
                 *ca, "warrior", config.balance.agility.class_agility_factor_warrior);
         config.balance.agility.class_agility_factor_paladin = toml_get_double(
@@ -233,6 +233,27 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*ca, "cleric", config.balance.agility.class_agility_factor_cleric);
         config.balance.agility.class_agility_factor_mage =
                 toml_get_double(*ca, "mage", config.balance.agility.class_agility_factor_mage);
+    }
+
+    if (auto si = root["starting_items"].as_table()) {
+        auto parse_item_list = [](const toml::table& tbl, const std::string& key) {
+            std::vector<ItemType> result;
+            if (auto arr = tbl[key].as_array()) {
+                for (const auto& elem : *arr) {
+                    if (auto val = elem.value<std::string>()) {
+                        ItemType type = parse_item_type(*val);
+                        if (type != ItemType::NONE) {
+                            result.push_back(type);
+                        }
+                    }
+                }
+            }
+            return result;
+        };
+        config.balance.starting_items.warrior = parse_item_list(*si, "warrior");
+        config.balance.starting_items.mage = parse_item_list(*si, "mage");
+        config.balance.starting_items.paladin = parse_item_list(*si, "paladin");
+        config.balance.starting_items.cleric = parse_item_list(*si, "cleric");
     }
 
     return config;
