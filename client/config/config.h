@@ -224,6 +224,13 @@ private:
     }
 };
 
+struct EquipOverlayDef {
+    ItemType item_type = ItemType::NONE;
+    std::string path;
+    int offset_y = 0;
+    bool static_frame = false;
+};
+
 struct SfxConfig {
     std::unordered_map<std::string, std::string> sounds;
 };
@@ -240,6 +247,7 @@ struct ClientConfig {
     ViewportConfig viewport;
     UIConfig ui;
     std::unordered_map<uint8_t, ItemSpriteDef> item_sprites;
+    std::unordered_map<uint8_t, EquipOverlayDef> equip_overlays;
     int move_step = 4;
     int walk_src_step = 30;
     int walk_src_frames = 6;

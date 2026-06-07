@@ -328,6 +328,10 @@ struct EntitySpawnEvent {
     std::string entity_name;
     Race entity_race;
     PlayerClass entity_class;
+    ItemType weapon_type = ItemType::NONE;
+    ItemType armor_type = ItemType::NONE;
+    ItemType helmet_type = ItemType::NONE;
+    ItemType shield_type = ItemType::NONE;
 };
 
 // 0x87
@@ -385,6 +389,7 @@ struct InventoryUpdateEvent {
 
 // 0x91
 struct EquipUpdateEvent {
+    uint16_t entity_id = 0;
     InventorySlot weapon;
     InventorySlot armor;
     InventorySlot helmet;

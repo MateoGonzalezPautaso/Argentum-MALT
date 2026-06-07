@@ -417,6 +417,80 @@ color_r = 40
 color_g = 140
 color_b = 60
 
+[[equip_overlays]]
+item_type = "SWORD"
+path = "assets/Graficos/2101.png"
+
+[[equip_overlays]]
+item_type = "AXE"
+path = "assets/Graficos/2087.png"
+
+[[equip_overlays]]
+item_type = "HAMMER"
+path = "assets/Graficos/2084.png"
+
+[[equip_overlays]]
+item_type = "ASH_STAFF"
+path = "assets/Graficos/2019.png"
+
+[[equip_overlays]]
+item_type = "ELVEN_FLUTE"
+path = "assets/Graficos/2089.png"
+
+[[equip_overlays]]
+item_type = "KNOTTED_STAFF"
+path = "assets/Graficos/2016.png"
+
+[[equip_overlays]]
+item_type = "STUDDED_STAFF"
+path = "assets/Graficos/2013.png"
+
+[[equip_overlays]]
+item_type = "SIMPLE_BOW"
+path = "assets/Graficos/2044.png"
+
+[[equip_overlays]]
+item_type = "COMPOSITE_BOW"
+path = "assets/Graficos/2045.png"
+
+[[equip_overlays]]
+item_type = "LEATHER_ARMOR"
+path = "assets/Graficos/1860.png"
+
+[[equip_overlays]]
+item_type = "PLATE_ARMOR"
+path = "assets/Graficos/1854.png"
+
+[[equip_overlays]]
+item_type = "BLUE_TUNIC"
+path = "assets/Graficos/1981.png"
+
+[[equip_overlays]]
+item_type = "TURTLE_SHIELD"
+path = "assets/Graficos/2368.png"
+
+[[equip_overlays]]
+item_type = "IRON_SHIELD"
+path = "assets/Graficos/2322.png"
+
+[[equip_overlays]]
+item_type = "HOOD"
+path = "assets/Graficos/helmet_hood.png"
+offset_y = -20
+static = true
+
+[[equip_overlays]]
+item_type = "IRON_HELMET"
+path = "assets/Graficos/helmet_iron.png"
+offset_y = -20
+static = true
+
+[[equip_overlays]]
+item_type = "MAGIC_HAT"
+path = "assets/Graficos/helmet_magic_hat.png"
+offset_y = -20
+static = true
+
 [sfx]
 death = "11.ogg"
 meditate = "20.ogg"

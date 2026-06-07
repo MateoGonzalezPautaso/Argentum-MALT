@@ -91,6 +91,13 @@ struct HpConfig {
     double class_hp_factor_mage = 0.8;
 };
 
+struct StartingItemsConfig {
+    std::vector<ItemType> warrior;
+    std::vector<ItemType> mage;
+    std::vector<ItemType> paladin;
+    std::vector<ItemType> cleric;
+};
+
 struct InventoryConfig {
     int max_slots = 20;
 };
@@ -111,6 +118,7 @@ struct BalanceConfig {
     ManaConfig mana;
     StrengthConfig strength;
     AgilityConfig agility;
+    StartingItemsConfig starting_items;
 };
 
 struct ServerConfig {

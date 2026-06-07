@@ -95,6 +95,7 @@ void ItemCatalog::load_from_file(const std::string& path) {
         item.max_defense = static_cast<uint8_t>(toml_get_int(*tbl, "max_defense", 0));
         item.spell_effect_id = static_cast<uint8_t>(toml_get_int(*tbl, "spell_effect_id", 0));
         item.price = static_cast<uint32_t>(toml_get_int(*tbl, "price", 0));
+        item.attack_range = static_cast<uint16_t>(toml_get_int(*tbl, "attack_range", 0));
 
         items_.push_back(item);
     }

@@ -229,3 +229,230 @@ TEST(PlayerTest, TryAttack_AllowsAfterCooldown) {
     p.try_attack(0, 10);
     EXPECT_TRUE(p.try_attack(10, 10));
 }
+
+// ─────────────────────────────────────────────────────────────
+// equip / unequip
+// ─────────────────────────────────────────────────────────────
+
+namespace {
+
+ItemCatalog make_test_catalog() {
+    ItemCatalog catalog;
+
+    Item sword;
+    sword.type = ItemType::SWORD;
+    sword.name = "Espada";
+    sword.equip_slot = EquipSlot::WEAPON;
+    catalog.add(sword);
+
+    Item armor;
+    armor.type = ItemType::LEATHER_ARMOR;
+    armor.name = "Armadura";
+    armor.equip_slot = EquipSlot::ARMOR;
+    catalog.add(armor);
+
+    Item health_potion;
+    health_potion.type = ItemType::HEALTH_POTION;
+    health_potion.name = "Pocion";
+    health_potion.equip_slot = EquipSlot::CONSUMABLE;
+    catalog.add(health_potion);
+
+    Item mana_potion;
+    mana_potion.type = ItemType::MANA_POTION;
+    mana_potion.name = "Mana";
+    mana_potion.equip_slot = EquipSlot::CONSUMABLE;
+    catalog.add(mana_potion);
+
+    Item helmet;
+    helmet.type = ItemType::IRON_HELMET;
+    helmet.name = "Casco";
+    helmet.equip_slot = EquipSlot::HELMET;
+    catalog.add(helmet);
+
+    return catalog;
+}
+
+}  // namespace
+
+TEST(PlayerTest, Equip_InvalidSlotIndexReturnsFalse) {
+    auto p = make_player();
+    ItemCatalog catalog = make_test_catalog();
+    EXPECT_FALSE(p.equip(99, catalog));
+}
+
+TEST(PlayerTest, Equip_EmptySlotReturnsFalse) {
+    auto p = make_player();
+    ItemCatalog catalog = make_test_catalog();
+    EXPECT_FALSE(p.equip(0, catalog));
+}
+
+TEST(PlayerTest, Equip_ItemNotInCatalogReturnsFalse) {
+    auto p = make_player();
+    p.add_item(ItemType::AXE, "Hacha");
+    ItemCatalog catalog;
+    EXPECT_FALSE(p.equip(0, catalog));
+}
+
+TEST(PlayerTest, Equip_SuccessMovesItemToEquippedSlot) {
+    auto p = make_player();
+    ItemCatalog catalog = make_test_catalog();
+    p.add_item(ItemType::SWORD, "Espada");
+    EXPECT_TRUE(p.equip(0, catalog));
+
+    const InventorySlot& slot = p.get_equipped(EquipSlot::WEAPON);
+    EXPECT_EQ(slot.item_type, ItemType::SWORD);
+    EXPECT_EQ(slot.item_name, "Espada");
+
+    EXPECT_TRUE(p.dump_inventory()[0].item_type == ItemType::NONE);
+}
+
+TEST(PlayerTest, Equip_ReplacesExistingEquippedItem) {
+    auto p = make_player();
+    ItemCatalog catalog = make_test_catalog();
+
+    p.add_item(ItemType::SWORD, "Espada");
+    p.equip(0, catalog);  // WEAPON = Espada, inventory slot 0 now empty
+
+    p.add_item(ItemType::SWORD, "SegundaEspada");  // goes to slot 0
+    p.equip(0, catalog);  // WEAPON = SegundaEspada, old goes to slot 0
+
+    const InventorySlot& weapon_slot = p.get_equipped(EquipSlot::WEAPON);
+    EXPECT_EQ(weapon_slot.item_type, ItemType::SWORD);
+    EXPECT_EQ(weapon_slot.item_name, "SegundaEspada");
+
+    InventorySlot inv_slot = p.dump_inventory()[0];
+    EXPECT_EQ(inv_slot.item_type, ItemType::SWORD);
+    EXPECT_EQ(inv_slot.item_name, "Espada");
+}
+
+TEST(PlayerTest, Equip_ConsumableHealthPotionHealsToFull) {
+    auto p = make_player();
+    ItemCatalog catalog = make_test_catalog();
+
+    p.take_damage(50);
+    ASSERT_LT(p.get_hp_current(), p.get_hp_max());
+
+    p.add_item(ItemType::HEALTH_POTION, "Pocion");
+    EXPECT_TRUE(p.equip(0, catalog));
+
+    EXPECT_EQ(p.get_hp_current(), p.get_hp_max());
+    EXPECT_TRUE(p.dump_inventory()[0].item_type == ItemType::NONE);
+}
+
+TEST(PlayerTest, Equip_ConsumableManaPotionRestoresMana) {
+    auto p = make_mage_player();
+    ItemCatalog catalog = make_test_catalog();
+
+    p.use_mana(p.get_mana_max() / 2);
+    ASSERT_LT(p.get_mana_current(), p.get_mana_max());
+
+    p.add_item(ItemType::MANA_POTION, "Mana");
+    EXPECT_TRUE(p.equip(0, catalog));
+
+    EXPECT_EQ(p.get_mana_current(), p.get_mana_max());
+    EXPECT_TRUE(p.dump_inventory()[0].item_type == ItemType::NONE);
+}
+
+TEST(PlayerTest, Unequip_MovesItemToInventory) {
+    auto p = make_player();
+    ItemCatalog catalog = make_test_catalog();
+
+    p.add_item(ItemType::SWORD, "Espada");
+    p.equip(0, catalog);
+
+    p.unequip(EquipSlot::WEAPON);
+
+    const InventorySlot& weapon_slot = p.get_equipped(EquipSlot::WEAPON);
+    EXPECT_EQ(weapon_slot.item_type, ItemType::NONE);
+
+    InventorySlot inv_slot = p.dump_inventory()[0];
+    EXPECT_EQ(inv_slot.item_type, ItemType::SWORD);
+    EXPECT_EQ(inv_slot.item_name, "Espada");
+}
+
+TEST(PlayerTest, Unequip_EmptySlotDoesNothing) {
+    auto p = make_player();
+    p.unequip(EquipSlot::WEAPON);
+    // No crash, state unchanged
+    EXPECT_EQ(p.get_equipped(EquipSlot::WEAPON).item_type, ItemType::NONE);
+}
+
+TEST(PlayerTest, Unequip_FullInventoryDoesNothing) {
+    auto p = make_player();
+    ItemCatalog catalog = make_test_catalog();
+
+    p.add_item(ItemType::SWORD, "Espada");
+    p.equip(0, catalog);
+
+    // Fill the inventory (capacity=20)
+    for (int i = 0; i < 20; ++i) {
+        p.add_item(ItemType::GOLD_DROP, "Oro");
+    }
+
+    p.unequip(EquipSlot::WEAPON);
+
+    // Weapon should still be equipped
+    const InventorySlot& weapon_slot = p.get_equipped(EquipSlot::WEAPON);
+    EXPECT_EQ(weapon_slot.item_type, ItemType::SWORD);
+}
+
+TEST(PlayerTest, GetEquipped_ReturnsDefaultForEmptySlot) {
+    auto p = make_player();
+    const InventorySlot& slot = p.get_equipped(EquipSlot::SHIELD);
+    EXPECT_EQ(slot.item_type, ItemType::NONE);
+}
+
+TEST(PlayerTest, DumpEquipped_RestoreEquipment) {
+    auto p = make_player();
+    ItemCatalog catalog = make_test_catalog();
+
+    p.add_item(ItemType::SWORD, "Espada");
+    p.add_item(ItemType::LEATHER_ARMOR, "Armadura");
+    p.equip(0, catalog);
+    p.equip(1, catalog);
+
+    InventorySlot dumped[EQUIP_SLOT_COUNT];
+    p.dump_equipped(dumped);
+    EXPECT_EQ(dumped[0].item_type, ItemType::SWORD);
+    EXPECT_EQ(dumped[1].item_type, ItemType::LEATHER_ARMOR);
+    EXPECT_EQ(dumped[2].item_type, ItemType::NONE);
+
+    // Clear equipped and restore
+    p.unequip(EquipSlot::WEAPON);
+    p.unequip(EquipSlot::ARMOR);
+    p.restore_equipment(dumped);
+
+    EXPECT_EQ(p.get_equipped(EquipSlot::WEAPON).item_type, ItemType::SWORD);
+    EXPECT_EQ(p.get_equipped(EquipSlot::ARMOR).item_type, ItemType::LEATHER_ARMOR);
+}
+
+TEST(PlayerTest, Equip_DifferentSlots) {
+    auto p = make_player();
+    ItemCatalog catalog = make_test_catalog();
+
+    p.add_item(ItemType::SWORD, "Espada");
+    p.add_item(ItemType::LEATHER_ARMOR, "Armadura");
+    p.add_item(ItemType::IRON_HELMET, "Casco");
+
+    p.equip(0, catalog);
+    p.equip(1, catalog);
+    p.equip(2, catalog);
+
+    EXPECT_EQ(p.get_equipped(EquipSlot::WEAPON).item_type, ItemType::SWORD);
+    EXPECT_EQ(p.get_equipped(EquipSlot::ARMOR).item_type, ItemType::LEATHER_ARMOR);
+    EXPECT_EQ(p.get_equipped(EquipSlot::HELMET).item_type, ItemType::IRON_HELMET);
+}
+
+TEST(PlayerTest, AddItem_PlacesInInventory) {
+    auto p = make_player();
+    EXPECT_TRUE(p.add_item(ItemType::SWORD, "Espada"));
+    EXPECT_EQ(p.dump_inventory()[0].item_type, ItemType::SWORD);
+}
+
+TEST(PlayerTest, AddItem_FailsWhenInventoryFull) {
+    auto p = make_player();
+    for (int i = 0; i < 20; ++i) {
+        p.add_item(ItemType::GOLD_DROP, "Oro");
+    }
+    EXPECT_FALSE(p.add_item(ItemType::SWORD, "Espada"));
+}
