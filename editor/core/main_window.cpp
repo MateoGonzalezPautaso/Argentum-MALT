@@ -37,6 +37,13 @@ MainWindow::MainWindow(const std::string& config_path, QWidget* parent): QMainWi
         return;
     }
 
+    try {
+        toml::table root = toml::parse_file("config/common_tilemap.toml");
+        parse_tilemap_config(root, default_tile_config_);
+        parse_prop_config(root, default_tile_config_);
+    } catch (...) {
+    }
+
     atlas_loader_.load(doc_.config());
     file_manager_ = new FileManager(this);
     setup_ui();
@@ -380,7 +387,7 @@ void MainWindow::new_map() {
     dragging_ = false;
     drag_preview_ = nullptr;
     renderer_->clear_all();
-    doc_.create_new(result.height, result.width, doc_.config(), result.map_type);
+    doc_.create_new(result.height, result.width, default_tile_config_, result.map_type);
     atlas_loader_.clear();
     atlas_loader_.load(doc_.config());
 

@@ -50,6 +50,7 @@ private:
     void change_map_type(QAction* action);
     bool validate_city_map() const;
 
+    TilemapConfig default_tile_config_;
     TilemapDocument doc_;
     AtlasLoader atlas_loader_;
     MapInteraction interaction_;
