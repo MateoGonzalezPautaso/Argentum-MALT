@@ -227,6 +227,8 @@ private:
 struct EquipOverlayDef {
     ItemType item_type = ItemType::NONE;
     std::string path;
+    int offset_y = 0;
+    bool static_frame = false;
 };
 
 struct SfxConfig {

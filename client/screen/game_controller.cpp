@@ -275,7 +275,7 @@ void GameController::handle_equip_update(const EquipUpdateEvent& e) {
         } else {
             auto it = config.equip_overlays.find(static_cast<uint8_t>(type));
             if (it != config.equip_overlays.end()) {
-                world_renderer.update_equipment_overlay(slot, it->second.path);
+                world_renderer.update_equipment_overlay(slot, it->second.path, it->second.offset_y, it->second.static_frame);
             } else {
                 world_renderer.clear_equipment_overlay(slot);
             }

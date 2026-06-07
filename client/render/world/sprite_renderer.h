@@ -27,6 +27,8 @@ struct OverlayEffect {
 struct EquipOverlay {
     std::vector<SDL2pp::Texture> frames;
     bool active = false;
+    int offset_y = 0;
+    bool static_frame = false;
 };
 
 class SpriteRenderer {
@@ -59,7 +61,7 @@ public:
     void set_local_player_info(Race race, PlayerClass player_class);
     void set_skin_config(const SkinConfig& skin_config);
 
-    void update_equipment_overlay(uint8_t slot, const std::string& path);
+    void update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y = 0, bool static_frame = false);
     void clear_equipment_overlay(uint8_t slot);
     void set_body_sprite(const std::string& path);
     void reset_body_sprite();
@@ -144,6 +146,7 @@ private:
     SkinConfig skin_config;
     std::vector<OverlayEffect> overlays;
     EquipOverlay equip_overlays_[EQUIP_SLOT_COUNT];
+    SDL2pp::Rect static_cache_[EQUIP_SLOT_COUNT];
     std::string default_body_path_;
     int dir_src_y_down_ = 0;
     int dir_src_y_up_ = 48;

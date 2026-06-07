@@ -368,6 +368,11 @@ void parse_equip_overlays_config(const toml::table& root, ClientConfig& config) 
             if (def.path.empty())
                 continue;
 
+            def.offset_y = toml_get_int(tbl, "offset_y", def.offset_y);
+
+            if (auto val = tbl["static"].value<bool>())
+                def.static_frame = *val;
+
             config.equip_overlays[static_cast<uint8_t>(def.item_type)] = def;
         }
     }

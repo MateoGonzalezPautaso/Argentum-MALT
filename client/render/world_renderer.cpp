@@ -127,8 +127,8 @@ void WorldRenderer::set_local_player_info(Race race, PlayerClass player_class) {
     sprite_renderer.set_local_player_info(race, player_class);
 }
 
-void WorldRenderer::update_equipment_overlay(uint8_t slot, const std::string& path) {
-    sprite_renderer.update_equipment_overlay(slot, path);
+void WorldRenderer::update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y, bool static_frame) {
+    sprite_renderer.update_equipment_overlay(slot, path, offset_y, static_frame);
 }
 
 void WorldRenderer::clear_equipment_overlay(uint8_t slot) {

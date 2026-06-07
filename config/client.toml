@@ -473,6 +473,24 @@ path = "assets/Graficos/2368.png"
 item_type = "IRON_SHIELD"
 path = "assets/Graficos/2322.png"
 
+[[equip_overlays]]
+item_type = "HOOD"
+path = "assets/Graficos/helmet_hood.png"
+offset_y = -20
+static = true
+
+[[equip_overlays]]
+item_type = "IRON_HELMET"
+path = "assets/Graficos/helmet_iron.png"
+offset_y = -20
+static = true
+
+[[equip_overlays]]
+item_type = "MAGIC_HAT"
+path = "assets/Graficos/helmet_magic_hat.png"
+offset_y = -20
+static = true
+
 [sfx]
 death = "11.ogg"
 meditate = "20.ogg"

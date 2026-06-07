@@ -191,7 +191,7 @@ void SpriteRenderer::clear_all_entities() {
 
 void SpriteRenderer::set_skin_config(const SkinConfig& cfg) { skin_config = cfg; }
 
-void SpriteRenderer::update_equipment_overlay(uint8_t slot, const std::string& path) {
+void SpriteRenderer::update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y, bool static_frame) {
     if (slot >= EQUIP_SLOT_COUNT)
         return;
     EquipOverlay& overlay = equip_overlays_[slot];
@@ -200,6 +200,8 @@ void SpriteRenderer::update_equipment_overlay(uint8_t slot, const std::string& p
         overlay.frames.clear();
         overlay.frames.emplace_back(renderer, surface);
         overlay.active = true;
+        overlay.offset_y = offset_y;
+        overlay.static_frame = static_frame;
     } catch (...) {
         overlay.frames.clear();
         overlay.active = false;
@@ -418,7 +420,7 @@ void SpriteRenderer::render(const SDL2pp::Rect& cam) {
 
     append_sprite_drawables(sprites, cam, drawables);
 
-    SpriteRender* movable = find_movable_sprite();
+SpriteRender* movable = find_movable_sprite();
     if (movable && movable->use_src) {
         int body_foot_y = movable->dst.GetY() + movable->dst.GetH();
         int src_y = movable->src.GetY();
@@ -431,11 +433,19 @@ void SpriteRenderer::render(const SDL2pp::Rect& cam) {
                 continue;
             if (!is_visible(*movable, cam))
                 continue;
-            SDL2pp::Rect dst(movable->dst.GetX() - cam.GetX(), movable->dst.GetY() - cam.GetY(),
-                             movable->dst.GetW(), movable->dst.GetH());
+            SDL2pp::Rect dst(movable->dst.GetX() - cam.GetX(),
+                              movable->dst.GetY() - cam.GetY() + overlay.offset_y,
+                              movable->dst.GetW(), movable->dst.GetH());
             int overlay_foot_y = behind ? (body_foot_y - 1 - i) : (body_foot_y + 1 + i);
-            drawables.push_back(Drawable{&overlay.frames[0], &movable->src, dst,
-                                         overlay_foot_y, movable->alpha});
+            if (overlay.static_frame) {
+                static_cache_[i] = movable->src;
+                static_cache_[i].SetX(0);
+                drawables.push_back(Drawable{&overlay.frames[0], &static_cache_[i], dst,
+                                              overlay_foot_y, movable->alpha});
+            } else {
+                drawables.push_back(Drawable{&overlay.frames[0], &movable->src, dst,
+                                              overlay_foot_y, movable->alpha});
+            }
         }
     }
 
