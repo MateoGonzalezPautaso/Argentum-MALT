@@ -7,6 +7,7 @@ max_damage = 5
 mana_cost = 0
 min_defense = 0
 max_defense = 0
+price = 50
 
 [[item]]
 item_type = "AXE"
@@ -17,6 +18,7 @@ max_damage = 5
 mana_cost = 0
 min_defense = 0
 max_defense = 0
+price = 80
 
 [[item]]
 item_type = "HAMMER"
@@ -27,6 +29,7 @@ max_damage = 9
 mana_cost = 0
 min_defense = 0
 max_defense = 0
+price = 60
 
 [[item]]
 item_type = "ASH_STAFF"
@@ -84,6 +87,7 @@ max_damage = 4
 mana_cost = 0
 min_defense = 0
 max_defense = 0
+price = 70
 
 [[item]]
 item_type = "COMPOSITE_BOW"
@@ -94,6 +98,7 @@ max_damage = 16
 mana_cost = 0
 min_defense = 0
 max_defense = 0
+price = 200
 
 [[item]]
 item_type = "LEATHER_ARMOR"
@@ -104,6 +109,7 @@ max_damage = 0
 mana_cost = 0
 min_defense = 2
 max_defense = 6
+price = 80
 
 [[item]]
 item_type = "PLATE_ARMOR"
@@ -114,6 +120,7 @@ max_damage = 0
 mana_cost = 0
 min_defense = 15
 max_defense = 30
+price = 400
 
 [[item]]
 item_type = "BLUE_TUNIC"
@@ -124,6 +131,7 @@ max_damage = 0
 mana_cost = 0
 min_defense = 6
 max_defense = 10
+price = 120
 
 [[item]]
 item_type = "HOOD"
@@ -134,6 +142,7 @@ max_damage = 0
 mana_cost = 0
 min_defense = 1
 max_defense = 4
+price = 40
 
 [[item]]
 item_type = "IRON_HELMET"
@@ -144,6 +153,7 @@ max_damage = 0
 mana_cost = 0
 min_defense = 4
 max_defense = 8
+price = 90
 
 [[item]]
 item_type = "MAGIC_HAT"
@@ -154,6 +164,7 @@ max_damage = 0
 mana_cost = 0
 min_defense = 4
 max_defense = 12
+price = 110
 
 [[item]]
 item_type = "TURTLE_SHIELD"
@@ -164,6 +175,7 @@ max_damage = 0
 mana_cost = 0
 min_defense = 1
 max_defense = 2
+price = 50
 
 [[item]]
 item_type = "IRON_SHIELD"
@@ -174,6 +186,7 @@ max_damage = 0
 mana_cost = 0
 min_defense = 1
 max_defense = 4
+price = 100
 
 [[item]]
 item_type = "HEALTH_POTION"
