@@ -30,6 +30,8 @@ min_level_found = 6
 
 [inventory]
 max_slots = 20
+max_hp_potions = 10
+max_mana_potions = 10
 
 [balance]
 starting_gold = 0

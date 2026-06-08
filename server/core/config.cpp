@@ -93,6 +93,10 @@ ServerConfig load_server_config(const std::string& path) {
     if (auto inventory = root["inventory"].as_table()) {
         config.inventory.max_slots =
                 toml_get_int(*inventory, "max_slots", config.inventory.max_slots);
+        config.inventory.max_hp_potions =
+                toml_get_int(*inventory, "max_hp_potions", config.inventory.max_hp_potions);
+        config.inventory.max_mana_potions =
+                toml_get_int(*inventory, "max_mana_potions", config.inventory.max_mana_potions);
     }
 
     if (auto clan = root["clan"].as_table()) {
