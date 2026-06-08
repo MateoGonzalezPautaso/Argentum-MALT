@@ -31,6 +31,8 @@ std::optional<Player> PlayerDataService::load_player(uint16_t player_id,
                   rec.hp_current, rec.hp_max, rec.mana_current, rec.mana_max, rec.gold,
                   inv_capacity);
 
+    player.set_current_map(rec.get_current_map());
+
     std::vector<InventorySlotRecord> inv_records;
     if (inventory_persistence.load(username, inv_records)) {
         player.load_inventory(inv_records);

@@ -14,7 +14,7 @@ private:
     Position pos;
     uint8_t level;
     uint32_t hp_max;
-    std::string current_map = "main";
+    std::string current_map;
 
 public:
     Entity(uint32_t hp_max, const std::string& name, Position pos, uint8_t level);

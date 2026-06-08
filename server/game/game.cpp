@@ -70,8 +70,11 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
     }
     combat_controller.set_clan_manager(clan_manager);
     enemy_npcs.emplace(1001, WeakGoblin({300, 200}, rng, item_catalog, 2));
+    enemy_npcs.at(1001).set_current_map("city");
     enemy_npcs.emplace(1002, WeakGoblin({400, 300}, rng, item_catalog, 1));
+    enemy_npcs.at(1002).set_current_map("city");
     enemy_npcs.emplace(1003, Orc({500, 400}, rng, item_catalog, 5));
+    enemy_npcs.at(1003).set_current_map("city");
 }
 
 Map& Game::player_map(const Player& p) {
@@ -646,6 +649,7 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
 
     Player player(player_id, cmd.username, Position{rec.pos_x, rec.pos_y}, Direction::SOUTH,
                   cmd.race, cmd.player_class, balance, inventory_config.max_slots);
+    player.set_current_map(balance.starting_map);
     rec.hp_current = player.get_hp_current();
     rec.hp_max = player.get_hp_max();
     rec.mana_current = player.get_mana_current();
