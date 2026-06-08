@@ -10,17 +10,6 @@
 
 #include "../../common/visit.h"
 
-#include "basic_skeleton.h"
-#include "big_spider.h"
-#include "iron_golem.h"
-#include "orc.h"
-#include "small_spider.h"
-#include "stone_golem.h"
-#include "strong_goblin.h"
-#include "warrior_skeleton.h"
-#include "weak_goblin.h"
-#include "zombie.h"
-
 namespace {
 
 struct Delta {
@@ -73,35 +62,12 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         combat_controller(config.attack, players, config.item_catalog, enemy_npcs,
                           config.balance.npc_drop),
         tick_rate_hz(config.tick_rate_hz),
-        cheats_enabled(config.cheats_enabled) {
+        cheats_enabled(config.cheats_enabled),
+        npc_templates(config.npc_templates) {
     for (const auto& [name, tc]: tilemap_configs) {
         maps.emplace(name, Map(tc));
     }
     combat_controller.set_clan_manager(clan_manager);
-
-    auto spawn_initial = [&](uint16_t id, uint8_t level, auto maker) {
-        auto city_it = maps.find("city");
-        if (city_it == maps.end())
-            return;
-        auto pos_opt = city_it->second.find_random_mob_spawn_pos(rng);
-        if (!pos_opt.has_value())
-            return;
-        Position pos{static_cast<uint16_t>(pos_opt->first),
-                     static_cast<uint16_t>(pos_opt->second)};
-        auto npc = maker(pos, rng, item_catalog, level);
-        npc.set_current_map("city");
-        enemy_npcs.emplace(id, std::move(npc));
-    };
-
-    spawn_initial(1001, 2, [](Position p, Rng& r, const ItemCatalog& c, uint8_t l) {
-        return WeakGoblin(p, r, c, l);
-    });
-    spawn_initial(1002, 1, [](Position p, Rng& r, const ItemCatalog& c, uint8_t l) {
-        return WeakGoblin(p, r, c, l);
-    });
-    spawn_initial(1003, 5, [](Position p, Rng& r, const ItemCatalog& c, uint8_t l) {
-        return Orc(p, r, c, l);
-    });
 }
 
 Map& Game::player_map(const Player& p) {
@@ -373,30 +339,12 @@ CommandResult Game::spawn_mobs() {
 }
 
 EnemyNpc Game::create_random_npc(Position pos, uint8_t level) {
-    int roll = rng.get_random_int(0, 9);
-    switch (roll) {
-        case 0:
-            return WeakGoblin(pos, rng, item_catalog, level);
-        case 1:
-            return StrongGoblin(pos, rng, item_catalog, level);
-        case 2:
-            return BasicSkeleton(pos, rng, item_catalog, level);
-        case 3:
-            return WarriorSkeleton(pos, rng, item_catalog, level);
-        case 4:
-            return Zombie(pos, rng, item_catalog, level);
-        case 5:
-            return Orc(pos, rng, item_catalog, level);
-        case 6:
-            return SmallSpider(pos, rng, item_catalog, level);
-        case 7:
-            return BigSpider(pos, rng, item_catalog, level);
-        case 8:
-            return StoneGolem(pos, rng, item_catalog, level);
-        case 9:
-        default:
-            return IronGolem(pos, rng, item_catalog, level);
-    }
+    if (npc_templates.empty())
+        return EnemyNpc(pos, 100 * level, 5 * level, rng, item_catalog, level, "NPC");
+    int roll = rng.get_random_int(0, static_cast<int>(npc_templates.size()) - 1);
+    const NpcTemplate& t = npc_templates[roll];
+    return EnemyNpc(pos, t.base_hp * level, t.base_damage * level, rng, item_catalog, level,
+                    t.name);
 }
 
 CommandResult Game::process_pending_resurrections() {

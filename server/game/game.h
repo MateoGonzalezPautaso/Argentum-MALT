@@ -44,6 +44,7 @@ private:
     std::unordered_map<uint16_t, double> hp_regen_accum;
     std::unordered_map<uint16_t, double> mana_regen_accum;
     std::map<uint16_t, EnemyNpc> enemy_npcs;
+    std::vector<NpcTemplate> npc_templates;
     uint16_t next_npc_id = 2000;
     uint32_t mob_spawn_tick = 0;
 
