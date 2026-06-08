@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iterator>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -150,8 +151,29 @@ void TomlSerializer::save(const std::string& path, const TilemapConfig& config) 
                               [&row_array](const auto& v) { row_array.push_back(v); });
                 prop_grid.push_back(std::move(row_array));
             }
+            bool has_overrides = false;
+            toml::table override_tbl;
+            for (std::size_t r = 0; r < config.prop_transition_overrides.size(); ++r) {
+                for (std::size_t c = 0; c < config.prop_transition_overrides[r].size(); ++c) {
+                    const auto& ov = config.prop_transition_overrides[r][c];
+                    if (ov.transition_map.empty())
+                        continue;
+                    toml::table ov_entry;
+                    ov_entry.emplace("transition_map", ov.transition_map);
+                    if (ov.transition_x != 0 || ov.transition_y != 0) {
+                        ov_entry.emplace("transition_x", ov.transition_x);
+                        ov_entry.emplace("transition_y", ov.transition_y);
+                    }
+                    std::string key = std::to_string(r) + "," + std::to_string(c);
+                    override_tbl.emplace(key, std::move(ov_entry));
+                    has_overrides = true;
+                }
+            }
+
             toml::table pm;
             pm.emplace("data", std::move(prop_grid));
+            if (has_overrides)
+                pm.emplace("transition_overrides", std::move(override_tbl));
             prop_tbl.emplace("prop_map", std::move(pm));
         }
 

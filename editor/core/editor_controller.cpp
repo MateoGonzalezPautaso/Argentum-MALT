@@ -3,6 +3,8 @@
 #include <QGraphicsScene>
 #include <QMessageBox>
 #include <QWidget>
+#include <algorithm>
+#include <fstream>
 #include <stdexcept>
 #include <toml++/toml.hpp>
 
@@ -81,13 +83,19 @@ bool EditorController::validate_city_map() const {
 bool EditorController::save() {
     if (!validate_city_map())
         return false;
-    return file_manager_->save(doc_);
+    if (!file_manager_->save(doc_))
+        return false;
+    register_current_map_in_list();
+    return true;
 }
 
 bool EditorController::save_as() {
     if (!validate_city_map())
         return false;
-    return file_manager_->save_as(doc_);
+    if (!file_manager_->save_as(doc_))
+        return false;
+    register_current_map_in_list();
+    return true;
 }
 
 bool EditorController::open() {
@@ -129,6 +137,65 @@ void EditorController::resize_map(int cols, int rows) {
     renderer_->render_all(doc_, show_walkable_overlay_);
     renderer_->rebuild_grid(doc_);
     renderer_->rebuild_spawn_overlay(doc_);
+}
+
+void EditorController::register_current_map_in_list() {
+    const std::string& path = doc_.path();
+    if (path.empty())
+        return;
+
+    std::string name = path;
+    auto slash = name.rfind('/');
+    if (slash != std::string::npos)
+        name = name.substr(slash + 1);
+    auto dot = name.rfind(".toml");
+    if (dot != std::string::npos)
+        name = name.substr(0, dot);
+
+    try {
+        toml::table root = toml::parse_file("config/map_list.toml");
+        auto* maps_arr = root["maps"].as_array();
+        if (!maps_arr)
+            return;
+
+        for (const auto& entry : *maps_arr) {
+            const auto* tbl = entry.as_table();
+            if (!tbl) continue;
+            auto path_val = (*tbl)["path"].value<std::string>();
+            if (path_val && *path_val == path)
+                return;
+        }
+
+        toml::table new_entry;
+        new_entry.emplace("name", name);
+        new_entry.emplace("path", path);
+        maps_arr->push_back(std::move(new_entry));
+
+        std::ofstream file("config/map_list.toml");
+        file << root << std::endl;
+    } catch (const std::exception& e) {
+        qWarning("Failed to update map_list.toml: %s", e.what());
+    }
+}
+
+void EditorController::set_prop_transition(const std::string& name, const std::string& transition_map,
+                                           int transition_x, int transition_y) {
+    auto it = doc_.config().props.find(name);
+    if (it == doc_.config().props.end())
+        return;
+    doc_.config().props[name].transition_map = transition_map;
+    doc_.config().props[name].transition_x = transition_x;
+    doc_.config().props[name].transition_y = transition_y;
+}
+
+void EditorController::set_prop_transition_override(int row, int col,
+                                                     const std::string& transition_map,
+                                                     int transition_x, int transition_y) {
+    PropTransitionOverride ov;
+    ov.transition_map = transition_map;
+    ov.transition_x = transition_x;
+    ov.transition_y = transition_y;
+    doc_.set_transition_override(row, col, ov);
 }
 
 void EditorController::set_tile_walkable(const std::string& name, bool walkable) {
