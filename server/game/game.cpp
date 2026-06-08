@@ -62,7 +62,8 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         inventory_config(config.inventory),
         item_catalog(config.item_catalog),
         rng(),
-        combat_controller(config.attack, players, config.item_catalog, enemy_npcs),
+        combat_controller(config.attack, players, config.item_catalog, enemy_npcs,
+                          config.balance.npc_drop),
         tick_rate_hz(config.tick_rate_hz),
         cheats_enabled(config.cheats_enabled) {
     for (const auto& [name, tc]: tilemap_configs) {

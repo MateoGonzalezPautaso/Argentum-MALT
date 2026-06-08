@@ -6,6 +6,7 @@
 
 #include "../../common/item_catalog.h"
 #include "../../common/rng.h"
+#include "../core/config.h"
 
 #include "entity.h"
 
@@ -27,7 +28,7 @@ private:
 public:
     EnemyNpc(Position position, uint32_t hp_max, uint32_t damage, Rng& rng,
              const ItemCatalog& catalog, uint8_t level, const std::string& name);
-    EnemyDrop get_kill_reward();
+    EnemyDrop get_kill_reward(const NpcDropConfig& drop_config);
     uint32_t get_damage() const;
 };
 
