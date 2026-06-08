@@ -335,10 +335,10 @@ TEST(PlayerTest, Equip_ConsumableHealthPotionHealsToFull) {
     ASSERT_LT(p.get_hp_current(), p.get_hp_max());
 
     p.add_item(ItemType::HEALTH_POTION, "Pocion");
-    EXPECT_TRUE(p.equip(0, catalog));
+    EXPECT_TRUE(p.equip(20, catalog));
 
     EXPECT_EQ(p.get_hp_current(), p.get_hp_max());
-    EXPECT_TRUE(p.dump_inventory()[0].item_type == ItemType::NONE);
+    EXPECT_TRUE(p.dump_inventory()[20].item_type == ItemType::NONE);
 }
 
 TEST(PlayerTest, Equip_ConsumableManaPotionRestoresMana) {
@@ -349,10 +349,10 @@ TEST(PlayerTest, Equip_ConsumableManaPotionRestoresMana) {
     ASSERT_LT(p.get_mana_current(), p.get_mana_max());
 
     p.add_item(ItemType::MANA_POTION, "Mana");
-    EXPECT_TRUE(p.equip(0, catalog));
+    EXPECT_TRUE(p.equip(30, catalog));
 
     EXPECT_EQ(p.get_mana_current(), p.get_mana_max());
-    EXPECT_TRUE(p.dump_inventory()[0].item_type == ItemType::NONE);
+    EXPECT_TRUE(p.dump_inventory()[30].item_type == ItemType::NONE);
 }
 
 TEST(PlayerTest, Unequip_MovesItemToInventory) {

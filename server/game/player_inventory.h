@@ -15,6 +15,10 @@ struct PlayerInventory {
     Inventory hp_potions;
     Inventory mana_potions;
 
+    uint8_t equip_capacity;
+    uint8_t hp_capacity;
+    uint8_t mana_capacity;
+
     PlayerInventory(uint8_t eq_cap, uint8_t hp_cap, uint8_t mana_cap);
 
     uint8_t slot_count() const;
@@ -30,6 +34,12 @@ struct PlayerInventory {
     void load_slots(const std::vector<InventorySlot>& new_slots);
     std::vector<InventorySlotRecord> to_records() const;
     void from_records(const std::vector<InventorySlotRecord>& records);
+
+    void clear_all();
+
+private:
+    Inventory& inv_for(uint8_t& index);
+    const Inventory& inv_for(uint8_t& index) const;
 };
 
 #endif  // SERVER_PLAYER_INVENTORY_H
