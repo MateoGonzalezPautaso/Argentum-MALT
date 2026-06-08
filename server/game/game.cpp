@@ -323,7 +323,8 @@ CommandResult Game::tick() {
     for (auto& ev: npc_result.broadcast_events) result.broadcast_events.push_back(std::move(ev));
 
     CommandResult spawn_result = spawn_mobs();
-    for (auto& ev: spawn_result.broadcast_events) result.broadcast_events.push_back(std::move(ev));
+    for (auto& ev: spawn_result.targeted_events)
+        for (auto& se: ev.second) result.targeted_events[ev.first].push_back(std::move(se));
 
     return result;
 }
