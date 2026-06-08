@@ -10,8 +10,16 @@
 
 #include "../../common/visit.h"
 
+#include "basic_skeleton.h"
+#include "big_spider.h"
+#include "iron_golem.h"
 #include "orc.h"
+#include "small_spider.h"
+#include "stone_golem.h"
+#include "strong_goblin.h"
+#include "warrior_skeleton.h"
 #include "weak_goblin.h"
+#include "zombie.h"
 
 namespace {
 
@@ -70,12 +78,30 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         maps.emplace(name, Map(tc));
     }
     combat_controller.set_clan_manager(clan_manager);
-    enemy_npcs.emplace(1001, WeakGoblin({300, 200}, rng, item_catalog, 2));
-    enemy_npcs.at(1001).set_current_map("city");
-    enemy_npcs.emplace(1002, WeakGoblin({400, 300}, rng, item_catalog, 1));
-    enemy_npcs.at(1002).set_current_map("city");
-    enemy_npcs.emplace(1003, Orc({500, 400}, rng, item_catalog, 5));
-    enemy_npcs.at(1003).set_current_map("city");
+
+    auto spawn_initial = [&](uint16_t id, uint8_t level, auto maker) {
+        auto city_it = maps.find("city");
+        if (city_it == maps.end())
+            return;
+        auto pos_opt = city_it->second.find_random_mob_spawn_pos(rng);
+        if (!pos_opt.has_value())
+            return;
+        Position pos{static_cast<uint16_t>(pos_opt->first),
+                     static_cast<uint16_t>(pos_opt->second)};
+        auto npc = maker(pos, rng, item_catalog, level);
+        npc.set_current_map("city");
+        enemy_npcs.emplace(id, std::move(npc));
+    };
+
+    spawn_initial(1001, 2, [](Position p, Rng& r, const ItemCatalog& c, uint8_t l) {
+        return WeakGoblin(p, r, c, l);
+    });
+    spawn_initial(1002, 1, [](Position p, Rng& r, const ItemCatalog& c, uint8_t l) {
+        return WeakGoblin(p, r, c, l);
+    });
+    spawn_initial(1003, 5, [](Position p, Rng& r, const ItemCatalog& c, uint8_t l) {
+        return Orc(p, r, c, l);
+    });
 }
 
 Map& Game::player_map(const Player& p) {
@@ -296,7 +322,81 @@ CommandResult Game::tick() {
         for (auto& se: ev.second) result.targeted_events[ev.first].push_back(std::move(se));
     for (auto& ev: npc_result.broadcast_events) result.broadcast_events.push_back(std::move(ev));
 
+    CommandResult spawn_result = spawn_mobs();
+    for (auto& ev: spawn_result.broadcast_events) result.broadcast_events.push_back(std::move(ev));
+
     return result;
+}
+
+CommandResult Game::spawn_mobs() {
+    ++mob_spawn_tick;
+    CommandResult result;
+
+    for (auto& [map_name, map]: maps) {
+        const TilemapConfig& cfg = map.config();
+        if (cfg.mob_spawn_limit <= 0 || cfg.mob_spawn_interval_ticks <= 0)
+            continue;
+
+        if (mob_spawn_tick % cfg.mob_spawn_interval_ticks != 0)
+            continue;
+
+        int npc_count = 0;
+        for (const auto& [id, npc]: enemy_npcs) {
+            if (!npc.is_dead() && npc.get_current_map() == map_name)
+                ++npc_count;
+        }
+
+        if (npc_count >= cfg.mob_spawn_limit)
+            continue;
+
+        auto pos_opt = map.find_random_mob_spawn_pos(rng);
+        if (!pos_opt.has_value())
+            continue;
+
+        Position spawn_pos{static_cast<uint16_t>(pos_opt->first),
+                           static_cast<uint16_t>(pos_opt->second)};
+
+        uint8_t level = static_cast<uint8_t>(rng.get_random_int(1, 5));
+        EnemyNpc npc = create_random_npc(spawn_pos, level);
+        uint16_t npc_id = next_npc_id++;
+        npc.set_current_map(map_name);
+
+        EntitySpawnEvent spawn_ev = make_npc_spawn(npc, npc_id);
+        auto it = enemy_npcs.emplace(npc_id, std::move(npc)).first;
+        (void)it;
+
+        for (uint16_t pid: get_player_ids_on_map(map_name))
+            result.broadcast_events.push_back(spawn_ev);
+    }
+
+    return result;
+}
+
+EnemyNpc Game::create_random_npc(Position pos, uint8_t level) {
+    int roll = rng.get_random_int(0, 9);
+    switch (roll) {
+        case 0:
+            return WeakGoblin(pos, rng, item_catalog, level);
+        case 1:
+            return StrongGoblin(pos, rng, item_catalog, level);
+        case 2:
+            return BasicSkeleton(pos, rng, item_catalog, level);
+        case 3:
+            return WarriorSkeleton(pos, rng, item_catalog, level);
+        case 4:
+            return Zombie(pos, rng, item_catalog, level);
+        case 5:
+            return Orc(pos, rng, item_catalog, level);
+        case 6:
+            return SmallSpider(pos, rng, item_catalog, level);
+        case 7:
+            return BigSpider(pos, rng, item_catalog, level);
+        case 8:
+            return StoneGolem(pos, rng, item_catalog, level);
+        case 9:
+        default:
+            return IronGolem(pos, rng, item_catalog, level);
+    }
 }
 
 CommandResult Game::process_pending_resurrections() {

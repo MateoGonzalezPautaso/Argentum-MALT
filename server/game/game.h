@@ -44,6 +44,8 @@ private:
     std::unordered_map<uint16_t, double> hp_regen_accum;
     std::unordered_map<uint16_t, double> mana_regen_accum;
     std::map<uint16_t, EnemyNpc> enemy_npcs;
+    uint16_t next_npc_id = 2000;
+    uint32_t mob_spawn_tick = 0;
 
     struct PendingResurrection {
         uint32_t remaining_ticks;
@@ -57,6 +59,8 @@ private:
     double meditation_factor_for(PlayerClass player_class) const;
     CommandResult apply_regen();
     CommandResult process_pending_resurrections();
+    CommandResult spawn_mobs();
+    EnemyNpc create_random_npc(Position pos, uint8_t level);
 
     CommandResult handle_login(uint16_t player_id, const LoginCmd& cmd);
     CommandResult handle_create_character(uint16_t player_id, const CreateCharacterCmd& cmd);

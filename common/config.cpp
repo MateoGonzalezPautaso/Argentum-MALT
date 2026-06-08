@@ -116,14 +116,17 @@ void parse_tilemap_config(const toml::table& root, TilemapConfig& config) {
     }
 
     if (auto zones = root["mob_spawn_zones"].as_table()) {
+        config.mob_spawn_limit = toml_get_int(*zones, "limit", config.mob_spawn_limit);
+        config.mob_spawn_interval_ticks =
+                toml_get_int(*zones, "interval_ticks", config.mob_spawn_interval_ticks);
         if (auto arr = (*zones)["data"].as_array()) {
-            for (const auto& row_node : *arr) {
+            for (const auto& row_node: *arr) {
                 const auto* row_arr = row_node.as_array();
                 if (!row_arr) {
                     continue;
                 }
                 std::vector<bool> row;
-                for (const auto& cell : *row_arr) {
+                for (const auto& cell: *row_arr) {
                     if (auto v = cell.value<bool>()) {
                         row.push_back(*v);
                     }

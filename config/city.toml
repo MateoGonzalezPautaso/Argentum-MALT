@@ -2,6 +2,8 @@
 type = 'city'
 
 [mob_spawn_zones]
+limit = 20
+interval_ticks = 120
 data = [
     [
         false,

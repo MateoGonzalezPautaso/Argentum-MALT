@@ -21,7 +21,7 @@ void TomlSerializer::save(const std::string& path, const TilemapConfig& config) 
     tilemap_tbl.emplace("tile_size", config.tile_size);
 
     toml::array mapa_array;
-    for (const auto& row : config.mapa) {
+    for (const auto& row: config.mapa) {
         toml::array row_array;
         std::for_each(row.begin(), row.end(),
                       [&row_array](const auto& v) { row_array.push_back(v); });
@@ -30,7 +30,7 @@ void TomlSerializer::save(const std::string& path, const TilemapConfig& config) 
     tilemap_tbl.emplace("mapa", std::move(mapa_array));
 
     toml::table tiles_tbl;
-    for (const auto& [name, def] : config.tiles) {
+    for (const auto& [name, def]: config.tiles) {
         toml::table tile_def;
         tile_def.emplace("x", def.x);
         tile_def.emplace("y", def.y);
@@ -61,14 +61,18 @@ void TomlSerializer::save(const std::string& path, const TilemapConfig& config) 
             std::any_of(config.mob_spawn_zones.begin(), config.mob_spawn_zones.end(), row_has_zone);
     if (has_zones) {
         toml::array zones_grid;
-        for (const auto& row : config.mob_spawn_zones) {
+        for (const auto& row: config.mob_spawn_zones) {
             toml::array row_array;
-            for (bool v : row) {
+            for (bool v: row) {
                 row_array.push_back(v);
             }
             zones_grid.push_back(std::move(row_array));
         }
         toml::table zones_tbl;
+        if (config.mob_spawn_limit > 0)
+            zones_tbl.emplace("limit", config.mob_spawn_limit);
+        if (config.mob_spawn_interval_ticks > 0)
+            zones_tbl.emplace("interval_ticks", config.mob_spawn_interval_ticks);
         zones_tbl.emplace("data", std::move(zones_grid));
         root.emplace("mob_spawn_zones", std::move(zones_tbl));
     }
@@ -77,7 +81,7 @@ void TomlSerializer::save(const std::string& path, const TilemapConfig& config) 
         toml::table prop_tbl;
 
         toml::table prop_tiles_tbl;
-        for (const auto& [name, def] : config.props) {
+        for (const auto& [name, def]: config.props) {
             toml::table prop_def;
 
             if (!def.paths.empty()) {
@@ -115,7 +119,7 @@ void TomlSerializer::save(const std::string& path, const TilemapConfig& config) 
 
             if (!def.parts.empty()) {
                 toml::array parts_arr;
-                for (const auto& part : def.parts) {
+                for (const auto& part: def.parts) {
                     toml::table part_def;
                     part_def.emplace("path", part.path);
                     part_def.emplace("src_x", part.src_x);
@@ -136,12 +140,11 @@ void TomlSerializer::save(const std::string& path, const TilemapConfig& config) 
             return std::any_of(row.begin(), row.end(),
                                [](const auto& cell) { return !cell.empty(); });
         };
-        bool has_props =
-                std::any_of(config.prop_map.begin(), config.prop_map.end(), row_has_prop);
+        bool has_props = std::any_of(config.prop_map.begin(), config.prop_map.end(), row_has_prop);
 
         if (has_props) {
             toml::array prop_grid;
-            for (const auto& row : config.prop_map) {
+            for (const auto& row: config.prop_map) {
                 toml::array row_array;
                 std::for_each(row.begin(), row.end(),
                               [&row_array](const auto& v) { row_array.push_back(v); });

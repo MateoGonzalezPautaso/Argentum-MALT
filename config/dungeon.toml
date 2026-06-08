@@ -2,6 +2,8 @@
 type = 'dungeon'
 
 [mob_spawn_zones]
+limit = 15
+interval_ticks = 80
 data = [
     [
         true,

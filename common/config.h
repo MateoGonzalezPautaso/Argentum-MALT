@@ -8,11 +8,7 @@
 
 #include <toml++/toml.h>
 
-enum class MapType : uint8_t {
-    NONE = 0,
-    CITY,
-    DUNGEON
-};
+enum class MapType : uint8_t { NONE = 0, CITY, DUNGEON };
 
 struct TileDef {
     int x = 0;
@@ -63,6 +59,8 @@ struct TilemapConfig {
     std::unordered_map<std::string, PropDef> props;
     std::vector<std::vector<std::string>> prop_map;
     std::vector<std::vector<bool>> mob_spawn_zones;
+    int mob_spawn_limit = 0;
+    int mob_spawn_interval_ticks = 0;
 };
 
 int toml_get_int(const toml::table& tbl, const char* key, int fallback);
