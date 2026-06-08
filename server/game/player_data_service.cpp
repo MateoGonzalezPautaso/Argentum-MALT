@@ -9,7 +9,9 @@ PlayerDataService::PlayerDataService(const std::string& data_dir, const ServerCo
         inventory_persistence(data_dir + "/inventory.dat", data_dir + "/inventory.idx",
                               static_cast<uint8_t>(config.inventory.max_slots)),
         balance(config.balance),
-        inv_capacity(static_cast<uint8_t>(config.inventory.max_slots)) {}
+        inv_capacity(static_cast<uint8_t>(config.inventory.max_slots)),
+        hp_potion_capacity(static_cast<uint8_t>(config.inventory.max_hp_potions)),
+        mana_potion_capacity(static_cast<uint8_t>(config.inventory.max_mana_potions)) {}
 
 bool PlayerDataService::player_exists(const std::string& username) {
     PlayerRecord dummy;
@@ -29,7 +31,7 @@ std::optional<Player> PlayerDataService::load_player(uint16_t player_id,
                   static_cast<Direction>(rec.dir), static_cast<Race>(rec.race),
                   static_cast<PlayerClass>(rec.player_class), balance, rec.level, rec.experience,
                   rec.hp_current, rec.hp_max, rec.mana_current, rec.mana_max, rec.gold,
-                  inv_capacity);
+                  inv_capacity, hp_potion_capacity, mana_potion_capacity);
 
     player.set_current_map(rec.get_current_map());
 

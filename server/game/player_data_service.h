@@ -17,6 +17,8 @@ private:
     InventoryPersistence inventory_persistence;
     const BalanceConfig& balance;
     uint8_t inv_capacity;
+    uint8_t hp_potion_capacity;
+    uint8_t mana_potion_capacity;
 
 public:
     PlayerDataService(const std::string& data_dir, const ServerConfig& config);

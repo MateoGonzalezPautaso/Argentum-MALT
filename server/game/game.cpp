@@ -697,7 +697,8 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     rec.gold = static_cast<uint32_t>(balance.starting_gold);
 
     Player player(player_id, cmd.username, Position{rec.pos_x, rec.pos_y}, Direction::SOUTH,
-                  cmd.race, cmd.player_class, balance, inventory_config.max_slots);
+                  cmd.race, cmd.player_class, balance, inventory_config.max_slots,
+                  inventory_config.max_hp_potions, inventory_config.max_mana_potions);
     player.set_current_map(balance.starting_map);
     rec.hp_current = player.get_hp_current();
     rec.hp_max = player.get_hp_max();

@@ -15,6 +15,7 @@ target_sources(taller_tests
     ${CMAKE_SOURCE_DIR}/server/network/sender.cpp
     ${CMAKE_SOURCE_DIR}/server/network/receiver.cpp
     ${CMAKE_SOURCE_DIR}/server/game/player.cpp
+    ${CMAKE_SOURCE_DIR}/server/game/player_inventory.cpp
     ${CMAKE_SOURCE_DIR}/server/game/inventory.cpp
     ${CMAKE_SOURCE_DIR}/server/game/clan_manager.cpp
     ${CMAKE_SOURCE_DIR}/server/game/clan_command_handler.cpp

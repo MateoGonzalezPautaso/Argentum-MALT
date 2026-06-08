@@ -10,7 +10,7 @@
 #include "../core/config.h"
 
 #include "entity.h"
-#include "inventory.h"
+#include "player_inventory.h"
 
 struct UpdateStats {
     uint32_t mana_max;
@@ -35,7 +35,7 @@ private:
     bool cheat_infinite_mana = false;
     bool cheat_fast_velocity = false;
     std::string clan_name;
-    Inventory inventory;
+    PlayerInventory inv;
     InventorySlot equipped[EQUIP_SLOT_COUNT];
     uint32_t strength;
     uint32_t agility;
@@ -44,12 +44,14 @@ private:
 
 public:
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
-           PlayerClass player_class, const BalanceConfig& balance, uint8_t inv_capacity);
+           PlayerClass player_class, const BalanceConfig& balance, uint8_t equip_capacity,
+           uint8_t hp_potion_capacity, uint8_t mana_potion_capacity);
 
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
            PlayerClass player_class, const BalanceConfig& balance, uint8_t level,
            uint32_t experience, uint32_t hp_current, uint32_t hp_max, uint32_t mana_current,
-           uint32_t mana_max, uint32_t gold, uint8_t inv_capacity);
+           uint32_t mana_max, uint32_t gold, uint8_t equip_capacity, uint8_t hp_potion_capacity,
+           uint8_t mana_potion_capacity);
 
     uint16_t get_id() const { return id; }
     Direction get_dir() const { return dir; }
