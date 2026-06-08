@@ -99,6 +99,18 @@ y = 557
 w = 63
 h = 20
 
+[ui.potion_hp_button]
+x = 851
+y = 557
+w = 77
+h = 20
+
+[ui.potion_mana_button]
+x = 932
+y = 557
+w = 77
+h = 20
+
 [ui.portrait]
 x = 643
 y = 46

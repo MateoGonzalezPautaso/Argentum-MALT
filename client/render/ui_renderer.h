@@ -33,6 +33,9 @@ private:
     SDL_Color chat_color{255, 255, 255, 255};
     UIConfig ui_cfg;
     InventoryRenderer inventory_renderer;
+    int hovered_potion = 0;
+    int hp_potion_count_ = 0;
+    int mana_potion_count_ = 0;
 
 public:
     UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg, const SkinConfig& skin_config,
@@ -47,6 +50,9 @@ public:
     void render_mp_bar(uint32_t current, uint32_t max);
     void render_exp_bar(uint32_t current, uint32_t max);
     void render_gold(uint32_t gold);
+    void update_potion_button_hover(int mx, int my, const std::vector<InventorySlot>& slots);
+    void render_potion_buttons();
+    int get_hovered_potion() const { return hovered_potion; }
     void render_portrait(Race race, PlayerClass player_class, uint8_t level);
     void set_hover(int mx, int my, const std::vector<InventorySlot>& slots,
                    const InventorySlot equipped[4]);

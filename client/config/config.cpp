@@ -216,6 +216,10 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
                    config.ui.exp_bar);
     parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{}, "gold_rect",
                    config.ui.gold_rect);
+    parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{},
+                   "potion_hp_button", config.ui.potion_hp);
+    parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{},
+                   "potion_mana_button", config.ui.potion_mana);
 
     if (auto portrait = root["ui"].as_table()) {
         if (auto pt = (*portrait)["portrait"].as_table()) {

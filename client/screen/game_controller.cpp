@@ -55,6 +55,7 @@ void GameController::render() {
     world_renderer.render();
     ui_renderer.render_portrait(player_stats.race, player_stats.player_class, player_stats.level);
     ui_renderer.render_gold(player_stats.gold);
+    ui_renderer.render_potion_buttons();
     ui_renderer.render_hp_bar(player_stats.hp_current, player_stats.hp_max);
     ui_renderer.render_mp_bar(player_stats.mana_current, player_stats.mana_max);
     ui_renderer.render_exp_bar(player_stats.experience, player_stats.exp_to_next);
@@ -63,6 +64,7 @@ void GameController::render() {
     ui_renderer.render_chat_history(chat_history.get_messages(), chat_scroll);
     ui_renderer.render_chat_input();
     ui_renderer.set_hover(mouse_x, mouse_y, player_stats.inventory, player_stats.equipped);
+    ui_renderer.update_potion_button_hover(mouse_x, mouse_y, player_stats.inventory);
     ui_renderer.render_inventory(player_stats.inventory);
     ui_renderer.render_equipped(player_stats.equipped);
     renderer.Present();
@@ -517,7 +519,8 @@ bool GameController::handle_mouse_motion(const SDL_Event& event) {
     mouse_y = event.motion.y;
 
     ui_renderer.set_hover(mouse_x, mouse_y, player_stats.inventory, player_stats.equipped);
-    if (ui_renderer.is_hovering_occupied()) {
+    ui_renderer.update_potion_button_hover(mouse_x, mouse_y, player_stats.inventory);
+    if (ui_renderer.is_hovering_occupied() || ui_renderer.get_hovered_potion() > 0) {
         SDL_SetCursor(hand_cursor);
         return true;
     }
