@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "../game/player.h"
+
 #include "endian_io.h"
 
 PlayerPersistence::PlayerPersistence(const std::string& data_path, const std::string& index_path):
