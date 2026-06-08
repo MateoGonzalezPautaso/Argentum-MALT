@@ -116,6 +116,12 @@ struct NpcDropConfig {
     double item_chance = 1.0;
 };
 
+struct NpcTemplate {
+    std::string name;
+    uint32_t base_hp     = 0;
+    uint32_t base_damage = 0;
+};
+
 struct InventoryConfig {
     int max_slots = 20;
 };
@@ -158,8 +164,10 @@ struct ServerConfig {
     AttackConfig attack;
     ClanConfig clan;
     ItemCatalog item_catalog;
+    std::vector<NpcTemplate> npc_templates;
 };
 
+std::vector<NpcTemplate> load_npc_templates(const std::string& path);
 ServerConfig load_server_config(const std::string& path);
 
 #endif  // CONFIG_H

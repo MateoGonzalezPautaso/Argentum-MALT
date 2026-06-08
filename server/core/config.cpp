@@ -8,12 +8,30 @@
 
 #include "../../common/config.h"
 
+std::vector<NpcTemplate> load_npc_templates(const std::string& path) {
+    toml::table root = toml::parse_file(path);
+    std::vector<NpcTemplate> templates;
+    if (auto arr = root["npc"].as_array()) {
+        for (const auto& node: *arr) {
+            const auto* tbl = node.as_table();
+            if (!tbl)
+                continue;
+            NpcTemplate t;
+            t.name        = toml_get_string(*tbl, "name", "Unknown");
+            t.base_hp     = static_cast<uint32_t>(toml_get_int(*tbl, "base_hp", 100));
+            t.base_damage = static_cast<uint32_t>(toml_get_int(*tbl, "base_damage", 5));
+            templates.push_back(std::move(t));
+        }
+    }
+    return templates;
+}
+
 ServerConfig load_server_config(const std::string& path) {
     toml::table root = toml::parse_file(path);
     ServerConfig config;
 
-    // Cargar catalogo de items
     config.item_catalog.load_from_file("config/items.toml");
+    config.npc_templates = load_npc_templates("config/npcs.toml");
 
     if (auto server = root["server"].as_table()) {
         config.port =
