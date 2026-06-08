@@ -330,17 +330,17 @@ CommandResult CombatController::spell_attack_npc(uint16_t attacker_id, uint16_t 
     return result;
 }
 
-Player* CombatController::get_nearest_player(uint16_t enemy_x, uint16_t enemy_y) {
+Player* CombatController::get_nearest_player(const EnemyNpc& npc) {
     Player* nearest = nullptr;
     uint32_t nearest_dist_sq = UINT32_MAX;
 
     for (auto& [pid, player]: players) {
-        if (player.is_dead())
+        if (player.is_dead() || player.get_current_map() != npc.get_current_map())
             continue;
 
-        int dx = static_cast<int>(enemy_x) - static_cast<int>(player.pos_x());
-        int dy = static_cast<int>(enemy_y) - static_cast<int>(player.pos_y());
-        uint32_t dist_sq = dx * dx + dy * dy;
+        int dx = static_cast<int>(npc.pos_x()) - static_cast<int>(player.pos_x());
+        int dy = static_cast<int>(npc.pos_y()) - static_cast<int>(player.pos_y());
+        uint32_t dist_sq = static_cast<uint32_t>(dx * dx + dy * dy);
 
         if (dist_sq < nearest_dist_sq) {
             nearest_dist_sq = dist_sq;
@@ -359,7 +359,7 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
         if (npc.is_dead())
             continue;
 
-        Player* target = get_nearest_player(npc.pos_x(), npc.pos_y());
+        Player* target = get_nearest_player(npc);
         if (!target)
             continue;
 
