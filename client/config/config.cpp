@@ -189,6 +189,8 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
             config.ui.inventory_panel.y = toml_get_int(*inv, "y", config.ui.inventory_panel.y);
             config.ui.inventory_panel.cols =
                     toml_get_int(*inv, "cols", config.ui.inventory_panel.cols);
+            config.ui.inventory_panel.equip_slots =
+                    toml_get_int(*inv, "equip_slots", config.ui.inventory_panel.equip_slots);
             config.ui.inventory_panel.slot_w =
                     toml_get_int(*inv, "slot_w", config.ui.inventory_panel.slot_w);
             config.ui.inventory_panel.slot_h =

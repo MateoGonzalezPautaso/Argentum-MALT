@@ -91,6 +91,7 @@ struct PortraitConfig {
 struct InventoryPanelConfig {
     int x = 782, y = 202;
     int cols = 4;
+    int equip_slots = 20;
     int slot_w = 50, slot_h = 50;
     int gap = 4;
     int equip_y = 50;

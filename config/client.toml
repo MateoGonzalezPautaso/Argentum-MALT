@@ -72,6 +72,7 @@ cursor_height_shrink = 8
 x = 782
 y = 202
 cols = 4
+equip_slots = 20
 slot_w = 50
 slot_h = 50
 gap = 4

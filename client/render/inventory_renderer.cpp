@@ -62,7 +62,7 @@ void InventoryRenderer::update_hover(int mx, int my, const std::vector<Inventory
     hovered_inv_slot = -1;
     hovered_equip_slot = -1;
 
-    for (size_t i = 0; i < slots.size(); ++i) {
+    for (size_t i = 0; i < slots.size() && i < static_cast<size_t>(cfg.equip_slots); ++i) {
         int col = static_cast<int>(i) % cfg.cols;
         int row = static_cast<int>(i) / cfg.cols;
         int sx = cfg.x + col * (cfg.slot_w + cfg.gap);
@@ -140,7 +140,7 @@ void InventoryRenderer::render_item_tooltip(int sx, int sy, const InventorySlot&
 }
 
 void InventoryRenderer::render(const std::vector<InventorySlot>& slots) {
-    for (size_t i = 0; i < slots.size(); ++i) {
+    for (size_t i = 0; i < slots.size() && i < static_cast<size_t>(cfg.equip_slots); ++i) {
         int col = static_cast<int>(i) % cfg.cols;
         int row = static_cast<int>(i) / cfg.cols;
         int sx = cfg.x + col * (cfg.slot_w + cfg.gap);
