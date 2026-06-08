@@ -362,11 +362,10 @@ CommandResult Game::spawn_mobs() {
         npc.set_current_map(map_name);
 
         EntitySpawnEvent spawn_ev = make_npc_spawn(npc, npc_id);
-        auto it = enemy_npcs.emplace(npc_id, std::move(npc)).first;
-        (void)it;
+        enemy_npcs.emplace(npc_id, std::move(npc));
 
         for (uint16_t pid: get_player_ids_on_map(map_name))
-            result.broadcast_events.push_back(spawn_ev);
+            result.targeted_events[pid].push_back(spawn_ev);
     }
 
     return result;
@@ -471,7 +470,7 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
         it->second.set_meditating(false);
     CommandResult result;
     const Map& map = player_map(it->second);
-    if (map.is_position_in_spawn_zone(it->second.pos_x(), it->second.pos_y())) {
+    if (!map.is_position_in_spawn_zone(it->second.pos_x(), it->second.pos_y())) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar en una zona segura"};
         return {.private_events = {msg}};
     }
