@@ -456,6 +456,15 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
     }
 
     if (event.button.button == SDL_BUTTON_LEFT) {
+        int potion = ui_renderer.get_hovered_potion();
+        if (potion > 0) {
+            int slot = (potion == 1) ? ui_renderer.get_first_hp_potion_slot()
+                                     : ui_renderer.get_first_mana_potion_slot();
+            if (slot >= 0)
+                command_queue.push(EquipItemCmd{static_cast<uint8_t>(slot)});
+            return true;
+        }
+
         if (ui_renderer.is_hovering_occupied()) {
             int idx = ui_renderer.get_hovered_inv_slot();
             if (idx >= 0) {

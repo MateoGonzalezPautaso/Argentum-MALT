@@ -36,6 +36,8 @@ private:
     int hovered_potion = 0;
     int hp_potion_count_ = 0;
     int mana_potion_count_ = 0;
+    int first_hp_potion_slot_ = -1;
+    int first_mana_potion_slot_ = -1;
 
 public:
     UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg, const SkinConfig& skin_config,
@@ -53,6 +55,8 @@ public:
     void update_potion_button_hover(int mx, int my, const std::vector<InventorySlot>& slots);
     void render_potion_buttons();
     int get_hovered_potion() const { return hovered_potion; }
+    int get_first_hp_potion_slot() const { return first_hp_potion_slot_; }
+    int get_first_mana_potion_slot() const { return first_mana_potion_slot_; }
     void render_portrait(Race race, PlayerClass player_class, uint8_t level);
     void set_hover(int mx, int my, const std::vector<InventorySlot>& slots,
                    const InventorySlot equipped[4]);

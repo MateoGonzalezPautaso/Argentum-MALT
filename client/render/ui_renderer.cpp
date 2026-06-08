@@ -141,12 +141,23 @@ void UIRenderer::render_gold(uint32_t gold) {
 void UIRenderer::update_potion_button_hover(int mx, int my,
                                             const std::vector<InventorySlot>& slots) {
     hovered_potion = 0;
-    hp_potion_count_ = static_cast<int>(std::count_if(
-            slots.begin(), slots.end(),
-            [](const InventorySlot& s) { return s.item_type == ItemType::HEALTH_POTION; }));
-    mana_potion_count_ = static_cast<int>(std::count_if(
-            slots.begin(), slots.end(),
-            [](const InventorySlot& s) { return s.item_type == ItemType::MANA_POTION; }));
+    hp_potion_count_ = 0;
+    mana_potion_count_ = 0;
+    first_hp_potion_slot_ = -1;
+    first_mana_potion_slot_ = -1;
+
+    for (const auto& s: slots) {
+        if (s.item_type == ItemType::HEALTH_POTION) {
+            if (first_hp_potion_slot_ < 0)
+                first_hp_potion_slot_ = s.slot_index;
+            ++hp_potion_count_;
+        }
+        if (s.item_type == ItemType::MANA_POTION) {
+            if (first_mana_potion_slot_ < 0)
+                first_mana_potion_slot_ = s.slot_index;
+            ++mana_potion_count_;
+        }
+    }
 
     if (hp_potion_count_ > 0) {
         SDL2pp::Rect r(ui_cfg.potion_hp.x, ui_cfg.potion_hp.y, ui_cfg.potion_hp.w,
@@ -163,12 +174,29 @@ void UIRenderer::update_potion_button_hover(int mx, int my,
 }
 
 void UIRenderer::render_potion_buttons() {
+    if (!bar_font)
+        return;
+
+    const auto draw_button = [this](const StatBarConfig& btn, int count) {
+        std::string text = std::to_string(count);
+        auto result = texture::render_text(renderer, bar_font, text, chat_color);
+        if (result.w == 0)
+            return;
+        SDL2pp::Rect r(btn.x, btn.y, btn.w, btn.h);
+        const int tx = r.GetX() + (r.GetW() - result.w) / 2;
+        const int ty = r.GetY() + (r.GetH() - result.h) / 2;
+        SDL2pp::Rect text_dst(tx, ty, result.w, result.h);
+        renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
+    };
+
+    draw_button(ui_cfg.potion_hp, hp_potion_count_);
+    draw_button(ui_cfg.potion_mana, mana_potion_count_);
+
     if (hovered_potion == 0)
         return;
 
     const StatBarConfig& btn = (hovered_potion == 1) ? ui_cfg.potion_hp : ui_cfg.potion_mana;
     SDL2pp::Rect r(btn.x, btn.y, btn.w, btn.h);
-
     renderer.SetDrawColor(220, 180, 40, 255);
     renderer.DrawRect(r);
     SDL2pp::Rect inner(btn.x + 1, btn.y + 1, btn.w - 2, btn.h - 2);
