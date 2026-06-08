@@ -26,7 +26,7 @@ public:
     CommandResult spell_attack_player(uint16_t attacker_id, uint16_t target_id,
                                       uint32_t current_tick);
     CommandResult spell_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,
-                                   std::map<uint16_t, EnemyNpc>& npcs, uint32_t current_tick);
+                                   uint32_t current_tick);
 
 private:
     bool in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x,
@@ -44,7 +44,7 @@ private:
     bool is_critical_attack(const Player& attacker);
     uint32_t calculate_defense(const Player& target);
     uint32_t calculate_object_defense(const InventorySlot& object_slot);
-    Player& get_nearest_player(uint16_t enemy_x, uint16_t enemy_y);
+    Player* get_nearest_player(uint16_t enemy_x, uint16_t enemy_y);
     CommandResult melee_attack_player(uint16_t attacker_id, uint16_t target_id,
                                       uint32_t current_tick);
     CommandResult melee_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,

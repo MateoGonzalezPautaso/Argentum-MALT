@@ -272,13 +272,13 @@ CommandResult CombatController::spell_attack_player(uint16_t attacker_id, uint16
 }
 
 CommandResult CombatController::spell_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,
-                                                 std::map<uint16_t, EnemyNpc>& npcs, uint32_t) {
+                                                 uint32_t) {
     auto attacker_it = players.find(attacker_id);
     if (attacker_it == players.end())
         return {};
 
-    auto npc_target_it = npcs.find(npc_target_id);
-    if (npc_target_it == npcs.end())
+    auto npc_target_it = enemy_npcs.find(npc_target_id);
+    if (npc_target_it == enemy_npcs.end())
         return {};
 
     Player& attacker = attacker_it->second;
@@ -316,8 +316,8 @@ CommandResult CombatController::spell_attack_npc(uint16_t attacker_id, uint16_t 
     return result;
 }
 
-Player& CombatController::get_nearest_player(uint16_t enemy_x, uint16_t enemy_y) {
-    uint16_t nearest_id = 0;
+Player* CombatController::get_nearest_player(uint16_t enemy_x, uint16_t enemy_y) {
+    Player* nearest = nullptr;
     uint32_t nearest_dist_sq = UINT32_MAX;
 
     for (auto& [pid, player]: players) {
@@ -330,12 +330,11 @@ Player& CombatController::get_nearest_player(uint16_t enemy_x, uint16_t enemy_y)
 
         if (dist_sq < nearest_dist_sq) {
             nearest_dist_sq = dist_sq;
-            nearest_id = pid;
+            nearest = &player;
         }
     }
 
-    auto it = players.find(nearest_id);
-    return it->second;
+    return nearest;
 }
 
 CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
@@ -346,34 +345,47 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
         if (npc.is_dead())
             continue;
 
-        Player& target = get_nearest_player(npc.pos_x(), npc.pos_y());
-
-        if (target.is_dead())
+        Player* target = get_nearest_player(npc.pos_x(), npc.pos_y());
+        if (!target)
             continue;
 
-        if (!in_range(npc.pos_x(), npc.pos_y(), target.pos_x(), target.pos_y()))
+        if (!in_range(npc.pos_x(), npc.pos_y(), target->pos_x(), target->pos_y()))
             continue;
 
         if (!npc.try_attack(current_tick, config.cooldown_ticks))
             continue;
 
         uint32_t damage = npc.get_damage();
-        uint32_t defense = calculate_defense(target);
+        uint32_t defense = calculate_defense(*target);
         damage = damage > defense ? (damage - defense) : 0;
 
-        target.take_damage(damage);
+        target->take_damage(damage);
 
-        uint16_t target_id = target.get_id();
-        DamageReceivedEvent received{target_id, npc_id, damage, target.get_hp_current(),
-                                     target.get_hp_max()};
+        uint16_t target_id = target->get_id();
+        DamageReceivedEvent received{target_id, npc_id, damage, target->get_hp_current(),
+                                     target->get_hp_max()};
         targeted[target_id].push_back(received);
 
         ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
-                              npc.get_name() + " ataco a " + target.get_name() + " por " +
+                              npc.get_name() + " ataco a " + target->get_name() + " por " +
                                       std::to_string(damage) + " de dano"};
         targeted[target_id].push_back(chat_msg);
 
-        if (target.is_dead()) {
+        if (target->is_dead()) {
+            target->lose_experience_on_death();
+            target->take_excess_gold();
+
+            targeted[target_id].push_back(PlayerStatsEvent{
+                    .level = target->get_level(),
+                    .experience = target->get_experience(),
+                    .exp_to_next = target->exp_to_next_level(),
+                    .hp_current = target->get_hp_current(),
+                    .hp_max = target->get_hp_max(),
+                    .mana_current = target->get_mana_current(),
+                    .mana_max = target->get_mana_max(),
+            });
+            targeted[target_id].push_back(GoldUpdateEvent{target->get_gold()});
+
             EntityDiedEvent died{target_id};
             broadcast.push_back(died);
         }

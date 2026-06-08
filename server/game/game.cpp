@@ -442,8 +442,7 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
     if (target_it == enemy_npcs.end())
         result = combat_controller.spell_attack_player(player_id, cmd.target_id, tick_count);
     else
-        result = combat_controller.spell_attack_npc(player_id, cmd.target_id, enemy_npcs,
-                                                    tick_count);
+        result = combat_controller.spell_attack_npc(player_id, cmd.target_id, tick_count);
     result.map_events = std::move(result.broadcast_events);
     uint8_t effect_type = item->spell_effect_id;
     if (effect_type == 0)
