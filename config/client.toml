@@ -94,10 +94,10 @@ w = 217
 h = 17
 
 [ui.gold_rect]
-x = 790
-y = 559
-w = 97
-h = 17
+x = 783
+y = 557
+w = 63
+h = 20
 
 [ui.portrait]
 x = 643
