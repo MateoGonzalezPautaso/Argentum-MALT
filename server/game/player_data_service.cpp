@@ -28,7 +28,7 @@ std::optional<Player> PlayerDataService::load_player(uint16_t player_id,
                   static_cast<Direction>(rec.dir), static_cast<Race>(rec.race),
                   static_cast<PlayerClass>(rec.player_class), balance, rec.level, rec.experience,
                   rec.hp_current, rec.hp_max, rec.mana_current, rec.mana_max, rec.gold,
-                  inv_capacity, rec.strength);
+                  inv_capacity, rec.strength, rec.agility);
 
     std::vector<InventorySlotRecord> inv_records;
     if (inventory_persistence.load(username, inv_records)) {
@@ -50,7 +50,7 @@ std::optional<Player> PlayerDataService::load_player(uint16_t player_id,
 
 void PlayerDataService::save_player(const Player& player) {
     PlayerRecord rec;
-    rec.set_username(player.get_username());
+    rec.set_username(player.get_name());
     rec.set_current_map(player.get_current_map());
     rec.pos_x = player.pos_x();
     rec.pos_y = player.pos_y();
@@ -65,6 +65,7 @@ void PlayerDataService::save_player(const Player& player) {
     rec.mana_max = player.get_mana_max();
     rec.gold = player.get_gold();
     rec.strength = player.get_strength();
+    rec.agility = player.get_agility();
 
     InventorySlot equipped[EQUIP_SLOT_COUNT];
     player.dump_equipped(equipped);
@@ -75,9 +76,9 @@ void PlayerDataService::save_player(const Player& player) {
                      PlayerRecord::EQUIPPED_NAME_MAX - 1);
     }
 
-    player_persistence.save(player.get_username(), rec);
+    player_persistence.save(player.get_name(), rec);
 
-    inventory_persistence.save(player.get_username(), player.dump_inventory_records());
+    inventory_persistence.save(player.get_name(), player.dump_inventory_records());
 }
 
 void PlayerDataService::save_new_player(const std::string& username, const PlayerRecord& record) {

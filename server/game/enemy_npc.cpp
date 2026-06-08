@@ -1,22 +1,8 @@
 #include "enemy_npc.h"
 
 EnemyNpc::EnemyNpc(Position position, uint32_t hp_max, uint32_t damage, Rng& rng,
-                   const ItemCatalog& catalog, uint32_t level, const std::string& name):
-        position(position),
-        hp_current(hp_max),
-        hp_max(hp_max),
-        damage(damage),
-        rng(rng),
-        catalog(catalog),
-        level(level),
-        name(name) {}
-
-void EnemyNpc::take_damage(uint32_t damage_taken) {
-    if (damage_taken <= hp_current)
-        hp_current -= damage_taken;
-    else
-        hp_current = 0;
-}
+                   const ItemCatalog& catalog, uint8_t level, const std::string& name):
+        damage(damage), rng(rng), catalog(catalog), Entity(hp_max, name, position, level) {}
 
 EnemyDrop EnemyNpc::get_kill_reward() {
     double random_number = rng.get_random_double(0, 99);
@@ -37,23 +23,9 @@ EnemyDrop EnemyNpc::get_kill_reward() {
     return enemy_drop;
 }
 
-bool EnemyNpc::is_dead() const { return hp_current == 0; }
-
 uint32_t EnemyNpc::get_damage() const { return damage; }
 
 uint32_t EnemyNpc::get_gold_reward() {
     double random_number = rng.get_random_double(0.01, 0.2);
-    return random_number * hp_max;
+    return random_number * get_hp_max();
 }
-
-uint32_t EnemyNpc::get_level() const { return level; }
-
-uint32_t EnemyNpc::get_hp_max() const { return hp_max; }
-
-uint32_t EnemyNpc::get_hp_current() const { return hp_current; }
-
-uint16_t EnemyNpc::pos_x() const { return position.x; }
-
-uint16_t EnemyNpc::pos_y() const { return position.y; }
-
-std::string EnemyNpc::get_name() const { return name; }

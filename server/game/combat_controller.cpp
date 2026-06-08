@@ -8,8 +8,9 @@
 #include "clan_manager.h"
 
 CombatController::CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
-                                   const ItemCatalog& catalog):
-        config(config), players(players), item_catalog_(catalog) {}
+                                   const ItemCatalog& catalog,
+                                   std::map<uint16_t, EnemyNpc>& enemy_npcs):
+        config(config), players(players), item_catalog_(catalog), enemy_npcs(enemy_npcs) {}
 
 void CombatController::set_clan_manager(ClanManager& mgr) { clan_manager = &mgr; }
 
@@ -80,19 +81,27 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
                                                0));
 
     return notify_entity_attacked(attacker, target_id, damage, target.get_hp_current(),
-                                  target.get_hp_max(), target.get_username(),
-                                  target.get_clan_name(), target.is_dead(), target.get_level());
+                                  target.get_hp_max(), target.get_name(), target.get_clan_name(),
+                                  target.is_dead(), target.get_level());
+}
+
+CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t target_id,
+                                             uint32_t current_tick) {
+    auto target_it = enemy_npcs.find(target_id);
+    if (target_it == enemy_npcs.end())
+        return melee_attack_player(attacker_id, target_id, current_tick);
+    else
+        return melee_attack_npc(attacker_id, target_id, current_tick);
 }
 
 CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,
-                                                 std::map<uint16_t, EnemyNpc>& npcs,
                                                  uint32_t current_tick) {
     auto attacker_it = players.find(attacker_id);
     if (attacker_it == players.end())
         return {};
 
-    auto npc_target_it = npcs.find(npc_target_id);
-    if (npc_target_it == npcs.end())
+    auto npc_target_it = enemy_npcs.find(npc_target_id);
+    if (npc_target_it == enemy_npcs.end())
         return {};
 
     Player& attacker = attacker_it->second;
@@ -120,6 +129,74 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
     return notify_entity_attacked(attacker, npc_target_id, damage, npc_target.get_hp_current(),
                                   npc_target.get_hp_max(), npc_target.get_name(), "",
                                   npc_target.is_dead(), npc_target.get_level());
+}
+
+Player& CombatController::get_nearest_player(uint16_t enemy_x, uint16_t enemy_y) {
+    uint16_t nearest_id = 0;
+    uint32_t nearest_dist_sq = UINT32_MAX;
+
+    for (auto& [pid, player]: players) {
+        if (player.is_dead())
+            continue;
+
+        int dx = static_cast<int>(enemy_x) - static_cast<int>(player.pos_x());
+        int dy = static_cast<int>(enemy_y) - static_cast<int>(player.pos_y());
+        uint32_t dist_sq = dx * dx + dy * dy;
+
+        if (dist_sq < nearest_dist_sq) {
+            nearest_dist_sq = dist_sq;
+            nearest_id = pid;
+        }
+    }
+
+    auto it = players.find(nearest_id);
+    return it->second;
+}
+
+CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
+    std::vector<ServerEvent> broadcast;
+    std::map<uint16_t, std::vector<ServerEvent>> targeted;
+
+    for (auto& [npc_id, npc]: enemy_npcs) {
+        if (npc.is_dead())
+            continue;
+
+        Player& target = get_nearest_player(npc.pos_x(), npc.pos_y());
+
+        if (target.is_dead())
+            continue;
+
+        if (!in_range(npc.pos_x(), npc.pos_y(), target.pos_x(), target.pos_y()))
+            continue;
+
+        if (!npc.try_attack(current_tick, config.cooldown_ticks))
+            continue;
+
+        uint32_t damage = npc.get_damage();
+        uint32_t defense = calculate_defense(target);
+        damage = damage > defense ? (damage - defense) : 0;
+
+        target.take_damage(damage);
+
+        uint16_t target_id = target.get_id();
+        DamageReceivedEvent received{target_id, npc_id, damage, target.get_hp_current(),
+                                     target.get_hp_max()};
+        targeted[target_id].push_back(received);
+
+        ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
+                              npc.get_name() + " ataco a " + target.get_name() + " por " +
+                                      std::to_string(damage) + " de dano"};
+        targeted[target_id].push_back(chat_msg);
+
+        if (target.is_dead()) {
+            EntityDiedEvent died{target_id};
+            broadcast.push_back(died);
+        }
+    }
+
+    return {.private_events = {},
+            .broadcast_events = std::move(broadcast),
+            .targeted_events = std::move(targeted)};
 }
 
 bool CombatController::is_critical_attack(const Player& attacker) {
@@ -221,7 +298,7 @@ CommandResult CombatController::notify_entity_attacked(Player& attacker, uint16_
     DamageReceivedEvent received{target_id, attacker.get_id(), damage, target_hp_current,
                                  target_hp_max};
     ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
-                          attacker.get_username() + " ataco a " + target_name + " por " +
+                          attacker.get_name() + " ataco a " + target_name + " por " +
                                   std::to_string(damage) + " de daño"};
 
     targeted[target_id].push_back(received);

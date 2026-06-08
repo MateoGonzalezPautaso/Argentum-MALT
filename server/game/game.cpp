@@ -56,16 +56,16 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         inventory_config(config.inventory),
         item_catalog(config.item_catalog),
         rng(),
-        combat_controller(config.attack, players, config.item_catalog),
+        combat_controller(config.attack, players, config.item_catalog, enemy_npcs),
         tick_rate_hz(config.tick_rate_hz),
         cheats_enabled(config.cheats_enabled) {
     for (const auto& [name, tc]: tilemap_configs) {
         maps.emplace(name, Map(tc));
     }
     combat_controller.set_clan_manager(clan_manager);
-    npcs.emplace(1001, WeakGoblin({300, 200}, rng, item_catalog, 2));
-    npcs.emplace(1002, WeakGoblin({400, 300}, rng, item_catalog, 1));
-    npcs.emplace(1003, Orc({500, 400}, rng, item_catalog, 5));
+    enemy_npcs.emplace(1001, WeakGoblin({300, 200}, rng, item_catalog, 2));
+    enemy_npcs.emplace(1002, WeakGoblin({400, 300}, rng, item_catalog, 1));
+    enemy_npcs.emplace(1003, Orc({500, 400}, rng, item_catalog, 5));
 }
 
 Map& Game::player_map(const Player& p) {
@@ -136,7 +136,7 @@ CommandResult Game::remove_player(uint16_t player_id) {
 
     std::string map_name = it->second.get_current_map();
     std::string clan_name = it->second.get_clan_name();
-    std::string username = it->second.get_username();
+    std::string username = it->second.get_name();
     player_data_service.save_player(it->second);
 
     EntityDespawnEvent despawn{.entity_id = player_id};
@@ -263,6 +263,11 @@ CommandResult Game::tick() {
         for (auto& se: ev.second) result.targeted_events[ev.first].push_back(std::move(se));
     for (auto& ev: res_result.broadcast_events) result.broadcast_events.push_back(std::move(ev));
 
+    CommandResult npc_result = combat_controller.update_npc_ai(tick_count);
+    for (auto& ev: npc_result.targeted_events)
+        for (auto& se: ev.second) result.targeted_events[ev.first].push_back(std::move(se));
+    for (auto& ev: npc_result.broadcast_events) result.broadcast_events.push_back(std::move(ev));
+
     return result;
 }
 
@@ -336,12 +341,7 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
     auto it = players.find(player_id);
     if (it != players.end())
         it->second.set_meditating(false);
-    CommandResult result;
-    auto target_it = npcs.find(cmd.target_id);
-    if (target_it == npcs.end())
-        result = combat_controller.melee_attack_player(player_id, cmd.target_id, tick_count);
-    else
-        result = combat_controller.melee_attack_npc(player_id, cmd.target_id, npcs, tick_count);
+    CommandResult result = combat_controller.melee_attack(player_id, cmd.target_id, tick_count);
 
     // Convert combat broadcasts to per-map events
     result.map_events = std::move(result.broadcast_events);
@@ -366,7 +366,7 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
 
     it->second.set_meditating(false);
 
-    const std::string& sender_name = it->second.get_username();
+    const std::string& sender_name = it->second.get_name();
 
     if (text[0] == '@') {
         size_t space_pos = text.find(' ');
@@ -374,7 +374,7 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             std::string target_nick = text.substr(1, space_pos - 1);
             std::string msg = text.substr(space_pos + 1);
             for (const auto& [target_id, player]: players) {
-                if (player.get_username() == target_nick) {
+                if (player.get_name() == target_nick) {
                     ChatMsgEvent chat_ev{ChatMsgType::PRIVATE, sender_name, msg, target_id,
                                          player_id};
                     std::map<uint16_t, std::vector<ServerEvent>> targeted;
@@ -721,7 +721,7 @@ CommandResult Game::handle_meditate(uint16_t player_id) {
 LoginOkEvent Game::make_login_ok(const Player& p) const {
     return LoginOkEvent{
             .player_id = p.get_id(),
-            .username = p.get_username(),
+            .username = p.get_name(),
             .race = p.get_race(),
             .player_class = p.get_player_class(),
             .level = p.get_level(),
@@ -742,9 +742,21 @@ EntitySpawnEvent Game::make_entity_spawn(const Player& p) const {
             .entity_type = EntityType::PLAYER,
             .entity_pos = p.get_pos(),
             .entity_dir = p.get_dir(),
-            .entity_name = p.get_username(),
+            .entity_name = p.get_name(),
             .entity_race = p.get_race(),
             .entity_class = p.get_player_class(),
+    };
+}
+
+EntitySpawnEvent Game::make_npc_spawn(const EnemyNpc& npc, uint16_t npc_id) const {
+    return EntitySpawnEvent{
+            .entity_id = npc_id,
+            .entity_type = EntityType::NPC,
+            .entity_pos = npc.get_pos(),
+            .entity_dir = Direction::SOUTH,
+            .entity_name = npc.get_name(),
+            .entity_race = Race::HUMAN,
+            .entity_class = PlayerClass::WARRIOR,
     };
 }
 
@@ -754,6 +766,11 @@ std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id) const {
         if (id == exclude_id)
             continue;
         spawns.push_back(make_entity_spawn(player));
+    }
+    for (const auto& [id, npc]: enemy_npcs) {
+        if (npc.is_dead())
+            continue;
+        spawns.push_back(make_npc_spawn(npc, id));
     }
     return spawns;
 }
@@ -767,6 +784,13 @@ std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id,
         if (player.get_current_map() != map_name)
             continue;
         spawns.push_back(make_entity_spawn(player));
+    }
+    for (const auto& [id, npc]: enemy_npcs) {
+        if (npc.is_dead())
+            continue;
+        if (npc.get_current_map() != map_name)
+            continue;
+        spawns.push_back(make_npc_spawn(npc, id));
     }
     return spawns;
 }
@@ -795,7 +819,7 @@ void Game::save_all_players() {
 
 bool Game::is_username_logged_in(const std::string& username) const {
     for (const auto& [id, player]: players) {
-        if (player.get_username() == username)
+        if (player.get_name() == username)
             return true;
     }
     return false;

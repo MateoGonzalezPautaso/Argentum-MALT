@@ -17,17 +17,11 @@ class ClanManager;
 class CombatController {
 public:
     CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
-                     const ItemCatalog& catalog);
+                     const ItemCatalog& catalog, std::map<uint16_t, EnemyNpc>& enemy_npcs);
 
     void set_clan_manager(ClanManager& mgr);
-
-    CommandResult melee_attack_player(uint16_t attacker_id, uint16_t target_id,
-                                      uint32_t current_tick);
-    CommandResult melee_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,
-                                   std::map<uint16_t, EnemyNpc>& npcs, uint32_t current_tick);
-    CommandResult melee_attack(uint16_t attacker_id, uint16_t target_id, uint32_t current_tick) {
-        return melee_attack_player(attacker_id, target_id, current_tick);
-    }
+    CommandResult melee_attack(uint16_t attacker_id, uint16_t target_id, uint32_t current_tick);
+    CommandResult update_npc_ai(uint32_t current_tick);
 
 private:
     bool in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x,
@@ -43,12 +37,18 @@ private:
     bool is_critical_attack(const Player& attacker);
     uint32_t calculate_defense(const Player& target);
     uint32_t calculate_object_defense(const InventorySlot& object_slot);
+    Player& get_nearest_player(uint16_t enemy_x, uint16_t enemy_y);
+    CommandResult melee_attack_player(uint16_t attacker_id, uint16_t target_id,
+                                      uint32_t current_tick);
+    CommandResult melee_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,
+                                   uint32_t current_tick);
 
     const AttackConfig& config;
     std::map<uint16_t, Player>& players;
     ClanManager* clan_manager = nullptr;
     const ItemCatalog& item_catalog_;
     Rng rng;
+    std::map<uint16_t, EnemyNpc>& enemy_npcs;
 };
 
 #endif

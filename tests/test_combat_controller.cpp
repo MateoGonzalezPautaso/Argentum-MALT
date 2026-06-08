@@ -10,6 +10,7 @@
 class CombatControllerTest: public ::testing::Test {
 protected:
     std::map<uint16_t, Player> players;
+    std::map<uint16_t, EnemyNpc> enemy_npcs;
     AttackConfig config;
     ItemCatalog item_catalog;
     std::optional<CombatController> controller;
@@ -19,7 +20,7 @@ protected:
         config.damage_variance = 0;
         config.attack_range_px = 200;
         config.cooldown_ticks = 10;
-        controller.emplace(config, players, item_catalog);
+        controller.emplace(config, players, item_catalog, enemy_npcs);
     }
 
     Player& add_player(uint16_t id, const std::string& username, Position pos = {100, 100}) {
@@ -30,6 +31,10 @@ protected:
         bal.level_exp_exponent = 1.8;
         bal.gold_cap_base = 1000;
         bal.gold_cap_exponent = 1.0;
+        bal.agility.race_agility_factor_human = 0.0;
+        bal.agility.class_agility_factor_warrior = 0.0;
+        bal.strength.race_strength_factor_human = 0.0;
+        bal.strength.class_strength_factor_warrior = 0.0;
         players.emplace(id, Player(id, username, pos, Direction::SOUTH, Race::HUMAN,
                                    PlayerClass::WARRIOR, bal, 20));
         return players.at(id);
@@ -104,8 +109,8 @@ TEST_F(CombatControllerTest, LevelDiffAtLimit_Allowed) {
     set_level(target, 13);  // diff = 10, exactly at limit
 
     auto result = controller->melee_attack(1, 2, 0);
-    ASSERT_FALSE(result.broadcast_events.empty());
-    EXPECT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.broadcast_events[0]));
+    ASSERT_FALSE(result.targeted_events[2].empty());
+    EXPECT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.targeted_events[2][0]));
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -134,8 +139,8 @@ TEST_F(CombatControllerTest, AttackAfterCooldown_Allowed) {
     controller->melee_attack(1, 2, 0);
     auto result = controller->melee_attack(1, 2, 10);  // cooldown = 10
 
-    ASSERT_FALSE(result.broadcast_events.empty());
-    EXPECT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.broadcast_events[0]));
+    ASSERT_FALSE(result.targeted_events[2].empty());
+    EXPECT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.targeted_events[2][0]));
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -165,9 +170,9 @@ TEST_F(CombatControllerTest, SuccessfulAttack_DealsDamage) {
 
     auto result = controller->melee_attack(1, 2, 0);
 
-    ASSERT_FALSE(result.broadcast_events.empty());
-    ASSERT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.broadcast_events[0]));
-    const auto& dmg = std::get<DamageReceivedEvent>(result.broadcast_events[0]);
+    ASSERT_FALSE(result.targeted_events[2].empty());
+    ASSERT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.targeted_events[2][0]));
+    const auto& dmg = std::get<DamageReceivedEvent>(result.targeted_events[2][0]);
     EXPECT_EQ(dmg.damage, 10u);  // base_damage with variance=0
     EXPECT_EQ(dmg.attacker_id, 1);
     EXPECT_EQ(dmg.target_id, 2);
@@ -274,7 +279,7 @@ TEST_F(CombatControllerTest, WeaponEquipped_DamageUsesStrength) {
     sword.min_damage = 5;
     sword.max_damage = 5;  // fixed roll — no variance
     item_catalog.add(sword);
-    controller.emplace(config, players, item_catalog);
+    controller.emplace(config, players, item_catalog, enemy_npcs);
 
     auto& attacker = add_player(1, "alice");
     auto& target = add_player(2, "bob");
@@ -286,8 +291,8 @@ TEST_F(CombatControllerTest, WeaponEquipped_DamageUsesStrength) {
 
     auto result = controller->melee_attack(1, 2, 0);
 
-    ASSERT_FALSE(result.broadcast_events.empty());
-    ASSERT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.broadcast_events[0]));
-    const auto& dmg = std::get<DamageReceivedEvent>(result.broadcast_events[0]);
+    ASSERT_FALSE(result.targeted_events[2].empty());
+    ASSERT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.targeted_events[2][0]));
+    const auto& dmg = std::get<DamageReceivedEvent>(result.targeted_events[2][0]);
     EXPECT_EQ(dmg.damage, attacker.get_strength() * 5u);
 }

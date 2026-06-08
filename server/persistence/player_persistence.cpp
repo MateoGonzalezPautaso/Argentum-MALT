@@ -118,7 +118,7 @@ void PlayerPersistence::save(const std::string& username, const PlayerRecord& re
 
 void PlayerPersistence::save(const Player& player) {
     PlayerRecord rec;
-    load(player.get_username(), rec);
+    load(player.get_name(), rec);
     rec.pos_x = player.pos_x();
     rec.pos_y = player.pos_y();
     rec.dir = static_cast<uint8_t>(player.get_dir());
@@ -131,6 +131,8 @@ void PlayerPersistence::save(const Player& player) {
     rec.mana_current = player.get_mana_current();
     rec.mana_max = player.get_mana_max();
     rec.gold = player.get_gold();
+    rec.strength = player.get_strength();
+    rec.agility = player.get_agility();
     rec.set_current_map(player.get_current_map());
-    save(player.get_username(), rec);
+    save(player.get_name(), rec);
 }

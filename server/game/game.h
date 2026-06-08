@@ -42,7 +42,7 @@ private:
     bool cheats_enabled;
     std::unordered_map<uint16_t, double> hp_regen_accum;
     std::unordered_map<uint16_t, double> mana_regen_accum;
-    std::map<uint16_t, EnemyNpc> npcs;
+    std::map<uint16_t, EnemyNpc> enemy_npcs;
 
     struct PendingResurrection {
         uint32_t remaining_ticks;
@@ -78,6 +78,7 @@ private:
     bool is_username_logged_in(const std::string& username) const;
     LoginOkEvent make_login_ok(const Player& p) const;
     EntitySpawnEvent make_entity_spawn(const Player& p) const;
+    EntitySpawnEvent make_npc_spawn(const EnemyNpc& npc, uint16_t npc_id) const;
     std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id) const;
     std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id,
                                                   const std::string& map_name) const;

@@ -8,23 +8,19 @@
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
                PlayerClass player_class, const BalanceConfig& balance, uint8_t inv_capacity):
         id(id),
-        username(username),
-        pos(pos),
         dir(dir),
         race(race),
         player_class(player_class),
-        level(1),
         experience(0),
-        hp_current(0),
-        hp_max(0),
         mana_current(0),
         mana_max(0),
         gold(balance.starting_gold),
         balance(balance),
-        inventory(inv_capacity) {
+        inventory(inv_capacity),
+        Entity(0, username, pos, 1) {
     UpdateStats stats = update_stats();
-    hp_max = stats.hp_max;
-    hp_current = hp_max;
+    set_hp_max(stats.hp_max);
+    set_hp_current(stats.hp_max);
     mana_max = stats.mana_max;
     mana_current = mana_max;
     strength = stats.strength;
@@ -41,90 +37,75 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
                uint32_t mana_max, uint32_t gold, uint8_t inv_capacity, uint32_t strength,
                uint32_t agility):
         id(id),
-        username(username),
-        pos(pos),
         dir(dir),
         race(race),
         player_class(player_class),
-        level(level),
         experience(experience),
-        hp_current(hp_current),
-        hp_max(hp_max),
         mana_current(mana_current),
         mana_max(mana_max),
         gold(gold),
         balance(balance),
         inventory(inv_capacity),
         strength(strength),
-        agility(agility) {
+        agility(agility),
+        Entity(hp_max, username, pos, level) {
     for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
         equipped[i] = InventorySlot{};
         equipped[i].item_type = ItemType::NONE;
     }
 }
 
-bool Player::try_attack(uint32_t current_tick, uint32_t cooldown_ticks) {
-    if (current_tick < next_attack_tick)
-        return false;
-    next_attack_tick = current_tick + cooldown_ticks;
-    return true;
-}
-
 void Player::apply_move(Direction new_dir, int dx, int dy) {
     dir = new_dir;
-    pos.x = static_cast<uint16_t>(static_cast<int>(pos.x) + dx);
-    pos.y = static_cast<uint16_t>(static_cast<int>(pos.y) + dy);
+    Position pos = get_pos();
+    uint16_t pos_x = static_cast<uint16_t>(static_cast<int>(pos.x) + dx);
+    uint16_t pos_y = static_cast<uint16_t>(static_cast<int>(pos.y) + dy);
+    set_pos(pos_x, pos_y);
 }
 
 void Player::gain_experience(uint32_t exp) {
     experience += exp;
     uint32_t threshold = static_cast<uint32_t>(balance.level_exp_base *
-                                               std::pow(level, balance.level_exp_exponent));
-    while (experience >= threshold && level < balance.max_level) {
+                                               std::pow(get_level(), balance.level_exp_exponent));
+    while (experience >= threshold && get_level() < balance.max_level) {
         experience -= threshold;
         level_up();
         threshold = static_cast<uint32_t>(balance.level_exp_base *
-                                          std::pow(level, balance.level_exp_exponent));
+                                          std::pow(get_level(), balance.level_exp_exponent));
     }
 }
 
 void Player::level_up() {
-    ++level;
+    set_level(get_level() + 1);
     UpdateStats stats_updated = update_stats();
-    hp_max = stats_updated.hp_max;
+    set_hp_max(stats_updated.hp_max);
     mana_max = stats_updated.mana_max;
     strength = stats_updated.strength;
     agility = stats_updated.agility;
-    gold += balance.gold_per_level * level;
-    hp_current = hp_max;
+    gold += balance.gold_per_level * get_level();
+    set_hp_current(stats_updated.hp_max);
     mana_current = mana_max;
 }
 
 void Player::take_damage(uint32_t damage) {
     if (cheat_infinite_hp)
         return;
-    if (damage >= hp_current) {
-        hp_current = 0;
-    } else {
-        hp_current -= damage;
-    }
+    Entity::take_damage(damage);
 }
 
-bool Player::is_dead() const { return hp_current == 0; }
-
 void Player::resurrect() {
-    hp_current = hp_max;
+    set_hp_current(get_hp_max());
     mana_current = mana_max;
 }
 
 void Player::heal(uint32_t amount) {
-    uint64_t total = static_cast<uint64_t>(hp_current) + amount;
-    hp_current = static_cast<uint32_t>(std::min<uint64_t>(total, hp_max));
+    uint64_t total = static_cast<uint64_t>(get_hp_current()) + amount;
+    set_hp_current(static_cast<uint32_t>(std::min<uint64_t>(total, get_hp_max())));
 }
 
 void Player::gain_gold(uint32_t amount) {
     uint64_t max_gold = static_cast<uint64_t>(balance.gold_cap_base *
-                                              std::pow(level, balance.gold_cap_exponent));
+                                              std::pow(get_level(), balance.gold_cap_exponent));
     // Players can hold up to 150% of OroMax; the excess 50% is "at risk" on death
     uint64_t hard_cap = max_gold + max_gold / 2;
     uint64_t total = static_cast<uint64_t>(gold) + amount;
@@ -132,8 +113,8 @@ void Player::gain_gold(uint32_t amount) {
 }
 
 void Player::increase_max_hp(uint32_t amount) {
-    hp_max += amount;
-    hp_current += amount;
+    set_hp_max(get_hp_max() + amount);
+    set_hp_current(get_hp_current() + amount);
 }
 
 void Player::increase_max_mana(uint32_t amount) {
@@ -167,15 +148,15 @@ void Player::spend_gold(uint32_t amount) {
 }
 
 void Player::level_down() {
-    if (level <= 1)
+    if (get_level() <= 1)
         return;
-    --level;
+    set_level(get_level() - 1);
     UpdateStats stats_updated = update_stats();
-    hp_max = stats_updated.hp_max;
+    set_hp_max(stats_updated.hp_max);
     mana_max = stats_updated.mana_max;
     strength = stats_updated.strength;
     agility = stats_updated.agility;
-    hp_current = hp_max;
+    set_hp_current(stats_updated.hp_max);
     mana_current = mana_max;
 }
 
@@ -253,17 +234,19 @@ UpdateStats Player::update_stats() const {
     }
 
     UpdateStats stats_updated;
-    stats_updated.hp_max = static_cast<uint32_t>(constitution * f_hp_race * f_hp_class * level);
+    stats_updated.hp_max =
+            static_cast<uint32_t>(constitution * f_hp_race * f_hp_class * get_level());
     stats_updated.mana_max =
-            static_cast<uint32_t>(intelligence * f_mana_race * f_mana_class * level);
-    stats_updated.strength = static_cast<uint32_t>(f_strength_race * f_strength_class * level);
-    stats_updated.agility = static_cast<uint32_t>(f_agility_race * f_agility_class * level);
+            static_cast<uint32_t>(intelligence * f_mana_race * f_mana_class * get_level());
+    stats_updated.strength =
+            static_cast<uint32_t>(f_strength_race * f_strength_class * get_level());
+    stats_updated.agility = static_cast<uint32_t>(f_agility_race * f_agility_class * get_level());
     return stats_updated;
 }
 
 uint32_t Player::exp_to_next_level() const {
     return static_cast<uint32_t>(balance.level_exp_base *
-                                 std::pow(level, balance.level_exp_exponent));
+                                 std::pow(get_level(), balance.level_exp_exponent));
 }
 
 bool Player::equip(uint8_t inv_slot_index, const ItemCatalog& catalog) {
@@ -280,7 +263,7 @@ bool Player::equip(uint8_t inv_slot_index, const ItemCatalog& catalog) {
     if (def->equip_slot == EquipSlot::CONSUMABLE) {
         switch (def->type) {
             case ItemType::HEALTH_POTION:
-                heal(hp_max);
+                heal(get_hp_max());
                 break;
             case ItemType::MANA_POTION:
                 mana_current = mana_max;
