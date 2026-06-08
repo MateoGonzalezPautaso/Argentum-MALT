@@ -110,6 +110,12 @@ struct MerchantConfig {
     double sell_price_ratio = 0.5;
 };
 
+struct NpcDropConfig {
+    double gold_chance = 8.0;
+    double potion_chance = 1.0;
+    double item_chance = 1.0;
+};
+
 struct InventoryConfig {
     int max_slots = 20;
 };
@@ -134,6 +140,7 @@ struct BalanceConfig {
     StartingItemsConfig starting_items;
     VendorsConfig vendors;
     MerchantConfig merchant;
+    NpcDropConfig npc_drop;
 };
 
 struct ServerConfig {

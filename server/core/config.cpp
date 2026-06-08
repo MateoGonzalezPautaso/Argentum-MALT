@@ -104,6 +104,15 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_int(*balance, "gold_cap_base", config.balance.gold_cap_base);
         config.balance.gold_cap_exponent =
                 toml_get_double(*balance, "gold_cap_exponent", config.balance.gold_cap_exponent);
+
+        if (auto drop = (*balance)["npc_drop"].as_table()) {
+            config.balance.npc_drop.gold_chance =
+                    toml_get_double(*drop, "gold_chance", config.balance.npc_drop.gold_chance);
+            config.balance.npc_drop.potion_chance =
+                    toml_get_double(*drop, "potion_chance", config.balance.npc_drop.potion_chance);
+            config.balance.npc_drop.item_chance =
+                    toml_get_double(*drop, "item_chance", config.balance.npc_drop.item_chance);
+        }
     }
 
     if (auto recovery = root["recovery_rates"].as_table()) {
