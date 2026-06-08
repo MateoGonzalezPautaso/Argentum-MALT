@@ -29,13 +29,15 @@ public:
     uint8_t get_level() const { return level; }
     uint32_t get_hp_max() const { return hp_max; }
     bool is_dead() const;
-    void set_hp_current(uint32_t new_hp_current) { hp_current = new_hp_current; }
-    void set_hp_max(uint32_t new_hp_max) { hp_max = new_hp_max; }
-    void set_level(uint8_t new_level) { level = new_level; }
     const std::string& get_current_map() const { return current_map; }
     void set_current_map(const std::string& map) { current_map = map; }
     virtual ~Entity() = default;
     virtual void take_damage(uint32_t damage);
+
+protected:
+    void set_hp_current(uint32_t new_hp_current) { hp_current = new_hp_current; }
+    void set_hp_max(uint32_t new_hp_max) { hp_max = new_hp_max; }
+    void set_level(uint8_t new_level) { level = new_level; }
 };
 
 #endif
