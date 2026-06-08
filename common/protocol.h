@@ -44,6 +44,10 @@ enum class OpCode : uint8_t {
     CHEAT_ADD_GOLD = 0x22,
     CHEAT_VELOCITY = 0x23,
     CHEAT_REVIVE = 0x24,
+    CHEAT_RESET_GOLD = 0x25,
+    CHEAT_FILL_INVENTORY = 0x26,
+    CHEAT_RESET_MANA = 0x27,
+    CHEAT_CLEAR_INVENTORY = 0x28,
     // Events (server -> client) 0x80 - 0x9B
     LOGIN_OK = 0x80,
     LOGIN_ERROR = 0x81,
@@ -75,6 +79,7 @@ enum class OpCode : uint8_t {
     SERVER_MSG = 0x9B,
     HEAL_RECEIVED = 0x9C,
     MAP_TRANSITION = 0x9D,
+    SPELL_EFFECT = 0x9E,
 };
 
 class Protocol {

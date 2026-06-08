@@ -9,12 +9,17 @@
 struct Item {
     ItemType type = ItemType::NONE;
     std::string name;
-    EquipSlot equip_slot = EquipSlot::WEAPON;
+    EquipSlot equip_slot = EquipSlot::NONE;
     uint8_t min_damage = 0;
     uint8_t max_damage = 0;
     uint8_t mana_consumed = 0;
     uint8_t min_defense = 0;
     uint8_t max_defense = 0;
+    uint8_t spell_effect_id = 0;
+    uint8_t restore_hp_percent = 0;
+    uint8_t restore_mana_percent = 0;
+    uint32_t price = 0;
+    uint16_t attack_range = 0;
 };
 
 #endif

@@ -46,8 +46,12 @@ public:
     void send_cheat_level_up();
     void send_cheat_level_down();
     void send_cheat_add_gold();
+    void send_cheat_reset_gold();
     void send_cheat_velocity();
     void send_cheat_revive();
+    void send_cheat_fill_inventory();
+    void send_cheat_clear_inventory();
+    void send_cheat_reset_mana();
     void send_change_map(const ChangeMapCmd& cmd);
 
     // Envía cualquier comando usando std::visit.
@@ -82,6 +86,7 @@ private:
     ServerEvent recv_clan_notification();
     ServerEvent recv_clan_update();
     ServerEvent recv_heal_received();
+    ServerEvent recv_spell_effect();
     ServerEvent recv_map_transition();
     ServerEvent recv_player_stats();
 };

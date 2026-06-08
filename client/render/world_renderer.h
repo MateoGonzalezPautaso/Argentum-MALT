@@ -49,7 +49,19 @@ public:
     void set_entity_alpha(uint16_t entity_id, uint8_t alpha);
     void set_movable_alpha(uint8_t alpha);
     void set_local_player_info(Race race, PlayerClass player_class);
+    void update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y = 0,
+                                  bool static_frame = false);
+    void clear_equipment_overlay(uint8_t slot);
+    void update_entity_equipment_overlay(uint16_t entity_id, uint8_t slot, const std::string& path,
+                                         int offset_y = 0, bool static_frame = false);
+    void clear_entity_equipment_overlay(uint16_t entity_id, uint8_t slot);
+    void set_entity_body_sprite(uint16_t entity_id, const std::string& path);
+    void reset_entity_body_sprite(uint16_t entity_id);
+    void set_body_sprite(const std::string& path);
+    void reset_body_sprite();
+    void set_direction_src_y(int down, int up, int left, int right);
     void trigger_damage_overlay_at(int world_x, int world_y);
+    void trigger_spell_effect(uint8_t effect_type, int world_x, int world_y);
     bool get_entity_world_position(uint16_t entity_id, int& x, int& y) const;
     void set_show_hitboxes(bool v) { show_hitboxes_ = v; }
     bool get_show_hitboxes() const { return show_hitboxes_; }

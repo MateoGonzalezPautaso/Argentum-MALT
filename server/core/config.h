@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 #include "../../common/config.h"
 #include "../../common/item_catalog.h"
@@ -20,6 +22,7 @@ struct AttackConfig {
     double clan_bonus_per_member = 0.05;
     double clan_bonus_max = 0.25;
     double critical_chance = 0.003;
+    uint32_t spell_attack_range_px = 200;
 };
 
 struct ClanConfig {
@@ -90,6 +93,23 @@ struct HpConfig {
     double class_hp_factor_mage = 0.8;
 };
 
+struct StartingItemsConfig {
+    std::vector<ItemType> warrior;
+    std::vector<ItemType> mage;
+    std::vector<ItemType> paladin;
+    std::vector<ItemType> cleric;
+};
+
+struct VendorsConfig {
+    // npc_name, items
+    std::unordered_map<std::string, std::unordered_set<ItemType>> by_vendor;
+};
+
+struct MerchantConfig {
+    int interaction_range_tiles = 3;
+    double sell_price_ratio = 0.5;
+};
+
 struct InventoryConfig {
     int max_slots = 20;
 };
@@ -110,6 +130,9 @@ struct BalanceConfig {
     ManaConfig mana;
     StrengthConfig strength;
     AgilityConfig agility;
+    StartingItemsConfig starting_items;
+    VendorsConfig vendors;
+    MerchantConfig merchant;
 };
 
 struct ServerConfig {

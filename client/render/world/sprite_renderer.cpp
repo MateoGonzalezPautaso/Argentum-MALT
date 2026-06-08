@@ -176,20 +176,92 @@ void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::s
     }
     position_anchored_parts(parts);
     entity_sprites[entity_id] = std::move(parts);
+
+    EntityEquipRenderState equip_state;
+    auto body_it = std::find_if(
+            entity_part_configs.begin(), entity_part_configs.end(),
+            [](const auto& config) { return config.movable && !config.anchor_to_movable; });
+    if (body_it != entity_part_configs.end()) {
+        SpriteConfig selected = resolve_entity_skin(*body_it, race, player_class);
+        equip_state.default_body_path = selected.paths.empty() ? "" : selected.paths[0];
+    }
+    entity_equip_state_[entity_id] = std::move(equip_state);
+
     create_entity_name_label(entity_id, name);
 }
 
 void SpriteRenderer::despawn_entity(uint16_t entity_id) {
     entity_sprites.erase(entity_id);
     entity_name_render.erase(entity_id);
+    entity_equip_state_.erase(entity_id);
 }
 
 void SpriteRenderer::clear_all_entities() {
     entity_sprites.clear();
     entity_name_render.clear();
+    entity_equip_state_.clear();
 }
 
 void SpriteRenderer::set_skin_config(const SkinConfig& cfg) { skin_config = cfg; }
+
+void SpriteRenderer::update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y,
+                                              bool static_frame) {
+    if (slot >= EQUIP_SLOT_COUNT)
+        return;
+    EquipOverlay& overlay = equip_overlays_[slot];
+    try {
+        SDL2pp::Surface surface = texture::load_surface(path);
+        overlay.frames.clear();
+        overlay.frames.emplace_back(renderer, surface);
+        overlay.active = true;
+        overlay.offset_y = offset_y;
+        overlay.static_frame = static_frame;
+    } catch (...) {
+        overlay.frames.clear();
+        overlay.active = false;
+    }
+}
+
+void SpriteRenderer::clear_equipment_overlay(uint8_t slot) {
+    if (slot >= EQUIP_SLOT_COUNT)
+        return;
+    EquipOverlay& overlay = equip_overlays_[slot];
+    overlay.frames.clear();
+    overlay.active = false;
+}
+
+void SpriteRenderer::update_entity_equipment_overlay(uint16_t entity_id, uint8_t slot,
+                                                     const std::string& path, int offset_y,
+                                                     bool static_frame) {
+    if (slot >= EQUIP_SLOT_COUNT)
+        return;
+    auto it = entity_equip_state_.find(entity_id);
+    if (it == entity_equip_state_.end())
+        return;
+    EquipOverlay& overlay = it->second.overlays[slot];
+    try {
+        SDL2pp::Surface surface = texture::load_surface(path);
+        overlay.frames.clear();
+        overlay.frames.emplace_back(renderer, surface);
+        overlay.active = true;
+        overlay.offset_y = offset_y;
+        overlay.static_frame = static_frame;
+    } catch (...) {
+        overlay.frames.clear();
+        overlay.active = false;
+    }
+}
+
+void SpriteRenderer::clear_entity_equipment_overlay(uint16_t entity_id, uint8_t slot) {
+    if (slot >= EQUIP_SLOT_COUNT)
+        return;
+    auto it = entity_equip_state_.find(entity_id);
+    if (it == entity_equip_state_.end())
+        return;
+    EquipOverlay& overlay = it->second.overlays[slot];
+    overlay.frames.clear();
+    overlay.active = false;
+}
 
 void SpriteRenderer::set_local_player_info(Race race, PlayerClass player_class) {
     if (entity_part_configs.empty()) {
@@ -199,8 +271,64 @@ void SpriteRenderer::set_local_player_info(Race race, PlayerClass player_class) 
     for (std::size_t i = 0; i < entity_part_configs.size() && i < sprites.size(); ++i) {
         const auto& config = entity_part_configs[i];
         SpriteConfig selected = resolve_entity_skin(config, race, player_class);
+        if (config.movable && !config.anchor_to_movable) {
+            default_body_path_ = selected.paths.empty() ? "" : selected.paths[0];
+        }
         sprites[i] = build_sprite_render(selected);
     }
+}
+
+void SpriteRenderer::set_body_sprite(const std::string& path) {
+    SpriteRender* movable = find_movable_sprite();
+    if (!movable || path.empty()) {
+        return;
+    }
+    try {
+        SDL2pp::Surface surface = texture::load_surface(path);
+        movable->frames.clear();
+        movable->frames.emplace_back(renderer, surface);
+        movable->current_frame = 0;
+    } catch (...) {
+        reset_body_sprite();
+    }
+}
+
+void SpriteRenderer::set_entity_body_sprite(uint16_t entity_id, const std::string& path) {
+    SpriteRender* movable = find_entity_movable_sprite(entity_id);
+    if (!movable || path.empty()) {
+        return;
+    }
+    try {
+        SDL2pp::Surface surface = texture::load_surface(path);
+        movable->frames.clear();
+        movable->frames.emplace_back(renderer, surface);
+        movable->current_frame = 0;
+    } catch (...) {
+        reset_entity_body_sprite(entity_id);
+    }
+}
+
+void SpriteRenderer::reset_body_sprite() {
+    if (default_body_path_.empty()) {
+        return;
+    }
+    set_body_sprite(default_body_path_);
+}
+
+void SpriteRenderer::reset_entity_body_sprite(uint16_t entity_id) {
+    auto it = entity_equip_state_.find(entity_id);
+    if (it == entity_equip_state_.end())
+        return;
+    if (it->second.default_body_path.empty())
+        return;
+    set_entity_body_sprite(entity_id, it->second.default_body_path);
+}
+
+void SpriteRenderer::set_direction_src_y(int down, int up, int left, int right) {
+    dir_src_y_down_ = down;
+    dir_src_y_up_ = up;
+    dir_src_y_left_ = left;
+    dir_src_y_right_ = right;
 }
 
 void SpriteRenderer::move_entity(uint16_t entity_id, int x, int y) {
@@ -327,7 +455,7 @@ void SpriteRenderer::set_entity_alpha(uint16_t entity_id, uint8_t alpha) {
 
 void SpriteRenderer::set_movable_alpha(uint8_t alpha) {
     for (auto& sprite: sprites) {
-        if (sprite.movable) {
+        if (sprite.movable || sprite.anchor_to_movable) {
             sprite.alpha = alpha;
         }
     }
@@ -362,8 +490,77 @@ void SpriteRenderer::render(const SDL2pp::Rect& cam) {
     std::vector<Drawable> drawables;
 
     append_sprite_drawables(sprites, cam, drawables);
+
+    SpriteRender* movable = find_movable_sprite();
+    if (movable && movable->use_src) {
+        int body_foot_y = movable->dst.GetY() + movable->dst.GetH();
+        int src_y = movable->src.GetY();
+        bool behind = (src_y == dir_src_y_up_ || src_y == dir_src_y_right_);
+        for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
+            if (i == static_cast<uint8_t>(EquipSlot::ARMOR))
+                continue;
+            EquipOverlay& overlay = equip_overlays_[i];
+            if (!overlay.active || overlay.frames.empty())
+                continue;
+            if (!is_visible(*movable, cam))
+                continue;
+            SDL2pp::Rect dst(movable->dst.GetX() - cam.GetX(),
+                             movable->dst.GetY() - cam.GetY() + overlay.offset_y,
+                             movable->dst.GetW(), movable->dst.GetH());
+            int overlay_foot_y = behind ? (body_foot_y - 1 - i) : (body_foot_y + 1 + i);
+            if (overlay.static_frame) {
+                static_cache_[i] = movable->src;
+                static_cache_[i].SetX(0);
+                drawables.push_back(Drawable{&overlay.frames[0], &static_cache_[i], dst,
+                                             overlay_foot_y, movable->alpha});
+            } else {
+                drawables.push_back(Drawable{&overlay.frames[0], &movable->src, dst, overlay_foot_y,
+                                             movable->alpha});
+            }
+        }
+    }
+
     for (auto& pair: entity_sprites) {
         append_sprite_drawables(pair.second, cam, drawables);
+
+        uint16_t entity_id = pair.first;
+        auto state_it = entity_equip_state_.find(entity_id);
+        if (state_it == entity_equip_state_.end())
+            continue;
+        auto body_it = std::find_if(pair.second.begin(), pair.second.end(),
+                                    [](const SpriteRender& p) { return p.movable; });
+        if (body_it == pair.second.end() || !body_it->use_src)
+            continue;
+        SpriteRender& movable_entity = *body_it;
+        if (!is_visible(movable_entity, cam))
+            continue;
+
+        int body_foot_y = movable_entity.dst.GetY() + movable_entity.dst.GetH();
+        int src_y = movable_entity.src.GetY();
+        bool behind = (src_y == dir_src_y_up_ || src_y == dir_src_y_right_);
+
+        EntityEquipRenderState& state = state_it->second;
+        for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
+            if (i == static_cast<uint8_t>(EquipSlot::ARMOR))
+                continue;
+            EquipOverlay& overlay = state.overlays[i];
+            if (!overlay.active || overlay.frames.empty())
+                continue;
+
+            SDL2pp::Rect dst(movable_entity.dst.GetX() - cam.GetX(),
+                             movable_entity.dst.GetY() - cam.GetY() + overlay.offset_y,
+                             movable_entity.dst.GetW(), movable_entity.dst.GetH());
+            int overlay_foot_y = behind ? (body_foot_y - 1 - i) : (body_foot_y + 1 + i);
+            if (overlay.static_frame) {
+                state.static_cache[i] = movable_entity.src;
+                state.static_cache[i].SetX(0);
+                drawables.push_back(Drawable{&overlay.frames[0], &state.static_cache[i], dst,
+                                             overlay_foot_y, movable_entity.alpha});
+            } else {
+                drawables.push_back(Drawable{&overlay.frames[0], &movable_entity.src, dst,
+                                             overlay_foot_y, movable_entity.alpha});
+            }
+        }
     }
 
     sort_and_render_drawables(drawables);
@@ -442,12 +639,64 @@ void SpriteRenderer::load_damage_overlay() {
     }
 }
 
+void SpriteRenderer::load_spell_sheets() {
+    auto load_sheet = [&](const std::string& path, int frame_w, int frame_h, int cols, int rows,
+                          int display_w, int display_h, uint32_t frame_ms,
+                          std::vector<OverlayEffect>& pool) {
+        SDL2pp::Surface sheet = texture::load_surface(path);
+        pool.resize(3);
+        int total = cols * rows;
+        for (auto& ov: pool) {
+            ov.frames.reserve(total);
+            for (int r = 0; r < rows; ++r) {
+                for (int c = 0; c < cols; ++c) {
+                    SDL_Surface* sub = SDL_CreateRGBSurfaceWithFormat(0, frame_w, frame_h, 32,
+                                                                      SDL_PIXELFORMAT_ABGR8888);
+                    SDL_Rect src{c * frame_w, r * frame_h, frame_w, frame_h};
+                    SDL_SetSurfaceBlendMode(sheet.Get(), SDL_BLENDMODE_NONE);
+                    SDL_BlitSurface(sheet.Get(), &src, sub, nullptr);
+                    auto& tex = ov.frames.emplace_back(renderer, SDL2pp::Surface(sub));
+                    tex.SetBlendMode(SDL_BLENDMODE_BLEND);
+                }
+            }
+            ov.frame_ms = frame_ms;
+            ov.dst.SetW(display_w);
+            ov.dst.SetH(display_h);
+        }
+    };
+    load_sheet("assets/Graficos/3470.png", 128, 135, 5, 1, 77, 81, 100, spell_overlay_pools[0]);
+    load_sheet("assets/Graficos/3449.png", 128, 128, 4, 4, 77, 77, 70, spell_overlay_pools[1]);
+    load_sheet("assets/Graficos/3460.png", 128, 128, 4, 4, 77, 77, 70, spell_overlay_pools[2]);
+    load_sheet("assets/Graficos/3451.png", 128, 128, 4, 4, 77, 77, 70, spell_overlay_pools[3]);
+}
+
 void SpriteRenderer::trigger_damage_overlay_at(int world_x, int world_y) {
     for (auto& ov: overlays) {
         if (ov.active)
             continue;
         ov.dst.SetX(world_x - ov.dst.GetW() / 2);
         ov.dst.SetY(world_y - ov.dst.GetH() / 2);
+        ov.current_frame = 0;
+        ov.last_ticks = SDL_GetTicks();
+        ov.active = true;
+        return;
+    }
+}
+
+void SpriteRenderer::trigger_spell_effect(uint8_t effect_type, int world_x, int world_y) {
+    auto it = spell_overlay_pools.find(effect_type);
+    if (it == spell_overlay_pools.end())
+        return;
+    for (auto& ov: it->second) {
+        if (ov.active)
+            continue;
+        int ox = 0, oy = 0;
+        if (effect_type == 0) {
+            ox = -7;
+            oy = -15;
+        }
+        ov.dst.SetX(world_x - ov.dst.GetW() / 2 + ox);
+        ov.dst.SetY(world_y - ov.dst.GetH() / 2 + oy);
         ov.current_frame = 0;
         ov.last_ticks = SDL_GetTicks();
         ov.active = true;
@@ -471,27 +720,35 @@ bool SpriteRenderer::get_entity_world_position(uint16_t entity_id, int& x, int& 
 void SpriteRenderer::tick_overlays(const AnimationSystem& anim) {
     (void)anim;
     uint32_t now = SDL_GetTicks();
-    for (auto& ov: overlays) {
-        if (!ov.active)
-            continue;
-        if (now - ov.last_ticks < ov.frame_ms)
-            continue;
-        ov.last_ticks = now;
-        ov.current_frame++;
-        if (ov.current_frame >= ov.frames.size()) {
-            ov.active = false;
+    auto tick_pool = [&](std::vector<OverlayEffect>& pool) {
+        for (auto& ov: pool) {
+            if (!ov.active)
+                continue;
+            if (now - ov.last_ticks < ov.frame_ms)
+                continue;
+            ov.last_ticks = now;
+            ov.current_frame++;
+            if (ov.current_frame >= ov.frames.size()) {
+                ov.active = false;
+            }
         }
-    }
+    };
+    tick_pool(overlays);
+    for (auto& [key, pool]: spell_overlay_pools) tick_pool(pool);
 }
 
 void SpriteRenderer::render_overlays(const SDL2pp::Rect& cam) {
-    for (auto& ov: overlays) {
-        if (!ov.active)
-            continue;
-        SDL2pp::Rect dst(ov.dst.GetX() - cam.GetX(), ov.dst.GetY() - cam.GetY(), ov.dst.GetW(),
-                         ov.dst.GetH());
-        renderer.Copy(ov.frames[ov.current_frame], SDL2pp::NullOpt, dst);
-    }
+    auto render_pool = [&](std::vector<OverlayEffect>& pool) {
+        for (auto& ov: pool) {
+            if (!ov.active)
+                continue;
+            SDL2pp::Rect dst(ov.dst.GetX() - cam.GetX(), ov.dst.GetY() - cam.GetY(), ov.dst.GetW(),
+                             ov.dst.GetH());
+            renderer.Copy(ov.frames[ov.current_frame], SDL2pp::NullOpt, dst);
+        }
+    };
+    render_pool(overlays);
+    for (auto& [key, pool]: spell_overlay_pools) render_pool(pool);
 }
 
 void SpriteRenderer::tick_animations(AnimationSystem& anim) {
@@ -525,6 +782,15 @@ SpriteRenderer::SpriteRender* SpriteRenderer::find_movable_sprite() {
     return it != sprites.end() ? &(*it) : nullptr;
 }
 
+SpriteRenderer::SpriteRender* SpriteRenderer::find_entity_movable_sprite(uint16_t entity_id) {
+    auto it = entity_sprites.find(entity_id);
+    if (it == entity_sprites.end())
+        return nullptr;
+    auto pit = std::find_if(it->second.begin(), it->second.end(),
+                            [](const SpriteRender& s) { return s.movable; });
+    return pit != it->second.end() ? &(*pit) : nullptr;
+}
+
 int SpriteRenderer::movable_x() const {
     const SpriteRender* s = find_movable_sprite();
     return s ? s->dst.GetX() : 0;
@@ -549,4 +815,14 @@ const SpriteRenderer::SpriteRender* SpriteRenderer::find_movable_sprite() const 
     auto it = std::find_if(sprites.begin(), sprites.end(),
                            [](const SpriteRender& s) { return s.movable; });
     return it != sprites.end() ? &(*it) : nullptr;
+}
+
+const SpriteRenderer::SpriteRender* SpriteRenderer::find_entity_movable_sprite(
+        uint16_t entity_id) const {
+    auto it = entity_sprites.find(entity_id);
+    if (it == entity_sprites.end())
+        return nullptr;
+    auto pit = std::find_if(it->second.begin(), it->second.end(),
+                            [](const SpriteRender& s) { return s.movable; });
+    return pit != it->second.end() ? &(*pit) : nullptr;
 }

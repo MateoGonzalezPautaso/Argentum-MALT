@@ -1,7 +1,11 @@
 #ifndef SERVER_MAP_H
 #define SERVER_MAP_H
 
+#include <optional>
+#include <utility>
+
 #include "../../common/config.h"
+#include "../../common/rng.h"
 
 #include "prop_grid.h"
 
@@ -20,6 +24,10 @@ public:
     int clamp_y(int y, int entity_h) const;
 
     bool is_walkable(int foot_x, int foot_y) const;
+    bool is_mob_spawn_tile(int row, int col) const;
+    std::optional<std::pair<int, int>> find_random_mob_spawn_pos(Rng& rng) const;
+
+    bool is_position_in_spawn_zone(int x, int y) const;
 
 private:
     const TilemapConfig* tilemap_;

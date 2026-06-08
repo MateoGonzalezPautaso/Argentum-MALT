@@ -17,6 +17,7 @@ public:
     void add(const Item& item);
 
     const Item* find(ItemType type) const;
+    const Item* find_by_name(const std::string& name) const;
     const Item& get(ItemType type) const;
     const Item& random_equipable(Rng& rng) const;
 
@@ -26,6 +27,8 @@ public:
 private:
     std::vector<Item> items_;
     std::unordered_map<ItemType, size_t> by_index_;
+    std::unordered_map<std::string, size_t> by_lower_name_;
+    std::vector<size_t> equippable_item_indexes_;
 };
 
 ItemType parse_item_type(const std::string& str);

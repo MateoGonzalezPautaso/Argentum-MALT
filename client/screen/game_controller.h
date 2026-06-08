@@ -37,7 +37,8 @@ private:
     ChatHistory chat_history;
     PlayerStats player_stats;
     bool player_is_ghost = false;
-    std::string current_map_name = "main";
+    int chat_scroll = 0;
+    std::string current_map_name = "city";
     WorldRenderer world_renderer;
     UIRenderer ui_renderer;
     Queue<ClientCommand>& command_queue;

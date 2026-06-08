@@ -1,7 +1,14 @@
 #include "inventory_persistence.h"
 
 #include <fstream>
+#include <iostream>
 #include <utility>
+
+#include "endian_io.h"
+
+void InventoryPersistence::log_error(const std::string& msg) {
+    std::cerr << "[InventoryPersistence] " << msg << '\n';
+}
 
 InventoryPersistence::InventoryPersistence(const std::string& data_path,
                                            const std::string& index_path, uint8_t slot_count):
@@ -23,8 +30,7 @@ void InventoryPersistence::load_index() {
 
     while (idx.peek() != EOF) {
         uint32_t name_len = 0;
-        idx.read(reinterpret_cast<char*>(&name_len), sizeof(name_len));
-        if (!idx)
+        if (!endian_io::read_u32_le(idx, name_len))
             break;
 
         std::string name(name_len, '\0');
@@ -33,73 +39,97 @@ void InventoryPersistence::load_index() {
             break;
 
         uint32_t offset = 0;
-        idx.read(reinterpret_cast<char*>(&offset), sizeof(offset));
-        if (!idx)
+        if (!endian_io::read_u32_le(idx, offset))
             break;
 
         index.emplace(std::move(name), offset);
     }
 }
 
-void InventoryPersistence::save_index() {
+bool InventoryPersistence::save_index() {
     std::ofstream idx(index_path, std::ios::binary | std::ios::trunc);
     if (!idx.is_open()) {
-        return;
+        log_error("could not open index file for writing: " + index_path);
+        return false;
     }
 
     for (const auto& [name, offset]: index) {
         uint32_t name_len = static_cast<uint32_t>(name.size());
-        idx.write(reinterpret_cast<const char*>(&name_len), sizeof(name_len));
+        endian_io::write_u32_le(idx, name_len);
         idx.write(name.data(), name_len);
-        idx.write(reinterpret_cast<const char*>(&offset), sizeof(offset));
+        endian_io::write_u32_le(idx, offset);
     }
+
+    if (!idx) {
+        log_error("failed while writing index file: " + index_path);
+        return false;
+    }
+    return true;
 }
 
 bool InventoryPersistence::load(const std::string& username,
                                 std::vector<InventorySlotRecord>& out) {
     auto it = index.find(username);
     if (it == index.end()) {
+        // No saved inventory for this user yet: normal case, not an error.
         return false;
     }
 
     std::ifstream data(data_path, std::ios::binary);
     if (!data.is_open()) {
+        log_error("index references '" + username + "' but data file is missing: " + data_path);
         return false;
     }
 
     data.seekg(it->second);
     if (!data) {
+        log_error("could not seek to inventory of '" + username + "'");
         return false;
     }
 
     uint32_t bsize = blob_size();
     out.resize(slot_count);
     data.read(reinterpret_cast<char*>(out.data()), bsize);
-    return static_cast<bool>(data);
+    if (!data) {
+        log_error("failed to read inventory blob of '" + username + "'");
+        return false;
+    }
+    return true;
 }
 
-void InventoryPersistence::save(const std::string& username,
+bool InventoryPersistence::save(const std::string& username,
                                 const std::vector<InventorySlotRecord>& records) {
     auto it = index.find(username);
 
     if (it != index.end()) {
         std::ofstream data(data_path, std::ios::binary | std::ios::in | std::ios::out);
         if (!data.is_open()) {
-            return;
+            log_error("could not open data file to update '" + username + "': " + data_path);
+            return false;
         }
         data.seekp(it->second);
         data.write(reinterpret_cast<const char*>(records.data()), blob_size());
-    } else {
-        std::ofstream data(data_path,
-                           std::ios::binary | std::ios::app | std::ios::in | std::ios::out);
-        if (!data.is_open()) {
-            return;
+        if (!data) {
+            log_error("failed to write inventory of '" + username + "'");
+            return false;
         }
-        uint32_t offset = static_cast<uint32_t>(data.tellp());
-        data.write(reinterpret_cast<const char*>(records.data()), blob_size());
-        data.flush();
-
-        index.emplace(username, offset);
-        save_index();
+        return true;
     }
+
+    std::ofstream data(data_path,
+                       std::ios::binary | std::ios::app | std::ios::in | std::ios::out);
+    if (!data.is_open()) {
+        log_error("could not open data file to append '" + username + "': " + data_path);
+        return false;
+    }
+    uint32_t offset = static_cast<uint32_t>(data.tellp());
+    data.write(reinterpret_cast<const char*>(records.data()), blob_size());
+    data.flush();
+    if (!data) {
+        log_error("failed to append inventory of '" + username + "'");
+        return false;
+    }
+
+    index.emplace(username, offset);
+    return save_index();
 }

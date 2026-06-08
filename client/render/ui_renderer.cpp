@@ -138,6 +138,43 @@ void UIRenderer::render_gold(uint32_t gold) {
     renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
 }
 
+void UIRenderer::update_potion_button_hover(int mx, int my,
+                                            const std::vector<InventorySlot>& slots) {
+    hovered_potion = 0;
+    hp_potion_count_ = static_cast<int>(std::count_if(
+            slots.begin(), slots.end(),
+            [](const InventorySlot& s) { return s.item_type == ItemType::HEALTH_POTION; }));
+    mana_potion_count_ = static_cast<int>(std::count_if(
+            slots.begin(), slots.end(),
+            [](const InventorySlot& s) { return s.item_type == ItemType::MANA_POTION; }));
+
+    if (hp_potion_count_ > 0) {
+        SDL2pp::Rect r(ui_cfg.potion_hp.x, ui_cfg.potion_hp.y, ui_cfg.potion_hp.w,
+                       ui_cfg.potion_hp.h);
+        if (point_in_rect(mx, my, r))
+            hovered_potion = 1;
+    }
+    if (mana_potion_count_ > 0) {
+        SDL2pp::Rect r(ui_cfg.potion_mana.x, ui_cfg.potion_mana.y, ui_cfg.potion_mana.w,
+                       ui_cfg.potion_mana.h);
+        if (point_in_rect(mx, my, r))
+            hovered_potion = 2;
+    }
+}
+
+void UIRenderer::render_potion_buttons() {
+    if (hovered_potion == 0)
+        return;
+
+    const StatBarConfig& btn = (hovered_potion == 1) ? ui_cfg.potion_hp : ui_cfg.potion_mana;
+    SDL2pp::Rect r(btn.x, btn.y, btn.w, btn.h);
+
+    renderer.SetDrawColor(220, 180, 40, 255);
+    renderer.DrawRect(r);
+    SDL2pp::Rect inner(btn.x + 1, btn.y + 1, btn.w - 2, btn.h - 2);
+    renderer.DrawRect(inner);
+}
+
 void UIRenderer::render_portrait(Race race, PlayerClass player_class, uint8_t level) {
     const auto& pt = ui_cfg.portrait;
 
@@ -206,7 +243,7 @@ void UIRenderer::render_equipped(const InventorySlot equipped[4]) {
     inventory_renderer.render_equipped(equipped);
 }
 
-void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages) {
+void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages, int scroll_offset) {
     if (!chat_font || messages.empty()) {
         return;
     }
@@ -214,7 +251,12 @@ void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages) {
     int y_offset = chat_history_rect.GetY() + chat_history_rect.GetH();
     int line_spacing = ui_cfg.chat_line_spacing;
 
+    int skipped = 0;
     for (auto it = messages.rbegin(); it != messages.rend(); ++it) {
+        if (skipped < scroll_offset) {
+            ++skipped;
+            continue;
+        }
         std::string display;
         SDL_Color color = chat_color;
 

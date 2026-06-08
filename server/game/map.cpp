@@ -1,6 +1,9 @@
 #include "map.h"
 
 #include <algorithm>
+#include <optional>
+#include <utility>
+#include <vector>
 
 Map::Map(const TilemapConfig& tilemap):
         tilemap_(&tilemap),
@@ -49,4 +52,59 @@ bool Map::is_walkable(int foot_x, int foot_y) const {
         return false;
 
     return true;
+}
+
+bool Map::is_mob_spawn_tile(int row, int col) const {
+    if (tilemap_->mob_spawn_zones.empty())
+        return false;
+
+    auto r = static_cast<std::size_t>(row);
+    auto c = static_cast<std::size_t>(col);
+
+    if (r >= tilemap_->mob_spawn_zones.size())
+        return false;
+    if (c >= tilemap_->mob_spawn_zones[r].size())
+        return false;
+
+    return tilemap_->mob_spawn_zones[r][c];
+}
+
+bool Map::is_position_in_spawn_zone(int x, int y) const {
+    if (tilemap_->mob_spawn_zones.empty() || tilemap_->tile_size <= 0)
+        return false;
+    int col = x / tilemap_->tile_size;
+    int row = y / tilemap_->tile_size;
+    return is_mob_spawn_tile(row, col);
+}
+
+std::optional<std::pair<int, int>> Map::find_random_mob_spawn_pos(Rng& rng) const {
+    if (tilemap_->mob_spawn_zones.empty())
+        return std::nullopt;
+
+    struct Candidate {
+        int px;
+        int py;
+    };
+    std::vector<Candidate> candidates;
+    int tsz = tilemap_->tile_size;
+
+    for (std::size_t r = 0; r < tilemap_->mob_spawn_zones.size(); ++r) {
+        for (std::size_t c = 0; c < tilemap_->mob_spawn_zones[r].size(); ++c) {
+            if (!tilemap_->mob_spawn_zones[r][c])
+                continue;
+
+            int foot_x = static_cast<int>(c) * tsz + tsz / 2;
+            int foot_y = static_cast<int>(r) * tsz + tsz / 2;
+
+            if (is_walkable(foot_x, foot_y)) {
+                candidates.push_back({foot_x, foot_y});
+            }
+        }
+    }
+
+    if (candidates.empty())
+        return std::nullopt;
+
+    int idx = rng.get_random_int(0, static_cast<int>(candidates.size()) - 1);
+    return std::make_pair(candidates[idx].px, candidates[idx].py);
 }

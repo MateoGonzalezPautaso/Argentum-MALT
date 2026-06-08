@@ -49,8 +49,7 @@ public:
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
            PlayerClass player_class, const BalanceConfig& balance, uint8_t level,
            uint32_t experience, uint32_t hp_current, uint32_t hp_max, uint32_t mana_current,
-           uint32_t mana_max, uint32_t gold, uint8_t inv_capacity, uint32_t strength,
-           uint32_t agility);
+           uint32_t mana_max, uint32_t gold, uint8_t inv_capacity);
 
     uint16_t get_id() const { return id; }
     Direction get_dir() const { return dir; }
@@ -79,6 +78,7 @@ public:
     void apply_move(Direction new_dir, int dx, int dy);
     void resurrect();
     void gain_experience(uint32_t exp);
+    void lose_experience_on_death();
     void level_up();
     void take_damage(uint32_t damage) override;
     void heal(uint32_t amount);
@@ -86,6 +86,7 @@ public:
     void use_mana(uint32_t amount);
     void gain_gold(uint32_t amount);
     void spend_gold(uint32_t amount);
+    uint32_t take_excess_gold();
 
     uint32_t exp_to_next_level() const;
 
@@ -95,6 +96,8 @@ public:
     std::vector<InventorySlot> dump_inventory() const;
     void load_inventory(const std::vector<InventorySlotRecord>& records);
     bool add_item(ItemType type, const std::string& name);
+    void remove_inventory_item(uint8_t slot_index);
+    void clear_inventory();
     std::vector<InventorySlotRecord> dump_inventory_records() const;
 
     bool equip(uint8_t inv_slot_index, const ItemCatalog& catalog);

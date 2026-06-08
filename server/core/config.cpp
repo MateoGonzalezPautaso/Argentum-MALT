@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 #include <toml++/toml.h>
 
@@ -29,7 +30,7 @@ ServerConfig load_server_config(const std::string& path) {
         throw std::runtime_error("server config requires at least one map in map_list.toml");
     }
 
-    auto main_it = config.tilemap_configs.find("main");
+    auto main_it = config.tilemap_configs.find("city");
     if (main_it != config.tilemap_configs.end()) {
         config.tilemap = main_it->second;
     } else {
@@ -67,6 +68,8 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*attack, "clan_bonus_max", config.attack.clan_bonus_max);
         config.attack.critical_chance =
                 toml_get_double(*attack, "critical_chance", config.attack.critical_chance);
+        config.attack.spell_attack_range_px =
+                toml_get_int(*attack, "spell_attack_range_px", config.attack.spell_attack_range_px);
     }
 
     if (auto inventory = root["inventory"].as_table()) {
@@ -231,6 +234,53 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*ca, "cleric", config.balance.agility.class_agility_factor_cleric);
         config.balance.agility.class_agility_factor_mage =
                 toml_get_double(*ca, "mage", config.balance.agility.class_agility_factor_mage);
+    }
+
+    if (auto si = root["starting_items"].as_table()) {
+        auto parse_item_list = [](const toml::table& tbl, const std::string& key) {
+            std::vector<ItemType> result;
+            if (auto arr = tbl[key].as_array()) {
+                for (const auto& elem: *arr) {
+                    if (auto val = elem.value<std::string>()) {
+                        ItemType type = parse_item_type(*val);
+                        if (type != ItemType::NONE) {
+                            result.push_back(type);
+                        }
+                    }
+                }
+            }
+            return result;
+        };
+        config.balance.starting_items.warrior = parse_item_list(*si, "warrior");
+        config.balance.starting_items.mage = parse_item_list(*si, "mage");
+        config.balance.starting_items.paladin = parse_item_list(*si, "paladin");
+        config.balance.starting_items.cleric = parse_item_list(*si, "cleric");
+    }
+
+    if (auto merchant = root["merchant"].as_table()) {
+        config.balance.merchant.interaction_range_tiles =
+                toml_get_int(*merchant, "interaction_range_tiles",
+                             config.balance.merchant.interaction_range_tiles);
+        config.balance.merchant.sell_price_ratio = toml_get_double(
+                *merchant, "sell_price_ratio", config.balance.merchant.sell_price_ratio);
+    }
+
+    if (auto vendors = root["vendors"].as_table()) {
+        for (const auto& [vendor_name, value]: *vendors) {
+            auto arr = value.as_array();
+            if (!arr)
+                continue;
+            std::unordered_set<ItemType> sold;
+            for (const auto& elem: *arr) {
+                if (auto val = elem.value<std::string>()) {
+                    ItemType type = parse_item_type(*val);
+                    if (type != ItemType::NONE)
+                        sold.insert(type);
+                }
+            }
+            config.balance.vendors.by_vendor.emplace(std::string(vendor_name.str()),
+                                                     std::move(sold));
+        }
     }
 
     return config;

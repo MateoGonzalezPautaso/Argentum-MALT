@@ -123,7 +123,9 @@ struct UIConfig {
     StatBarConfig hp_bar;
     StatBarConfig mp_bar{790, 629, 217, 17};
     StatBarConfig exp_bar{790, 657, 217, 17};
-    StatBarConfig gold_rect{790, 559, 97, 17};
+    StatBarConfig gold_rect{783, 557, 63, 20};
+    StatBarConfig potion_hp{851, 557, 77, 20};
+    StatBarConfig potion_mana{932, 557, 77, 20};
     PortraitConfig portrait;
     int chat_input_x = 41;
     int chat_input_y = 122;
@@ -224,6 +226,13 @@ private:
     }
 };
 
+struct EquipOverlayDef {
+    ItemType item_type = ItemType::NONE;
+    std::string path;
+    int offset_y = 0;
+    bool static_frame = false;
+};
+
 struct SfxConfig {
     std::unordered_map<std::string, std::string> sounds;
 };
@@ -240,6 +249,7 @@ struct ClientConfig {
     ViewportConfig viewport;
     UIConfig ui;
     std::unordered_map<uint8_t, ItemSpriteDef> item_sprites;
+    std::unordered_map<uint8_t, EquipOverlayDef> equip_overlays;
     int move_step = 4;
     int walk_src_step = 30;
     int walk_src_frames = 6;

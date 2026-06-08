@@ -24,6 +24,13 @@ struct OverlayEffect {
     bool active = false;
 };
 
+struct EquipOverlay {
+    std::vector<SDL2pp::Texture> frames;
+    bool active = false;
+    int offset_y = 0;
+    bool static_frame = false;
+};
+
 class SpriteRenderer {
 public:
     SpriteRenderer(SDL2pp::Renderer& renderer, TTF_Font* name_font, int window_w, int window_h,
@@ -54,6 +61,19 @@ public:
     void set_local_player_info(Race race, PlayerClass player_class);
     void set_skin_config(const SkinConfig& skin_config);
 
+    void update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y = 0,
+                                  bool static_frame = false);
+    void clear_equipment_overlay(uint8_t slot);
+    void update_entity_equipment_overlay(uint16_t entity_id, uint8_t slot, const std::string& path,
+                                         int offset_y = 0, bool static_frame = false);
+    void clear_entity_equipment_overlay(uint16_t entity_id, uint8_t slot);
+    void set_entity_body_sprite(uint16_t entity_id, const std::string& path);
+    void reset_entity_body_sprite(uint16_t entity_id);
+    void set_body_sprite(const std::string& path);
+    void reset_body_sprite();
+
+    void set_direction_src_y(int down, int up, int left, int right);
+
     void render(const SDL2pp::Rect& cam);
     void render_entity_names(const SDL2pp::Rect& cam);
     void tick_animations(AnimationSystem& anim);
@@ -62,6 +82,8 @@ public:
 
     void load_damage_overlay();
     void trigger_damage_overlay_at(int world_x, int world_y);
+    void load_spell_sheets();
+    void trigger_spell_effect(uint8_t effect_type, int world_x, int world_y);
     bool get_entity_world_position(uint16_t entity_id, int& x, int& y) const;
     void tick_overlays(const AnimationSystem& anim);
     void render_overlays(const SDL2pp::Rect& cam);
@@ -104,6 +126,8 @@ private:
     void create_entity_name_label(uint16_t entity_id, const std::string& name);
     SpriteRender* find_movable_sprite();
     const SpriteRender* find_movable_sprite() const;
+    SpriteRender* find_entity_movable_sprite(uint16_t entity_id);
+    const SpriteRender* find_entity_movable_sprite(uint16_t entity_id) const;
 
     int clamp_x(int value, int sprite_w) const;
     int clamp_y(int value, int sprite_h) const;
@@ -119,6 +143,12 @@ private:
         uint8_t alpha;
     };
 
+    struct EntityEquipRenderState {
+        EquipOverlay overlays[EQUIP_SLOT_COUNT];
+        SDL2pp::Rect static_cache[EQUIP_SLOT_COUNT];
+        std::string default_body_path;
+    };
+
     void append_sprite_drawables(std::vector<SpriteRender>& src, const SDL2pp::Rect& cam,
                                  std::vector<Drawable>& out);
     void sort_and_render_drawables(std::vector<Drawable>& drawables);
@@ -129,8 +159,17 @@ private:
     std::vector<SpriteConfig> entity_part_configs;
     std::unordered_map<uint16_t, std::vector<SpriteRender>> entity_sprites;
     std::unordered_map<uint16_t, EntityNameRender> entity_name_render;
+    std::unordered_map<uint16_t, EntityEquipRenderState> entity_equip_state_;
     SkinConfig skin_config;
     std::vector<OverlayEffect> overlays;
+    std::unordered_map<uint8_t, std::vector<OverlayEffect>> spell_overlay_pools;
+    EquipOverlay equip_overlays_[EQUIP_SLOT_COUNT];
+    SDL2pp::Rect static_cache_[EQUIP_SLOT_COUNT];
+    std::string default_body_path_;
+    int dir_src_y_down_ = 0;
+    int dir_src_y_up_ = 48;
+    int dir_src_y_left_ = 96;
+    int dir_src_y_right_ = 144;
     int window_w;
     int window_h;
     bool has_tilemap;

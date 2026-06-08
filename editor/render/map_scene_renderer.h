@@ -2,6 +2,7 @@
 #define EDITOR_MAP_SCENE_RENDERER_H
 
 #include <QGraphicsPixmapItem>
+#include <QGraphicsRectItem>
 #include <QGraphicsScene>
 #include <string>
 #include <vector>
@@ -22,12 +23,30 @@ public:
     void clear_tiles_and_props();
     void clear_all();
 
+    void rebuild_spawn_overlay(const TilemapDocument& doc);
+    void update_spawn_overlay_tile(int row, int col, bool is_zone, int tile_size);
+    void set_show_spawn_overlay(bool show);
+    bool show_spawn_overlay() const { return show_spawn_overlay_; }
+
 private:
     void render_props(const TilemapDocument& doc);
     void apply_prop_pos(QGraphicsPixmapItem* item, int col, int row, const std::string& prop_name,
                         const TilemapDocument& doc) const;
     void add_non_walkable_indicator(QGraphicsPixmapItem* item, int tsz);
-    void clear_grid(std::vector<std::vector<QGraphicsPixmapItem*>>& grid);
+    void clear_spawn_overlay();
+
+    template<typename T>
+    void clear_grid(std::vector<std::vector<T*>>& grid) {
+        for (const auto& row: grid) {
+            for (auto* item: row) {
+                if (item) {
+                    scene_->removeItem(item);
+                    delete item;
+                }
+            }
+        }
+        grid.clear();
+    }
 
     QPixmap tile_pixmap(const TilemapDocument& doc, const std::string& name) const;
     QPixmap prop_pixmap(const TilemapDocument& doc, const std::string& name) const;
@@ -36,6 +55,8 @@ private:
     const AtlasLoader* atlases_;
     std::vector<std::vector<QGraphicsPixmapItem*>> tile_items_;
     std::vector<std::vector<QGraphicsPixmapItem*>> prop_items_;
+    std::vector<std::vector<QGraphicsRectItem*>> spawn_overlay_;
+    bool show_spawn_overlay_ = true;
 };
 
 #endif

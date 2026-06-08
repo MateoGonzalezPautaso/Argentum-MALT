@@ -13,6 +13,7 @@ height = 48
 [attack]
 base_damage = 10
 attack_range_px = 80
+spell_attack_range_px = 400
 damage_variance = 5
 cooldown_ticks = 10
 xp_per_level_kill = 100
@@ -113,3 +114,21 @@ warrior = 0.7
 paladin = 0.9
 cleric = 1.1
 mage = 1.0
+
+[starting_items]
+warrior = ["SWORD"]
+mage = ["ASH_STAFF"]
+paladin = ["SWORD"]
+cleric = ["KNOTTED_STAFF"]
+
+[merchant]
+interaction_range_tiles = 3
+sell_price_ratio = 0.5
+
+[vendors]
+sacerdote = ["ASH_STAFF", "ELVEN_FLUTE", "KNOTTED_STAFF", "STUDDED_STAFF",
+             "HEALTH_POTION", "MANA_POTION"]
+comerciante = ["SWORD", "AXE", "HAMMER", "SIMPLE_BOW", "COMPOSITE_BOW",
+               "LEATHER_ARMOR", "PLATE_ARMOR", "BLUE_TUNIC", "HOOD",
+               "IRON_HELMET", "MAGIC_HAT", "TURTLE_SHIELD", "IRON_SHIELD",
+               "HEALTH_POTION", "MANA_POTION"]

@@ -47,9 +47,16 @@ void ClientProtocol::send_chat_msg(const SendChatMsgCmd& cmd) {
 
 #include "../../common/visit.h"
 
+void ClientProtocol::send_cast_spell(const CastSpellCmd& cmd) {
+    protocol.send_opcode(OpCode::CAST_SPELL);
+    protocol.send_uint16(cmd.target_id);
+}
+
 void ClientProtocol::send_meditate() { protocol.send_opcode(OpCode::MEDITATE); }
 
 void ClientProtocol::send_resurrect() { protocol.send_opcode(OpCode::RESURRECT); }
+
+void ClientProtocol::send_npc_heal(const NpcHealCmd&) { protocol.send_opcode(OpCode::NPC_HEAL); }
 
 void ClientProtocol::send_cheat_infinite_hp() { protocol.send_opcode(OpCode::CHEAT_INFINITE_HP); }
 
@@ -65,9 +72,21 @@ void ClientProtocol::send_cheat_level_down() { protocol.send_opcode(OpCode::CHEA
 
 void ClientProtocol::send_cheat_add_gold() { protocol.send_opcode(OpCode::CHEAT_ADD_GOLD); }
 
+void ClientProtocol::send_cheat_reset_gold() { protocol.send_opcode(OpCode::CHEAT_RESET_GOLD); }
+
 void ClientProtocol::send_cheat_velocity() { protocol.send_opcode(OpCode::CHEAT_VELOCITY); }
 
 void ClientProtocol::send_cheat_revive() { protocol.send_opcode(OpCode::CHEAT_REVIVE); }
+
+void ClientProtocol::send_cheat_fill_inventory() {
+    protocol.send_opcode(OpCode::CHEAT_FILL_INVENTORY);
+}
+
+void ClientProtocol::send_cheat_clear_inventory() {
+    protocol.send_opcode(OpCode::CHEAT_CLEAR_INVENTORY);
+}
+
+void ClientProtocol::send_cheat_reset_mana() { protocol.send_opcode(OpCode::CHEAT_RESET_MANA); }
 
 void ClientProtocol::send_change_map(const ChangeMapCmd& cmd) {
     protocol.send_opcode(OpCode::CHANGE_MAP);
@@ -91,6 +110,7 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const CreateCharacterCmd& msg) { send_create_character(msg); },
                        [this](const AttackCmd& msg) { send_attack(msg); },
                        [this](const SendChatMsgCmd& msg) { send_chat_msg(msg); },
+                       [this](const CastSpellCmd& msg) { send_cast_spell(msg); },
                        [this](const MeditateCmd&) { send_meditate(); },
                        [this](const ResurrectCmd&) { send_resurrect(); },
                        [this](const CheatInfiniteHpCmd&) { send_cheat_infinite_hp(); },
@@ -99,11 +119,16 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const CheatLevelUpCmd&) { send_cheat_level_up(); },
                        [this](const CheatLevelDownCmd&) { send_cheat_level_down(); },
                        [this](const CheatAddGoldCmd&) { send_cheat_add_gold(); },
+                       [this](const CheatResetGoldCmd&) { send_cheat_reset_gold(); },
                        [this](const CheatVelocityCmd&) { send_cheat_velocity(); },
                        [this](const CheatReviveCmd&) { send_cheat_revive(); },
+                       [this](const CheatFillInventoryCmd&) { send_cheat_fill_inventory(); },
+                       [this](const CheatClearInventoryCmd&) { send_cheat_clear_inventory(); },
+                       [this](const CheatResetManaCmd&) { send_cheat_reset_mana(); },
                        [this](const ChangeMapCmd& msg) { send_change_map(msg); },
                        [this](const EquipItemCmd& msg) { send_equip_item(msg); },
                        [this](const UnequipItemCmd& msg) { send_unequip_item(msg); },
+                       [this](const NpcHealCmd& msg) { send_npc_heal(msg); },
                        [](const auto&) { throw std::runtime_error("Command not implemented"); },
                },
                cmd);
@@ -132,7 +157,7 @@ ServerEvent ClientProtocol::recv_event() {
         case OpCode::DAMAGE_RECEIVED:
             return recv_damage_received();
         case OpCode::ATTACK_DODGED:
-            return AttackDodgedEvent{};
+            return AttackDodgedEvent{protocol.recv_uint16()};
         case OpCode::ENTITY_DIED:
             return recv_entity_died();
         case OpCode::PLAYER_RESPAWNED:
@@ -162,6 +187,7 @@ ServerEvent ClientProtocol::recv_event() {
                 return s;
             };
             EquipUpdateEvent ev;
+            ev.entity_id = protocol.recv_uint16();
             ev.weapon = read_slot();
             ev.armor = read_slot();
             ev.helmet = read_slot();
@@ -176,10 +202,14 @@ ServerEvent ClientProtocol::recv_event() {
             return recv_clan_update();
         case OpCode::HEAL_RECEIVED:
             return recv_heal_received();
+        case OpCode::SPELL_EFFECT:
+            return recv_spell_effect();
         case OpCode::MAP_TRANSITION:
             return recv_map_transition();
         case OpCode::PLAYER_STATS:
             return recv_player_stats();
+        case OpCode::GOLD_UPDATE:
+            return GoldUpdateEvent{protocol.recv_uint32()};
         default:
             throw std::runtime_error("Unknown event opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
@@ -249,12 +279,20 @@ ServerEvent ClientProtocol::recv_heal_received() {
     return HealReceivedEvent{player_id, hp_current, mana_current};
 }
 
+ServerEvent ClientProtocol::recv_spell_effect() {
+    uint16_t target_id = protocol.recv_uint16();
+    uint8_t effect_type = protocol.recv_uint8();
+    return SpellEffectEvent{target_id, effect_type};
+}
+
 ServerEvent ClientProtocol::recv_player_stats() {
     PlayerStatsEvent ev;
     ev.level = protocol.recv_uint8();
     ev.experience = protocol.recv_uint32();
     ev.exp_to_next = protocol.recv_uint32();
+    ev.hp_current = protocol.recv_uint32();
     ev.hp_max = protocol.recv_uint32();
+    ev.mana_current = protocol.recv_uint32();
     ev.mana_max = protocol.recv_uint32();
     return ev;
 }
@@ -277,6 +315,10 @@ ServerEvent ClientProtocol::recv_entity_spawn() {
     ev.entity_name = protocol.recv_str();
     ev.entity_race = static_cast<Race>(protocol.recv_uint8());
     ev.entity_class = static_cast<PlayerClass>(protocol.recv_uint8());
+    ev.weapon_type = static_cast<ItemType>(protocol.recv_uint8());
+    ev.armor_type = static_cast<ItemType>(protocol.recv_uint8());
+    ev.helmet_type = static_cast<ItemType>(protocol.recv_uint8());
+    ev.shield_type = static_cast<ItemType>(protocol.recv_uint8());
     return ev;
 }
 

@@ -94,10 +94,22 @@ w = 217
 h = 17
 
 [ui.gold_rect]
-x = 790
-y = 559
-w = 97
-h = 17
+x = 783
+y = 557
+w = 63
+h = 20
+
+[ui.potion_hp_button]
+x = 851
+y = 557
+w = 77
+h = 20
+
+[ui.potion_mana_button]
+x = 932
+y = 557
+w = 77
+h = 20
 
 [ui.portrait]
 x = 643
@@ -131,7 +143,7 @@ connect_default = "assets/interface/en_boton-conectar-default.bmp"
 connect_hover = "assets/interface/en_boton-conectar-over.bmp"
 back_default = "assets/interface/en_boton-volver-default.bmp"
 back_hover = "assets/interface/en_boton-volver-over.bmp"
-ui_frame = "assets/interface/en_ventanaprincipal_edit_v2.bmp"
+ui_frame = "assets/interface/en_ventanaprincipal_edit_v3.bmp"
 hp_bar = "assets/interface/en_barradevida.bmp"
 mp_bar = "assets/interface/en_barrademana.bmp"
 exp_bar = "assets/interface/en_barraexperiencia.bmp"
@@ -416,6 +428,80 @@ category = "Pocion de mana"
 color_r = 40
 color_g = 140
 color_b = 60
+
+[[equip_overlays]]
+item_type = "SWORD"
+path = "assets/Graficos/2101.png"
+
+[[equip_overlays]]
+item_type = "AXE"
+path = "assets/Graficos/2087.png"
+
+[[equip_overlays]]
+item_type = "HAMMER"
+path = "assets/Graficos/2084.png"
+
+[[equip_overlays]]
+item_type = "ASH_STAFF"
+path = "assets/Graficos/2019.png"
+
+[[equip_overlays]]
+item_type = "ELVEN_FLUTE"
+path = "assets/Graficos/2089.png"
+
+[[equip_overlays]]
+item_type = "KNOTTED_STAFF"
+path = "assets/Graficos/2016.png"
+
+[[equip_overlays]]
+item_type = "STUDDED_STAFF"
+path = "assets/Graficos/2013.png"
+
+[[equip_overlays]]
+item_type = "SIMPLE_BOW"
+path = "assets/Graficos/2044.png"
+
+[[equip_overlays]]
+item_type = "COMPOSITE_BOW"
+path = "assets/Graficos/2045.png"
+
+[[equip_overlays]]
+item_type = "LEATHER_ARMOR"
+path = "assets/Graficos/1860.png"
+
+[[equip_overlays]]
+item_type = "PLATE_ARMOR"
+path = "assets/Graficos/1854.png"
+
+[[equip_overlays]]
+item_type = "BLUE_TUNIC"
+path = "assets/Graficos/1981.png"
+
+[[equip_overlays]]
+item_type = "TURTLE_SHIELD"
+path = "assets/Graficos/2368.png"
+
+[[equip_overlays]]
+item_type = "IRON_SHIELD"
+path = "assets/Graficos/2322.png"
+
+[[equip_overlays]]
+item_type = "HOOD"
+path = "assets/Graficos/helmet_hood.png"
+offset_y = -20
+static = true
+
+[[equip_overlays]]
+item_type = "IRON_HELMET"
+path = "assets/Graficos/helmet_iron.png"
+offset_y = -20
+static = true
+
+[[equip_overlays]]
+item_type = "MAGIC_HAT"
+path = "assets/Graficos/helmet_magic_hat.png"
+offset_y = -20
+static = true
 
 [sfx]
 death = "11.ogg"

@@ -20,6 +20,7 @@ protected:
         config.damage_variance = 0;
         config.attack_range_px = 200;
         config.cooldown_ticks = 10;
+        config.critical_chance = 0;
         controller.emplace(config, players, item_catalog, enemy_npcs);
     }
 
@@ -109,8 +110,8 @@ TEST_F(CombatControllerTest, LevelDiffAtLimit_Allowed) {
     set_level(target, 13);  // diff = 10, exactly at limit
 
     auto result = controller->melee_attack(1, 2, 0);
-    ASSERT_FALSE(result.targeted_events[2].empty());
-    EXPECT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.targeted_events[2][0]));
+    ASSERT_FALSE(result.targeted_events.at(2).empty());
+    EXPECT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.targeted_events.at(2)[0]));
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -139,8 +140,8 @@ TEST_F(CombatControllerTest, AttackAfterCooldown_Allowed) {
     controller->melee_attack(1, 2, 0);
     auto result = controller->melee_attack(1, 2, 10);  // cooldown = 10
 
-    ASSERT_FALSE(result.targeted_events[2].empty());
-    EXPECT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.targeted_events[2][0]));
+    ASSERT_FALSE(result.targeted_events.at(2).empty());
+    EXPECT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.targeted_events.at(2)[0]));
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -170,9 +171,9 @@ TEST_F(CombatControllerTest, SuccessfulAttack_DealsDamage) {
 
     auto result = controller->melee_attack(1, 2, 0);
 
-    ASSERT_FALSE(result.targeted_events[2].empty());
-    ASSERT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.targeted_events[2][0]));
-    const auto& dmg = std::get<DamageReceivedEvent>(result.targeted_events[2][0]);
+    ASSERT_FALSE(result.targeted_events.at(2).empty());
+    ASSERT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.targeted_events.at(2)[0]));
+    const auto& dmg = std::get<DamageReceivedEvent>(result.targeted_events.at(2)[0]);
     EXPECT_EQ(dmg.damage, 10u);  // base_damage with variance=0
     EXPECT_EQ(dmg.attacker_id, 1);
     EXPECT_EQ(dmg.target_id, 2);
@@ -198,9 +199,6 @@ TEST_F(CombatControllerTest, LethalAttack_EmitsEntityDied) {
     set_level(attacker, 15);
     set_level(target, 15);
 
-    // Deal enough attacks to kill the target
-    // target has 100 + 14*10 = 240 hp after 14 level_ups; damage=10 per tick
-    // Force kill by reducing hp first
     target.take_damage(target.get_hp_max() - 10);  // leave 10 hp
 
     auto result = controller->melee_attack(1, 2, 0);
@@ -277,7 +275,7 @@ TEST_F(CombatControllerTest, WeaponEquipped_DamageUsesStrength) {
     sword.name = "Espada";
     sword.equip_slot = EquipSlot::WEAPON;
     sword.min_damage = 5;
-    sword.max_damage = 5;  // fixed roll — no variance
+    sword.max_damage = 5;
     item_catalog.add(sword);
     controller.emplace(config, players, item_catalog, enemy_npcs);
 
@@ -291,8 +289,8 @@ TEST_F(CombatControllerTest, WeaponEquipped_DamageUsesStrength) {
 
     auto result = controller->melee_attack(1, 2, 0);
 
-    ASSERT_FALSE(result.targeted_events[2].empty());
-    ASSERT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.targeted_events[2][0]));
-    const auto& dmg = std::get<DamageReceivedEvent>(result.targeted_events[2][0]);
+    ASSERT_FALSE(result.targeted_events.at(2).empty());
+    ASSERT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.targeted_events.at(2)[0]));
+    const auto& dmg = std::get<DamageReceivedEvent>(result.targeted_events.at(2)[0]);
     EXPECT_EQ(dmg.damage, attacker.get_strength() * 5u);
 }

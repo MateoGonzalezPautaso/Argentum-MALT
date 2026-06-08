@@ -1,5 +1,6 @@
 #include "map_scene_renderer.h"
 
+#include <QBrush>
 #include <QGraphicsRectItem>
 #include <QPainter>
 #include <QPen>
@@ -108,16 +109,69 @@ void MapSceneRenderer::apply_prop_pos(QGraphicsPixmapItem* item, int col, int ro
     item->setZValue(0.5);
 }
 
-void MapSceneRenderer::clear_grid(std::vector<std::vector<QGraphicsPixmapItem*>>& grid) {
-    for (const auto& row: grid) {
-        for (auto* item: row) {
-            if (item) {
-                scene_->removeItem(item);
-                delete item;
+void MapSceneRenderer::clear_spawn_overlay() {
+    clear_grid(spawn_overlay_);
+}
+
+void MapSceneRenderer::rebuild_spawn_overlay(const TilemapDocument& doc) {
+    clear_spawn_overlay();
+
+    if (!show_spawn_overlay_)
+        return;
+
+    const auto& zones = doc.config().mob_spawn_zones;
+    if (zones.empty())
+        return;
+
+    int tsz = doc.tile_size();
+    spawn_overlay_.reserve(zones.size());
+
+    for (int r = 0; r < static_cast<int>(zones.size()); ++r) {
+        std::vector<QGraphicsRectItem*> row_items;
+        row_items.reserve(zones[r].size());
+
+        for (int c = 0; c < static_cast<int>(zones[r].size()); ++c) {
+            if (zones[r][c]) {
+                auto* rect = scene_->addRect(c * tsz, r * tsz, tsz, tsz,
+                                             QPen(Qt::NoPen),
+                                             QBrush(QColor(0, 200, 0, 80)));
+                rect->setZValue(0.8);
+                row_items.push_back(rect);
+            } else {
+                row_items.push_back(nullptr);
             }
         }
+        spawn_overlay_.push_back(std::move(row_items));
     }
-    grid.clear();
+}
+
+void MapSceneRenderer::update_spawn_overlay_tile(int row, int col, bool is_zone, int tsz) {
+    auto r = static_cast<std::size_t>(row);
+    auto c = static_cast<std::size_t>(col);
+    if (r >= spawn_overlay_.size()) {
+        return;
+    }
+    if (c >= spawn_overlay_[r].size()) {
+        return;
+    }
+
+    auto*& item = spawn_overlay_[r][c];
+    if (item) {
+        scene_->removeItem(item);
+        delete item;
+        item = nullptr;
+    }
+
+    if (is_zone && show_spawn_overlay_) {
+        item = scene_->addRect(col * tsz, row * tsz, tsz, tsz,
+                               QPen(Qt::NoPen),
+                               QBrush(QColor(0, 200, 0, 80)));
+        item->setZValue(0.8);
+    }
+}
+
+void MapSceneRenderer::set_show_spawn_overlay(bool show) {
+    show_spawn_overlay_ = show;
 }
 
 void MapSceneRenderer::render_all(const TilemapDocument& doc, bool show_walkable_overlay) {
@@ -271,5 +325,6 @@ void MapSceneRenderer::clear_tiles_and_props() {
 
 void MapSceneRenderer::clear_all() {
     clear_tiles_and_props();
+    clear_spawn_overlay();
     scene_->clear();
 }

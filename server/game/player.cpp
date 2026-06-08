@@ -34,8 +34,7 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
                PlayerClass player_class, const BalanceConfig& balance, uint8_t level,
                uint32_t experience, uint32_t hp_current, uint32_t hp_max, uint32_t mana_current,
-               uint32_t mana_max, uint32_t gold, uint8_t inv_capacity, uint32_t strength,
-               uint32_t agility):
+               uint32_t mana_max, uint32_t gold, uint8_t inv_capacity):
         id(id),
         dir(dir),
         race(race),
@@ -46,9 +45,10 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         gold(gold),
         balance(balance),
         inventory(inv_capacity),
-        strength(strength),
-        agility(agility),
         Entity(hp_max, username, pos, level) {
+    UpdateStats stats = update_stats();
+    strength = stats.strength;
+    agility = stats.agility;
     for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
         equipped[i] = InventorySlot{};
         equipped[i].item_type = ItemType::NONE;
@@ -62,6 +62,8 @@ void Player::apply_move(Direction new_dir, int dx, int dy) {
     uint16_t pos_y = static_cast<uint16_t>(static_cast<int>(pos.y) + dy);
     set_pos(pos_x, pos_y);
 }
+
+void Player::lose_experience_on_death() { experience = experience * 0.9; }
 
 void Player::gain_experience(uint32_t exp) {
     experience += exp;
@@ -82,8 +84,8 @@ void Player::level_up() {
     mana_max = stats_updated.mana_max;
     strength = stats_updated.strength;
     agility = stats_updated.agility;
-    gold += balance.gold_per_level * get_level();
-    set_hp_current(stats_updated.hp_max);
+    gain_gold(static_cast<uint32_t>(balance.gold_per_level * get_level()));
+    set_hp_current(get_hp_max());
     mana_current = mana_max;
 }
 
@@ -145,6 +147,16 @@ void Player::spend_gold(uint32_t amount) {
     } else {
         gold -= amount;
     }
+}
+
+uint32_t Player::take_excess_gold() {
+    uint32_t oro_max = static_cast<uint32_t>(balance.gold_cap_base *
+                                             std::pow(get_level(), balance.gold_cap_exponent));
+    if (gold <= oro_max)
+        return 0;
+    uint32_t excess = gold - oro_max;
+    gold = oro_max;
+    return excess;
 }
 
 void Player::level_down() {
@@ -261,21 +273,21 @@ bool Player::equip(uint8_t inv_slot_index, const ItemCatalog& catalog) {
         return false;
 
     if (def->equip_slot == EquipSlot::CONSUMABLE) {
-        switch (def->type) {
-            case ItemType::HEALTH_POTION:
-                heal(get_hp_max());
-                break;
-            case ItemType::MANA_POTION:
-                mana_current = mana_max;
-                break;
-            default:
-                return false;
-        }
+        if (def->restore_hp_percent == 0 && def->restore_mana_percent == 0)
+            return false;  // consumable with no defined effect
+        if (def->restore_hp_percent > 0)
+            heal(static_cast<uint32_t>(static_cast<uint64_t>(get_hp_max()) *
+                                       def->restore_hp_percent / 100));
+        if (def->restore_mana_percent > 0)
+            restore_mana(static_cast<uint32_t>(static_cast<uint64_t>(get_mana_max()) *
+                                               def->restore_mana_percent / 100));
         inventory.clear(inv_slot_index);
         return true;
     }
 
     uint8_t eslot = static_cast<uint8_t>(def->equip_slot);
+    if (eslot >= EQUIP_SLOT_COUNT)
+        return false;
 
     if (equipped[eslot].item_type == ItemType::NONE) {
         equipped[eslot] = slot;
@@ -322,6 +334,8 @@ void Player::restore_equipment(const InventorySlot equipment[EQUIP_SLOT_COUNT]) 
 
 std::vector<InventorySlot> Player::dump_inventory() const { return inventory.dump_slots(); }
 
+void Player::clear_inventory() { inventory.load_slots({}); }
+
 void Player::load_inventory(const std::vector<InventorySlotRecord>& records) {
     inventory.from_records(records);
 }
@@ -329,6 +343,8 @@ void Player::load_inventory(const std::vector<InventorySlotRecord>& records) {
 bool Player::add_item(ItemType type, const std::string& name) {
     return inventory.place(type, name);
 }
+
+void Player::remove_inventory_item(uint8_t slot_index) { inventory.clear(slot_index); }
 
 std::vector<InventorySlotRecord> Player::dump_inventory_records() const {
     return inventory.to_records();

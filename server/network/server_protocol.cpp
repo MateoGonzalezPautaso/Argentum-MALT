@@ -31,6 +31,10 @@ ClientCommand ServerProtocol::recv_command() {
             return MeditateCmd{};
         case OpCode::RESURRECT:
             return ResurrectCmd{};
+        case OpCode::NPC_HEAL:
+            return NpcHealCmd{};
+        case OpCode::CAST_SPELL:
+            return recv_cast_spell();
         case OpCode::CHEAT_INFINITE_HP:
             return CheatInfiniteHpCmd{};
         case OpCode::CHEAT_INFINITE_MANA:
@@ -43,10 +47,18 @@ ClientCommand ServerProtocol::recv_command() {
             return CheatLevelDownCmd{};
         case OpCode::CHEAT_ADD_GOLD:
             return CheatAddGoldCmd{};
+        case OpCode::CHEAT_RESET_GOLD:
+            return CheatResetGoldCmd{};
         case OpCode::CHEAT_VELOCITY:
             return CheatVelocityCmd{};
         case OpCode::CHEAT_REVIVE:
             return CheatReviveCmd{};
+        case OpCode::CHEAT_FILL_INVENTORY:
+            return CheatFillInventoryCmd{};
+        case OpCode::CHEAT_CLEAR_INVENTORY:
+            return CheatClearInventoryCmd{};
+        case OpCode::CHEAT_RESET_MANA:
+            return CheatResetManaCmd{};
         case OpCode::CHANGE_MAP:
             return recv_change_map();
         case OpCode::EQUIP_ITEM:
@@ -57,6 +69,11 @@ ClientCommand ServerProtocol::recv_command() {
             throw std::runtime_error("Unknown command opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
     }
+}
+
+ClientCommand ServerProtocol::recv_cast_spell() {
+    uint16_t target_id = protocol.recv_uint16();
+    return CastSpellCmd{target_id};
 }
 
 ClientCommand ServerProtocol::recv_move() {
@@ -156,6 +173,10 @@ void ServerProtocol::send_entity_spawn(const EntitySpawnEvent& ev) {
     protocol.send_str(ev.entity_name);
     protocol.send_uint8(static_cast<uint8_t>(ev.entity_race));
     protocol.send_uint8(static_cast<uint8_t>(ev.entity_class));
+    protocol.send_uint8(static_cast<uint8_t>(ev.weapon_type));
+    protocol.send_uint8(static_cast<uint8_t>(ev.armor_type));
+    protocol.send_uint8(static_cast<uint8_t>(ev.helmet_type));
+    protocol.send_uint8(static_cast<uint8_t>(ev.shield_type));
 }
 
 void ServerProtocol::send_entity_despawn(const EntityDespawnEvent& ev) {
@@ -175,6 +196,11 @@ void ServerProtocol::send_damage_dealt(const DamageDealtEvent& ev) {
     protocol.send_opcode(OpCode::DAMAGE_DEALT);
     protocol.send_uint16(ev.target_id);
     protocol.send_uint32(ev.damage);
+}
+
+void ServerProtocol::send_attack_dodged(const AttackDodgedEvent& ev) {
+    protocol.send_opcode(OpCode::ATTACK_DODGED);
+    protocol.send_uint16(ev.player_id);
 }
 
 void ServerProtocol::send_damage_received(const DamageReceivedEvent& ev) {
@@ -242,7 +268,9 @@ void ServerProtocol::send_player_stats(const PlayerStatsEvent& ev) {
     protocol.send_uint8(ev.level);
     protocol.send_uint32(ev.experience);
     protocol.send_uint32(ev.exp_to_next);
+    protocol.send_uint32(ev.hp_current);
     protocol.send_uint32(ev.hp_max);
+    protocol.send_uint32(ev.mana_current);
     protocol.send_uint32(ev.mana_max);
 }
 
@@ -251,6 +279,12 @@ void ServerProtocol::send_heal_received(const HealReceivedEvent& ev) {
     protocol.send_uint16(ev.player_id);
     protocol.send_uint32(ev.hp_current);
     protocol.send_uint32(ev.mana_current);
+}
+
+void ServerProtocol::send_spell_effect(const SpellEffectEvent& ev) {
+    protocol.send_opcode(OpCode::SPELL_EFFECT);
+    protocol.send_uint16(ev.target_id);
+    protocol.send_uint8(ev.effect_type);
 }
 
 void ServerProtocol::send_inventory_update(const InventoryUpdateEvent& ev) {
@@ -263,8 +297,14 @@ void ServerProtocol::send_inventory_update(const InventoryUpdateEvent& ev) {
     }
 }
 
+void ServerProtocol::send_gold_update(const GoldUpdateEvent& ev) {
+    protocol.send_opcode(OpCode::GOLD_UPDATE);
+    protocol.send_uint32(ev.gold);
+}
+
 void ServerProtocol::send_equip_update(const EquipUpdateEvent& ev) {
     protocol.send_opcode(OpCode::EQUIP_UPDATE);
+    protocol.send_uint16(ev.entity_id);
     const InventorySlot* slots[EQUIP_SLOT_COUNT] = {&ev.weapon, &ev.armor, &ev.helmet, &ev.shield};
     for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
         protocol.send_uint8(static_cast<uint8_t>(slots[i]->item_type));
@@ -283,6 +323,7 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [this](const EntityMoveEvent& msg) { send_entity_move(msg); },
                        [this](const DamageDealtEvent& msg) { send_damage_dealt(msg); },
                        [this](const DamageReceivedEvent& msg) { send_damage_received(msg); },
+                       [this](const AttackDodgedEvent& msg) { send_attack_dodged(msg); },
                        [this](const EntityDiedEvent& msg) { send_entity_died(msg); },
                        [this](const PlayerRespawnedEvent& msg) { send_player_respawned(msg); },
                        [this](const MeditationStartEvent&) { send_meditation_start(); },
@@ -293,8 +334,10 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [this](const MapTransitionEvent& msg) { send_map_transition(msg); },
                        [this](const PlayerStatsEvent& msg) { send_player_stats(msg); },
                        [this](const HealReceivedEvent& msg) { send_heal_received(msg); },
+                       [this](const SpellEffectEvent& msg) { send_spell_effect(msg); },
                        [this](const InventoryUpdateEvent& msg) { send_inventory_update(msg); },
                        [this](const EquipUpdateEvent& msg) { send_equip_update(msg); },
+                       [this](const GoldUpdateEvent& msg) { send_gold_update(msg); },
                        [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },
                ev);

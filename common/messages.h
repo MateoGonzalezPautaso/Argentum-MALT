@@ -59,7 +59,8 @@ enum class EquipSlot : uint8_t {
     ARMOR = 0x01,
     HELMET = 0x02,
     SHIELD = 0x03,
-    CONSUMABLE = 0x04
+    CONSUMABLE = 0x04,
+    NONE = 0xFF
 };
 
 constexpr uint8_t EQUIP_SLOT_COUNT = 4;
@@ -171,7 +172,9 @@ struct AttackCmd {
 };
 
 // 0x05
-struct CastSpellCmd {};
+struct CastSpellCmd {
+    uint16_t target_id = 0;
+};
 
 // 0x06
 struct PickupItemCmd {};
@@ -241,8 +244,12 @@ struct CheatDieCmd {};
 struct CheatLevelUpCmd {};
 struct CheatLevelDownCmd {};
 struct CheatAddGoldCmd {};
+struct CheatResetGoldCmd {};
 struct CheatVelocityCmd {};
 struct CheatReviveCmd {};
+struct CheatFillInventoryCmd {};
+struct CheatClearInventoryCmd {};
+struct CheatResetManaCmd {};
 
 struct ChangeMapCmd {
     std::string prop_name;
@@ -258,7 +265,8 @@ using ClientCommand = std::variant<
         BankDepositCmd, BankWithdrawCmd, NpcListCmd, PrivateMsgCmd, SendChatMsgCmd, ClanFoundCmd,
         ClanJoinRequestCmd, ClanReviewCmd, ClanAcceptCmd, ClanRejectCmd, ClanBanCmd, ClanKickCmd,
         ClanLeaveCmd, CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd, CheatLevelUpCmd,
-        CheatLevelDownCmd, CheatAddGoldCmd, CheatVelocityCmd, CheatReviveCmd, ChangeMapCmd>;
+        CheatLevelDownCmd, CheatAddGoldCmd, CheatResetGoldCmd, CheatVelocityCmd, CheatReviveCmd,
+        CheatFillInventoryCmd, CheatClearInventoryCmd, CheatResetManaCmd, ChangeMapCmd>;
 
 // ---------------------------------------------------------------------------
 // Eventos: Servidor -> Cliente (sección 3.2 y 5 de protocol.md)
@@ -306,7 +314,9 @@ struct PlayerStatsEvent {
     uint8_t level;
     uint32_t experience;
     uint32_t exp_to_next;
+    uint32_t hp_current;
     uint32_t hp_max;
+    uint32_t mana_current;
     uint32_t mana_max;
 };
 
@@ -319,6 +329,10 @@ struct EntitySpawnEvent {
     std::string entity_name;
     Race entity_race;
     PlayerClass entity_class;
+    ItemType weapon_type = ItemType::NONE;
+    ItemType armor_type = ItemType::NONE;
+    ItemType helmet_type = ItemType::NONE;
+    ItemType shield_type = ItemType::NONE;
 };
 
 // 0x87
@@ -376,6 +390,7 @@ struct InventoryUpdateEvent {
 
 // 0x91
 struct EquipUpdateEvent {
+    uint16_t entity_id = 0;
     InventorySlot weapon;
     InventorySlot armor;
     InventorySlot helmet;
@@ -383,7 +398,9 @@ struct EquipUpdateEvent {
 };
 
 // 0x92
-struct GoldUpdateEvent {};
+struct GoldUpdateEvent {
+    uint32_t gold;
+};
 
 // 0x93
 struct ItemDroppedEvent {};
@@ -432,6 +449,11 @@ struct MapTransitionEvent {
     uint16_t pos_y;
 };
 
+struct SpellEffectEvent {
+    uint16_t target_id;
+    uint8_t effect_type;  // 0 = HEAL
+};
+
 struct HealReceivedEvent {
     uint16_t player_id;
     uint32_t hp_current;
@@ -450,6 +472,6 @@ using ServerEvent =
                      MeditationStopEvent, InventoryUpdateEvent, EquipUpdateEvent, GoldUpdateEvent,
                      ItemDroppedEvent, ItemPickedEvent, NpcItemListEvent, TransactionOkEvent,
                      TransactionErrorEvent, ChatMsgEvent, ClanNotificationEvent, ClanUpdateEvent,
-                     ServerMsgEvent, MapTransitionEvent, HealReceivedEvent>;
+                     ServerMsgEvent, MapTransitionEvent, HealReceivedEvent, SpellEffectEvent>;
 
 #endif  // MESSAGES_H_

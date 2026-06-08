@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 #include "../../common/messages.h"
@@ -61,6 +62,7 @@ private:
     CommandResult handle_create_character(uint16_t player_id, const CreateCharacterCmd& cmd);
     CommandResult handle_move(uint16_t player_id, const MoveCmd& cmd);
     CommandResult handle_attack(uint16_t player_id, const AttackCmd& cmd);
+    CommandResult handle_cast_spell(uint16_t player_id, const CastSpellCmd& cmd);
     CommandResult handle_send_chat_msg(uint16_t player_id, const SendChatMsgCmd& cmd);
     CommandResult handle_cheat_infinite_hp(uint16_t player_id);
     CommandResult handle_cheat_infinite_mana(uint16_t player_id);
@@ -68,13 +70,31 @@ private:
     CommandResult handle_cheat_level_up(uint16_t player_id);
     CommandResult handle_cheat_level_down(uint16_t player_id);
     CommandResult handle_cheat_add_gold(uint16_t player_id);
+    CommandResult handle_cheat_reset_gold(uint16_t player_id);
     CommandResult handle_cheat_velocity(uint16_t player_id);
     CommandResult handle_cheat_revive(uint16_t player_id);
+    CommandResult handle_cheat_fill_inventory(uint16_t player_id);
+    CommandResult handle_cheat_clear_inventory(uint16_t player_id);
+    CommandResult handle_cheat_reset_mana(uint16_t player_id);
     CommandResult handle_change_map(uint16_t player_id, const ChangeMapCmd& cmd);
     CommandResult handle_resurrect(uint16_t player_id);
     CommandResult handle_meditate(uint16_t player_id);
     CommandResult handle_equip(uint16_t player_id, const EquipItemCmd& cmd);
     CommandResult handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd);
+    CommandResult handle_npc_heal(uint16_t player_id);
+    CommandResult handle_npc_buy(uint16_t player_id, const std::string& item_name);
+    CommandResult handle_npc_sell(uint16_t player_id, const std::string& item_name);
+
+    struct VendorContext {
+        Player* player;
+        Map* map;
+        int px;
+        int py;
+        int range;
+    };
+    std::variant<VendorContext, CommandResult> resolve_vendor_ctx(uint16_t player_id,
+                                                                  const std::string& item_name,
+                                                                  const std::string& action);
     bool is_username_logged_in(const std::string& username) const;
     LoginOkEvent make_login_ok(const Player& p) const;
     EntitySpawnEvent make_entity_spawn(const Player& p) const;
@@ -88,7 +108,8 @@ private:
     void do_transition(Player& player, CommandResult& result, const PropDef& prop,
                        const std::string& old_map_name);
 
-    Position compute_spawn_position(const TilemapConfig& dest_cfg, const PropDef& prop) const;
+    Position compute_spawn_position(const Map& dest_map, const std::string& old_map_name,
+                                    const PropDef& source_prop) const;
     void despawn_player(CommandResult& result, uint16_t player_id,
                         const std::string& old_map_name) const;
     void notify_player_transition(CommandResult& result, const Player& player,

@@ -58,7 +58,7 @@ void InventoryRenderer::render_item_sprite(ItemType type, const std::string& nam
 }
 
 void InventoryRenderer::update_hover(int mx, int my, const std::vector<InventorySlot>& slots,
-                                     const InventorySlot equipped[4]) {
+                                     const InventorySlot equipped[EQUIP_SLOT_COUNT]) {
     hovered_inv_slot = -1;
     hovered_equip_slot = -1;
 
@@ -75,7 +75,7 @@ void InventoryRenderer::update_hover(int mx, int my, const std::vector<Inventory
         }
     }
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < EQUIP_SLOT_COUNT; ++i) {
         int sx = cfg.x + i * (cfg.slot_w + cfg.gap);
         int sy = cfg.equip_y;
         if (point_in_rect(mx, my, SDL2pp::Rect(sx, sy, cfg.slot_w, cfg.slot_h))) {
@@ -168,11 +168,12 @@ void InventoryRenderer::render(const std::vector<InventorySlot>& slots) {
     }
 }
 
-void InventoryRenderer::render_equipped(const InventorySlot equipped[4]) {
-    const char* labels[4] = {cfg.equip_weapon_label.c_str(), cfg.equip_armor_label.c_str(),
-                             cfg.equip_helmet_label.c_str(), cfg.equip_shield_label.c_str()};
+void InventoryRenderer::render_equipped(const InventorySlot equipped[EQUIP_SLOT_COUNT]) {
+    const char* labels[EQUIP_SLOT_COUNT] = {
+            cfg.equip_weapon_label.c_str(), cfg.equip_armor_label.c_str(),
+            cfg.equip_helmet_label.c_str(), cfg.equip_shield_label.c_str()};
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < EQUIP_SLOT_COUNT; ++i) {
         int sx = cfg.x + i * (cfg.slot_w + cfg.gap);
         int sy = cfg.equip_y;
         SDL2pp::Rect slot_rect(sx, sy, cfg.slot_w, cfg.slot_h);

@@ -105,6 +105,35 @@ void parse_tilemap_config(const toml::table& root, TilemapConfig& config) {
 
         config.mapa = parse_map_grid(*tilemap);
     }
+
+    if (auto metadata = root["metadata"].as_table()) {
+        std::string type_str = toml_get_string(*metadata, "type", "");
+        if (type_str == "city") {
+            config.map_type = MapType::CITY;
+        } else if (type_str == "dungeon") {
+            config.map_type = MapType::DUNGEON;
+        }
+    }
+
+    if (auto zones = root["mob_spawn_zones"].as_table()) {
+        if (auto arr = (*zones)["data"].as_array()) {
+            for (const auto& row_node : *arr) {
+                const auto* row_arr = row_node.as_array();
+                if (!row_arr) {
+                    continue;
+                }
+                std::vector<bool> row;
+                for (const auto& cell : *row_arr) {
+                    if (auto v = cell.value<bool>()) {
+                        row.push_back(*v);
+                    }
+                }
+                if (!row.empty()) {
+                    config.mob_spawn_zones.push_back(std::move(row));
+                }
+            }
+        }
+    }
 }
 
 void parse_prop_config(const toml::table& root, TilemapConfig& config) {

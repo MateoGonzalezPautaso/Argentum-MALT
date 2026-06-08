@@ -1,5 +1,6 @@
 #include "game.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <string>
@@ -39,6 +40,11 @@ std::string trim(const std::string& s) {
         return {};
     size_t end = s.find_last_not_of(' ');
     return s.substr(start, end - start + 1);
+}
+
+bool vendor_sells(const VendorsConfig& vendors, const std::string& vendor, ItemType type) {
+    auto it = vendors.by_vendor.find(vendor);
+    return it != vendors.by_vendor.end() && it->second.count(type) > 0;
 }
 
 }  // namespace
@@ -115,15 +121,33 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const CheatAddGoldCmd&) {
                         return cheats_enabled ? handle_cheat_add_gold(player_id) : CommandResult{};
                     },
+                    [&](const CheatResetGoldCmd&) {
+                        return cheats_enabled ? handle_cheat_reset_gold(player_id) :
+                                                CommandResult{};
+                    },
                     [&](const CheatVelocityCmd&) {
                         return cheats_enabled ? handle_cheat_velocity(player_id) : CommandResult{};
                     },
                     [&](const CheatReviveCmd&) {
                         return cheats_enabled ? handle_cheat_revive(player_id) : CommandResult{};
                     },
+                    [&](const CheatFillInventoryCmd&) {
+                        return cheats_enabled ? handle_cheat_fill_inventory(player_id) :
+                                                CommandResult{};
+                    },
+                    [&](const CheatClearInventoryCmd&) {
+                        return cheats_enabled ? handle_cheat_clear_inventory(player_id) :
+                                                CommandResult{};
+                    },
+                    [&](const CheatResetManaCmd&) {
+                        return cheats_enabled ? handle_cheat_reset_mana(player_id) :
+                                                CommandResult{};
+                    },
+                    [&](const CastSpellCmd& cmd) { return handle_cast_spell(player_id, cmd); },
                     [&](const ChangeMapCmd& cmd) { return handle_change_map(player_id, cmd); },
                     [&](const EquipItemCmd& cmd) { return handle_equip(player_id, cmd); },
                     [&](const UnequipItemCmd& cmd) { return handle_unequip(player_id, cmd); },
+                    [&](const NpcHealCmd&) { return handle_npc_heal(player_id); },
                     [](const auto&) { return CommandResult{}; },
             },
             cmd);
@@ -341,10 +365,90 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
     auto it = players.find(player_id);
     if (it != players.end())
         it->second.set_meditating(false);
-    CommandResult result = combat_controller.melee_attack(player_id, cmd.target_id, tick_count);
+    CommandResult result;
+    const Map& map = player_map(it->second);
+    if (map.is_position_in_spawn_zone(it->second.pos_x(), it->second.pos_y())) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar en una zona segura"};
+        return {.private_events = {msg}};
+    }
+    result = combat_controller.melee_attack(player_id, cmd.target_id, tick_count);
 
     // Convert combat broadcasts to per-map events
     result.map_events = std::move(result.broadcast_events);
+    return result;
+}
+
+CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cmd) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+    if (player.is_dead())
+        return {};
+
+    const InventorySlot& weapon_slot = player.get_equipped(EquipSlot::WEAPON);
+    if (weapon_slot.item_type == ItemType::NONE) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No tienes un arma equipada"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    const Item* item = item_catalog.find(weapon_slot.item_type);
+    if (!item || item->mana_consumed == 0) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El arma equipada no es magica"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    if (player.get_mana_current() < item->mana_consumed) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Mana insuficiente"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    const Map& map = player_map(player);
+    if (!map.is_position_in_spawn_zone(player.pos_x(), player.pos_y())) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes lanzar hechizos en una zona segura"};
+        return {.private_events = {msg}};
+    }
+
+    player.use_mana(item->mana_consumed);
+    player.set_meditating(false);
+
+    if (weapon_slot.item_type == ItemType::ELVEN_FLUTE) {
+        uint32_t heal_amount = player.get_hp_max() / 2;
+        player.heal(heal_amount);
+        HealReceivedEvent heal_ev{player_id, player.get_hp_current(), player.get_mana_current()};
+        PlayerStatsEvent stats{.level = player.get_level(),
+                               .experience = player.get_experience(),
+                               .exp_to_next = player.exp_to_next_level(),
+                               .hp_current = player.get_hp_current(),
+                               .hp_max = player.get_hp_max(),
+                               .mana_current = player.get_mana_current(),
+                               .mana_max = player.get_mana_max()};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Te has curado!"};
+        DamageDealtEvent spell_ev{player_id, 0};
+        SpellEffectEvent effect_ev{player_id, 0};
+        return {.private_events = {msg, heal_ev, stats, spell_ev},
+                .broadcast_events = {},
+                .targeted_events = {},
+                .map_events = {effect_ev}};
+    }
+
+    if (cmd.target_id == player_id) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacarte a ti mismo"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    CommandResult result;
+    auto target_it = enemy_npcs.find(cmd.target_id);
+    if (target_it == enemy_npcs.end())
+        result = combat_controller.spell_attack_player(player_id, cmd.target_id, tick_count);
+    else
+        result = combat_controller.spell_attack_npc(player_id, cmd.target_id, enemy_npcs,
+                                                    tick_count);
+    result.map_events = std::move(result.broadcast_events);
+    uint8_t effect_type = item->spell_effect_id;
+    if (effect_type == 0)
+        effect_type = 1;
+    result.map_events.push_back(SpellEffectEvent{cmd.target_id, effect_type});
     return result;
 }
 
@@ -402,7 +506,12 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             return handle_meditate(player_id);
         if (cmd_name == "/resucitar")
             return handle_resurrect(player_id);
-
+        if (cmd_name == "/curar")
+            return handle_npc_heal(player_id);
+        if (cmd_name == "/comprar")
+            return handle_npc_buy(player_id, args);
+        if (cmd_name == "/vender")
+            return handle_npc_sell(player_id, args);
         if (cmd_name == "/equipar") {
             try {
                 int idx = std::stoi(args);
@@ -471,11 +580,11 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
         // Send equipment state after login
         InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
         p.dump_equipped(equipped_slots);
-        EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
-                                  equipped_slots[3]};
+        EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1],
+                                  equipped_slots[2], equipped_slots[3]};
         private_events.push_back(equip_ev);
 
-        if (p.get_current_map() != "main") {
+        if (p.get_current_map() != "city") {
             private_events.push_back(MapTransitionEvent{
                     .map_name = p.get_current_map(),
                     .pos_x = p.pos_x(),
@@ -542,10 +651,33 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     rec.hp_max = player.get_hp_max();
     rec.mana_current = player.get_mana_current();
     rec.mana_max = player.get_mana_max();
-    player_data_service.save_new_player(cmd.username, rec);
 
-    // ITEM INICIAL ESPADA (PARA TESTING, LUEGO QUITAR)
-    player.add_item(ItemType::SWORD, "Espada");
+    const StartingItemsConfig& starting = balance.starting_items;
+    const std::vector<ItemType>* items = nullptr;
+    switch (cmd.player_class) {
+        case PlayerClass::WARRIOR:
+            items = &starting.warrior;
+            break;
+        case PlayerClass::MAGE:
+            items = &starting.mage;
+            break;
+        case PlayerClass::CLERIC:
+            items = &starting.cleric;
+            break;
+        case PlayerClass::PALADIN:
+            items = &starting.paladin;
+            break;
+    }
+    if (items) {
+        for (ItemType type: *items) {
+            const Item* def = item_catalog.find(type);
+            if (def) {
+                player.add_item(type, def->name);
+            }
+        }
+    }
+
+    player_data_service.save_new_player(cmd.username, rec);
     player_data_service.save_player(player);
 
     auto it = players.emplace(player_id, std::move(player)).first;
@@ -562,7 +694,7 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
 
     InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
     p.dump_equipped(equipped_slots);
-    EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
+    EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1], equipped_slots[2],
                               equipped_slots[3]};
     private_events.push_back(equip_ev);
 
@@ -586,10 +718,20 @@ CommandResult Game::handle_cheat_infinite_mana(uint16_t player_id) {
     auto it = players.find(player_id);
     if (it == players.end())
         return {};
-    bool active = it->second.toggle_cheat_infinite_mana();
+    Player& player = it->second;
+    bool active = player.toggle_cheat_infinite_mana();
+    if (active)
+        player.restore_mana(player.get_mana_max());
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      active ? "[Cheat] Mana infinito: ON" : "[Cheat] Mana infinito: OFF"};
-    return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    PlayerStatsEvent stats{.level = player.get_level(),
+                           .experience = player.get_experience(),
+                           .exp_to_next = player.exp_to_next_level(),
+                           .hp_current = player.get_hp_current(),
+                           .hp_max = player.get_hp_max(),
+                           .mana_current = player.get_mana_current(),
+                           .mana_max = player.get_mana_max()};
+    return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_cheat_die(uint16_t player_id) {
@@ -643,9 +785,12 @@ CommandResult Game::handle_cheat_level_up(uint16_t player_id) {
     PlayerStatsEvent stats{.level = player.get_level(),
                            .experience = player.get_experience(),
                            .exp_to_next = player.exp_to_next_level(),
+                           .hp_current = player.get_hp_current(),
                            .hp_max = player.get_hp_max(),
+                           .mana_current = player.get_mana_current(),
                            .mana_max = player.get_mana_max()};
-    return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
+    GoldUpdateEvent gold{player.get_gold()};
+    return {.private_events = {msg, stats, gold}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_cheat_level_down(uint16_t player_id) {
@@ -663,7 +808,9 @@ CommandResult Game::handle_cheat_level_down(uint16_t player_id) {
     PlayerStatsEvent stats{.level = player.get_level(),
                            .experience = player.get_experience(),
                            .exp_to_next = player.exp_to_next_level(),
+                           .hp_current = player.get_hp_current(),
                            .hp_max = player.get_hp_max(),
+                           .mana_current = player.get_mana_current(),
                            .mana_max = player.get_mana_max()};
     return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
@@ -676,7 +823,36 @@ CommandResult Game::handle_cheat_add_gold(uint16_t player_id) {
     player.gain_gold(1000);
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      "[Cheat] +1000 oro (total: " + std::to_string(player.get_gold()) + ")"};
-    return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    GoldUpdateEvent gold{player.get_gold()};
+    return {.private_events = {msg, gold}, .broadcast_events = {}, .targeted_events = {}};
+}
+
+CommandResult Game::handle_cheat_reset_gold(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+    player.spend_gold(player.get_gold());
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Oro reseteado a 0"};
+    GoldUpdateEvent gold{player.get_gold()};
+    return {.private_events = {msg, gold}, .broadcast_events = {}, .targeted_events = {}};
+}
+
+CommandResult Game::handle_cheat_reset_mana(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+    player.use_mana(player.get_mana_current());
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Mana reseteado a 0"};
+    PlayerStatsEvent stats{.level = player.get_level(),
+                           .experience = player.get_experience(),
+                           .exp_to_next = player.exp_to_next_level(),
+                           .hp_current = player.get_hp_current(),
+                           .hp_max = player.get_hp_max(),
+                           .mana_current = player.get_mana_current(),
+                           .mana_max = player.get_mana_max()};
+    return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_cheat_velocity(uint16_t player_id) {
@@ -688,6 +864,36 @@ CommandResult Game::handle_cheat_velocity(uint16_t player_id) {
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      std::string("[Cheat] Velocidad: ") + (active ? "ON" : "OFF")};
     return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+}
+
+CommandResult Game::handle_cheat_fill_inventory(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+    for (const auto& item: item_catalog.all()) {
+        if (item.type == ItemType::NONE || item.type == ItemType::GOLD_DROP)
+            continue;
+        player.add_item(item.type, item.name);
+    }
+    std::vector<InventorySlot> slots = player.dump_inventory();
+    InventoryUpdateEvent inv{.slots = std::move(slots)};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Inventario lleno con todos los items!"};
+    player_data_service.save_player(player);
+    return {.private_events = {msg, inv}, .broadcast_events = {}, .targeted_events = {}};
+}
+
+CommandResult Game::handle_cheat_clear_inventory(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+    player.clear_inventory();
+    std::vector<InventorySlot> slots = player.dump_inventory();
+    InventoryUpdateEvent inv{.slots = std::move(slots)};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Inventario vaciado!"};
+    player_data_service.save_player(player);
+    return {.private_events = {msg, inv}, .broadcast_events = {}, .targeted_events = {}};
 }
 
 CommandResult Game::handle_meditate(uint16_t player_id) {
@@ -737,6 +943,10 @@ LoginOkEvent Game::make_login_ok(const Player& p) const {
 }
 
 EntitySpawnEvent Game::make_entity_spawn(const Player& p) const {
+    const ItemType weapon_type = p.get_equipped(EquipSlot::WEAPON).item_type;
+    const ItemType armor_type = p.get_equipped(EquipSlot::ARMOR).item_type;
+    const ItemType helmet_type = p.get_equipped(EquipSlot::HELMET).item_type;
+    const ItemType shield_type = p.get_equipped(EquipSlot::SHIELD).item_type;
     return EntitySpawnEvent{
             .entity_id = p.get_id(),
             .entity_type = EntityType::PLAYER,
@@ -745,6 +955,10 @@ EntitySpawnEvent Game::make_entity_spawn(const Player& p) const {
             .entity_name = p.get_name(),
             .entity_race = p.get_race(),
             .entity_class = p.get_player_class(),
+            .weapon_type = weapon_type,
+            .armor_type = armor_type,
+            .helmet_type = helmet_type,
+            .shield_type = shield_type,
     };
 }
 
@@ -798,7 +1012,7 @@ std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id,
 std::string Game::get_player_map_name(uint16_t player_id) const {
     auto it = players.find(player_id);
     if (it == players.end())
-        return "main";
+        return "city";
     return it->second.get_current_map();
 }
 
@@ -830,7 +1044,7 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     if (it == players.end())
         return {};
 
-    const Player& player = it->second;
+    Player& player = it->second;
     if (!player.is_dead()) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No estás muerto"};
         return {.private_events = {msg}};
@@ -849,6 +1063,19 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     const int tile_size = map_it->second.tile_size();
     const int px = static_cast<int>(player.pos_x());
     const int py = static_cast<int>(player.pos_y());
+    const int range = tile_size * 3;
+
+    // If the ghost is near a sacerdote, resurrect immediately
+    if (map_it->second.prop_grid().is_in_range_of("sacerdote", px, py, range)) {
+        player.resurrect();
+        PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Sacerdote: ¡Que la luz te devuelva a la vida!"};
+        CommandResult result;
+        result.private_events = {msg};
+        result.map_events = {respawn};
+        return result;
+    }
+
 
     int san_cx, san_cy;
     std::string target_map;
@@ -862,11 +1089,11 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
         int dist_tiles = dist_px / tile_size;
         wait_ticks = static_cast<uint32_t>(dist_tiles * tick_rate_hz);
     } else {
-        auto main_it = maps.find("main");
+        auto main_it = maps.find("city");
         if (main_it == maps.end() ||
             !main_it->second.prop_grid().find_nearest_center("sanadora", 0, 0, san_cx, san_cy))
             return {};
-        target_map = "main";
+        target_map = "city";
         wait_ticks = static_cast<uint32_t>(10 * tick_rate_hz);
     }
 
@@ -891,20 +1118,34 @@ CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
     Player& player = it->second;
     player.set_meditating(false);
 
+    bool consumed_potion = false;
+    std::vector<InventorySlot> inv_before = player.dump_inventory();
+    if (cmd.slot_index < inv_before.size()) {
+        const Item* def = item_catalog.find(inv_before[cmd.slot_index].item_type);
+        if (def && def->equip_slot == EquipSlot::CONSUMABLE &&
+            (def->restore_hp_percent > 0 || def->restore_mana_percent > 0))
+            consumed_potion = true;
+    }
+
     bool changed = player.equip(cmd.slot_index, item_catalog);
     if (!changed)
         return {};
 
     InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
     player.dump_equipped(equipped_slots);
-    EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
+    EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1], equipped_slots[2],
                               equipped_slots[3]};
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
 
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Equipaste slot " + std::to_string(cmd.slot_index)};
-    return {.private_events = {equip_ev, inv_ev, msg},
+    std::vector<ServerEvent> private_events{inv_ev, msg};
+    if (consumed_potion)
+        private_events.push_back(
+                HealReceivedEvent{player_id, player.get_hp_current(), player.get_mana_current()});
+    return {.private_events = private_events,
             .broadcast_events = {},
-            .targeted_events = {}};
+            .targeted_events = {},
+            .map_events = {equip_ev}};
 }
 
 CommandResult Game::handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd) {
@@ -919,11 +1160,190 @@ CommandResult Game::handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd
 
     InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
     player.dump_equipped(equipped_slots);
-    EquipUpdateEvent equip_ev{equipped_slots[0], equipped_slots[1], equipped_slots[2],
+    EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1], equipped_slots[2],
                               equipped_slots[3]};
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
 
-    return {.private_events = {equip_ev, inv_ev}, .broadcast_events = {}, .targeted_events = {}};
+    return {.private_events = {inv_ev},
+            .broadcast_events = {},
+            .targeted_events = {},
+            .map_events = {equip_ev}};
+}
+
+CommandResult Game::handle_npc_heal(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+
+    Player& player = it->second;
+
+    if (player.is_dead()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden ser curados"};
+        return {.private_events = {msg}};
+    }
+
+    const std::string& current_map = player.get_current_map();
+    auto map_it = maps.find(current_map);
+    if (map_it == maps.end())
+        return {};
+
+    const int range = map_it->second.tile_size() * 3;
+    const int px = static_cast<int>(player.pos_x());
+    const int py = static_cast<int>(player.pos_y());
+
+    if (!map_it->second.prop_grid().is_in_range_of("sacerdote", px, py, range)) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un sacerdote cerca"};
+        return {.private_events = {msg}};
+    }
+
+    player.heal(player.get_hp_max());
+    player.restore_mana(player.get_mana_max());
+
+    HealReceivedEvent heal_ev{player_id, player.get_hp_current(), player.get_mana_current()};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Sacerdote: ¡Que la luz te sane!"};
+    return {.private_events = {heal_ev, msg}};
+}
+
+std::variant<Game::VendorContext, CommandResult> Game::resolve_vendor_ctx(
+        uint16_t player_id, const std::string& item_name, const std::string& action) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return CommandResult{};
+
+    Player& player = it->second;
+
+    if (player.is_dead()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden " + action};
+        return CommandResult{.private_events = {msg}};
+    }
+
+    if (item_name.empty()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Uso: /" + action + " <nombre del objeto>"};
+        return CommandResult{.private_events = {msg}};
+    }
+
+    auto map_it = maps.find(player.get_current_map());
+    if (map_it == maps.end())
+        return CommandResult{};
+
+    Map& map = map_it->second;
+    return VendorContext{.player = &player,
+                         .map = &map,
+                         .px = static_cast<int>(player.pos_x()),
+                         .py = static_cast<int>(player.pos_y()),
+                         .range = map.tile_size() * balance.merchant.interaction_range_tiles};
+}
+
+CommandResult Game::handle_npc_buy(uint16_t player_id, const std::string& item_name) {
+    auto ctx_or_err = resolve_vendor_ctx(player_id, item_name, "comprar");
+    if (auto* err = std::get_if<CommandResult>(&ctx_or_err))
+        return std::move(*err);
+    VendorContext ctx = std::get<VendorContext>(ctx_or_err);
+    Player& player = *ctx.player;
+
+    const bool near_sacerdote =
+            ctx.map->prop_grid().is_in_range_of("sacerdote", ctx.px, ctx.py, ctx.range);
+    const bool near_comerciante =
+            ctx.map->prop_grid().is_in_range_of("comerciante", ctx.px, ctx.py, ctx.range);
+
+    if (!near_sacerdote && !near_comerciante) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un sacerdote ni un comerciante cerca"};
+        return {.private_events = {msg}};
+    }
+
+    const Item* found = item_catalog.find_by_name(item_name);
+
+    if (!found) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Objeto '" + item_name + "' no encontrado"};
+        return {.private_events = {msg}};
+    }
+
+    const VendorsConfig& vendors = balance.vendors;
+    const bool sacerdote_sells = near_sacerdote && vendor_sells(vendors, "sacerdote", found->type);
+    const bool comerciante_sells =
+            near_comerciante && vendor_sells(vendors, "comerciante", found->type);
+
+    if (found->price == 0 || (!sacerdote_sells && !comerciante_sells)) {
+        std::string vendor_label;
+        if (near_sacerdote && near_comerciante) {
+            vendor_label = "Ningún NPC cercano";
+        } else if (near_comerciante) {
+            vendor_label = "El comerciante";
+        } else {
+            vendor_label = "El sacerdote";
+        }
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", vendor_label + " no vende ese objeto"};
+        return {.private_events = {msg}};
+    }
+
+    if (player.get_gold() < found->price) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                         "Oro insuficiente. El " + found->name + " cuesta " +
+                                 std::to_string(found->price) + " de oro"};
+        return {.private_events = {msg}};
+    }
+
+    player.spend_gold(found->price);
+
+    if (!player.add_item(found->type, found->name)) {
+        player.gain_gold(found->price);
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Inventario lleno"};
+        return {.private_events = {msg}};
+    }
+
+    InventoryUpdateEvent inv_ev{player.dump_inventory()};
+    GoldUpdateEvent gold_ev{player.get_gold()};
+    ChatMsgEvent msg{
+            ChatMsgType::SYSTEM, "",
+            "Compraste " + found->name + " por " + std::to_string(found->price) + " de oro"};
+    return {.private_events = {msg, inv_ev, gold_ev}};
+}
+
+CommandResult Game::handle_npc_sell(uint16_t player_id, const std::string& item_name) {
+    auto ctx_or_err = resolve_vendor_ctx(player_id, item_name, "vender");
+    if (auto* err = std::get_if<CommandResult>(&ctx_or_err))
+        return std::move(*err);
+    VendorContext ctx = std::get<VendorContext>(ctx_or_err);
+    Player& player = *ctx.player;
+
+    if (!ctx.map->prop_grid().is_in_range_of("comerciante", ctx.px, ctx.py, ctx.range)) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un comerciante cerca"};
+        return {.private_events = {msg}};
+    }
+
+    const Item* item_def = item_catalog.find_by_name(item_name);
+    if (!item_def) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Objeto '" + item_name + "' no encontrado"};
+        return {.private_events = {msg}};
+    }
+
+    if (!vendor_sells(balance.vendors, "comerciante", item_def->type)) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El comerciante no compra ese tipo de objeto"};
+        return {.private_events = {msg}};
+    }
+
+    std::vector<InventorySlot> slots = player.dump_inventory();
+    auto slot_it = std::find_if(slots.begin(), slots.end(), [&](const InventorySlot& slot) {
+        return slot.item_type == item_def->type;
+    });
+
+    if (slot_it == slots.end()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                         "No tenés '" + item_def->name + "' en el inventario"};
+        return {.private_events = {msg}};
+    }
+
+    uint32_t sell_price =
+            static_cast<uint32_t>(item_def->price * balance.merchant.sell_price_ratio);
+
+    player.remove_inventory_item(static_cast<uint8_t>(slot_it->slot_index));
+    player.gain_gold(sell_price);
+
+    InventoryUpdateEvent inv_ev{player.dump_inventory()};
+    GoldUpdateEvent gold_ev{player.get_gold()};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                     "Vendiste " + item_name + " por " + std::to_string(sell_price) + " de oro"};
+    return {.private_events = {msg, inv_ev, gold_ev}};
 }
 
 CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
@@ -1010,7 +1430,7 @@ void Game::do_transition(Player& player, CommandResult& result, const PropDef& p
     if (dest_it == maps.end())
         return;
 
-    Position spawn = compute_spawn_position(dest_it->second.config(), prop);
+    Position spawn = compute_spawn_position(dest_it->second, old_map_name, prop);
 
     despawn_player(result, player.get_id(), old_map_name);
 
@@ -1023,12 +1443,19 @@ void Game::do_transition(Player& player, CommandResult& result, const PropDef& p
     notify_others_spawn(result, player, prop.transition_map);
 }
 
-Position Game::compute_spawn_position(const TilemapConfig& dest_cfg, const PropDef& prop) const {
-    int x = prop.transition_x;
-    int y = prop.transition_y;
+Position Game::compute_spawn_position(const Map& dest_map, const std::string& old_map_name,
+                                      const PropDef& source_prop) const {
+    int cx, cy, hb_left, hb_bottom;
+    if (dest_map.prop_grid().find_first_transition(old_map_name, cx, cy, hb_left, hb_bottom)) {
+        int spawn_x = hb_left - dest_map.tile_size();
+        int spawn_y = hb_bottom - dest_map.tile_size();
+        return {static_cast<uint16_t>(spawn_x), static_cast<uint16_t>(spawn_y)};
+    }
+    int x = source_prop.transition_x;
+    int y = source_prop.transition_y;
     if (x == 0 && y == 0) {
-        x = dest_cfg.tile_size * 2;
-        y = dest_cfg.tile_size * 2;
+        x = dest_map.tile_size() * 2;
+        y = dest_map.tile_size() * 2;
     }
     return {static_cast<uint16_t>(x), static_cast<uint16_t>(y)};
 }

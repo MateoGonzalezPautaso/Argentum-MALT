@@ -4,6 +4,8 @@
 #include <fstream>
 #include <utility>
 
+#include "endian_io.h"
+
 ClanPersistence::ClanPersistence(const std::string& data_path, const std::string& index_path):
         data_path(data_path), index_path(index_path) {
     load_index();
@@ -19,8 +21,7 @@ void ClanPersistence::load_index() {
 
     while (idx.peek() != EOF) {
         uint32_t name_len = 0;
-        idx.read(reinterpret_cast<char*>(&name_len), sizeof(name_len));
-        if (!idx)
+        if (!endian_io::read_u32_le(idx, name_len))
             break;
 
         std::string name(name_len, '\0');
@@ -29,8 +30,7 @@ void ClanPersistence::load_index() {
             break;
 
         uint32_t offset = 0;
-        idx.read(reinterpret_cast<char*>(&offset), sizeof(offset));
-        if (!idx)
+        if (!endian_io::read_u32_le(idx, offset))
             break;
 
         index.emplace(std::move(name), offset);
@@ -45,9 +45,9 @@ void ClanPersistence::save_index() {
 
     for (const auto& [name, offset]: index) {
         uint32_t name_len = static_cast<uint32_t>(name.size());
-        idx.write(reinterpret_cast<const char*>(&name_len), sizeof(name_len));
+        endian_io::write_u32_le(idx, name_len);
         idx.write(name.data(), name_len);
-        idx.write(reinterpret_cast<const char*>(&offset), sizeof(offset));
+        endian_io::write_u32_le(idx, offset);
     }
 }
 

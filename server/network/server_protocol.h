@@ -39,6 +39,7 @@ public:
     void send_server_msg(const ServerMsgEvent& ev);
     void send_map_transition(const MapTransitionEvent& ev);
     void send_heal_received(const HealReceivedEvent& ev);
+    void send_spell_effect(const SpellEffectEvent& ev);
 
     // Envía cualquier evento usando std::visit.
     void send_event(const ServerEvent& ev);
@@ -65,6 +66,7 @@ private:
     ClientCommand recv_attack();
     ClientCommand recv_send_chat_msg();
     ClientCommand recv_change_map();
+    ClientCommand recv_cast_spell();
     ClientCommand recv_equip_item();
     ClientCommand recv_unequip_item();
 };
