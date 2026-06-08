@@ -98,7 +98,9 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
                 .level = target.get_level(),
                 .experience = target.get_experience(),
                 .exp_to_next = target.exp_to_next_level(),
+                .hp_current = target.get_hp_current(),
                 .hp_max = target.get_hp_max(),
+                .mana_current = target.get_mana_current(),
                 .mana_max = target.get_mana_max(),
         });
 

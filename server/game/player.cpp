@@ -7,6 +7,7 @@
 
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
                PlayerClass player_class, const BalanceConfig& balance, uint8_t inv_capacity):
+        Entity(0, username, pos, 1),
         id(id),
         dir(dir),
         race(race),
@@ -16,8 +17,7 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         mana_max(0),
         gold(balance.starting_gold),
         balance(balance),
-        inventory(inv_capacity),
-        Entity(0, username, pos, 1) {
+        inventory(inv_capacity) {
     UpdateStats stats = update_stats();
     set_hp_max(stats.hp_max);
     set_hp_current(stats.hp_max);
@@ -35,6 +35,7 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
                PlayerClass player_class, const BalanceConfig& balance, uint8_t level,
                uint32_t experience, uint32_t hp_current, uint32_t hp_max, uint32_t mana_current,
                uint32_t mana_max, uint32_t gold, uint8_t inv_capacity):
+        Entity(hp_max, username, pos, level),
         id(id),
         dir(dir),
         race(race),
@@ -44,8 +45,8 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         mana_max(mana_max),
         gold(gold),
         balance(balance),
-        inventory(inv_capacity),
-        Entity(hp_max, username, pos, level) {
+        inventory(inv_capacity) {
+    set_hp_current(hp_current);
     UpdateStats stats = update_stats();
     strength = stats.strength;
     agility = stats.agility;

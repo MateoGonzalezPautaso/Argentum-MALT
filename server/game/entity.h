@@ -34,6 +34,7 @@ public:
     void set_level(uint8_t new_level) { level = new_level; }
     const std::string& get_current_map() const { return current_map; }
     void set_current_map(const std::string& map) { current_map = map; }
+    virtual ~Entity() = default;
     virtual void take_damage(uint32_t damage);
 };
 

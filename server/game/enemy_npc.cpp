@@ -2,7 +2,7 @@
 
 EnemyNpc::EnemyNpc(Position position, uint32_t hp_max, uint32_t damage, Rng& rng,
                    const ItemCatalog& catalog, uint8_t level, const std::string& name):
-        damage(damage), rng(rng), catalog(catalog), Entity(hp_max, name, position, level) {}
+        Entity(hp_max, name, position, level), damage(damage), rng(rng), catalog(catalog) {}
 
 EnemyDrop EnemyNpc::get_kill_reward() {
     double random_number = rng.get_random_double(0, 99);
