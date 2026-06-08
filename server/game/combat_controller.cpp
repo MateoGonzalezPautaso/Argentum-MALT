@@ -174,6 +174,18 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
             attacker.gain_gold(drop.gold);
             result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
         }
+        if (drop.item.has_value()) {
+            const Item& item = drop.item.value();
+            if (attacker.add_item(item.type, item.name)) {
+                result.private_events.push_back(
+                        InventoryUpdateEvent{attacker.dump_inventory()});
+            } else {
+                result.private_events.push_back(ChatMsgEvent{
+                        ChatMsgType::SYSTEM, "",
+                        npc_target.get_name() + " solto " + item.name +
+                                " pero tu inventario esta lleno"});
+            }
+        }
     }
 
     return result;
