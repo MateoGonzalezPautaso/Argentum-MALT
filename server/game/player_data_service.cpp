@@ -7,7 +7,9 @@
 PlayerDataService::PlayerDataService(const std::string& data_dir, const ServerConfig& config):
         player_persistence(data_dir + "/players.dat", data_dir + "/players.idx"),
         inventory_persistence(data_dir + "/inventory.dat", data_dir + "/inventory.idx",
-                              static_cast<uint8_t>(config.inventory.max_slots)),
+                              static_cast<uint8_t>(config.inventory.max_slots +
+                                                   config.inventory.max_hp_potions +
+                                                   config.inventory.max_mana_potions)),
         balance(config.balance),
         inv_capacity(static_cast<uint8_t>(config.inventory.max_slots)),
         hp_potion_capacity(static_cast<uint8_t>(config.inventory.max_hp_potions)),
