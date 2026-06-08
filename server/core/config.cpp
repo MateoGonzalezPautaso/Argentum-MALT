@@ -90,6 +90,8 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_int(*balance, "starting_pos_x", config.balance.starting_pos_x);
         config.balance.starting_pos_y =
                 toml_get_int(*balance, "starting_pos_y", config.balance.starting_pos_y);
+        config.balance.starting_map =
+                toml_get_string(*balance, "starting_map", config.balance.starting_map);
         config.balance.min_level = toml_get_int(*balance, "min_level", config.balance.min_level);
         config.balance.max_level = toml_get_int(*balance, "max_level", config.balance.max_level);
         config.balance.gold_per_level =

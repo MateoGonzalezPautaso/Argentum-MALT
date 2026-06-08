@@ -35,6 +35,7 @@ max_slots = 20
 starting_gold = 0
 starting_pos_x = 100
 starting_pos_y = 100
+starting_map = "city"
 min_level = 1
 max_level = 100
 gold_per_level = 100
