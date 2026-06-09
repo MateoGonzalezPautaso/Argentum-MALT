@@ -1,5 +1,6 @@
 #include "editor_controller.h"
 
+#include <QDir>
 #include <QGraphicsScene>
 #include <QMessageBox>
 #include <QWidget>
@@ -144,7 +145,12 @@ void EditorController::register_current_map_in_list() {
     if (path.empty())
         return;
 
-    std::string name = path;
+    std::string rel_path =
+            QDir::current().relativeFilePath(QString::fromStdString(path)).toStdString();
+    if (rel_path.empty())
+        rel_path = path;
+
+    std::string name = rel_path;
     auto slash = name.rfind('/');
     if (slash != std::string::npos)
         name = name.substr(slash + 1);
@@ -162,13 +168,13 @@ void EditorController::register_current_map_in_list() {
             const auto* tbl = entry.as_table();
             if (!tbl) continue;
             auto path_val = (*tbl)["path"].value<std::string>();
-            if (path_val && *path_val == path)
+            if (path_val && *path_val == rel_path)
                 return;
         }
 
         toml::table new_entry;
         new_entry.emplace("name", name);
-        new_entry.emplace("path", path);
+        new_entry.emplace("path", rel_path);
         maps_arr->push_back(std::move(new_entry));
 
         std::ofstream file("config/map_list.toml");

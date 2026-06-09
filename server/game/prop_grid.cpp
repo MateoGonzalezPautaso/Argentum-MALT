@@ -18,12 +18,16 @@ PropGrid::PropGrid(const TilemapConfig& tilemap) {
                 continue;
 
             const PropDef& prop = prop_it->second;
+            bool has_overrides = r < tilemap.prop_transition_overrides.size() &&
+                                 c < tilemap.prop_transition_overrides[r].size();
 
             int prop_x = static_cast<int>(c) * tilemap.tile_size;
             int prop_y = (static_cast<int>(r) + 1) * tilemap.tile_size - prop.height;
 
             Entry entry;
             entry.name = prop_name;
+            entry.row = static_cast<int>(r);
+            entry.col = static_cast<int>(c);
             entry.center_x = prop_x + prop.width / 2;
             entry.center_y = prop_y + prop.height / 2;
             entry.hb_left = prop_x + prop.hitbox.x;
@@ -33,6 +37,8 @@ PropGrid::PropGrid(const TilemapConfig& tilemap) {
             entry.hb_w = prop.hitbox.w;
             entry.hb_h = prop.hitbox.h;
             entry.def = &prop_it->second;
+            if (has_overrides)
+                entry.override = tilemap.prop_transition_overrides[r][c];
 
             entries_.push_back(std::move(entry));
         }
@@ -46,15 +52,33 @@ bool PropGrid::is_hitbox_at(int foot_x, int foot_y) const {
     });
 }
 
-const PropDef* PropGrid::find_transition_at(int foot_x, int foot_y) const {
+const PropGrid::Entry* PropGrid::find_transition_at(int foot_x, int foot_y) const {
     for (const auto& e: entries_) {
-        if (e.def->transition_map.empty())
+        if (e.transition_map().empty())
             continue;
         if (foot_x >= e.hb_left && foot_x < e.hb_right && foot_y >= e.hb_top &&
             foot_y < e.hb_bottom)
-            return e.def;
+            return &e;
     }
     return nullptr;
+}
+
+const PropGrid::Entry* PropGrid::find_closest(const std::string& prop_name, int px, int py,
+                                              int range) const {
+    const Entry* closest = nullptr;
+    int best = range * range;
+    for (const auto& e: entries_) {
+        if (e.name != prop_name)
+            continue;
+        int dx = px - e.center_x;
+        int dy = py - e.center_y;
+        int dist_sq = dx * dx + dy * dy;
+        if (dist_sq < best) {
+            best = dist_sq;
+            closest = &e;
+        }
+    }
+    return closest;
 }
 
 bool PropGrid::is_in_range_of(const std::string& prop_name, int px, int py, int range) const {
@@ -69,7 +93,7 @@ bool PropGrid::find_first_transition(const std::string& target_map, int& out_cx,
                                      int& out_cy, int& out_hb_left,
                                      int& out_hb_bottom) const {
     for (const auto& e: entries_) {
-        if (e.def->transition_map == target_map) {
+        if (e.transition_map() == target_map) {
             out_cx = e.center_x;
             out_cy = e.center_y;
             out_hb_left = e.hb_left;

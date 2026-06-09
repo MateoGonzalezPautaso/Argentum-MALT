@@ -138,6 +138,9 @@ inline TransitionResult show_transition_dialog(QWidget* parent,
             result.transition_map = map_combo->itemData(cur_idx).toString().toStdString();
         } else {
             result.transition_map = map_combo->currentText().toStdString();
+            auto dot = result.transition_map.rfind(".toml");
+            if (dot != std::string::npos)
+                result.transition_map = result.transition_map.substr(0, dot);
         }
         result.transition_x = x_spin->value();
         result.transition_y = y_spin->value();

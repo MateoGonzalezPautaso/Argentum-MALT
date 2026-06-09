@@ -1469,43 +1469,43 @@ bool Game::try_map_transition(Player& player, CommandResult& result) {
     const int foot_x = static_cast<int>(player.pos_x()) + sprite_width / 2;
     const int foot_y = static_cast<int>(player.pos_y()) + sprite_height;
 
-    const PropDef* prop = map_it->second.prop_grid().find_transition_at(foot_x, foot_y);
-    if (!prop)
+    const PropGrid::Entry* entry = map_it->second.prop_grid().find_transition_at(foot_x, foot_y);
+    if (!entry)
         return false;
 
-    do_transition(player, result, *prop, old_map_name);
+    do_transition(player, result, *entry, old_map_name);
     return true;
 }
 
-void Game::do_transition(Player& player, CommandResult& result, const PropDef& prop,
+void Game::do_transition(Player& player, CommandResult& result, const PropGrid::Entry& entry,
                          const std::string& old_map_name) {
-    auto dest_it = maps.find(prop.transition_map);
+    auto dest_it = maps.find(entry.transition_map());
     if (dest_it == maps.end())
         return;
 
-    Position spawn = compute_spawn_position(dest_it->second, old_map_name, prop);
+    Position spawn = compute_spawn_position(dest_it->second, old_map_name, entry);
 
     despawn_player(result, player.get_id(), old_map_name);
 
-    player.set_current_map(prop.transition_map);
+    player.set_current_map(entry.transition_map());
     player.set_pos(spawn.x, spawn.y);
 
     player_data_service.save_player(player);
 
-    notify_player_transition(result, player, prop.transition_map, spawn);
-    notify_others_spawn(result, player, prop.transition_map);
+    notify_player_transition(result, player, entry.transition_map(), spawn);
+    notify_others_spawn(result, player, entry.transition_map());
 }
 
 Position Game::compute_spawn_position(const Map& dest_map, const std::string& old_map_name,
-                                      const PropDef& source_prop) const {
+                                      const PropGrid::Entry& source_entry) const {
     int cx, cy, hb_left, hb_bottom;
     if (dest_map.prop_grid().find_first_transition(old_map_name, cx, cy, hb_left, hb_bottom)) {
         int spawn_x = hb_left - dest_map.tile_size();
         int spawn_y = hb_bottom - dest_map.tile_size();
         return {static_cast<uint16_t>(spawn_x), static_cast<uint16_t>(spawn_y)};
     }
-    int x = source_prop.transition_x;
-    int y = source_prop.transition_y;
+    int x = source_entry.transition_x();
+    int y = source_entry.transition_y();
     if (x == 0 && y == 0) {
         x = dest_map.tile_size() * 2;
         y = dest_map.tile_size() * 2;
@@ -1557,23 +1557,16 @@ CommandResult Game::handle_change_map(uint16_t player_id, const ChangeMapCmd& cm
         return {};
 
     const TilemapConfig& cfg = map_it->second.config();
-
-    auto prop_it = cfg.props.find(cmd.prop_name);
-    if (prop_it == cfg.props.end())
-        return {};
-
-    const PropDef& prop = prop_it->second;
-    if (prop.transition_map.empty())
-        return {};
-
     const int range = cfg.tile_size * 3;
     const int px = static_cast<int>(player.pos_x());
     const int py = static_cast<int>(player.pos_y());
 
-    if (!map_it->second.prop_grid().is_in_range_of(cmd.prop_name, px, py, range))
+    const PropGrid::Entry* entry =
+            map_it->second.prop_grid().find_closest(cmd.prop_name, px, py, range);
+    if (!entry || entry->transition_map().empty())
         return {};
 
     CommandResult result;
-    do_transition(player, result, prop, old_map_name);
+    do_transition(player, result, *entry, old_map_name);
     return result;
 }
