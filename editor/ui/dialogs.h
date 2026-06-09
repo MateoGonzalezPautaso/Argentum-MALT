@@ -8,11 +8,13 @@
 #include <QLabel>
 #include <QSpinBox>
 
+#include <climits>
+
 #include <toml++/toml.hpp>
 
 #include "common/config.h"
 
-constexpr int kMaxMapDimension = 256;
+constexpr int kMaxMapDimension = INT_MAX;
 
 struct NewMapResult {
     int width = 20;
