@@ -16,6 +16,7 @@ class QGraphicsScene;
 class QGraphicsView;
 class QSplitter;
 class QSpinBox;
+class QLabel;
 
 class MainWindow: public QMainWindow {
     Q_OBJECT
@@ -54,6 +55,8 @@ private:
 
     QActionGroup* map_type_group_ = nullptr;
     QAction* spawn_zone_mode_action_ = nullptr;
+    QLabel* zoom_label_ = nullptr;
+    double zoom_level_ = 1.0;
 
     bool first_show_ = true;
     bool spawn_zone_mode_ = false;

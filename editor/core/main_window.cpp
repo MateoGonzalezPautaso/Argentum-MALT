@@ -7,11 +7,13 @@
 #include <QGraphicsView>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLabel>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPen>
+#include <QWheelEvent>
 #include <QPushButton>
 #include <QShowEvent>
 #include <QSpinBox>
@@ -88,6 +90,10 @@ void MainWindow::setup_ui() {
                                      .arg(doc.width())
                                      .arg(doc.height())
                                      .arg(doc.tile_size()));
+
+    zoom_label_ = new QLabel("Zoom: 100%");
+    zoom_label_->setStyleSheet("padding: 0 8px;");
+    statusBar()->addPermanentWidget(zoom_label_);
 
     auto* toolbar = addToolBar("Map");
     toolbar->setMovable(false);
@@ -350,6 +356,21 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
 
         drag_start_row_ = -1;
         drag_start_col_ = -1;
+        return true;
+    }
+
+    if (event->type() == QEvent::Wheel) {
+        auto* we = static_cast<QWheelEvent*>(event);
+        if (!(we->modifiers() & Qt::ControlModifier))
+            return false;
+
+        double factor = we->angleDelta().y() > 0 ? 1.15 : 1.0 / 1.15;
+        double new_zoom = zoom_level_ * factor;
+        new_zoom = std::clamp(new_zoom, 0.1, 10.0);
+        factor = new_zoom / zoom_level_;
+        zoom_level_ = new_zoom;
+        view_->scale(factor, factor);
+        zoom_label_->setText(QString("Zoom: %1%").arg(static_cast<int>(zoom_level_ * 100)));
         return true;
     }
 
