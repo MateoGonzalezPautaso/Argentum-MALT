@@ -316,7 +316,17 @@ CommandResult Game::spawn_mobs() {
         if (npc_count >= cfg.mob_spawn_limit)
             continue;
 
-        auto pos_opt = map.find_random_mob_spawn_pos(rng);
+        std::optional<std::pair<int, int>> pos_opt;
+        int spawn_radius = 10;
+        for (const auto& [pid, player]: players) {
+            if (player.get_current_map() != map_name || player.is_dead())
+                continue;
+            pos_opt = map.find_random_mob_spawn_pos_near(rng, player.pos_x(), player.pos_y(), spawn_radius);
+            if (pos_opt.has_value())
+                break;
+        }
+        if (!pos_opt.has_value())
+            pos_opt = map.find_random_mob_spawn_pos(rng);
         if (!pos_opt.has_value())
             continue;
 
