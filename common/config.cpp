@@ -211,6 +211,34 @@ void parse_prop_config(const toml::table& root, TilemapConfig& config) {
                     }
                 }
             }
+
+            if (auto overrides = (*pm)["transition_overrides"].as_table()) {
+                for (const auto& [key, value]: *overrides) {
+                    const auto* tbl = value.as_table();
+                    if (!tbl) continue;
+
+                    std::string key_str{key.str()};
+                    auto comma = key_str.find(',');
+                    if (comma == std::string::npos) continue;
+
+                    int r = std::stoi(key_str.substr(0, comma));
+                    int c = std::stoi(key_str.substr(comma + 1));
+
+                    PropTransitionOverride ov;
+                    ov.transition_map = toml_get_string(*tbl, "transition_map", std::string());
+                    ov.transition_x = toml_get_int(*tbl, "transition_x", 0);
+                    ov.transition_y = toml_get_int(*tbl, "transition_y", 0);
+
+                    auto ru = static_cast<std::size_t>(r);
+                    auto cu = static_cast<std::size_t>(c);
+                    if (ru >= config.prop_transition_overrides.size())
+                        config.prop_transition_overrides.resize(ru + 1);
+                    if (cu >= config.prop_transition_overrides[ru].size())
+                        config.prop_transition_overrides[ru].resize(
+                                cu + 1, PropTransitionOverride{});
+                    config.prop_transition_overrides[ru][cu] = ov;
+                }
+            }
         }
     }
 }
