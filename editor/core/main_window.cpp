@@ -365,10 +365,7 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
             return false;
 
         double factor = we->angleDelta().y() > 0 ? 1.15 : 1.0 / 1.15;
-        double new_zoom = zoom_level_ * factor;
-        new_zoom = std::clamp(new_zoom, 0.1, 10.0);
-        factor = new_zoom / zoom_level_;
-        zoom_level_ = new_zoom;
+        zoom_level_ *= factor;
         view_->scale(factor, factor);
         zoom_label_->setText(QString("Zoom: %1%").arg(static_cast<int>(zoom_level_ * 100)));
         return true;
