@@ -421,7 +421,7 @@ data = [
         '',
         'piedra1',
         'huesos3',
-        'pinchos2',
+        'entrada_dungeon',
         'monticulo',
         'estalactita1',
         '',
@@ -440,7 +440,7 @@ data = [
         '',
         'arbol_dung3',
         '',
-        '',
+        'huesos2',
         '',
         '',
         '',
@@ -462,17 +462,38 @@ data = [
         'piedra4',
         '',
         'arbol_dung4',
-        '',
-        'columna2',
-        '',
-        'piedra4',
-        '',
-        '',
+        'huesos2',
+        'huesos2',
+        'huesos2',
+        'huesos2',
+        'huesos2',
+        'huesos2',
         'arbol_dung4',
         '',
         ''
     ],
-    [ '', '', '', 'pinchos1', 'pinchos2', 'arbol_dung4', '', '', '', '', '', '', '', '', '', '', '', '', '', '' ],
+    [
+        '',
+        '',
+        '',
+        'pinchos1',
+        'pinchos2',
+        'arbol_dung4',
+        '',
+        '',
+        '',
+        '',
+        '',
+        'huesos2',
+        'huesos2',
+        'huesos2',
+        'huesos2',
+        'huesos2',
+        'huesos2',
+        '',
+        '',
+        ''
+    ],
     [
         'pinchos1',
         'monticulo',
@@ -488,7 +509,7 @@ data = [
         'huesos1',
         'arbol_dung3',
         '',
-        'piedra1',
+        'huesos2',
         '',
         '',
         '',
@@ -534,7 +555,7 @@ data = [
         '',
         '',
         '',
-        'entrada_dungeon',
+        '',
         '',
         '',
         'columna1'
@@ -630,6 +651,11 @@ data = [
     [ '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '' ],
     [ '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '' ]
 ]
+
+    [prop.prop_map.transition_overrides.'4,14']
+    transition_map = 'city'
+    transition_x = 640
+    transition_y = 640
 
 [prop.tiles.arbol1]
 height = 180

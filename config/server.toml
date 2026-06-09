@@ -35,8 +35,8 @@ max_mana_potions = 10
 
 [balance]
 starting_gold = 0
-starting_pos_x = 100
-starting_pos_y = 100
+starting_pos_x = 9500
+starting_pos_y = 900
 starting_map = "city"
 min_level = 1
 max_level = 100
