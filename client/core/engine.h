@@ -28,6 +28,7 @@ public:
     void render_game_frame();
     void tick_game();
     void apply_server_event(const ServerEvent& ev);
+    void load_game_assets();
 
     bool try_submit_login(std::string& username, std::string& password);
     void handle_login_error(const std::string& msg);

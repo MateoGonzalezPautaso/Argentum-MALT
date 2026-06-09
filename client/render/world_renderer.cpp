@@ -9,10 +9,7 @@
 #include "texture_loader.h"
 
 WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig& background,
-                             const TilemapConfig& tilemap,
-                             const std::vector<SpriteConfig>& sprites_config,
-                             const ViewportConfig& viewport_cfg, const FontConfig& font_cfg,
-                             const SkinConfig& skin_config):
+                             const ViewportConfig& viewport_cfg, const FontConfig& font_cfg):
         renderer(renderer),
         background_texture(renderer, texture::load_surface(background.path)),
         background_rect(background.x, background.y, background.width, background.height),
@@ -28,7 +25,11 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig&
     }
 
     sprite_renderer.set_name_font(name_font);
+}
 
+void WorldRenderer::load_assets(const TilemapConfig& tilemap,
+                                const std::vector<SpriteConfig>& sprites_config,
+                                const SkinConfig& skin_config) {
     tilemap_renderer.load(tilemap);
 
     const bool has_tm = tilemap_renderer.is_loaded();

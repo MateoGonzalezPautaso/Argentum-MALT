@@ -202,6 +202,7 @@ void Client::run() {
 
         if (auth_result) {
             std::cout << "Logged in as " << auth_result->username << std::endl;
+            engine.load_game_assets();
             engine.apply_server_event(*auth_result);
             break;
         }

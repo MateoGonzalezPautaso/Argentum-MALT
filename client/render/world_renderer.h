@@ -18,9 +18,9 @@
 class WorldRenderer {
 public:
     WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig& background,
-                  const TilemapConfig& tilemap, const std::vector<SpriteConfig>& sprites_config,
-                  const ViewportConfig& viewport_cfg, const FontConfig& font_cfg,
-                  const SkinConfig& skin_config = {});
+                  const ViewportConfig& viewport_cfg, const FontConfig& font_cfg);
+    void load_assets(const TilemapConfig& tilemap, const std::vector<SpriteConfig>& sprites_config,
+                     const SkinConfig& skin_config);
     ~WorldRenderer();
 
     void render();
