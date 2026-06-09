@@ -22364,7 +22364,7 @@ data = [
         'a5144_10',
         'a5144_10',
         'a5144_05',
-        'entrada_dungeon',
+        '',
         'a5144_05',
         'a5144_05',
         'a5144_06',
@@ -22448,7 +22448,7 @@ data = [
         'a5144_06',
         'a5144_10',
         'a5144_10',
-        'a5144_06',
+        'entrada_dungeon',
         'a5144_06',
         'a5144_06',
         'a5144_06',
@@ -22768,7 +22768,7 @@ data = [
         'a5144_06',
         'a5144_06',
         'a5144_10',
-        'a5144_06',
+        'entrada_dungeon',
         'a5144_06',
         'a5144_10',
         'a5144_05',
@@ -22851,7 +22851,7 @@ data = [
         'a5144_10',
         'a5144_10',
         'a5144_05',
-        'entrada_dungeon',
+        '',
         'a5144_10',
         'a5144_10',
         'a5144_05',
@@ -32899,8 +32899,8 @@ data = [
         'a5144_06',
         'a5144_10',
         'a5144_06',
+        '',
         'entrada_dungeon',
-        'a5144_06',
         'a5144_10',
         'a5144_05',
         'a5144_10',
@@ -40406,23 +40406,18 @@ data = [
     ]
 ]
 
-    [prop.prop_map.transition_overrides.'10,139']
+    [prop.prop_map.transition_overrides.'11,21']
+    transition_map = 'dungeon3'
+    transition_x = 640
+    transition_y = 640
+
+    [prop.prop_map.transition_overrides.'12,139']
     transition_map = 'dungeon'
     transition_x = 640
     transition_y = 640
 
-    [prop.prop_map.transition_overrides.'13,20']
-    transition_map = 'dungeon'
-    transition_x = 640
-    transition_y = 640
-
-    [prop.prop_map.transition_overrides.'62,170']
-    transition_map = 'dungeon'
-    transition_x = 640
-    transition_y = 640
-
-    [prop.prop_map.transition_overrides.'9,134']
-    transition_map = 'dungeon'
+    [prop.prop_map.transition_overrides.'62,171']
+    transition_map = 'dungeon2'
     transition_x = 640
     transition_y = 640
 
@@ -44024,7 +44019,7 @@ mapa = [
         'a5154_54',
         'a5154_22',
         'a5154_66',
-        'a5154_51',
+        'a5155_52',
         'a5154_43',
         'a5154_02',
         'a5154_73',

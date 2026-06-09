@@ -119,7 +119,7 @@ void MainWindow::setup_ui() {
             [this]() { resize_map(width_spin_->value(), height_spin_->value()); });
 
     toolbar->addSeparator();
-    spawn_zone_mode_action_ = toolbar->addAction("Set Spawn Zone");
+    spawn_zone_mode_action_ = toolbar->addAction("Set MOB Spawn Zone");
     spawn_zone_mode_action_->setCheckable(true);
     connect(spawn_zone_mode_action_, &QAction::toggled, this, [this](bool checked) {
         spawn_zone_mode_ = checked;
