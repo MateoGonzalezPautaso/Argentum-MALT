@@ -59,6 +59,7 @@ private:
         std::vector<PropPart> parts;
     };
 
+    std::shared_ptr<SDL2pp::Texture> load_or_get_texture(const std::string& path);
     void render_conditional(const SDL2pp::Rect& cam, int player_foot_y, bool behind);
 
     SDL2pp::Renderer& renderer;

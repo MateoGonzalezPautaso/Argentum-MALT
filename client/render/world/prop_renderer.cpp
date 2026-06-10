@@ -10,6 +10,18 @@
 
 PropRenderer::PropRenderer(SDL2pp::Renderer& renderer): renderer(renderer) {}
 
+std::shared_ptr<SDL2pp::Texture> PropRenderer::load_or_get_texture(const std::string& path) {
+    auto it = frame_cache_.find(path);
+    if (it == frame_cache_.end()) {
+        it = frame_cache_
+                     .emplace(path,
+                              std::make_shared<SDL2pp::Texture>(renderer,
+                                                                texture::load_surface(path)))
+                     .first;
+    }
+    return it->second;
+}
+
 void PropRenderer::load(const TilemapConfig& tilemap, int tile_size) {
     prop_tiles_.clear();
     frame_cache_.clear();
@@ -58,17 +70,8 @@ void PropRenderer::load(const TilemapConfig& tilemap, int tile_size) {
             pr.hitbox_w = def.hitbox.w;
             pr.hitbox_h = def.hitbox.h;
 
-            for (const auto& path: def.paths) {
-                auto it = frame_cache_.find(path);
-                if (it == frame_cache_.end()) {
-                    it = frame_cache_
-                                 .emplace(path,
-                                          std::make_shared<SDL2pp::Texture>(
-                                                  renderer, texture::load_surface(path)))
-                                 .first;
-                }
-                pr.frames.push_back(it->second);
-            }
+            for (const auto& path: def.paths)
+                pr.frames.push_back(load_or_get_texture(path));
 
             for (const auto& part_def: def.parts) {
                 PropPart pp;
@@ -78,15 +81,7 @@ void PropRenderer::load(const TilemapConfig& tilemap, int tile_size) {
                 pp.offset_y = part_def.offset_y;
                 pp.display_w = part_def.src_w;
                 pp.display_h = part_def.src_h;
-                auto it = frame_cache_.find(part_def.path);
-                if (it == frame_cache_.end()) {
-                    it = frame_cache_
-                                 .emplace(part_def.path,
-                                          std::make_shared<SDL2pp::Texture>(
-                                                  renderer, texture::load_surface(part_def.path)))
-                                 .first;
-                }
-                pp.frames.push_back(it->second);
+                pp.frames.push_back(load_or_get_texture(part_def.path));
                 pr.parts.push_back(std::move(pp));
             }
             if (!pr.parts.empty() && def.width > 0 && def.height > 0) {
