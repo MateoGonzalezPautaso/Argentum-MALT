@@ -140,3 +140,25 @@ comerciante = ["SWORD", "AXE", "HAMMER", "SIMPLE_BOW", "COMPOSITE_BOW",
                "LEATHER_ARMOR", "PLATE_ARMOR", "BLUE_TUNIC", "HOOD",
                "IRON_HELMET", "MAGIC_HAT", "TURTLE_SHIELD", "IRON_SHIELD",
                "HEALTH_POTION", "MANA_POTION"]
+
+[help]
+lines = [
+    "Comandos disponibles:",
+    "/meditar - Entra en meditacion para recuperar mana",
+    "/resucitar - Resucita en el sanador mas cercano",
+    "/curar - Un sacerdote cercano te cura vida y mana",
+    "/comprar <objeto> - Compra un objeto al NPC",
+    "/vender <objeto> - Vende un objeto al comerciante",
+    "/equipar <slot> - Equipa el item del slot indicado",
+    "/desequipar <weapon|armor|helmet|shield> - Desequipa un item",
+    "/fundar-clan <nombre> - Funda un clan (nivel 6+)",
+    "/unirse <nombre> - Pide unirse a un clan",
+    "/revisar-clan - Revisa miembros y pedidos del clan",
+    "/clan-aceptar <nick> - Acepta un pedido de ingreso al clan",
+    "/clan-rechazar <nick> - Rechaza un pedido de ingreso al clan",
+    "/clan-ban <nick> - Banea a un jugador del clan",
+    "/clan-kick <nick> - Expulsa a un miembro del clan",
+    "/dejar-clan - Deja el clan actual",
+    "/c <mensaje> - Habla por el chat del clan",
+    "@<nick> <mensaje> - Envia un mensaje privado",
+]
