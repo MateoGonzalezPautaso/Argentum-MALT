@@ -67,6 +67,7 @@ public:
     bool get_show_hitboxes() const { return show_hitboxes_; }
 
 private:
+    void load_tilemap_data(const TilemapConfig& tilemap);
     void render_background_fallback(const SDL2pp::Rect& cam);
 
     SDL2pp::Renderer& renderer;

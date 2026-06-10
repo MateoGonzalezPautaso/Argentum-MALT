@@ -27,9 +27,7 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig&
     sprite_renderer.set_name_font(name_font);
 }
 
-void WorldRenderer::load_assets(const TilemapConfig& tilemap,
-                                const std::vector<SpriteConfig>& sprites_config,
-                                const SkinConfig& skin_config) {
+void WorldRenderer::load_tilemap_data(const TilemapConfig& tilemap) {
     tilemap_renderer.load(tilemap);
 
     const bool has_tm = tilemap_renderer.is_loaded();
@@ -42,6 +40,12 @@ void WorldRenderer::load_assets(const TilemapConfig& tilemap,
     if (has_tm) {
         prop_renderer.load(tilemap, tilemap_renderer.tile_size());
     }
+}
+
+void WorldRenderer::load_assets(const TilemapConfig& tilemap,
+                                const std::vector<SpriteConfig>& sprites_config,
+                                const SkinConfig& skin_config) {
+    load_tilemap_data(tilemap);
 
     sprite_renderer.load_sprites(sprites_config);
     sprite_renderer.load_damage_overlay();
@@ -54,18 +58,7 @@ void WorldRenderer::load_assets(const TilemapConfig& tilemap,
 }
 
 void WorldRenderer::load_map(const TilemapConfig& tilemap) {
-    tilemap_renderer.load(tilemap);
-
-    const bool has_tm = tilemap_renderer.is_loaded();
-    const int mpw = tilemap_renderer.pixel_width();
-    const int mph = tilemap_renderer.pixel_height();
-
-    camera.reconfigure(mpw, mph, has_tm);
-    sprite_renderer.set_map_bounds(has_tm, mpw, mph);
-
-    if (has_tm) {
-        prop_renderer.load(tilemap, tilemap_renderer.tile_size());
-    }
+    load_tilemap_data(tilemap);
 }
 
 void WorldRenderer::clear_entities() { sprite_renderer.clear_all_entities(); }
