@@ -28,6 +28,9 @@ critical_chance = 0.003
 max_members = 16
 min_level_found = 6
 
+[mob_spawn]
+spawn_radius = 10
+
 [inventory]
 max_slots = 20
 max_hp_potions = 10

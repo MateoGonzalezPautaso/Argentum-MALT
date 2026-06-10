@@ -57,6 +57,7 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         sprite_height(config.sprite_height),
         balance(config.balance),
         inventory_config(config.inventory),
+        mob_spawn_radius(config.mob_spawn_radius),
         item_catalog(config.item_catalog),
         rng(),
         combat_controller(config.attack, players, config.item_catalog, enemy_npcs,
@@ -317,11 +318,10 @@ CommandResult Game::spawn_mobs() {
             continue;
 
         std::optional<std::pair<int, int>> pos_opt;
-        int spawn_radius = 10;
         for (const auto& [pid, player]: players) {
             if (player.get_current_map() != map_name || player.is_dead())
                 continue;
-            pos_opt = map.find_random_mob_spawn_pos_near(rng, player.pos_x(), player.pos_y(), spawn_radius);
+            pos_opt = map.find_random_mob_spawn_pos_near(rng, player.pos_x(), player.pos_y(), mob_spawn_radius);
             if (pos_opt.has_value())
                 break;
         }

@@ -36,6 +36,7 @@ private:
     int sprite_height;
     BalanceConfig balance;
     InventoryConfig inventory_config;
+    int mob_spawn_radius;
     const ItemCatalog& item_catalog;
     Rng rng;
     CombatController combat_controller;
