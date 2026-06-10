@@ -316,5 +316,14 @@ ServerConfig load_server_config(const std::string& path) {
         }
     }
 
+    if (auto help = root["help"].as_table()) {
+        if (auto arr = (*help)["lines"].as_array()) {
+            for (const auto& elem: *arr) {
+                if (auto val = elem.value<std::string>())
+                    config.help_lines.push_back(*val);
+            }
+        }
+    }
+
     return config;
 }

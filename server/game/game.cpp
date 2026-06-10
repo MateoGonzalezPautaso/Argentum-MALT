@@ -63,6 +63,7 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
                           config.balance.npc_drop),
         tick_rate_hz(config.tick_rate_hz),
         cheats_enabled(config.cheats_enabled),
+        help_lines(config.help_lines),
         npc_templates(config.npc_templates) {
     for (const auto& [name, tc]: tilemap_configs) {
         maps.emplace(name, Map(tc));
@@ -553,6 +554,9 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         if (auto result = clan_handler.handle(player_id, cmd_name, args))
             return *result;
 
+        if (cmd_name == "/help")
+            return handle_help();
+
         if (cmd_name == "/meditar")
             return handle_meditate(player_id);
         if (cmd_name == "/resucitar")
@@ -906,6 +910,16 @@ CommandResult Game::handle_cheat_reset_mana(uint16_t player_id) {
                            .mana_current = player.get_mana_current(),
                            .mana_max = player.get_mana_max()};
     return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
+}
+
+CommandResult Game::handle_help() {
+    if (help_lines.empty())
+        return {};
+    std::vector<ServerEvent> events;
+    events.reserve(help_lines.size());
+    for (const auto& line: help_lines)
+        events.emplace_back(ChatMsgEvent{ChatMsgType::SYSTEM, "", line});
+    return {.private_events = std::move(events)};
 }
 
 CommandResult Game::handle_cheat_velocity(uint16_t player_id) {

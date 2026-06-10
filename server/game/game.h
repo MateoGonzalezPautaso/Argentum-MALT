@@ -41,6 +41,7 @@ private:
     uint32_t tick_count = 0;
     int tick_rate_hz;
     bool cheats_enabled;
+    std::vector<std::string> help_lines;
     std::unordered_map<uint16_t, double> hp_regen_accum;
     std::unordered_map<uint16_t, double> mana_regen_accum;
     std::map<uint16_t, EnemyNpc> enemy_npcs;
@@ -81,6 +82,7 @@ private:
     CommandResult handle_cheat_fill_inventory(uint16_t player_id);
     CommandResult handle_cheat_clear_inventory(uint16_t player_id);
     CommandResult handle_cheat_reset_mana(uint16_t player_id);
+    CommandResult handle_help();
     CommandResult handle_change_map(uint16_t player_id, const ChangeMapCmd& cmd);
     CommandResult handle_resurrect(uint16_t player_id);
     CommandResult handle_meditate(uint16_t player_id);

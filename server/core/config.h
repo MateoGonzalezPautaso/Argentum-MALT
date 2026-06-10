@@ -167,6 +167,7 @@ struct ServerConfig {
     ClanConfig clan;
     ItemCatalog item_catalog;
     std::vector<NpcTemplate> npc_templates;
+    std::vector<std::string> help_lines;
 };
 
 std::vector<NpcTemplate> load_npc_templates(const std::string& path);
