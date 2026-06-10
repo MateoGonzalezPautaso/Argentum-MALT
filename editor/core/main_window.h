@@ -40,6 +40,7 @@ private:
     void resize_map(int cols, int rows);
     void update_title();
     void change_map_type(QAction* action);
+    void handle_prop_context_menu(int row, int col, const QPoint& screen_pos);
     void update_drag_preview(int r1, int c1, int r2, int c2);
     void destroy_drag_preview();
 

@@ -60,6 +60,8 @@ private:
     };
 
     std::shared_ptr<SDL2pp::Texture> load_or_get_texture(const std::string& path);
+    PropRender build_prop_render(const std::string& name, std::size_t ri, std::size_t ci,
+                                 std::size_t tsz, const PropDef& def);
     void render_conditional(const SDL2pp::Rect& cam, int player_foot_y, bool behind);
 
     SDL2pp::Renderer& renderer;

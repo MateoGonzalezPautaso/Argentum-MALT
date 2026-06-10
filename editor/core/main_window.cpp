@@ -270,43 +270,8 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
         if (click.button == Qt::RightButton) {
             std::string prop = doc.prop_name(click.row, click.col);
             if (!prop.empty()) {
-                QMenu menu;
-                QAction* erase_action = menu.addAction("Erase");
-                QAction* portal_action = menu.addAction("Configure portal instance...");
-                QAction* chosen = menu.exec(view_->viewport()->mapToGlobal(me->pos()));
-                if (chosen == erase_action) {
-                    controller_->erase_prop(click.row, click.col);
-                } else if (chosen == portal_action) {
-                    const auto& props = controller_->document().config().props;
-                    auto it = props.find(prop);
-                    if (it == props.end())
-                        return true;
-
-                    const auto& base = it->second;
-                    PropTransitionOverride current = doc.transition_override(click.row, click.col);
-                    std::string cur_map = current.transition_map.empty() ?
-                            base.transition_map : current.transition_map;
-                    int cur_x = current.transition_map.empty() ?
-                            base.transition_x : current.transition_x;
-                    int cur_y = current.transition_map.empty() ?
-                            base.transition_y : current.transition_y;
-
-                    auto result = show_transition_dialog(this, cur_map, cur_x, cur_y);
-                    if (!result.accepted)
-                        return true;
-
-                    controller_->set_prop_transition_override(
-                            click.row, click.col,
-                            result.transition_map, result.transition_x, result.transition_y);
-                    controller_->full_rebuild();
-                    statusBar()->showMessage(
-                        QString("Portal instance %1 -> %2 (spawn: %3, %4)")
-                            .arg(QString::fromStdString(prop),
-                                 QString::fromStdString(result.transition_map.empty()
-                                    ? "(none)" : result.transition_map))
-                            .arg(result.transition_x)
-                            .arg(result.transition_y), 5000);
-                }
+                handle_prop_context_menu(click.row, click.col,
+                                         view_->viewport()->mapToGlobal(me->pos()));
             } else {
                 controller_->erase_tile(click.row, click.col);
             }
@@ -459,6 +424,50 @@ void MainWindow::update_title() {
         default: break;
     }
     setWindowTitle(title);
+}
+
+void MainWindow::handle_prop_context_menu(int row, int col, const QPoint& screen_pos) {
+    std::string prop = controller_->document().prop_name(row, col);
+    if (prop.empty())
+        return;
+
+    QMenu menu;
+    QAction* erase_action = menu.addAction("Erase");
+    QAction* portal_action = menu.addAction("Configure portal instance...");
+    QAction* chosen = menu.exec(screen_pos);
+    if (chosen == erase_action) {
+        controller_->erase_prop(row, col);
+    } else if (chosen == portal_action) {
+        const auto& props = controller_->document().config().props;
+        auto it = props.find(prop);
+        if (it == props.end())
+            return;
+
+        const auto& base = it->second;
+        PropTransitionOverride current = controller_->document().transition_override(row, col);
+        std::string cur_map = current.transition_map.empty() ?
+                base.transition_map : current.transition_map;
+        int cur_x = current.transition_map.empty() ?
+                base.transition_x : current.transition_x;
+        int cur_y = current.transition_map.empty() ?
+                base.transition_y : current.transition_y;
+
+        auto result = show_transition_dialog(this, cur_map, cur_x, cur_y);
+        if (!result.accepted)
+            return;
+
+        controller_->set_prop_transition_override(
+                row, col,
+                result.transition_map, result.transition_x, result.transition_y);
+        controller_->full_rebuild();
+        statusBar()->showMessage(
+            QString("Portal instance %1 -> %2 (spawn: %3, %4)")
+                .arg(QString::fromStdString(prop),
+                     QString::fromStdString(result.transition_map.empty()
+                        ? "(none)" : result.transition_map))
+                .arg(result.transition_x)
+                .arg(result.transition_y), 5000);
+    }
 }
 
 void MainWindow::change_map_type(QAction* action) {
