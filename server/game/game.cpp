@@ -1140,12 +1140,15 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     }
 
 
-    int san_cx, san_cy;
     std::string target_map;
     uint32_t wait_ticks;
+    int san_cx, san_cy;
 
-    if (map_it->second.prop_grid().find_nearest_center("sanadora", px, py, san_cx, san_cy)) {
+    const PropGrid::Entry* san_entry = map_it->second.prop_grid().find_closest("sanadora", px, py);
+    if (san_entry) {
         target_map = current_map;
+        san_cx = san_entry->center_x;
+        san_cy = san_entry->center_y;
         int dx = px - san_cx;
         int dy = py - san_cy;
         int dist_px = static_cast<int>(std::sqrt(static_cast<double>(dx * dx + dy * dy)));
@@ -1153,10 +1156,14 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
         wait_ticks = static_cast<uint32_t>(dist_tiles * tick_rate_hz);
     } else {
         auto main_it = maps.find("city");
-        if (main_it == maps.end() ||
-            !main_it->second.prop_grid().find_nearest_center("sanadora", 0, 0, san_cx, san_cy))
+        if (main_it == maps.end())
+            return {};
+        san_entry = main_it->second.prop_grid().find_closest("sanadora", 0, 0);
+        if (!san_entry)
             return {};
         target_map = "city";
+        san_cx = san_entry->center_x;
+        san_cy = san_entry->center_y;
         wait_ticks = static_cast<uint32_t>(10 * tick_rate_hz);
     }
 

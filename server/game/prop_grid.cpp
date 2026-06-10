@@ -1,7 +1,6 @@
 #include "prop_grid.h"
 
 #include <algorithm>
-#include <limits>
 #include <utility>
 
 PropGrid::PropGrid(const TilemapConfig& tilemap) {
@@ -81,6 +80,24 @@ const PropGrid::Entry* PropGrid::find_closest(const std::string& prop_name, int 
     return closest;
 }
 
+const PropGrid::Entry* PropGrid::find_closest(const std::string& prop_name, int px,
+                                              int py) const {
+    const Entry* closest = nullptr;
+    int best = INT_MAX;
+    for (const auto& e: entries_) {
+        if (e.name != prop_name)
+            continue;
+        int dx = px - e.center_x;
+        int dy = py - e.center_y;
+        int dist_sq = dx * dx + dy * dy;
+        if (dist_sq < best) {
+            best = dist_sq;
+            closest = &e;
+        }
+    }
+    return closest;
+}
+
 bool PropGrid::is_in_range_of(const std::string& prop_name, int px, int py, int range) const {
     return std::any_of(entries_.begin(), entries_.end(),
                        [&prop_name, px, py, range](const Entry& e) {
@@ -104,26 +121,4 @@ bool PropGrid::find_first_transition(const std::string& target_map, int& out_cx,
     return false;
 }
 
-bool PropGrid::find_nearest_center(const std::string& prop_name, int px, int py, int& out_cx,
-                                   int& out_cy) const {
-    int best = std::numeric_limits<int>::max();
-    bool found = false;
 
-    for (const auto& e: entries_) {
-        if (e.name != prop_name)
-            continue;
-
-        int dx = px - e.center_x;
-        int dy = py - e.center_y;
-        int dist_sq = dx * dx + dy * dy;
-
-        if (dist_sq < best) {
-            best = dist_sq;
-            out_cx = e.center_x;
-            out_cy = e.center_y;
-            found = true;
-        }
-    }
-
-    return found;
-}

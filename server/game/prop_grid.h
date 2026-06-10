@@ -1,6 +1,7 @@
 #ifndef SERVER_PROP_GRID_H
 #define SERVER_PROP_GRID_H
 
+#include <climits>
 #include <string>
 #include <vector>
 
@@ -42,10 +43,9 @@ public:
 
     const Entry* find_closest(const std::string& prop_name, int px, int py, int range) const;
 
-    bool is_in_range_of(const std::string& prop_name, int px, int py, int range) const;
+    const Entry* find_closest(const std::string& prop_name, int px, int py) const;
 
-    bool find_nearest_center(const std::string& prop_name, int px, int py, int& out_cx,
-                             int& out_cy) const;
+    bool is_in_range_of(const std::string& prop_name, int px, int py, int range) const;
 
     bool find_first_transition(const std::string& target_map, int& out_cx,
                                int& out_cy, int& out_hb_left,
