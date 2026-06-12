@@ -105,6 +105,11 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_int(*clan, "min_level_found", config.clan.min_level_found);
     }
 
+    if (auto mob_spawn = root["mob_spawn"].as_table()) {
+        config.mob_spawn_radius =
+                toml_get_int(*mob_spawn, "spawn_radius", config.mob_spawn_radius);
+    }
+
     if (auto balance = root["balance"].as_table()) {
         config.balance.starting_gold =
                 toml_get_int(*balance, "starting_gold", config.balance.starting_gold);

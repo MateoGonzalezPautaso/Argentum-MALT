@@ -28,6 +28,9 @@ critical_chance = 0.003
 max_members = 16
 min_level_found = 6
 
+[mob_spawn]
+spawn_radius = 10
+
 [inventory]
 max_slots = 20
 max_hp_potions = 10
@@ -35,8 +38,8 @@ max_mana_potions = 10
 
 [balance]
 starting_gold = 0
-starting_pos_x = 100
-starting_pos_y = 100
+starting_pos_x = 9500
+starting_pos_y = 900
 starting_map = "city"
 min_level = 1
 max_level = 100

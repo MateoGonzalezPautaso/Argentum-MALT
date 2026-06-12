@@ -77,6 +77,45 @@ bool Map::is_position_in_spawn_zone(int x, int y) const {
     return is_mob_spawn_tile(row, col);
 }
 
+std::optional<std::pair<int, int>> Map::find_random_mob_spawn_pos_near(Rng& rng, int px, int py,
+                                                                         int tile_radius) const {
+    if (tilemap_->mob_spawn_zones.empty())
+        return std::nullopt;
+
+    int tsz = tilemap_->tile_size;
+    int center_col = px / tsz;
+    int center_row = py / tsz;
+
+    int min_r = std::max(0, center_row - tile_radius);
+    int max_r = std::min(static_cast<int>(tilemap_->mob_spawn_zones.size()) - 1, center_row + tile_radius);
+    int min_c = std::max(0, center_col - tile_radius);
+    int max_c = std::min(static_cast<int>(tilemap_->mob_spawn_zones[0].size()) - 1, center_col + tile_radius);
+
+    struct Candidate { int px; int py; };
+    std::vector<Candidate> candidates;
+
+    for (int r = min_r; r <= max_r; ++r) {
+        for (int c = min_c; c <= max_c; ++c) {
+            auto ur = static_cast<std::size_t>(r);
+            auto uc = static_cast<std::size_t>(c);
+            if (!tilemap_->mob_spawn_zones[ur][uc])
+                continue;
+
+            int foot_x = c * tsz + tsz / 2;
+            int foot_y = r * tsz + tsz / 2;
+
+            if (is_walkable(foot_x, foot_y))
+                candidates.push_back({foot_x, foot_y});
+        }
+    }
+
+    if (candidates.empty())
+        return std::nullopt;
+
+    int idx = rng.get_random_int(0, static_cast<int>(candidates.size()) - 1);
+    return std::make_pair(candidates[idx].px, candidates[idx].py);
+}
+
 std::optional<std::pair<int, int>> Map::find_random_mob_spawn_pos(Rng& rng) const {
     if (tilemap_->mob_spawn_zones.empty())
         return std::nullopt;

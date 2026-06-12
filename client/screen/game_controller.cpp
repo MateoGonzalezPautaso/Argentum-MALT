@@ -24,8 +24,7 @@ GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& c
         audio_manager(audio_manager),
         config(config),
         renderer(renderer),
-        world_renderer(renderer, config.background, config.tilemap, config.sprites, config.viewport,
-                       config.font, config.skins),
+        world_renderer(renderer, config.background, config.viewport, config.font),
         ui_renderer(renderer, config.ui, config.skins, chat_input, config.item_sprites),
         command_queue(command_queue),
         move_controller(this->command_queue, MoveConfig(config), SDL_GetTicks()),
@@ -175,6 +174,10 @@ void GameController::handle_entity_spawn(const EntitySpawnEvent& e) {
             world_renderer.reset_entity_body_sprite(e.entity_id);
         }
     }
+}
+
+void GameController::load_game_assets() {
+    world_renderer.load_assets(config.tilemap, config.sprites, config.skins);
 }
 
 void GameController::handle_login_ok(const LoginOkEvent& e) {

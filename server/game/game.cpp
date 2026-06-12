@@ -57,6 +57,7 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         sprite_height(config.sprite_height),
         balance(config.balance),
         inventory_config(config.inventory),
+        mob_spawn_radius(config.mob_spawn_radius),
         item_catalog(config.item_catalog),
         rng(),
         combat_controller(config.attack, players, config.item_catalog, enemy_npcs,
@@ -317,7 +318,16 @@ CommandResult Game::spawn_mobs() {
         if (npc_count >= cfg.mob_spawn_limit)
             continue;
 
-        auto pos_opt = map.find_random_mob_spawn_pos(rng);
+        std::optional<std::pair<int, int>> pos_opt;
+        for (const auto& [pid, player]: players) {
+            if (player.get_current_map() != map_name || player.is_dead())
+                continue;
+            pos_opt = map.find_random_mob_spawn_pos_near(rng, player.pos_x(), player.pos_y(), mob_spawn_radius);
+            if (pos_opt.has_value())
+                break;
+        }
+        if (!pos_opt.has_value())
+            pos_opt = map.find_random_mob_spawn_pos(rng);
         if (!pos_opt.has_value())
             continue;
 
@@ -1144,12 +1154,15 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     }
 
 
-    int san_cx, san_cy;
     std::string target_map;
     uint32_t wait_ticks;
+    int san_cx, san_cy;
 
-    if (map_it->second.prop_grid().find_nearest_center("sanadora", px, py, san_cx, san_cy)) {
+    const PropGrid::Entry* san_entry = map_it->second.prop_grid().find_closest("sanadora", px, py);
+    if (san_entry) {
         target_map = current_map;
+        san_cx = san_entry->center_x;
+        san_cy = san_entry->center_y;
         int dx = px - san_cx;
         int dy = py - san_cy;
         int dist_px = static_cast<int>(std::sqrt(static_cast<double>(dx * dx + dy * dy)));
@@ -1157,10 +1170,14 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
         wait_ticks = static_cast<uint32_t>(dist_tiles * tick_rate_hz);
     } else {
         auto main_it = maps.find("city");
-        if (main_it == maps.end() ||
-            !main_it->second.prop_grid().find_nearest_center("sanadora", 0, 0, san_cx, san_cy))
+        if (main_it == maps.end())
+            return {};
+        san_entry = main_it->second.prop_grid().find_closest("sanadora", 0, 0);
+        if (!san_entry)
             return {};
         target_map = "city";
+        san_cx = san_entry->center_x;
+        san_cy = san_entry->center_y;
         wait_ticks = static_cast<uint32_t>(10 * tick_rate_hz);
     }
 
@@ -1483,43 +1500,43 @@ bool Game::try_map_transition(Player& player, CommandResult& result) {
     const int foot_x = static_cast<int>(player.pos_x()) + sprite_width / 2;
     const int foot_y = static_cast<int>(player.pos_y()) + sprite_height;
 
-    const PropDef* prop = map_it->second.prop_grid().find_transition_at(foot_x, foot_y);
-    if (!prop)
+    const PropGrid::Entry* entry = map_it->second.prop_grid().find_transition_at(foot_x, foot_y);
+    if (!entry)
         return false;
 
-    do_transition(player, result, *prop, old_map_name);
+    do_transition(player, result, *entry, old_map_name);
     return true;
 }
 
-void Game::do_transition(Player& player, CommandResult& result, const PropDef& prop,
+void Game::do_transition(Player& player, CommandResult& result, const PropGrid::Entry& entry,
                          const std::string& old_map_name) {
-    auto dest_it = maps.find(prop.transition_map);
+    auto dest_it = maps.find(entry.transition_map());
     if (dest_it == maps.end())
         return;
 
-    Position spawn = compute_spawn_position(dest_it->second, old_map_name, prop);
+    Position spawn = compute_spawn_position(dest_it->second, old_map_name, entry);
 
     despawn_player(result, player.get_id(), old_map_name);
 
-    player.set_current_map(prop.transition_map);
+    player.set_current_map(entry.transition_map());
     player.set_pos(spawn.x, spawn.y);
 
     player_data_service.save_player(player);
 
-    notify_player_transition(result, player, prop.transition_map, spawn);
-    notify_others_spawn(result, player, prop.transition_map);
+    notify_player_transition(result, player, entry.transition_map(), spawn);
+    notify_others_spawn(result, player, entry.transition_map());
 }
 
 Position Game::compute_spawn_position(const Map& dest_map, const std::string& old_map_name,
-                                      const PropDef& source_prop) const {
+                                      const PropGrid::Entry& source_entry) const {
     int cx, cy, hb_left, hb_bottom;
     if (dest_map.prop_grid().find_first_transition(old_map_name, cx, cy, hb_left, hb_bottom)) {
         int spawn_x = hb_left - dest_map.tile_size();
         int spawn_y = hb_bottom - dest_map.tile_size();
         return {static_cast<uint16_t>(spawn_x), static_cast<uint16_t>(spawn_y)};
     }
-    int x = source_prop.transition_x;
-    int y = source_prop.transition_y;
+    int x = source_entry.transition_x();
+    int y = source_entry.transition_y();
     if (x == 0 && y == 0) {
         x = dest_map.tile_size() * 2;
         y = dest_map.tile_size() * 2;
@@ -1571,23 +1588,16 @@ CommandResult Game::handle_change_map(uint16_t player_id, const ChangeMapCmd& cm
         return {};
 
     const TilemapConfig& cfg = map_it->second.config();
-
-    auto prop_it = cfg.props.find(cmd.prop_name);
-    if (prop_it == cfg.props.end())
-        return {};
-
-    const PropDef& prop = prop_it->second;
-    if (prop.transition_map.empty())
-        return {};
-
     const int range = cfg.tile_size * 3;
     const int px = static_cast<int>(player.pos_x());
     const int py = static_cast<int>(player.pos_y());
 
-    if (!map_it->second.prop_grid().is_in_range_of(cmd.prop_name, px, py, range))
+    const PropGrid::Entry* entry =
+            map_it->second.prop_grid().find_closest(cmd.prop_name, px, py, range);
+    if (!entry || entry->transition_map().empty())
         return {};
 
     CommandResult result;
-    do_transition(player, result, prop, old_map_name);
+    do_transition(player, result, *entry, old_map_name);
     return result;
 }

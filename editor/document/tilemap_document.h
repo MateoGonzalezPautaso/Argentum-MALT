@@ -27,7 +27,11 @@ public:
         return config_.props.find(name) != config_.props.end();
     }
 
+    PropTransitionOverride transition_override(int row, int col) const;
+    void set_transition_override(int row, int col, const PropTransitionOverride& override);
+
     const TilemapConfig& config() const { return config_; }
+    TilemapConfig& config() { return config_; }
 
     void set_map_type(MapType t) { config_.map_type = t; }
     void set_tile_walkable(const std::string& name, bool walkable);

@@ -33,6 +33,8 @@ private:
     void apply_prop_pos(QGraphicsPixmapItem* item, int col, int row, const std::string& prop_name,
                         const TilemapDocument& doc) const;
     void add_non_walkable_indicator(QGraphicsPixmapItem* item, int tsz);
+    void add_portal_indicator(QGraphicsPixmapItem* item, const std::string& prop_name,
+                              const TilemapDocument& doc) const;
     void clear_spawn_overlay();
 
     template<typename T>

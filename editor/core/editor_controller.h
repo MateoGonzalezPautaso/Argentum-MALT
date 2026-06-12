@@ -32,6 +32,7 @@ public:
     bool save_as();
     bool open();
     bool validate_city_map() const;
+    void register_current_map_in_list();
 
     void place_tile_or_prop(int row, int col, const std::string& name);
     void fill_rect(int r1, int c1, int r2, int c2, const std::string& name);
@@ -39,6 +40,10 @@ public:
     void set_map_type(MapType type);
     void resize_map(int cols, int rows);
     void set_tile_walkable(const std::string& name, bool walkable);
+    void set_prop_transition(const std::string& name, const std::string& transition_map,
+                             int transition_x, int transition_y);
+    void set_prop_transition_override(int row, int col, const std::string& transition_map,
+                                      int transition_x, int transition_y);
     void toggle_walkable_overlay();
     void toggle_spawn_overlay();
     void set_spawn_zone(int row, int col, bool enabled);

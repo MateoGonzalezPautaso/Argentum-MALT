@@ -1,3 +1,662 @@
+[metadata]
+type = 'dungeon'
+
+[mob_spawn_zones]
+data = [
+    [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+    ],
+    [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+    ],
+    [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+    ],
+    [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+    ],
+    [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+    ],
+    [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+    ],
+    [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+    ],
+    [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+    ],
+    [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+    ],
+    [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+    ],
+    [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+    ],
+    [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+    ],
+    [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+    ],
+    [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+    ],
+    [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+    ]
+]
+interval_ticks = 80
+limit = 15
+
+[prop.prop_map]
+data = [
+    [ '', 'huesos1', '', '', '', '', 'arbol_dung2', '', 'pinchos2', '', '', '', '', '', '', '', '', '', '', '' ],
+    [
+        'arbol_dung2',
+        '',
+        'piedra4',
+        'columna1',
+        '',
+        '',
+        'monticulo',
+        'pinchos1',
+        'monticulo',
+        '',
+        'estalactita1',
+        '',
+        'pinchos1',
+        'piedra1',
+        'arbol_dung2',
+        'huesos1',
+        'monticulo',
+        '',
+        '',
+        'columna2'
+    ],
+    [
+        '',
+        '',
+        '',
+        '',
+        'arbol_dung2',
+        '',
+        '',
+        'huesos1',
+        'columna1',
+        '',
+        '',
+        '',
+        'estalactita1',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        ''
+    ],
+    [
+        'monticulo',
+        'estalactita1',
+        '',
+        'monticulo',
+        'columna2',
+        '',
+        'arbol_dung3',
+        '',
+        '',
+        '',
+        '',
+        'piedra4',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        'piedra4',
+        ''
+    ],
+    [
+        '',
+        '',
+        'piedra1',
+        '',
+        'pinchos2',
+        'estalactita1',
+        'arbol_dung3',
+        'arbol_dung4',
+        '',
+        'monticulo',
+        'columna2',
+        '',
+        'piedra1',
+        'huesos3',
+        'entrada_dungeon',
+        'monticulo',
+        'estalactita1',
+        '',
+        '',
+        ''
+    ],
+    [
+        '',
+        '',
+        'piedra4',
+        'columna1',
+        '',
+        '',
+        '',
+        'huesos2',
+        '',
+        'arbol_dung3',
+        '',
+        'huesos2',
+        '',
+        '',
+        '',
+        'huesos1',
+        '',
+        'monticulo',
+        'huesos1',
+        ''
+    ],
+    [
+        'estalactita1',
+        '',
+        '',
+        'huesos1',
+        '',
+        'piedra1',
+        '',
+        '',
+        'piedra4',
+        '',
+        'arbol_dung4',
+        'huesos2',
+        'huesos2',
+        'huesos2',
+        'huesos2',
+        'huesos2',
+        'huesos2',
+        'arbol_dung4',
+        '',
+        ''
+    ],
+    [
+        '',
+        '',
+        '',
+        'pinchos1',
+        'pinchos2',
+        'arbol_dung4',
+        '',
+        '',
+        '',
+        '',
+        '',
+        'huesos2',
+        'huesos2',
+        'huesos2',
+        'huesos2',
+        'huesos2',
+        'huesos2',
+        '',
+        '',
+        ''
+    ],
+    [
+        'pinchos1',
+        'monticulo',
+        '',
+        '',
+        'estalactita1',
+        '',
+        '',
+        '',
+        '',
+        'estalactita1',
+        'pinchos2',
+        'huesos1',
+        'arbol_dung3',
+        '',
+        'huesos2',
+        '',
+        '',
+        '',
+        '',
+        'huesos1'
+    ],
+    [
+        '',
+        'estalactita1',
+        'arbol_dung3',
+        '',
+        'piedra4',
+        '',
+        'columna2',
+        'monticulo',
+        '',
+        'pinchos1',
+        'estalactita1',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        ''
+    ],
+    [
+        'arbol_dung4',
+        '',
+        '',
+        '',
+        '',
+        '',
+        'pinchos2',
+        '',
+        '',
+        '',
+        'monticulo',
+        '',
+        'estalactita1',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        'columna1'
+    ],
+    [
+        '',
+        '',
+        'columna2',
+        'piedra1',
+        '',
+        '',
+        '',
+        'monticulo',
+        'piedra1',
+        '',
+        'monticulo',
+        'estalactita1',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        ''
+    ],
+    [
+        'columna1',
+        '',
+        'huesos2',
+        '',
+        '',
+        'piedra4',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        'estalactita1',
+        ''
+    ],
+    [
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        'columna2',
+        '',
+        '',
+        'estalactita1',
+        'arbol_dung2',
+        '',
+        'columna2',
+        '',
+        'arbol_dung4',
+        '',
+        '',
+        '',
+        'arbol_dung2',
+        'columna1'
+    ],
+    [
+        '',
+        'estalactita1',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        'pinchos1',
+        '',
+        'pinchos2',
+        '',
+        '',
+        '',
+        '',
+        'columna1',
+        'pinchos2',
+        '',
+        '',
+        ''
+    ],
+    [ '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '' ],
+    [ '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '' ]
+]
+
+    [prop.prop_map.transition_overrides.'4,14']
+    transition_map = 'city'
+    transition_x = 640
+    transition_y = 640
+
 [prop.tiles.arbol1]
 height = 180
 paths = [ 'assets/Graficos/7016.png' ]
@@ -314,52 +973,6 @@ width = 128
     x = 2
     y = 733
 
-[prop.tiles.banco]
-height = 231
-width = 330
-
-    [prop.tiles.banco.hitbox]
-    h = 77
-    w = 330
-    x = 0
-    y = 154
-
-    [[prop.tiles.banco.parts]]
-    offset_x = 14
-    offset_y = 279
-    path = 'assets/Graficos/5001.png'
-    src_h = 330
-    src_w = 131
-    src_x = 31
-    src_y = 23
-
-    [[prop.tiles.banco.parts]]
-    offset_x = 145
-    offset_y = 279
-    path = 'assets/Graficos/5001.png'
-    src_h = 323
-    src_w = 223
-    src_x = 224
-    src_y = 27
-
-    [[prop.tiles.banco.parts]]
-    offset_x = 368
-    offset_y = 279
-    path = 'assets/Graficos/5001.png'
-    src_h = 331
-    src_w = 133
-    src_x = 509
-    src_y = 22
-
-    [[prop.tiles.banco.parts]]
-    offset_x = 0
-    offset_y = 250
-    path = 'assets/Graficos/5001.png'
-    src_h = 279
-    src_w = 515
-    src_x = 14
-    src_y = 384
-
 [prop.tiles.banderita]
 height = 90
 paths = [ 'assets/Graficos/5084.png' ]
@@ -456,135 +1069,6 @@ width = 217
     x = 0
     y = 0
 
-[prop.tiles.casa1]
-height = 240
-width = 162
-
-    [prop.tiles.casa1.hitbox]
-    h = 63
-    w = 144
-    x = 8
-    y = 43
-
-    [[prop.tiles.casa1.parts]]
-    offset_x = 0
-    offset_y = 0
-    path = 'assets/Graficos/5068.png'
-    src_h = 240
-    src_w = 325
-    src_x = 0
-    src_y = 0
-
-    [[prop.tiles.casa1.parts]]
-    offset_x = 0
-    offset_y = -80
-    path = 'assets/Graficos/5068.png'
-    src_h = 240
-    src_w = 325
-    src_x = 0
-    src_y = 240
-
-[prop.tiles.casa2]
-height = 240
-width = 162
-
-    [prop.tiles.casa2.hitbox]
-    h = 63
-    w = 144
-    x = 8
-    y = 43
-
-    [[prop.tiles.casa2.parts]]
-    offset_x = 0
-    offset_y = 0
-    path = 'assets/Graficos/5071.png'
-    src_h = 240
-    src_w = 325
-    src_x = 0
-    src_y = 0
-
-    [[prop.tiles.casa2.parts]]
-    offset_x = 0
-    offset_y = -80
-    path = 'assets/Graficos/5071.png'
-    src_h = 240
-    src_w = 325
-    src_x = 0
-    src_y = 240
-
-[prop.tiles.casa3]
-height = 240
-width = 162
-
-    [prop.tiles.casa3.hitbox]
-    h = 63
-    w = 144
-    x = 8
-    y = 43
-
-    [[prop.tiles.casa3.parts]]
-    offset_x = 0
-    offset_y = 0
-    path = 'assets/Graficos/5078.png'
-    src_h = 240
-    src_w = 325
-    src_x = 0
-    src_y = 0
-
-    [[prop.tiles.casa3.parts]]
-    offset_x = 0
-    offset_y = -80
-    path = 'assets/Graficos/5078.png'
-    src_h = 240
-    src_w = 325
-    src_x = 0
-    src_y = 240
-
-[prop.tiles.casa4]
-height = 240
-width = 162
-
-    [prop.tiles.casa4.hitbox]
-    h = 63
-    w = 144
-    x = 8
-    y = 43
-
-    [[prop.tiles.casa4.parts]]
-    offset_x = 0
-    offset_y = 0
-    path = 'assets/Graficos/5079.png'
-    src_h = 240
-    src_w = 325
-    src_x = 0
-    src_y = 0
-
-    [[prop.tiles.casa4.parts]]
-    offset_x = 0
-    offset_y = -80
-    path = 'assets/Graficos/5079.png'
-    src_h = 240
-    src_w = 325
-    src_x = 0
-    src_y = 240
-
-[prop.tiles.castillo]
-height = 418
-paths = [ 'assets/Graficos/5033.png' ]
-width = 280
-
-    [prop.tiles.castillo.hitbox]
-    h = 344
-    w = 254
-    x = 8
-    y = 10
-
-    [prop.tiles.castillo.src]
-    h = 1024
-    w = 1024
-    x = 0
-    y = 0
-
 [prop.tiles.columna1]
 height = 196
 paths = [ 'assets/Graficos/5157.png' ]
@@ -638,6 +1122,9 @@ width = 27
 [prop.tiles.entrada_dungeon]
 height = 545
 paths = [ 'assets/Graficos/5097.png' ]
+transition_map = 'city'
+transition_x = 640
+transition_y = 640
 width = 670
 
     [prop.tiles.entrada_dungeon.hitbox]
@@ -706,34 +1193,6 @@ width = 93
     w = 93
     x = 606
     y = 968
-
-[prop.tiles.iglesia]
-height = 371
-width = 242
-
-    [prop.tiles.iglesia.hitbox]
-    h = 171
-    w = 242
-    x = 0
-    y = 200
-
-    [[prop.tiles.iglesia.parts]]
-    offset_x = 7
-    offset_y = 0
-    path = 'assets/Graficos/5000.png'
-    src_h = 563
-    src_w = 470
-    src_x = 518
-    src_y = 14
-
-    [[prop.tiles.iglesia.parts]]
-    offset_x = 0
-    offset_y = -280
-    path = 'assets/Graficos/5000.png'
-    src_h = 678
-    src_w = 484
-    src_x = 0
-    src_y = 0
 
 [prop.tiles.monticulo]
 height = 99
@@ -933,7 +1392,7 @@ paths = [
 width = 260
 
     [prop.tiles.windmill.hitbox]
-    h = 798
+    h = 98
     w = 146
     x = 49
     y = 179
@@ -945,7 +1404,339 @@ width = 260
     y = 0
 
 [tilemap]
-path = 'assets/Graficos/5144.png'
+mapa = [
+    [
+        'a5154_16',
+        'a5154_03',
+        'a5154_43',
+        'a5154_37',
+        'a5154_34',
+        'a5154_21',
+        'a5154_15',
+        'a5154_13',
+        'a5154_66',
+        'a5154_04',
+        'a5154_03',
+        'a5154_13',
+        'a5154_33',
+        'a5154_35',
+        'a5154_03',
+        'a5154_31',
+        'a5154_65',
+        'a5154_34',
+        'a5154_71',
+        'a5154_43'
+    ],
+    [
+        'a5154_00',
+        'a5154_24',
+        'a5154_66',
+        'a5154_53',
+        'a5154_43',
+        'a5154_23',
+        'a5154_33',
+        'a5154_53',
+        'a5154_15',
+        'a5154_13',
+        'a5154_60',
+        'a5154_14',
+        'a5154_55',
+        'a5154_54',
+        'a5154_41',
+        'a5154_05',
+        'a5154_72',
+        'a5154_17',
+        'a5154_60',
+        'a5154_12'
+    ],
+    [
+        'a5154_45',
+        'a5154_56',
+        'a5154_30',
+        'a5154_10',
+        'a5154_05',
+        'a5154_35',
+        'a5154_45',
+        'a5154_12',
+        'a5154_35',
+        'a5154_14',
+        'a5154_60',
+        'a5154_43',
+        'a5154_72',
+        'a5154_56',
+        'a5154_24',
+        'a5154_57',
+        'a5154_55',
+        'a5154_32',
+        'a5154_42',
+        'a5154_11'
+    ],
+    [
+        'a5154_25',
+        'a5154_37',
+        'a5154_24',
+        'a5154_73',
+        'a5154_60',
+        'a5154_42',
+        'a5154_34',
+        'a5154_51',
+        'a5154_07',
+        'a5154_35',
+        'a5154_04',
+        'a5154_50',
+        'a5154_63',
+        'a5154_42',
+        'a5154_10',
+        'a5154_33',
+        'a5154_50',
+        'a5154_33',
+        'a5154_77',
+        'a5154_62'
+    ],
+    [
+        'a5154_72',
+        'a5154_22',
+        'a5154_41',
+        'a5154_21',
+        'a5154_37',
+        'a5154_41',
+        'a5154_66',
+        'a5154_63',
+        'a5154_56',
+        'a5154_34',
+        'a5154_21',
+        'a5154_77',
+        'a5154_13',
+        'a5154_06',
+        'a5154_16',
+        'a5154_23',
+        'a5154_24',
+        'a5154_66',
+        'a5154_10',
+        'a5154_61'
+    ],
+    [
+        'a5154_60',
+        'a5154_73',
+        'a5154_40',
+        'a5154_01',
+        'a5154_16',
+        'a5154_42',
+        'a5154_53',
+        'a5154_16',
+        'a5154_45',
+        'a5154_67',
+        'a5154_24',
+        'a5154_72',
+        'a5154_00',
+        'a5154_41',
+        'a5154_26',
+        'a5154_15',
+        'a5154_46',
+        'a5154_31',
+        'a5154_23',
+        'a5154_57'
+    ],
+    [
+        'a5154_24',
+        'a5154_00',
+        'a5154_51',
+        'a5154_76',
+        'a5154_02',
+        'a5154_16',
+        'a5154_56',
+        'a5154_47',
+        'a5154_36',
+        'a5154_07',
+        'a5154_36',
+        'a5154_12',
+        'a5154_12',
+        'a5154_76',
+        'a5154_10',
+        'a5154_20',
+        'a5154_20',
+        'a5154_74',
+        'a5154_25',
+        'a5154_41'
+    ],
+    [
+        'a5154_66',
+        'a5154_33',
+        'a5154_31',
+        'a5154_47',
+        'a5154_63',
+        'a5154_57',
+        'a5154_70',
+        'a5154_71',
+        'a5154_17',
+        'a5154_37',
+        'a5154_34',
+        'a5154_10',
+        'a5154_53',
+        'a5154_02',
+        'a5154_35',
+        'a5154_34',
+        'a5154_00',
+        'a5154_11',
+        'a5154_07',
+        'a5154_35'
+    ],
+    [
+        'a5154_10',
+        'a5154_04',
+        'a5154_52',
+        'a5154_11',
+        'a5154_36',
+        'a5154_43',
+        'a5154_76',
+        'a5154_33',
+        'a5154_20',
+        'a5154_74',
+        'a5154_37',
+        'a5154_74',
+        'a5154_64',
+        'a5154_30',
+        'a5154_14',
+        'a5154_14',
+        'a5154_67',
+        'a5154_55',
+        'a5154_66',
+        'a5154_64'
+    ],
+    [
+        'a5154_73',
+        'a5154_06',
+        'a5154_14',
+        'a5154_07',
+        'a5154_63',
+        'a5154_53',
+        'a5154_15',
+        'a5154_37',
+        'a5154_30',
+        'a5154_30',
+        'a5154_71',
+        'a5154_21',
+        'a5154_66',
+        'a5154_27',
+        'a5154_43',
+        'a5154_73',
+        'a5154_37',
+        'a5154_11',
+        'a5154_70',
+        'a5154_14'
+    ],
+    [
+        'a5154_06',
+        'a5154_01',
+        'a5154_13',
+        'a5154_36',
+        'a5154_25',
+        'a5154_64',
+        'a5154_76',
+        'a5154_75',
+        'a5154_33',
+        'a5154_63',
+        'a5154_07',
+        'a5154_25',
+        'a5154_60',
+        'a5154_00',
+        'a5154_61',
+        'a5154_41',
+        'a5154_72',
+        'a5154_44',
+        'a5154_66',
+        'a5154_76'
+    ],
+    [
+        'a5154_23',
+        'a5154_30',
+        'a5154_45',
+        'a5154_33',
+        'a5154_07',
+        'a5154_07',
+        'a5154_50',
+        'a5154_07',
+        'a5154_06',
+        'a5154_75',
+        'a5154_24',
+        'a5154_07',
+        'a5154_12',
+        'a5154_27',
+        'a5154_10',
+        'a5154_10',
+        'a5154_36',
+        'a5154_63',
+        'a5154_17',
+        'a5154_37'
+    ],
+    [
+        'a5154_05',
+        'a5154_12',
+        'a5154_65',
+        'a5154_50',
+        'a5154_41',
+        'a5154_32',
+        'a5154_50',
+        'a5154_36',
+        'a5154_41',
+        'a5154_62',
+        'a5154_20',
+        'a5154_46',
+        'a5154_72',
+        'a5154_50',
+        'a5154_11',
+        'a5154_01',
+        'a5154_72',
+        'a5154_14',
+        'a5154_11',
+        'a5154_33'
+    ],
+    [
+        'a5154_41',
+        'a5154_20',
+        'a5154_54',
+        'a5154_10',
+        'a5154_37',
+        'a5154_57',
+        'a5154_44',
+        'a5154_24',
+        'a5154_70',
+        'a5154_46',
+        'a5154_01',
+        'a5154_46',
+        'a5154_15',
+        'a5154_21',
+        'a5154_41',
+        'a5154_16',
+        'a5154_15',
+        'a5154_23',
+        'a5154_42',
+        'a5154_44'
+    ],
+    [
+        'a5154_32',
+        'a5154_53',
+        'a5154_32',
+        'a5154_41',
+        'a5154_76',
+        'a5154_40',
+        'a5154_06',
+        'a5154_13',
+        'a5154_66',
+        'a5154_43',
+        'a5154_05',
+        'a5154_00',
+        'a5154_52',
+        'a5154_20',
+        'a5154_41',
+        'a5154_24',
+        'a5154_70',
+        'a5154_66',
+        'a5154_01',
+        'a5154_16'
+    ]
+]
+path = 'assets/Graficos/5154.png'
 tile_size = 128
 
     [tilemap.tiles.a5125_00]
@@ -3988,645 +4779,5 @@ tile_size = 128
 
     [tilemap.tiles.a5235_77]
     path = 'assets/Graficos/5235.png'
-    x = 896
-    y = 896
-
-    [tilemap.tiles.a5247_00]
-    path = 'assets/Graficos/5247.png'
-    x = 0
-    y = 0
-
-    [tilemap.tiles.a5247_01]
-    path = 'assets/Graficos/5247.png'
-    x = 128
-    y = 0
-
-    [tilemap.tiles.a5247_02]
-    path = 'assets/Graficos/5247.png'
-    x = 256
-    y = 0
-
-    [tilemap.tiles.a5247_03]
-    path = 'assets/Graficos/5247.png'
-    x = 384
-    y = 0
-
-    [tilemap.tiles.a5247_04]
-    path = 'assets/Graficos/5247.png'
-    x = 512
-    y = 0
-
-    [tilemap.tiles.a5247_05]
-    path = 'assets/Graficos/5247.png'
-    x = 640
-    y = 0
-
-    [tilemap.tiles.a5247_06]
-    path = 'assets/Graficos/5247.png'
-    x = 768
-    y = 0
-
-    [tilemap.tiles.a5247_07]
-    path = 'assets/Graficos/5247.png'
-    x = 896
-    y = 0
-
-    [tilemap.tiles.a5247_10]
-    path = 'assets/Graficos/5247.png'
-    x = 0
-    y = 128
-
-    [tilemap.tiles.a5247_11]
-    path = 'assets/Graficos/5247.png'
-    x = 128
-    y = 128
-
-    [tilemap.tiles.a5247_12]
-    path = 'assets/Graficos/5247.png'
-    x = 256
-    y = 128
-
-    [tilemap.tiles.a5247_13]
-    path = 'assets/Graficos/5247.png'
-    x = 384
-    y = 128
-
-    [tilemap.tiles.a5247_14]
-    path = 'assets/Graficos/5247.png'
-    x = 512
-    y = 128
-
-    [tilemap.tiles.a5247_15]
-    path = 'assets/Graficos/5247.png'
-    x = 640
-    y = 128
-
-    [tilemap.tiles.a5247_16]
-    path = 'assets/Graficos/5247.png'
-    x = 768
-    y = 128
-
-    [tilemap.tiles.a5247_17]
-    path = 'assets/Graficos/5247.png'
-    x = 896
-    y = 128
-
-    [tilemap.tiles.a5247_20]
-    path = 'assets/Graficos/5247.png'
-    x = 0
-    y = 256
-
-    [tilemap.tiles.a5247_21]
-    path = 'assets/Graficos/5247.png'
-    x = 128
-    y = 256
-
-    [tilemap.tiles.a5247_22]
-    path = 'assets/Graficos/5247.png'
-    x = 256
-    y = 256
-
-    [tilemap.tiles.a5247_23]
-    path = 'assets/Graficos/5247.png'
-    x = 384
-    y = 256
-
-    [tilemap.tiles.a5247_24]
-    path = 'assets/Graficos/5247.png'
-    x = 512
-    y = 256
-
-    [tilemap.tiles.a5247_25]
-    path = 'assets/Graficos/5247.png'
-    x = 640
-    y = 256
-
-    [tilemap.tiles.a5247_26]
-    path = 'assets/Graficos/5247.png'
-    x = 768
-    y = 256
-
-    [tilemap.tiles.a5247_27]
-    path = 'assets/Graficos/5247.png'
-    x = 896
-    y = 256
-
-    [tilemap.tiles.a5247_30]
-    path = 'assets/Graficos/5247.png'
-    x = 0
-    y = 384
-
-    [tilemap.tiles.a5247_31]
-    path = 'assets/Graficos/5247.png'
-    x = 128
-    y = 384
-
-    [tilemap.tiles.a5247_32]
-    path = 'assets/Graficos/5247.png'
-    x = 256
-    y = 384
-
-    [tilemap.tiles.a5247_33]
-    path = 'assets/Graficos/5247.png'
-    x = 384
-    y = 384
-
-    [tilemap.tiles.a5247_34]
-    path = 'assets/Graficos/5247.png'
-    x = 512
-    y = 384
-
-    [tilemap.tiles.a5247_35]
-    path = 'assets/Graficos/5247.png'
-    x = 640
-    y = 384
-
-    [tilemap.tiles.a5247_36]
-    path = 'assets/Graficos/5247.png'
-    x = 768
-    y = 384
-
-    [tilemap.tiles.a5247_37]
-    path = 'assets/Graficos/5247.png'
-    x = 896
-    y = 384
-
-    [tilemap.tiles.a5247_40]
-    path = 'assets/Graficos/5247.png'
-    x = 0
-    y = 512
-
-    [tilemap.tiles.a5247_41]
-    path = 'assets/Graficos/5247.png'
-    x = 128
-    y = 512
-
-    [tilemap.tiles.a5247_42]
-    path = 'assets/Graficos/5247.png'
-    x = 256
-    y = 512
-
-    [tilemap.tiles.a5247_43]
-    path = 'assets/Graficos/5247.png'
-    x = 384
-    y = 512
-
-    [tilemap.tiles.a5247_44]
-    path = 'assets/Graficos/5247.png'
-    x = 512
-    y = 512
-
-    [tilemap.tiles.a5247_45]
-    path = 'assets/Graficos/5247.png'
-    x = 640
-    y = 512
-
-    [tilemap.tiles.a5247_46]
-    path = 'assets/Graficos/5247.png'
-    x = 768
-    y = 512
-
-    [tilemap.tiles.a5247_47]
-    path = 'assets/Graficos/5247.png'
-    x = 896
-    y = 512
-
-    [tilemap.tiles.a5247_50]
-    path = 'assets/Graficos/5247.png'
-    x = 0
-    y = 640
-
-    [tilemap.tiles.a5247_51]
-    path = 'assets/Graficos/5247.png'
-    x = 128
-    y = 640
-
-    [tilemap.tiles.a5247_52]
-    path = 'assets/Graficos/5247.png'
-    x = 256
-    y = 640
-
-    [tilemap.tiles.a5247_53]
-    path = 'assets/Graficos/5247.png'
-    x = 384
-    y = 640
-
-    [tilemap.tiles.a5247_54]
-    path = 'assets/Graficos/5247.png'
-    x = 512
-    y = 640
-
-    [tilemap.tiles.a5247_55]
-    path = 'assets/Graficos/5247.png'
-    x = 640
-    y = 640
-
-    [tilemap.tiles.a5247_56]
-    path = 'assets/Graficos/5247.png'
-    x = 768
-    y = 640
-
-    [tilemap.tiles.a5247_57]
-    path = 'assets/Graficos/5247.png'
-    x = 896
-    y = 640
-
-    [tilemap.tiles.a5247_60]
-    path = 'assets/Graficos/5247.png'
-    x = 0
-    y = 768
-
-    [tilemap.tiles.a5247_61]
-    path = 'assets/Graficos/5247.png'
-    x = 128
-    y = 768
-
-    [tilemap.tiles.a5247_62]
-    path = 'assets/Graficos/5247.png'
-    x = 256
-    y = 768
-
-    [tilemap.tiles.a5247_63]
-    path = 'assets/Graficos/5247.png'
-    x = 384
-    y = 768
-
-    [tilemap.tiles.a5247_64]
-    path = 'assets/Graficos/5247.png'
-    x = 512
-    y = 768
-
-    [tilemap.tiles.a5247_65]
-    path = 'assets/Graficos/5247.png'
-    x = 640
-    y = 768
-
-    [tilemap.tiles.a5247_66]
-    path = 'assets/Graficos/5247.png'
-    x = 768
-    y = 768
-
-    [tilemap.tiles.a5247_67]
-    path = 'assets/Graficos/5247.png'
-    x = 896
-    y = 768
-
-    [tilemap.tiles.a5247_70]
-    path = 'assets/Graficos/5247.png'
-    x = 0
-    y = 896
-
-    [tilemap.tiles.a5247_71]
-    path = 'assets/Graficos/5247.png'
-    x = 128
-    y = 896
-
-    [tilemap.tiles.a5247_72]
-    path = 'assets/Graficos/5247.png'
-    x = 256
-    y = 896
-
-    [tilemap.tiles.a5247_73]
-    path = 'assets/Graficos/5247.png'
-    x = 384
-    y = 896
-
-    [tilemap.tiles.a5247_74]
-    path = 'assets/Graficos/5247.png'
-    x = 512
-    y = 896
-
-    [tilemap.tiles.a5247_75]
-    path = 'assets/Graficos/5247.png'
-    x = 640
-    y = 896
-
-    [tilemap.tiles.a5247_76]
-    path = 'assets/Graficos/5247.png'
-    x = 768
-    y = 896
-
-    [tilemap.tiles.a5247_77]
-    path = 'assets/Graficos/5247.png'
-    x = 896
-    y = 896
-
-    [tilemap.tiles.a6449_00]
-    path = 'assets/Graficos/6449.png'
-    x = 0
-    y = 0
-
-    [tilemap.tiles.a6449_01]
-    path = 'assets/Graficos/6449.png'
-    x = 128
-    y = 0
-
-    [tilemap.tiles.a6449_02]
-    path = 'assets/Graficos/6449.png'
-    x = 256
-    y = 0
-
-    [tilemap.tiles.a6449_03]
-    path = 'assets/Graficos/6449.png'
-    x = 384
-    y = 0
-
-    [tilemap.tiles.a6449_04]
-    path = 'assets/Graficos/6449.png'
-    x = 512
-    y = 0
-
-    [tilemap.tiles.a6449_05]
-    path = 'assets/Graficos/6449.png'
-    x = 640
-    y = 0
-
-    [tilemap.tiles.a6449_06]
-    path = 'assets/Graficos/6449.png'
-    x = 768
-    y = 0
-
-    [tilemap.tiles.a6449_07]
-    path = 'assets/Graficos/6449.png'
-    x = 896
-    y = 0
-
-    [tilemap.tiles.a6449_10]
-    path = 'assets/Graficos/6449.png'
-    x = 0
-    y = 128
-
-    [tilemap.tiles.a6449_11]
-    path = 'assets/Graficos/6449.png'
-    x = 128
-    y = 128
-
-    [tilemap.tiles.a6449_12]
-    path = 'assets/Graficos/6449.png'
-    x = 256
-    y = 128
-
-    [tilemap.tiles.a6449_13]
-    path = 'assets/Graficos/6449.png'
-    x = 384
-    y = 128
-
-    [tilemap.tiles.a6449_14]
-    path = 'assets/Graficos/6449.png'
-    x = 512
-    y = 128
-
-    [tilemap.tiles.a6449_15]
-    path = 'assets/Graficos/6449.png'
-    x = 640
-    y = 128
-
-    [tilemap.tiles.a6449_16]
-    path = 'assets/Graficos/6449.png'
-    x = 768
-    y = 128
-
-    [tilemap.tiles.a6449_17]
-    path = 'assets/Graficos/6449.png'
-    x = 896
-    y = 128
-
-    [tilemap.tiles.a6449_20]
-    path = 'assets/Graficos/6449.png'
-    x = 0
-    y = 256
-
-    [tilemap.tiles.a6449_21]
-    path = 'assets/Graficos/6449.png'
-    x = 128
-    y = 256
-
-    [tilemap.tiles.a6449_22]
-    path = 'assets/Graficos/6449.png'
-    x = 256
-    y = 256
-
-    [tilemap.tiles.a6449_23]
-    path = 'assets/Graficos/6449.png'
-    x = 384
-    y = 256
-
-    [tilemap.tiles.a6449_24]
-    path = 'assets/Graficos/6449.png'
-    x = 512
-    y = 256
-
-    [tilemap.tiles.a6449_25]
-    path = 'assets/Graficos/6449.png'
-    x = 640
-    y = 256
-
-    [tilemap.tiles.a6449_26]
-    path = 'assets/Graficos/6449.png'
-    x = 768
-    y = 256
-
-    [tilemap.tiles.a6449_27]
-    path = 'assets/Graficos/6449.png'
-    x = 896
-    y = 256
-
-    [tilemap.tiles.a6449_30]
-    path = 'assets/Graficos/6449.png'
-    x = 0
-    y = 384
-
-    [tilemap.tiles.a6449_31]
-    path = 'assets/Graficos/6449.png'
-    x = 128
-    y = 384
-
-    [tilemap.tiles.a6449_32]
-    path = 'assets/Graficos/6449.png'
-    x = 256
-    y = 384
-
-    [tilemap.tiles.a6449_33]
-    path = 'assets/Graficos/6449.png'
-    x = 384
-    y = 384
-
-    [tilemap.tiles.a6449_34]
-    path = 'assets/Graficos/6449.png'
-    x = 512
-    y = 384
-
-    [tilemap.tiles.a6449_35]
-    path = 'assets/Graficos/6449.png'
-    x = 640
-    y = 384
-
-    [tilemap.tiles.a6449_36]
-    path = 'assets/Graficos/6449.png'
-    x = 768
-    y = 384
-
-    [tilemap.tiles.a6449_37]
-    path = 'assets/Graficos/6449.png'
-    x = 896
-    y = 384
-
-    [tilemap.tiles.a6449_40]
-    path = 'assets/Graficos/6449.png'
-    x = 0
-    y = 512
-
-    [tilemap.tiles.a6449_41]
-    path = 'assets/Graficos/6449.png'
-    x = 128
-    y = 512
-
-    [tilemap.tiles.a6449_42]
-    path = 'assets/Graficos/6449.png'
-    x = 256
-    y = 512
-
-    [tilemap.tiles.a6449_43]
-    path = 'assets/Graficos/6449.png'
-    x = 384
-    y = 512
-
-    [tilemap.tiles.a6449_44]
-    path = 'assets/Graficos/6449.png'
-    x = 512
-    y = 512
-
-    [tilemap.tiles.a6449_45]
-    path = 'assets/Graficos/6449.png'
-    x = 640
-    y = 512
-
-    [tilemap.tiles.a6449_46]
-    path = 'assets/Graficos/6449.png'
-    x = 768
-    y = 512
-
-    [tilemap.tiles.a6449_47]
-    path = 'assets/Graficos/6449.png'
-    x = 896
-    y = 512
-
-    [tilemap.tiles.a6449_50]
-    path = 'assets/Graficos/6449.png'
-    x = 0
-    y = 640
-
-    [tilemap.tiles.a6449_51]
-    path = 'assets/Graficos/6449.png'
-    x = 128
-    y = 640
-
-    [tilemap.tiles.a6449_52]
-    path = 'assets/Graficos/6449.png'
-    x = 256
-    y = 640
-
-    [tilemap.tiles.a6449_53]
-    path = 'assets/Graficos/6449.png'
-    x = 384
-    y = 640
-
-    [tilemap.tiles.a6449_54]
-    path = 'assets/Graficos/6449.png'
-    x = 512
-    y = 640
-
-    [tilemap.tiles.a6449_55]
-    path = 'assets/Graficos/6449.png'
-    x = 640
-    y = 640
-
-    [tilemap.tiles.a6449_56]
-    path = 'assets/Graficos/6449.png'
-    x = 768
-    y = 640
-
-    [tilemap.tiles.a6449_57]
-    path = 'assets/Graficos/6449.png'
-    x = 896
-    y = 640
-
-    [tilemap.tiles.a6449_60]
-    path = 'assets/Graficos/6449.png'
-    x = 0
-    y = 768
-
-    [tilemap.tiles.a6449_61]
-    path = 'assets/Graficos/6449.png'
-    x = 128
-    y = 768
-
-    [tilemap.tiles.a6449_62]
-    path = 'assets/Graficos/6449.png'
-    x = 256
-    y = 768
-
-    [tilemap.tiles.a6449_63]
-    path = 'assets/Graficos/6449.png'
-    x = 384
-    y = 768
-
-    [tilemap.tiles.a6449_64]
-    path = 'assets/Graficos/6449.png'
-    x = 512
-    y = 768
-
-    [tilemap.tiles.a6449_65]
-    path = 'assets/Graficos/6449.png'
-    x = 640
-    y = 768
-
-    [tilemap.tiles.a6449_66]
-    path = 'assets/Graficos/6449.png'
-    x = 768
-    y = 768
-
-    [tilemap.tiles.a6449_67]
-    path = 'assets/Graficos/6449.png'
-    x = 896
-    y = 768
-
-    [tilemap.tiles.a6449_70]
-    path = 'assets/Graficos/6449.png'
-    x = 0
-    y = 896
-
-    [tilemap.tiles.a6449_71]
-    path = 'assets/Graficos/6449.png'
-    x = 128
-    y = 896
-
-    [tilemap.tiles.a6449_72]
-    path = 'assets/Graficos/6449.png'
-    x = 256
-    y = 896
-
-    [tilemap.tiles.a6449_73]
-    path = 'assets/Graficos/6449.png'
-    x = 384
-    y = 896
-
-    [tilemap.tiles.a6449_74]
-    path = 'assets/Graficos/6449.png'
-    x = 512
-    y = 896
-
-    [tilemap.tiles.a6449_75]
-    path = 'assets/Graficos/6449.png'
-    x = 640
-    y = 896
-
-    [tilemap.tiles.a6449_76]
-    path = 'assets/Graficos/6449.png'
-    x = 768
-    y = 896
-
-    [tilemap.tiles.a6449_77]
-    path = 'assets/Graficos/6449.png'
     x = 896
     y = 896

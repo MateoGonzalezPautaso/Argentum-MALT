@@ -165,6 +165,7 @@ struct ServerConfig {
     BalanceConfig balance;
     AttackConfig attack;
     ClanConfig clan;
+    int mob_spawn_radius = 10;
     ItemCatalog item_catalog;
     std::vector<NpcTemplate> npc_templates;
     std::vector<std::string> help_lines;

@@ -160,15 +160,26 @@ TilePalette::SectionWidgets TilePalette::make_section(
         }
 
         if (enable_walkable_menu) {
-            const auto& def = config_.tiles.at(name);
+            const auto& tile_def = config_.tiles.at(name);
             btn->setToolTip(
-                    QString::fromStdString(name + (def.walkable ? " (walkable)" : " (blocked)")));
-            if (!def.walkable) {
+                    QString::fromStdString(name + (tile_def.walkable ? " (walkable)" : " (blocked)")));
+            if (!tile_def.walkable) {
                 btn->setStyleSheet("QToolButton { border: 2px solid red; }");
             }
             btn->setContextMenuPolicy(Qt::CustomContextMenu);
             connect(btn, &QToolButton::customContextMenuRequested, this,
                     [this, name]() { toggle_walkable(name); });
+        } else {
+            auto prop_it = config_.props.find(name);
+            if (prop_it != config_.props.end() && !prop_it->second.transition_map.empty()) {
+                btn->setStyleSheet(
+                    "QToolButton { border: 2px solid #4488ff; background: #4488ff20; }");
+                btn->setToolTip(QString::fromStdString(
+                    name + " (portal -> " + prop_it->second.transition_map + ")"));
+            }
+            btn->setContextMenuPolicy(Qt::CustomContextMenu);
+            connect(btn, &QToolButton::customContextMenuRequested, this,
+                    [this, name]() { emit configure_portal(name); });
         }
 
         button_group_->addButton(btn);
@@ -218,4 +229,25 @@ void TilePalette::update_button_visual(QToolButton* btn, const std::string& name
                                        bool walkable) const {
     btn->setToolTip(QString::fromStdString(name + (walkable ? " (walkable)" : " (blocked)")));
     btn->setStyleSheet(walkable ? "" : "QToolButton { border: 2px solid red; }");
+}
+
+void TilePalette::update_prop_visual(const std::string& name) {
+    auto btn_it = tile_buttons_.find(name);
+    if (btn_it == tile_buttons_.end())
+        return;
+
+    auto prop_it = config_.props.find(name);
+    if (prop_it == config_.props.end())
+        return;
+
+    auto* btn = btn_it->second;
+    if (!prop_it->second.transition_map.empty()) {
+        btn->setStyleSheet(
+            "QToolButton { border: 2px solid #4488ff; background: #4488ff20; }");
+        btn->setToolTip(QString::fromStdString(
+            name + " (portal -> " + prop_it->second.transition_map + ")"));
+    } else {
+        btn->setStyleSheet("");
+        btn->setToolTip(QString::fromStdString(name));
+    }
 }

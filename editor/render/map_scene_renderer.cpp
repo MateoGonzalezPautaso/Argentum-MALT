@@ -92,6 +92,26 @@ void MapSceneRenderer::add_non_walkable_indicator(QGraphicsPixmapItem* item, int
     overlay->setPen(QPen(Qt::NoPen));
 }
 
+void MapSceneRenderer::add_portal_indicator(QGraphicsPixmapItem* item, const std::string& prop_name,
+                                            const TilemapDocument& doc) const {
+    const auto& cfg = doc.config();
+    auto it = cfg.props.find(prop_name);
+    if (it == cfg.props.end() || it->second.transition_map.empty())
+        return;
+
+    int w = it->second.width > 0 ? it->second.width : doc.tile_size();
+    int h = it->second.height > 0 ? it->second.height : doc.tile_size();
+    int border = 3;
+
+    auto* border_rect = new QGraphicsRectItem(0, 0, w, h, item);
+    border_rect->setBrush(Qt::NoBrush);
+    border_rect->setPen(QPen(QColor(68, 136, 255, 200), border));
+
+    auto* glow = new QGraphicsRectItem(border, border, w - 2 * border, h - 2 * border, item);
+    glow->setBrush(QColor(68, 136, 255, 25));
+    glow->setPen(QPen(Qt::NoPen));
+}
+
 void MapSceneRenderer::apply_prop_pos(QGraphicsPixmapItem* item, int col, int row,
                                       const std::string& prop_name,
                                       const TilemapDocument& doc) const {
@@ -237,6 +257,7 @@ void MapSceneRenderer::render_props(const TilemapDocument& doc) {
 
             auto* item = scene_->addPixmap(scaled);
             apply_prop_pos(item, c, r, name, doc);
+            add_portal_indicator(item, name, doc);
             row_items.push_back(item);
         }
         prop_items_.push_back(std::move(row_items));
@@ -314,6 +335,7 @@ void MapSceneRenderer::update_prop(int row, int col, const std::string& prop_nam
 
     auto* item = scene_->addPixmap(scaled);
     apply_prop_pos(item, col, row, prop_name, doc);
+    add_portal_indicator(item, prop_name, doc);
 
     prop_items_[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = item;
 }

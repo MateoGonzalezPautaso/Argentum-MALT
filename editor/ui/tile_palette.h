@@ -23,10 +23,12 @@ public:
                 QWidget* parent = nullptr);
 
     std::string selected_tile() const { return selected_tile_; }
+    void update_prop_visual(const std::string& name);
 
 signals:
     void tile_selected(const std::string& tile_name);
     void prop_selected(const std::string& prop_name);
+    void configure_portal(const std::string& prop_name);
 
 private:
     struct SectionWidgets {

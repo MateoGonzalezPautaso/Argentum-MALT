@@ -12,6 +12,7 @@
 #include "../../common/rng.h"
 #include "../core/config.h"
 #include "../persistence/clan_persistence.h"
+#include "prop_grid.h"
 
 #include "clan_command_handler.h"
 #include "clan_manager.h"
@@ -35,6 +36,7 @@ private:
     int sprite_height;
     BalanceConfig balance;
     InventoryConfig inventory_config;
+    int mob_spawn_radius;
     const ItemCatalog& item_catalog;
     Rng rng;
     CombatController combat_controller;
@@ -112,11 +114,11 @@ private:
     Map& player_map(const Player& p);
     const Map& player_map(const Player& p) const;
     bool try_map_transition(Player& player, CommandResult& result);
-    void do_transition(Player& player, CommandResult& result, const PropDef& prop,
+    void do_transition(Player& player, CommandResult& result, const PropGrid::Entry& entry,
                        const std::string& old_map_name);
 
     Position compute_spawn_position(const Map& dest_map, const std::string& old_map_name,
-                                    const PropDef& source_prop) const;
+                                    const PropGrid::Entry& source_entry) const;
     void despawn_player(CommandResult& result, uint16_t player_id,
                         const std::string& old_map_name) const;
     void notify_player_transition(CommandResult& result, const Player& player,

@@ -28,6 +28,7 @@ public:
     void apply_server_event(const ServerEvent& ev);
     bool handle_event(const SDL_Event& event);
     bool is_chat_focused() const { return chat_input.is_focused(); }
+    void load_game_assets();
 
 private:
     AudioManager& audio_manager;

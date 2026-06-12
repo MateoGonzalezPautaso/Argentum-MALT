@@ -59,6 +59,28 @@ void TilemapDocument::set_tile_walkable(const std::string& name, bool walkable) 
         it->second.walkable = walkable;
 }
 
+PropTransitionOverride TilemapDocument::transition_override(int row, int col) const {
+    auto r = static_cast<std::size_t>(row);
+    auto c = static_cast<std::size_t>(col);
+    if (r < config_.prop_transition_overrides.size() &&
+        c < config_.prop_transition_overrides[r].size()) {
+        return config_.prop_transition_overrides[r][c];
+    }
+    return {};
+}
+
+void TilemapDocument::set_transition_override(int row, int col,
+                                              const PropTransitionOverride& override) {
+    auto r = static_cast<std::size_t>(row);
+    auto c = static_cast<std::size_t>(col);
+    if (r >= config_.prop_transition_overrides.size())
+        config_.prop_transition_overrides.resize(r + 1);
+    if (c >= config_.prop_transition_overrides[r].size())
+        config_.prop_transition_overrides[r].resize(
+                c + 1, PropTransitionOverride{});
+    config_.prop_transition_overrides[r][c] = override;
+}
+
 void TilemapDocument::set_mob_spawn_zone(int row, int col, bool value) {
     config_.mob_spawn_zones[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] = value;
 }
@@ -67,6 +89,7 @@ void TilemapDocument::resize(int new_rows, int new_cols, const std::string& defa
     resize_grid(config_.mapa, new_rows, new_cols, default_tile);
     resize_grid(config_.prop_map, new_rows, new_cols, std::string{});
     resize_grid(config_.mob_spawn_zones, new_rows, new_cols, false);
+    resize_grid(config_.prop_transition_overrides, new_rows, new_cols, PropTransitionOverride{});
 }
 
 void TilemapDocument::create_new(int rows, int cols, const TilemapConfig& tile_config,
@@ -80,6 +103,7 @@ void TilemapDocument::create_new(int rows, int cols, const TilemapConfig& tile_c
     resize_grid(config_.mapa, rows, cols, std::string{});
     resize_grid(config_.prop_map, rows, cols, std::string{});
     resize_grid(config_.mob_spawn_zones, rows, cols, false);
+    resize_grid(config_.prop_transition_overrides, rows, cols, PropTransitionOverride{});
     path_.clear();
 }
 

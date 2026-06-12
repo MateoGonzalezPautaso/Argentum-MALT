@@ -7,10 +7,13 @@
 #include <QGraphicsView>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLabel>
+#include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPen>
+#include <QWheelEvent>
 #include <QPushButton>
 #include <QShowEvent>
 #include <QSpinBox>
@@ -88,6 +91,10 @@ void MainWindow::setup_ui() {
                                      .arg(doc.height())
                                      .arg(doc.tile_size()));
 
+    zoom_label_ = new QLabel("Zoom: 100%");
+    zoom_label_->setStyleSheet("padding: 0 8px;");
+    statusBar()->addPermanentWidget(zoom_label_);
+
     auto* toolbar = addToolBar("Map");
     toolbar->setMovable(false);
 
@@ -112,7 +119,7 @@ void MainWindow::setup_ui() {
             [this]() { resize_map(width_spin_->value(), height_spin_->value()); });
 
     toolbar->addSeparator();
-    spawn_zone_mode_action_ = toolbar->addAction("Set Spawn Zone");
+    spawn_zone_mode_action_ = toolbar->addAction("Set MOB Spawn Zone");
     spawn_zone_mode_action_->setCheckable(true);
     connect(spawn_zone_mode_action_, &QAction::toggled, this, [this](bool checked) {
         spawn_zone_mode_ = checked;
@@ -190,6 +197,29 @@ void MainWindow::connect_palette_signals() {
                                          .arg(doc.width())
                                          .arg(doc.height()));
     });
+    connect(palette_, &TilePalette::configure_portal, this, [this](const std::string& prop_name) {
+        const auto& props = controller_->document().config().props;
+        auto it = props.find(prop_name);
+        if (it == props.end())
+            return;
+
+        const auto& def = it->second;
+        auto result = show_transition_dialog(this, def.transition_map,
+                                             def.transition_x, def.transition_y);
+        if (!result.accepted)
+            return;
+
+        controller_->set_prop_transition(prop_name, result.transition_map,
+                                         result.transition_x, result.transition_y);
+        palette_->update_prop_visual(prop_name);
+        statusBar()->showMessage(
+            QString("Portal %1 -> %2 (spawn: %3, %4)")
+                .arg(QString::fromStdString(prop_name),
+                     QString::fromStdString(result.transition_map.empty()
+                        ? "(none)" : result.transition_map))
+                .arg(result.transition_x)
+                .arg(result.transition_y), 5000);
+    });
 }
 
 void MainWindow::rebuild_palette() {
@@ -238,8 +268,10 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
             return true;
         }
         if (click.button == Qt::RightButton) {
-            if (!doc.prop_name(click.row, click.col).empty()) {
-                controller_->erase_prop(click.row, click.col);
+            std::string prop = doc.prop_name(click.row, click.col);
+            if (!prop.empty()) {
+                handle_prop_context_menu(click.row, click.col,
+                                         view_->viewport()->mapToGlobal(me->pos()));
             } else {
                 controller_->erase_tile(click.row, click.col);
             }
@@ -289,6 +321,18 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
 
         drag_start_row_ = -1;
         drag_start_col_ = -1;
+        return true;
+    }
+
+    if (event->type() == QEvent::Wheel) {
+        auto* we = static_cast<QWheelEvent*>(event);
+        if (!(we->modifiers() & Qt::ControlModifier))
+            return false;
+
+        double factor = we->angleDelta().y() > 0 ? 1.15 : 1.0 / 1.15;
+        zoom_level_ *= factor;
+        view_->scale(factor, factor);
+        zoom_label_->setText(QString("Zoom: %1%").arg(static_cast<int>(zoom_level_ * 100)));
         return true;
     }
 
@@ -380,6 +424,50 @@ void MainWindow::update_title() {
         default: break;
     }
     setWindowTitle(title);
+}
+
+void MainWindow::handle_prop_context_menu(int row, int col, const QPoint& screen_pos) {
+    std::string prop = controller_->document().prop_name(row, col);
+    if (prop.empty())
+        return;
+
+    QMenu menu;
+    QAction* erase_action = menu.addAction("Erase");
+    QAction* portal_action = menu.addAction("Configure portal instance...");
+    QAction* chosen = menu.exec(screen_pos);
+    if (chosen == erase_action) {
+        controller_->erase_prop(row, col);
+    } else if (chosen == portal_action) {
+        const auto& props = controller_->document().config().props;
+        auto it = props.find(prop);
+        if (it == props.end())
+            return;
+
+        const auto& base = it->second;
+        PropTransitionOverride current = controller_->document().transition_override(row, col);
+        std::string cur_map = current.transition_map.empty() ?
+                base.transition_map : current.transition_map;
+        int cur_x = current.transition_map.empty() ?
+                base.transition_x : current.transition_x;
+        int cur_y = current.transition_map.empty() ?
+                base.transition_y : current.transition_y;
+
+        auto result = show_transition_dialog(this, cur_map, cur_x, cur_y);
+        if (!result.accepted)
+            return;
+
+        controller_->set_prop_transition_override(
+                row, col,
+                result.transition_map, result.transition_x, result.transition_y);
+        controller_->full_rebuild();
+        statusBar()->showMessage(
+            QString("Portal instance %1 -> %2 (spawn: %3, %4)")
+                .arg(QString::fromStdString(prop),
+                     QString::fromStdString(result.transition_map.empty()
+                        ? "(none)" : result.transition_map))
+                .arg(result.transition_x)
+                .arg(result.transition_y), 5000);
+    }
 }
 
 void MainWindow::change_map_type(QAction* action) {

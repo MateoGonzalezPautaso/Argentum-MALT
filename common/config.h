@@ -34,6 +34,12 @@ struct PropPartDef {
     int offset_y = 0;
 };
 
+struct PropTransitionOverride {
+    std::string transition_map;
+    int transition_x = 0;
+    int transition_y = 0;
+};
+
 struct PropDef {
     std::vector<std::string> paths;
     int src_x = 0;
@@ -61,6 +67,7 @@ struct TilemapConfig {
     std::vector<std::vector<bool>> mob_spawn_zones;
     int mob_spawn_limit = 0;
     int mob_spawn_interval_ticks = 0;
+    std::vector<std::vector<PropTransitionOverride>> prop_transition_overrides;
 };
 
 int toml_get_int(const toml::table& tbl, const char* key, int fallback);

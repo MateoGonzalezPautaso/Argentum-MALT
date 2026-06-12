@@ -16,6 +16,7 @@ class QGraphicsScene;
 class QGraphicsView;
 class QSplitter;
 class QSpinBox;
+class QLabel;
 
 class MainWindow: public QMainWindow {
     Q_OBJECT
@@ -39,6 +40,7 @@ private:
     void resize_map(int cols, int rows);
     void update_title();
     void change_map_type(QAction* action);
+    void handle_prop_context_menu(int row, int col, const QPoint& screen_pos);
     void update_drag_preview(int r1, int c1, int r2, int c2);
     void destroy_drag_preview();
 
@@ -54,6 +56,8 @@ private:
 
     QActionGroup* map_type_group_ = nullptr;
     QAction* spawn_zone_mode_action_ = nullptr;
+    QLabel* zoom_label_ = nullptr;
+    double zoom_level_ = 1.0;
 
     bool first_show_ = true;
     bool spawn_zone_mode_ = false;
