@@ -227,6 +227,8 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
     parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{},
                    "dodge_rect", config.ui.dodge_rect);
     parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{},
+                   "strength_rect", config.ui.strength_rect);
+    parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{},
                    "damage_rect", config.ui.damage_rect);
     parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{},
                    "defense_rect", config.ui.defense_rect);
