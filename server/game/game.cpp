@@ -1133,7 +1133,8 @@ PlayerStatsEvent Game::make_player_stats_event(const Player& p) const {
             .damage_min = dmg_min,
             .damage_max = dmg_max,
             .defense_min = def_min,
-            .defense_max = def_max};
+            .defense_max = def_max,
+            .dodge_chance = combat_controller.dodge_chance_for(p)};
 }
 
 CommandResult Game::handle_resurrect(uint16_t player_id) {

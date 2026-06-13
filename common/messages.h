@@ -323,6 +323,7 @@ struct PlayerStatsEvent {
     uint16_t damage_max;
     uint16_t defense_min;
     uint16_t defense_max;
+    uint8_t dodge_chance;
 };
 
 // 0x86

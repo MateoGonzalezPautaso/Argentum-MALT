@@ -414,6 +414,14 @@ std::pair<uint16_t, uint16_t> CombatController::unarmed_damage_range() const {
             static_cast<uint16_t>(config.base_damage + config.damage_variance)};
 }
 
+uint8_t CombatController::dodge_chance_for(const Player& p) const {
+    uint32_t agility = p.get_agility();
+    if (agility == 0)
+        return 0;
+    double pct = std::pow(0.001, 1.0 / static_cast<double>(agility)) * 100.0;
+    return static_cast<uint8_t>(std::round(pct));
+}
+
 void CombatController::fill_player_stats_event(PlayerStatsEvent& ev, const Player& p) const {
     ev.level = p.get_level();
     ev.experience = p.get_experience();
@@ -451,6 +459,7 @@ void CombatController::fill_player_stats_event(PlayerStatsEvent& ev, const Playe
     ev.damage_max = dmg_max;
     ev.defense_min = def_min;
     ev.defense_max = def_max;
+    ev.dodge_chance = dodge_chance_for(p);
 }
 
 bool CombatController::in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x,
