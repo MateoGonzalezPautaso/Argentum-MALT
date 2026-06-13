@@ -104,6 +104,7 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
                 .hp_max = target.get_hp_max(),
                 .mana_current = target.get_mana_current(),
                 .mana_max = target.get_mana_max(),
+                .crit_chance = crit_chance_for(target),
         });
 
         uint32_t excess = target.take_excess_gold();
@@ -272,6 +273,7 @@ CommandResult CombatController::spell_attack_player(uint16_t attacker_id, uint16
                 .hp_max = target.get_hp_max(),
                 .mana_current = target.get_mana_current(),
                 .mana_max = target.get_mana_max(),
+                .crit_chance = crit_chance_for(target),
         });
 
         uint32_t excess = target.take_excess_gold();
@@ -397,6 +399,7 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
                     .hp_max = target->get_hp_max(),
                     .mana_current = target->get_mana_current(),
                     .mana_max = target->get_mana_max(),
+                    .crit_chance = crit_chance_for(*target),
             });
             targeted[target_id].push_back(GoldUpdateEvent{target->get_gold()});
 
@@ -417,6 +420,14 @@ bool CombatController::is_critical_attack(const Player& attacker) {
     if (random_number < critic_probability)
         return true;
     return false;
+}
+
+uint8_t CombatController::crit_chance_for(const Player& p) const {
+    double threshold = p.get_strength() * config.critical_chance * 100.0;
+    double actual_pct = (threshold / 99.0) * 100.0;
+    if (actual_pct > 100.0)
+        return 100;
+    return static_cast<uint8_t>(std::round(actual_pct));
 }
 
 bool CombatController::in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x,
@@ -557,6 +568,7 @@ CommandResult CombatController::notify_entity_attacked(
             .hp_max = attacker.get_hp_max(),
             .mana_current = attacker.get_mana_current(),
             .mana_max = attacker.get_mana_max(),
+            .crit_chance = crit_chance_for(attacker),
     };
     return {.private_events = {dealt, stats},
             .broadcast_events = std::move(broadcast),

@@ -20,6 +20,7 @@ struct PlayerStats {
     uint32_t mana_current = 0;
     uint32_t mana_max = 0;
     uint32_t gold = 0;
+    uint8_t crit_chance = 0;
     Position pos;
     std::vector<InventorySlot> inventory;
     InventorySlot equipped[4] = {};

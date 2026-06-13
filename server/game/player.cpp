@@ -254,8 +254,8 @@ UpdateStats Player::update_stats() const {
     stats_updated.mana_max =
             static_cast<uint32_t>(intelligence * f_mana_race * f_mana_class * get_level());
     stats_updated.strength =
-            static_cast<uint32_t>(f_strength_race * f_strength_class * get_level());
-    stats_updated.agility = static_cast<uint32_t>(f_agility_race * f_agility_class * get_level());
+            static_cast<uint32_t>(std::ceil(f_strength_race * f_strength_class * get_level()));
+    stats_updated.agility = static_cast<uint32_t>(std::ceil(f_agility_race * f_agility_class * get_level()));
     return stats_updated;
 }
 

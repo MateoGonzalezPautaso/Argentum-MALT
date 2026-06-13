@@ -480,12 +480,13 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
         player.heal(heal_amount);
         HealReceivedEvent heal_ev{player_id, player.get_hp_current(), player.get_mana_current()};
         PlayerStatsEvent stats{.level = player.get_level(),
-                               .experience = player.get_experience(),
-                               .exp_to_next = player.exp_to_next_level(),
-                               .hp_current = player.get_hp_current(),
-                               .hp_max = player.get_hp_max(),
-                               .mana_current = player.get_mana_current(),
-                               .mana_max = player.get_mana_max()};
+                                .experience = player.get_experience(),
+                                .exp_to_next = player.exp_to_next_level(),
+                                .hp_current = player.get_hp_current(),
+                                .hp_max = player.get_hp_max(),
+                                .mana_current = player.get_mana_current(),
+                                .mana_max = player.get_mana_max(),
+                                .crit_chance = combat_controller.crit_chance_for(player)};
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Te has curado!"};
         DamageDealtEvent spell_ev{player_id, 0};
         SpellEffectEvent effect_ev{player_id, 0};
@@ -790,14 +791,15 @@ CommandResult Game::handle_cheat_infinite_mana(uint16_t player_id) {
     if (active)
         player.restore_mana(player.get_mana_max());
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     active ? "[Cheat] Mana infinito: ON" : "[Cheat] Mana infinito: OFF"};
+                      active ? "[Cheat] Mana infinito: ON" : "[Cheat] Mana infinito: OFF"};
     PlayerStatsEvent stats{.level = player.get_level(),
-                           .experience = player.get_experience(),
-                           .exp_to_next = player.exp_to_next_level(),
-                           .hp_current = player.get_hp_current(),
-                           .hp_max = player.get_hp_max(),
-                           .mana_current = player.get_mana_current(),
-                           .mana_max = player.get_mana_max()};
+                            .experience = player.get_experience(),
+                            .exp_to_next = player.exp_to_next_level(),
+                            .hp_current = player.get_hp_current(),
+                            .hp_max = player.get_hp_max(),
+                            .mana_current = player.get_mana_current(),
+                            .mana_max = player.get_mana_max(),
+                            .crit_chance = combat_controller.crit_chance_for(player)};
     return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
 
@@ -848,14 +850,15 @@ CommandResult Game::handle_cheat_level_up(uint16_t player_id) {
     }
     player.level_up();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     "[Cheat] Nivel subido a " + std::to_string(player.get_level())};
+                      "[Cheat] Nivel subido a " + std::to_string(player.get_level())};
     PlayerStatsEvent stats{.level = player.get_level(),
-                           .experience = player.get_experience(),
-                           .exp_to_next = player.exp_to_next_level(),
-                           .hp_current = player.get_hp_current(),
-                           .hp_max = player.get_hp_max(),
-                           .mana_current = player.get_mana_current(),
-                           .mana_max = player.get_mana_max()};
+                            .experience = player.get_experience(),
+                            .exp_to_next = player.exp_to_next_level(),
+                            .hp_current = player.get_hp_current(),
+                            .hp_max = player.get_hp_max(),
+                            .mana_current = player.get_mana_current(),
+                            .mana_max = player.get_mana_max(),
+                            .crit_chance = combat_controller.crit_chance_for(player)};
     GoldUpdateEvent gold{player.get_gold()};
     return {.private_events = {msg, stats, gold}, .broadcast_events = {}, .targeted_events = {}};
 }
@@ -871,14 +874,15 @@ CommandResult Game::handle_cheat_level_down(uint16_t player_id) {
     }
     player.level_down();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     "[Cheat] Nivel bajado a " + std::to_string(player.get_level())};
+                      "[Cheat] Nivel bajado a " + std::to_string(player.get_level())};
     PlayerStatsEvent stats{.level = player.get_level(),
-                           .experience = player.get_experience(),
-                           .exp_to_next = player.exp_to_next_level(),
-                           .hp_current = player.get_hp_current(),
-                           .hp_max = player.get_hp_max(),
-                           .mana_current = player.get_mana_current(),
-                           .mana_max = player.get_mana_max()};
+                            .experience = player.get_experience(),
+                            .exp_to_next = player.exp_to_next_level(),
+                            .hp_current = player.get_hp_current(),
+                            .hp_max = player.get_hp_max(),
+                            .mana_current = player.get_mana_current(),
+                            .mana_max = player.get_mana_max(),
+                            .crit_chance = combat_controller.crit_chance_for(player)};
     return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
 
@@ -913,12 +917,13 @@ CommandResult Game::handle_cheat_reset_mana(uint16_t player_id) {
     player.use_mana(player.get_mana_current());
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Mana reseteado a 0"};
     PlayerStatsEvent stats{.level = player.get_level(),
-                           .experience = player.get_experience(),
-                           .exp_to_next = player.exp_to_next_level(),
-                           .hp_current = player.get_hp_current(),
-                           .hp_max = player.get_hp_max(),
-                           .mana_current = player.get_mana_current(),
-                           .mana_max = player.get_mana_max()};
+                            .experience = player.get_experience(),
+                            .exp_to_next = player.exp_to_next_level(),
+                            .hp_current = player.get_hp_current(),
+                            .hp_max = player.get_hp_max(),
+                            .mana_current = player.get_mana_current(),
+                            .mana_max = player.get_mana_max(),
+                            .crit_chance = combat_controller.crit_chance_for(player)};
     return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
 

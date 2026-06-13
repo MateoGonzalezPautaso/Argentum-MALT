@@ -294,6 +294,7 @@ ServerEvent ClientProtocol::recv_player_stats() {
     ev.hp_max = protocol.recv_uint32();
     ev.mana_current = protocol.recv_uint32();
     ev.mana_max = protocol.recv_uint32();
+    ev.crit_chance = protocol.recv_uint8();
     return ev;
 }
 

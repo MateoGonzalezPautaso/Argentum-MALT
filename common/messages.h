@@ -318,6 +318,7 @@ struct PlayerStatsEvent {
     uint32_t hp_max;
     uint32_t mana_current;
     uint32_t mana_max;
+    uint8_t crit_chance;
 };
 
 // 0x86

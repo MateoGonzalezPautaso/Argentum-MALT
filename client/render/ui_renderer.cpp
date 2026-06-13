@@ -138,6 +138,23 @@ void UIRenderer::render_gold(uint32_t gold) {
     renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
 }
 
+void UIRenderer::render_crit_chance(uint8_t crit_pct) {
+    if (!bar_font) {
+        return;
+    }
+
+    const auto& gr = ui_cfg.crit_rect;
+    std::string text = std::to_string(crit_pct) + "%";
+    auto result = texture::render_text(renderer, bar_font, text, chat_color);
+    if (result.w == 0) {
+        return;
+    }
+    const int text_x = gr.x + (gr.w - result.w) / 2;
+    const int text_y = gr.y + (gr.h - result.h) / 2;
+    SDL2pp::Rect text_dst(text_x, text_y, result.w, result.h);
+    renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
+}
+
 void UIRenderer::update_potion_button_hover(int mx, int my,
                                             const std::vector<InventorySlot>& slots) {
     hovered_potion = 0;
