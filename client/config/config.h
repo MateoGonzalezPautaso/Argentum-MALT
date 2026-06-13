@@ -128,6 +128,7 @@ struct UIConfig {
     StatBarConfig potion_hp{851, 557, 77, 20};
     StatBarConfig potion_mana{932, 557, 77, 20};
     StatBarConfig crit_rect{957, 698, 50, 22};
+    StatBarConfig dodge_rect{957, 728, 50, 22};
     StatBarConfig damage_rect{793, 698, 50, 22};
     StatBarConfig defense_rect{793, 728, 50, 22};
     PortraitConfig portrait;
