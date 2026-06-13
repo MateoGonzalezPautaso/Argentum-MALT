@@ -301,6 +301,7 @@ ServerEvent ClientProtocol::recv_player_stats() {
     ev.defense_max = protocol.recv_uint16();
     ev.dodge_chance = protocol.recv_uint8();
     ev.strength = protocol.recv_uint16();
+    ev.agility = protocol.recv_uint16();
     return ev;
 }
 

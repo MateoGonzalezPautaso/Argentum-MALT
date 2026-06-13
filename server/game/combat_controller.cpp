@@ -461,6 +461,7 @@ void CombatController::fill_player_stats_event(PlayerStatsEvent& ev, const Playe
     ev.defense_max = def_max;
     ev.dodge_chance = dodge_chance_for(p);
     ev.strength = static_cast<uint16_t>(p.get_strength());
+    ev.agility = static_cast<uint16_t>(p.get_agility());
 }
 
 bool CombatController::in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x,

@@ -279,6 +279,7 @@ void ServerProtocol::send_player_stats(const PlayerStatsEvent& ev) {
     protocol.send_uint16(ev.defense_max);
     protocol.send_uint8(ev.dodge_chance);
     protocol.send_uint16(ev.strength);
+    protocol.send_uint16(ev.agility);
 }
 
 void ServerProtocol::send_heal_received(const HealReceivedEvent& ev) {

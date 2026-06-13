@@ -55,6 +55,7 @@ public:
     void render_crit_chance(uint8_t crit_pct);
     void render_dodge_chance(uint8_t dodge_pct);
     void render_strength(uint16_t strength);
+    void render_agility(uint16_t agility);
     void render_damage(uint16_t dmg_min, uint16_t dmg_max);
     void render_defense(uint16_t def_min, uint16_t def_max);
     void update_potion_button_hover(int mx, int my, const std::vector<InventorySlot>& slots);

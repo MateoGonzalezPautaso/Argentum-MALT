@@ -27,6 +27,7 @@ struct PlayerStats {
     uint16_t defense_max = 0;
     uint8_t dodge_chance = 0;
     uint16_t strength = 0;
+    uint16_t agility = 0;
     Position pos;
     std::vector<InventorySlot> inventory;
     InventorySlot equipped[4] = {};

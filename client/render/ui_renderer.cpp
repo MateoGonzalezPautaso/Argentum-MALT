@@ -189,6 +189,23 @@ void UIRenderer::render_strength(uint16_t strength) {
     renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
 }
 
+void UIRenderer::render_agility(uint16_t agility) {
+    if (!bar_font) {
+        return;
+    }
+
+    const auto& gr = ui_cfg.agility_rect;
+    std::string text = std::to_string(agility);
+    auto result = texture::render_text(renderer, bar_font, text, chat_color);
+    if (result.w == 0) {
+        return;
+    }
+    const int text_x = gr.x + (gr.w - result.w) / 2;
+    const int text_y = gr.y + (gr.h - result.h) / 2;
+    SDL2pp::Rect text_dst(text_x, text_y, result.w, result.h);
+    renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
+}
+
 void UIRenderer::render_damage(uint16_t dmg_min, uint16_t dmg_max) {
     if (!bar_font) {
         return;
