@@ -130,6 +130,12 @@ y = 698
 w = 50
 h = 22
 
+[ui.agility_rect]
+x = 876
+y = 728
+w = 50
+h = 22
+
 [ui.damage_rect]
 x = 793
 y = 698
