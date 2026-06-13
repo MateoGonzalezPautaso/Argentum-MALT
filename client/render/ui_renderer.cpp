@@ -470,5 +470,13 @@ void UIRenderer::render_stat_tooltips(int mx, int my) const {
         return;
 
     SDL2pp::Rect dst(mx + 12, my + 12, result.w, result.h);
+    if (dst.GetX() + dst.GetW() > ui_cfg.window_w)
+        dst.SetX(ui_cfg.window_w - dst.GetW());
+    if (dst.GetY() + dst.GetH() > ui_cfg.window_h)
+        dst.SetY(ui_cfg.window_h - dst.GetH());
+    if (dst.GetX() < 0)
+        dst.SetX(0);
+    if (dst.GetY() < 0)
+        dst.SetY(0);
     renderer.Copy(result.texture, SDL2pp::NullOpt, dst);
 }
