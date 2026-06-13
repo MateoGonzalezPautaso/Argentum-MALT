@@ -21,6 +21,10 @@ struct PlayerStats {
     uint32_t mana_max = 0;
     uint32_t gold = 0;
     uint8_t crit_chance = 0;
+    uint16_t damage_min = 0;
+    uint16_t damage_max = 0;
+    uint16_t defense_min = 0;
+    uint16_t defense_max = 0;
     Position pos;
     std::vector<InventorySlot> inventory;
     InventorySlot equipped[4] = {};

@@ -55,6 +55,8 @@ void GameController::render() {
     ui_renderer.render_portrait(player_stats.race, player_stats.player_class, player_stats.level);
     ui_renderer.render_gold(player_stats.gold);
     ui_renderer.render_crit_chance(player_stats.crit_chance);
+    ui_renderer.render_damage(player_stats.damage_min, player_stats.damage_max);
+    ui_renderer.render_defense(player_stats.defense_min, player_stats.defense_max);
     ui_renderer.render_potion_buttons();
     ui_renderer.render_hp_bar(player_stats.hp_current, player_stats.hp_max);
     ui_renderer.render_mp_bar(player_stats.mana_current, player_stats.mana_max);
@@ -664,6 +666,10 @@ void GameController::handle_player_stats(const PlayerStatsEvent& e) {
     player_stats.mana_current = e.mana_current;
     player_stats.mana_max = e.mana_max;
     player_stats.crit_chance = e.crit_chance;
+    player_stats.damage_min = e.damage_min;
+    player_stats.damage_max = e.damage_max;
+    player_stats.defense_min = e.defense_min;
+    player_stats.defense_max = e.defense_max;
 }
 
 void GameController::flush_pending_chat() {

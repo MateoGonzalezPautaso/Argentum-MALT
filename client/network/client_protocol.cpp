@@ -295,6 +295,10 @@ ServerEvent ClientProtocol::recv_player_stats() {
     ev.mana_current = protocol.recv_uint32();
     ev.mana_max = protocol.recv_uint32();
     ev.crit_chance = protocol.recv_uint8();
+    ev.damage_min = protocol.recv_uint16();
+    ev.damage_max = protocol.recv_uint16();
+    ev.defense_min = protocol.recv_uint16();
+    ev.defense_max = protocol.recv_uint16();
     return ev;
 }
 

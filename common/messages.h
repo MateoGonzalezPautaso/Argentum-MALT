@@ -319,6 +319,10 @@ struct PlayerStatsEvent {
     uint32_t mana_current;
     uint32_t mana_max;
     uint8_t crit_chance;
+    uint16_t damage_min;
+    uint16_t damage_max;
+    uint16_t defense_min;
+    uint16_t defense_max;
 };
 
 // 0x86

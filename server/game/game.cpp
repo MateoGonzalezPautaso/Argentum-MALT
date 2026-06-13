@@ -479,14 +479,7 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
         uint32_t heal_amount = player.get_hp_max() / 2;
         player.heal(heal_amount);
         HealReceivedEvent heal_ev{player_id, player.get_hp_current(), player.get_mana_current()};
-        PlayerStatsEvent stats{.level = player.get_level(),
-                                .experience = player.get_experience(),
-                                .exp_to_next = player.exp_to_next_level(),
-                                .hp_current = player.get_hp_current(),
-                                .hp_max = player.get_hp_max(),
-                                .mana_current = player.get_mana_current(),
-                                .mana_max = player.get_mana_max(),
-                                .crit_chance = combat_controller.crit_chance_for(player)};
+        PlayerStatsEvent stats = make_player_stats_event(player);
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Te has curado!"};
         DamageDealtEvent spell_ev{player_id, 0};
         SpellEffectEvent effect_ev{player_id, 0};
@@ -650,6 +643,8 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
                                   equipped_slots[2], equipped_slots[3]};
         private_events.push_back(equip_ev);
 
+        private_events.push_back(make_player_stats_event(p));
+
         if (p.get_current_map() != "city") {
             private_events.push_back(MapTransitionEvent{
                     .map_name = p.get_current_map(),
@@ -766,6 +761,8 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
                               equipped_slots[3]};
     private_events.push_back(equip_ev);
 
+    private_events.push_back(make_player_stats_event(p));
+
     CommandResult r;
     r.private_events = std::move(private_events);
     r.map_events = {spawn};
@@ -792,14 +789,7 @@ CommandResult Game::handle_cheat_infinite_mana(uint16_t player_id) {
         player.restore_mana(player.get_mana_max());
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                       active ? "[Cheat] Mana infinito: ON" : "[Cheat] Mana infinito: OFF"};
-    PlayerStatsEvent stats{.level = player.get_level(),
-                            .experience = player.get_experience(),
-                            .exp_to_next = player.exp_to_next_level(),
-                            .hp_current = player.get_hp_current(),
-                            .hp_max = player.get_hp_max(),
-                            .mana_current = player.get_mana_current(),
-                            .mana_max = player.get_mana_max(),
-                            .crit_chance = combat_controller.crit_chance_for(player)};
+    PlayerStatsEvent stats = make_player_stats_event(player);
     return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
 
@@ -851,14 +841,7 @@ CommandResult Game::handle_cheat_level_up(uint16_t player_id) {
     player.level_up();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                       "[Cheat] Nivel subido a " + std::to_string(player.get_level())};
-    PlayerStatsEvent stats{.level = player.get_level(),
-                            .experience = player.get_experience(),
-                            .exp_to_next = player.exp_to_next_level(),
-                            .hp_current = player.get_hp_current(),
-                            .hp_max = player.get_hp_max(),
-                            .mana_current = player.get_mana_current(),
-                            .mana_max = player.get_mana_max(),
-                            .crit_chance = combat_controller.crit_chance_for(player)};
+    PlayerStatsEvent stats = make_player_stats_event(player);
     GoldUpdateEvent gold{player.get_gold()};
     return {.private_events = {msg, stats, gold}, .broadcast_events = {}, .targeted_events = {}};
 }
@@ -875,14 +858,7 @@ CommandResult Game::handle_cheat_level_down(uint16_t player_id) {
     player.level_down();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                       "[Cheat] Nivel bajado a " + std::to_string(player.get_level())};
-    PlayerStatsEvent stats{.level = player.get_level(),
-                            .experience = player.get_experience(),
-                            .exp_to_next = player.exp_to_next_level(),
-                            .hp_current = player.get_hp_current(),
-                            .hp_max = player.get_hp_max(),
-                            .mana_current = player.get_mana_current(),
-                            .mana_max = player.get_mana_max(),
-                            .crit_chance = combat_controller.crit_chance_for(player)};
+    PlayerStatsEvent stats = make_player_stats_event(player);
     return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
 
@@ -916,14 +892,7 @@ CommandResult Game::handle_cheat_reset_mana(uint16_t player_id) {
     Player& player = it->second;
     player.use_mana(player.get_mana_current());
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Mana reseteado a 0"};
-    PlayerStatsEvent stats{.level = player.get_level(),
-                            .experience = player.get_experience(),
-                            .exp_to_next = player.exp_to_next_level(),
-                            .hp_current = player.get_hp_current(),
-                            .hp_max = player.get_hp_max(),
-                            .mana_current = player.get_mana_current(),
-                            .mana_max = player.get_mana_max(),
-                            .crit_chance = combat_controller.crit_chance_for(player)};
+    PlayerStatsEvent stats = make_player_stats_event(player);
     return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
 
@@ -1121,6 +1090,52 @@ bool Game::is_username_logged_in(const std::string& username) const {
     return false;
 }
 
+std::tuple<uint16_t, uint16_t, uint16_t, uint16_t> Game::compute_combat_ranges(
+        const Player& p) const {
+    uint16_t dmg_min = 0, dmg_max = 0, def_min = 0, def_max = 0;
+
+    const InventorySlot& weapon = p.get_equipped(EquipSlot::WEAPON);
+    if (weapon.item_type != ItemType::NONE) {
+        const Item* w = item_catalog.find(weapon.item_type);
+        if (w && w->max_damage > 0) {
+            dmg_min = static_cast<uint16_t>(p.get_strength() * w->min_damage);
+            dmg_max = static_cast<uint16_t>(p.get_strength() * w->max_damage);
+        }
+    } else {
+        auto [unarmed_min, unarmed_max] = combat_controller.unarmed_damage_range();
+        dmg_min = unarmed_min;
+        dmg_max = unarmed_max;
+    }
+
+    for (EquipSlot slot: {EquipSlot::ARMOR, EquipSlot::HELMET, EquipSlot::SHIELD}) {
+        const InventorySlot& s = p.get_equipped(slot);
+        if (s.item_type != ItemType::NONE) {
+            const Item* item = item_catalog.find(s.item_type);
+            if (item) {
+                def_min += static_cast<uint16_t>(item->min_defense);
+                def_max += static_cast<uint16_t>(item->max_defense);
+            }
+        }
+    }
+    return {dmg_min, dmg_max, def_min, def_max};
+}
+
+PlayerStatsEvent Game::make_player_stats_event(const Player& p) const {
+    auto [dmg_min, dmg_max, def_min, def_max] = compute_combat_ranges(p);
+    return {.level = p.get_level(),
+            .experience = p.get_experience(),
+            .exp_to_next = p.exp_to_next_level(),
+            .hp_current = p.get_hp_current(),
+            .hp_max = p.get_hp_max(),
+            .mana_current = p.get_mana_current(),
+            .mana_max = p.get_mana_max(),
+            .crit_chance = combat_controller.crit_chance_for(p),
+            .damage_min = dmg_min,
+            .damage_max = dmg_max,
+            .defense_min = def_min,
+            .defense_max = def_max};
+}
+
 CommandResult Game::handle_resurrect(uint16_t player_id) {
     auto it = players.find(player_id);
     if (it == players.end())
@@ -1223,7 +1238,7 @@ CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
     InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
     player.dump_equipped(equipped_slots);
     EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1], equipped_slots[2],
-                              equipped_slots[3]};
+                               equipped_slots[3]};
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
 
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Equipaste slot " + std::to_string(cmd.slot_index)};
@@ -1234,7 +1249,7 @@ CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
     return {.private_events = private_events,
             .broadcast_events = {},
             .targeted_events = {},
-            .map_events = {equip_ev}};
+            .map_events = {equip_ev, make_player_stats_event(player)}};
 }
 
 CommandResult Game::handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd) {
@@ -1250,13 +1265,13 @@ CommandResult Game::handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd
     InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
     player.dump_equipped(equipped_slots);
     EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1], equipped_slots[2],
-                              equipped_slots[3]};
+                               equipped_slots[3]};
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
 
     return {.private_events = {inv_ev},
             .broadcast_events = {},
             .targeted_events = {},
-            .map_events = {equip_ev}};
+            .map_events = {equip_ev, make_player_stats_event(player)}};
 }
 
 CommandResult Game::handle_npc_heal(uint16_t player_id) {

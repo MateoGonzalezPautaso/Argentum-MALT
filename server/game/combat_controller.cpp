@@ -96,16 +96,9 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
 
     if (target.is_dead()) {
         target.lose_experience_on_death();
-        result.targeted_events[target_id].push_back(PlayerStatsEvent{
-                .level = target.get_level(),
-                .experience = target.get_experience(),
-                .exp_to_next = target.exp_to_next_level(),
-                .hp_current = target.get_hp_current(),
-                .hp_max = target.get_hp_max(),
-                .mana_current = target.get_mana_current(),
-                .mana_max = target.get_mana_max(),
-                .crit_chance = crit_chance_for(target),
-        });
+        PlayerStatsEvent stats{};
+        fill_player_stats_event(stats, target);
+        result.targeted_events[target_id].push_back(stats);
 
         uint32_t excess = target.take_excess_gold();
         if (excess > 0) {
@@ -265,16 +258,9 @@ CommandResult CombatController::spell_attack_player(uint16_t attacker_id, uint16
 
     if (target.is_dead()) {
         target.lose_experience_on_death();
-        result.targeted_events[target_id].push_back(PlayerStatsEvent{
-                .level = target.get_level(),
-                .experience = target.get_experience(),
-                .exp_to_next = target.exp_to_next_level(),
-                .hp_current = target.get_hp_current(),
-                .hp_max = target.get_hp_max(),
-                .mana_current = target.get_mana_current(),
-                .mana_max = target.get_mana_max(),
-                .crit_chance = crit_chance_for(target),
-        });
+        PlayerStatsEvent stats{};
+        fill_player_stats_event(stats, target);
+        result.targeted_events[target_id].push_back(stats);
 
         uint32_t excess = target.take_excess_gold();
         if (excess > 0) {
@@ -391,16 +377,9 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
             target->lose_experience_on_death();
             target->take_excess_gold();
 
-            targeted[target_id].push_back(PlayerStatsEvent{
-                    .level = target->get_level(),
-                    .experience = target->get_experience(),
-                    .exp_to_next = target->exp_to_next_level(),
-                    .hp_current = target->get_hp_current(),
-                    .hp_max = target->get_hp_max(),
-                    .mana_current = target->get_mana_current(),
-                    .mana_max = target->get_mana_max(),
-                    .crit_chance = crit_chance_for(*target),
-            });
+            PlayerStatsEvent stats{};
+            fill_player_stats_event(stats, *target);
+            targeted[target_id].push_back(stats);
             targeted[target_id].push_back(GoldUpdateEvent{target->get_gold()});
 
             EntityDiedEvent died{target_id};
@@ -428,6 +407,50 @@ uint8_t CombatController::crit_chance_for(const Player& p) const {
     if (actual_pct > 100.0)
         return 100;
     return static_cast<uint8_t>(std::round(actual_pct));
+}
+
+std::pair<uint16_t, uint16_t> CombatController::unarmed_damage_range() const {
+    return {static_cast<uint16_t>(config.base_damage),
+            static_cast<uint16_t>(config.base_damage + config.damage_variance)};
+}
+
+void CombatController::fill_player_stats_event(PlayerStatsEvent& ev, const Player& p) const {
+    ev.level = p.get_level();
+    ev.experience = p.get_experience();
+    ev.exp_to_next = p.exp_to_next_level();
+    ev.hp_current = p.get_hp_current();
+    ev.hp_max = p.get_hp_max();
+    ev.mana_current = p.get_mana_current();
+    ev.mana_max = p.get_mana_max();
+    ev.crit_chance = crit_chance_for(p);
+
+    uint16_t dmg_min = 0, dmg_max = 0, def_min = 0, def_max = 0;
+    const InventorySlot& weapon = p.get_equipped(EquipSlot::WEAPON);
+    if (weapon.item_type != ItemType::NONE) {
+        const Item* w = item_catalog_.find(weapon.item_type);
+        if (w && w->max_damage > 0) {
+            dmg_min = static_cast<uint16_t>(p.get_strength() * w->min_damage);
+            dmg_max = static_cast<uint16_t>(p.get_strength() * w->max_damage);
+        }
+    } else {
+        auto [unarmed_min, unarmed_max] = unarmed_damage_range();
+        dmg_min = unarmed_min;
+        dmg_max = unarmed_max;
+    }
+    for (EquipSlot slot: {EquipSlot::ARMOR, EquipSlot::HELMET, EquipSlot::SHIELD}) {
+        const InventorySlot& s = p.get_equipped(slot);
+        if (s.item_type != ItemType::NONE) {
+            const Item* item = item_catalog_.find(s.item_type);
+            if (item) {
+                def_min += static_cast<uint16_t>(item->min_defense);
+                def_max += static_cast<uint16_t>(item->max_defense);
+            }
+        }
+    }
+    ev.damage_min = dmg_min;
+    ev.damage_max = dmg_max;
+    ev.defense_min = def_min;
+    ev.defense_max = def_max;
 }
 
 bool CombatController::in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x,
@@ -560,16 +583,8 @@ CommandResult CombatController::notify_entity_attacked(
         }
     }
 
-    PlayerStatsEvent stats{
-            .level = attacker.get_level(),
-            .experience = attacker.get_experience(),
-            .exp_to_next = attacker.exp_to_next_level(),
-            .hp_current = attacker.get_hp_current(),
-            .hp_max = attacker.get_hp_max(),
-            .mana_current = attacker.get_mana_current(),
-            .mana_max = attacker.get_mana_max(),
-            .crit_chance = crit_chance_for(attacker),
-    };
+    PlayerStatsEvent stats{};
+    fill_player_stats_event(stats, attacker);
     return {.private_events = {dealt, stats},
             .broadcast_events = std::move(broadcast),
             .targeted_events = std::move(targeted)};

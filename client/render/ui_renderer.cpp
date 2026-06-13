@@ -155,6 +155,40 @@ void UIRenderer::render_crit_chance(uint8_t crit_pct) {
     renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
 }
 
+void UIRenderer::render_damage(uint16_t dmg_min, uint16_t dmg_max) {
+    if (!bar_font) {
+        return;
+    }
+
+    const auto& gr = ui_cfg.damage_rect;
+    std::string text = std::to_string(dmg_min) + "-" + std::to_string(dmg_max);
+    auto result = texture::render_text(renderer, bar_font, text, chat_color);
+    if (result.w == 0) {
+        return;
+    }
+    const int text_x = gr.x + (gr.w - result.w) / 2;
+    const int text_y = gr.y + (gr.h - result.h) / 2;
+    SDL2pp::Rect text_dst(text_x, text_y, result.w, result.h);
+    renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
+}
+
+void UIRenderer::render_defense(uint16_t def_min, uint16_t def_max) {
+    if (!bar_font) {
+        return;
+    }
+
+    const auto& gr = ui_cfg.defense_rect;
+    std::string text = std::to_string(def_min) + "-" + std::to_string(def_max);
+    auto result = texture::render_text(renderer, bar_font, text, chat_color);
+    if (result.w == 0) {
+        return;
+    }
+    const int text_x = gr.x + (gr.w - result.w) / 2;
+    const int text_y = gr.y + (gr.h - result.h) / 2;
+    SDL2pp::Rect text_dst(text_x, text_y, result.w, result.h);
+    renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
+}
+
 void UIRenderer::update_potion_button_hover(int mx, int my,
                                             const std::vector<InventorySlot>& slots) {
     hovered_potion = 0;

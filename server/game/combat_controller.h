@@ -30,6 +30,9 @@ public:
                                     uint32_t current_tick);
 
     uint8_t crit_chance_for(const Player& p) const;
+    std::pair<uint16_t, uint16_t> unarmed_damage_range() const;
+
+    void fill_player_stats_event(PlayerStatsEvent& ev, const Player& p) const;
 
 private:
     bool in_range(uint16_t attacker_x, uint16_t attacker_y, uint16_t target_x,
