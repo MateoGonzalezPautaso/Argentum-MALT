@@ -112,6 +112,12 @@ y = 557
 w = 77
 h = 20
 
+[ui.crit_rect]
+x = 957
+y = 698
+w = 50
+h = 22
+
 [ui.portrait]
 x = 643
 y = 46

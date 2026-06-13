@@ -127,6 +127,7 @@ struct UIConfig {
     StatBarConfig gold_rect{783, 557, 63, 20};
     StatBarConfig potion_hp{851, 557, 77, 20};
     StatBarConfig potion_mana{932, 557, 77, 20};
+    StatBarConfig crit_rect{957, 698, 50, 22};
     PortraitConfig portrait;
     int chat_input_x = 41;
     int chat_input_y = 122;
