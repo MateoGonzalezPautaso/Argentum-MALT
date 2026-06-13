@@ -87,66 +87,77 @@ x = 790
 y = 601
 w = 218
 h = 17
+label = "Health"
 
 [ui.mp_bar]
 x = 790
 y = 629
 w = 217
 h = 17
+label = "Mana"
 
 [ui.gold_rect]
 x = 783
 y = 557
 w = 63
 h = 20
+label = "Gold"
 
 [ui.potion_hp_button]
 x = 851
 y = 557
 w = 77
 h = 20
+label = "Health potion"
 
 [ui.potion_mana_button]
 x = 932
 y = 557
 w = 77
 h = 20
+label = "Mana potion"
 
 [ui.crit_rect]
 x = 957
 y = 698
 w = 50
 h = 22
+label = "Critical chance"
 
 [ui.dodge_rect]
 x = 957
 y = 728
 w = 50
 h = 22
+label = "Dodge chance"
 
 [ui.strength_rect]
 x = 876
 y = 698
 w = 50
 h = 22
+label = "Strength"
 
 [ui.agility_rect]
 x = 876
 y = 728
 w = 50
 h = 22
+label = "Agility"
 
 [ui.damage_rect]
 x = 793
 y = 698
 w = 50
 h = 22
+label = "Damage"
 
 [ui.defense_rect]
 x = 793
 y = 728
 w = 50
 h = 22
+label = "Defense"
 
 [ui.portrait]
 x = 643
@@ -167,6 +178,7 @@ x = 790
 y = 657
 w = 217
 h = 17
+label = "Experience"
 
 [assets]
 menu_bg = "assets/interface/en_ventanalauncher.bmp"

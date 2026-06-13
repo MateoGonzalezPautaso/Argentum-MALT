@@ -72,6 +72,7 @@ public:
     void render_inventory(const std::vector<InventorySlot>& slots);
     void render_equipped(const InventorySlot equipped[4]);
     bool is_chat_input_hit(int x, int y) const;
+    void render_stat_tooltips(int mx, int my) const;
 
 private:
     void render_stat_bar(SDL2pp::Texture& tex, int x, int y, int w, int h, uint32_t current,

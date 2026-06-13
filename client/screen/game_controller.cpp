@@ -72,6 +72,7 @@ void GameController::render() {
     ui_renderer.update_potion_button_hover(mouse_x, mouse_y, player_stats.inventory);
     ui_renderer.render_inventory(player_stats.inventory);
     ui_renderer.render_equipped(player_stats.equipped);
+    ui_renderer.render_stat_tooltips(mouse_x, mouse_y);
     renderer.Present();
 }
 

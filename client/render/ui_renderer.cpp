@@ -442,3 +442,33 @@ void UIRenderer::render_chat_cursor(int x_offset) const {
                             std::min(result.h, chat_input_rect.GetH()));
     renderer.Copy(result.texture, SDL2pp::NullOpt, cursor_dst);
 }
+
+void UIRenderer::render_stat_tooltips(int mx, int my) const {
+    if (!bar_font)
+        return;
+
+    const StatBarConfig* all_stats[] = {&ui_cfg.hp_bar,   &ui_cfg.mp_bar,       &ui_cfg.exp_bar,
+                                        &ui_cfg.gold_rect, &ui_cfg.potion_hp,    &ui_cfg.potion_mana,
+                                        &ui_cfg.crit_rect, &ui_cfg.dodge_rect,   &ui_cfg.strength_rect,
+                                        &ui_cfg.agility_rect, &ui_cfg.damage_rect, &ui_cfg.defense_rect};
+
+    const StatBarConfig* found = nullptr;
+    for (const auto* stat : all_stats) {
+        if (stat->label.empty())
+            continue;
+        if (point_in_rect(mx, my, SDL2pp::Rect(stat->x, stat->y, stat->w, stat->h))) {
+            found = stat;
+            break;
+        }
+    }
+
+    if (!found)
+        return;
+
+    auto result = texture::render_text(renderer, bar_font, found->label, {255, 255, 150, 255});
+    if (result.w == 0)
+        return;
+
+    SDL2pp::Rect dst(mx + 12, my + 12, result.w, result.h);
+    renderer.Copy(result.texture, SDL2pp::NullOpt, dst);
+}

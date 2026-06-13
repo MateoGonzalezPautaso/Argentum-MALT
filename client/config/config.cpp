@@ -133,6 +133,7 @@ void parse_stat_bar(const toml::table& tbl, const char* key, StatBarConfig& bar)
         bar.y = toml_get_int(*subtbl, "y", bar.y);
         bar.w = toml_get_int(*subtbl, "w", bar.w);
         bar.h = toml_get_int(*subtbl, "h", bar.h);
+        bar.label = toml_get_string(*subtbl, "label", bar.label);
     }
 }
 

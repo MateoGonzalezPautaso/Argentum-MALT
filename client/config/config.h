@@ -71,6 +71,7 @@ struct StatBarConfig {
     int y = 601;
     int w = 218;
     int h = 17;
+    std::string label{};
 };
 
 struct PortraitConfig {
