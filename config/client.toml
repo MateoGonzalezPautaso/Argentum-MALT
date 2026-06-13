@@ -118,6 +118,18 @@ y = 698
 w = 50
 h = 22
 
+[ui.damage_rect]
+x = 793
+y = 698
+w = 50
+h = 22
+
+[ui.defense_rect]
+x = 793
+y = 728
+w = 50
+h = 22
+
 [ui.portrait]
 x = 643
 y = 46
