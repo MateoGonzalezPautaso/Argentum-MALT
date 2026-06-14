@@ -465,6 +465,14 @@ bool GameController::handle_event(const SDL_Event& event) {
 }
 
 bool GameController::handle_mouse_button(const SDL_Event& event) {
+    if (merchant_open) {
+        SDL2pp::Rect panel(config.ui.merchant_panel_x, config.ui.merchant_panel_y,
+                           config.ui.merchant_panel_w, config.ui.merchant_panel_h);
+        if (!point_in_rect(event.button.x, event.button.y, panel))
+            merchant_open = false;
+        return true;
+    }
+
     chat_input.set_focus(ui_renderer.is_chat_input_hit(event.button.x, event.button.y));
 
     if (chat_input.is_focused()) {
@@ -543,6 +551,11 @@ bool GameController::handle_mouse_motion(const SDL_Event& event) {
     mouse_x = event.motion.x;
     mouse_y = event.motion.y;
 
+    if (merchant_open) {
+        SDL_SetCursor(arrow_cursor);
+        return true;
+    }
+
     ui_renderer.set_hover(mouse_x, mouse_y, player_stats.inventory, player_stats.equipped);
     ui_renderer.update_potion_button_hover(mouse_x, mouse_y, player_stats.inventory);
     if (ui_renderer.is_hovering_occupied() || ui_renderer.get_hovered_potion() > 0) {
@@ -568,6 +581,9 @@ bool GameController::handle_mouse_motion(const SDL_Event& event) {
 bool GameController::handle_keydown(const SDL_Event& event) {
     const uint32_t now = SDL_GetTicks();
     const bool ctrl = event.key.keysym.mod & KMOD_CTRL;
+
+    if (merchant_open && event.key.keysym.sym != SDLK_ESCAPE)
+        return true;
 
     switch (event.key.keysym.sym) {
         case SDLK_ESCAPE:
