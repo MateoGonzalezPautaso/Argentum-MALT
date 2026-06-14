@@ -174,6 +174,7 @@ struct UIConfig {
     std::string asset_hp_bar = "assets/interface/en_barradevida.bmp";
     std::string asset_mp_bar = "assets/interface/en_barrademana.bmp";
     std::string asset_exp_bar = "assets/interface/en_barraexperiencia.bmp";
+    std::string asset_merchant_bg = "assets/interface/en_comerciar.bmp";
 
     int login_title_spacing = 20;
     int login_field_spacing = 30;
@@ -188,6 +189,10 @@ struct UIConfig {
     int cursor_height_shrink = 8;
     int chat_line_spacing = 2;
     InventoryPanelConfig inventory_panel;
+    int merchant_panel_x = 200;
+    int merchant_panel_y = 100;
+    int merchant_panel_w = 624;
+    int merchant_panel_h = 568;
 };
 
 struct SkinConfig {

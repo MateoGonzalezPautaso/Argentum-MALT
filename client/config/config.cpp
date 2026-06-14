@@ -236,6 +236,17 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
     parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{},
                    "defense_rect", config.ui.defense_rect);
 
+    if (auto tbl = root["ui"].as_table()) {
+        config.ui.merchant_panel_x =
+                toml_get_int(*tbl, "merchant_panel_x", config.ui.merchant_panel_x);
+        config.ui.merchant_panel_y =
+                toml_get_int(*tbl, "merchant_panel_y", config.ui.merchant_panel_y);
+        config.ui.merchant_panel_w =
+                toml_get_int(*tbl, "merchant_panel_w", config.ui.merchant_panel_w);
+        config.ui.merchant_panel_h =
+                toml_get_int(*tbl, "merchant_panel_h", config.ui.merchant_panel_h);
+    }
+
     if (auto portrait = root["ui"].as_table()) {
         if (auto pt = (*portrait)["portrait"].as_table()) {
             config.ui.portrait.x = toml_get_int(*pt, "x", config.ui.portrait.x);
@@ -286,6 +297,8 @@ void parse_assets_config(const toml::table& root, ClientConfig& config) {
         config.ui.asset_hp_bar = toml_get_string(*tbl, "hp_bar", config.ui.asset_hp_bar);
         config.ui.asset_mp_bar = toml_get_string(*tbl, "mp_bar", config.ui.asset_mp_bar);
         config.ui.asset_exp_bar = toml_get_string(*tbl, "exp_bar", config.ui.asset_exp_bar);
+        config.ui.asset_merchant_bg =
+                toml_get_string(*tbl, "merchant_bg", config.ui.asset_merchant_bg);
     }
 }
 

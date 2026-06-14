@@ -33,6 +33,9 @@ GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& c
         arrow_cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW)) {
     world_renderer.set_direction_src_y(config.dir_src_y_down, config.dir_src_y_up,
                                        config.dir_src_y_left, config.dir_src_y_right);
+    merchant_renderer = std::make_unique<MerchantRenderer>(
+            renderer, config.ui.asset_merchant_bg, config.ui.merchant_panel_x,
+            config.ui.merchant_panel_y, config.ui.merchant_panel_w, config.ui.merchant_panel_h);
 }
 
 GameController::~GameController() {
@@ -73,6 +76,8 @@ void GameController::render() {
     ui_renderer.render_inventory(player_stats.inventory);
     ui_renderer.render_equipped(player_stats.equipped);
     ui_renderer.render_stat_tooltips(mouse_x, mouse_y);
+    if (merchant_open)
+        merchant_renderer->render(renderer);
     renderer.Present();
 }
 
@@ -237,6 +242,7 @@ void GameController::interact_with_prop(const std::string& prop_name) {
         audio_manager.play_sfx("merchant");
         chat_history.add_message(ChatMsgType::SYSTEM, "",
                                  "Comerciante: Pasa, todo lo que ves esta en venta.");
+        merchant_open = true;
     } else if (prop_name == "banquero") {
         audio_manager.play_sfx("banker");
         chat_history.add_message(ChatMsgType::SYSTEM, "",
@@ -565,6 +571,10 @@ bool GameController::handle_keydown(const SDL_Event& event) {
 
     switch (event.key.keysym.sym) {
         case SDLK_ESCAPE:
+            if (merchant_open) {
+                merchant_open = false;
+                return true;
+            }
             return false;
         case SDLK_LEFT:
             move_controller.cancel_move_target();

@@ -159,6 +159,11 @@ w = 50
 h = 22
 label = "Defense"
 
+merchant_panel_x = 200
+merchant_panel_y = 100
+merchant_panel_w = 624
+merchant_panel_h = 568
+
 [ui.portrait]
 x = 643
 y = 46
@@ -196,6 +201,7 @@ ui_frame = "assets/interface/en_ventanaprincipal_edit_v3.bmp"
 hp_bar = "assets/interface/en_barradevida.bmp"
 mp_bar = "assets/interface/en_barrademana.bmp"
 exp_bar = "assets/interface/en_barraexperiencia.bmp"
+merchant_bg = "assets/interface/en_comerciar.bmp"
 
 [[sprites]]
 path = "assets/Graficos/1071.png"
