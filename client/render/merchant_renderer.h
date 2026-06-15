@@ -2,6 +2,7 @@
 #define CLIENT_MERCHANT_RENDERER_H
 
 #include <SDL2pp/SDL2pp.hh>
+#include <SDL_ttf.h>
 
 #include "../config/config.h"
 #include "button.h"
@@ -9,8 +10,9 @@
 class MerchantRenderer {
 public:
     explicit MerchantRenderer(SDL2pp::Renderer& renderer, const UIConfig& cfg);
+    ~MerchantRenderer();
 
-    void render(SDL2pp::Renderer& renderer);
+    void render(SDL2pp::Renderer& renderer, uint32_t gold);
 
     void set_buy_hovered(int x, int y);
     void set_sell_hovered(int x, int y);
@@ -26,6 +28,9 @@ private:
     Button sell_button;
     Button plus_button;
     Button minus_button;
+    StatBarConfig gold_rect;
+    TTF_Font* font = nullptr;
+    SDL_Color gold_color{255, 215, 0, 255};
 };
 
 #endif

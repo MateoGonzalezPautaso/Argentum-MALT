@@ -75,7 +75,7 @@ void GameController::render() {
     ui_renderer.render_equipped(player_stats.equipped);
     ui_renderer.render_stat_tooltips(mouse_x, mouse_y);
     if (merchant_open)
-        merchant_renderer->render(renderer);
+        merchant_renderer->render(renderer, player_stats.gold);
     renderer.Present();
 }
 

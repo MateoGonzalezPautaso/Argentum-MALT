@@ -256,6 +256,7 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
             parse_merchant_button(*merchant_tbl, "sell",  m.sell);
             parse_merchant_button(*merchant_tbl, "plus",  m.plus);
             parse_merchant_button(*merchant_tbl, "minus", m.minus);
+            parse_stat_bar(*merchant_tbl, "gold", m.gold_rect);
         }
     }
 

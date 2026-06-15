@@ -99,6 +99,7 @@ struct MerchantUIConfig {
     MerchantButtonConfig sell {452, 622, 122, 28};
     MerchantButtonConfig plus {670, 430,  31, 28};
     MerchantButtonConfig minus{704, 430,  31, 28};
+    StatBarConfig gold_rect{100, 20, 100, 20};
 };
 
 struct InventoryPanelConfig {
