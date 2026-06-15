@@ -33,9 +33,7 @@ GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& c
         arrow_cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW)) {
     world_renderer.set_direction_src_y(config.dir_src_y_down, config.dir_src_y_up,
                                        config.dir_src_y_left, config.dir_src_y_right);
-    merchant_renderer = std::make_unique<MerchantRenderer>(
-            renderer, config.ui.asset_merchant_bg, config.ui.merchant_panel_x,
-            config.ui.merchant_panel_y, config.ui.merchant_panel_w, config.ui.merchant_panel_h);
+    merchant_renderer = std::make_unique<MerchantRenderer>(renderer, config.ui);
 }
 
 GameController::~GameController() {
@@ -466,8 +464,8 @@ bool GameController::handle_event(const SDL_Event& event) {
 
 bool GameController::handle_mouse_button(const SDL_Event& event) {
     if (merchant_open) {
-        SDL2pp::Rect panel(config.ui.merchant_panel_x, config.ui.merchant_panel_y,
-                           config.ui.merchant_panel_w, config.ui.merchant_panel_h);
+        SDL2pp::Rect panel(config.ui.merchant.panel_x, config.ui.merchant.panel_y,
+                           config.ui.merchant.panel_w, config.ui.merchant.panel_h);
         if (!point_in_rect(event.button.x, event.button.y, panel))
             merchant_open = false;
         return true;
@@ -552,7 +550,11 @@ bool GameController::handle_mouse_motion(const SDL_Event& event) {
     mouse_y = event.motion.y;
 
     if (merchant_open) {
-        SDL_SetCursor(arrow_cursor);
+        merchant_renderer->set_buy_hovered(mouse_x, mouse_y);
+        merchant_renderer->set_sell_hovered(mouse_x, mouse_y);
+        merchant_renderer->set_plus_hovered(mouse_x, mouse_y);
+        merchant_renderer->set_minus_hovered(mouse_x, mouse_y);
+        SDL_SetCursor(merchant_renderer->is_any_button_hovered() ? hand_cursor : arrow_cursor);
         return true;
     }
 

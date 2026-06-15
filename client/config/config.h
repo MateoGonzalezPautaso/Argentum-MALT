@@ -89,6 +89,18 @@ struct PortraitConfig {
     float zoom = 1.9f;
 };
 
+struct MerchantButtonConfig {
+    int x = 0, y = 0, w = 0, h = 0;
+};
+
+struct MerchantUIConfig {
+    int panel_x = 200, panel_y = 100, panel_w = 624, panel_h = 568;
+    MerchantButtonConfig buy  {265, 622, 122, 28};
+    MerchantButtonConfig sell {452, 622, 122, 28};
+    MerchantButtonConfig plus {670, 430,  31, 28};
+    MerchantButtonConfig minus{704, 430,  31, 28};
+};
+
 struct InventoryPanelConfig {
     int x = 782, y = 202;
     int cols = 4;
@@ -174,7 +186,15 @@ struct UIConfig {
     std::string asset_hp_bar = "assets/interface/en_barradevida.bmp";
     std::string asset_mp_bar = "assets/interface/en_barrademana.bmp";
     std::string asset_exp_bar = "assets/interface/en_barraexperiencia.bmp";
-    std::string asset_merchant_bg = "assets/interface/en_comerciar.bmp";
+    std::string asset_merchant_bg   = "assets/interface/en_comerciar.bmp";
+    std::string asset_buy_default   = "assets/interface/en_boton-comprar-default.bmp";
+    std::string asset_buy_hover     = "assets/interface/en_boton-comprar-over.bmp";
+    std::string asset_sell_default  = "assets/interface/en_boton-vender-default.bmp";
+    std::string asset_sell_hover    = "assets/interface/en_boton-vender-over.bmp";
+    std::string asset_plus_default  = "assets/interface/en_boton-mas-default.bmp";
+    std::string asset_plus_hover    = "assets/interface/en_boton-mas-over.bmp";
+    std::string asset_minus_default = "assets/interface/en_boton-menos-default.bmp";
+    std::string asset_minus_hover   = "assets/interface/en_boton-menos-over.bmp";
 
     int login_title_spacing = 20;
     int login_field_spacing = 30;
@@ -189,10 +209,7 @@ struct UIConfig {
     int cursor_height_shrink = 8;
     int chat_line_spacing = 2;
     InventoryPanelConfig inventory_panel;
-    int merchant_panel_x = 200;
-    int merchant_panel_y = 100;
-    int merchant_panel_w = 624;
-    int merchant_panel_h = 568;
+    MerchantUIConfig merchant;
 };
 
 struct SkinConfig {

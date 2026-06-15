@@ -159,11 +159,6 @@ w = 50
 h = 22
 label = "Defense"
 
-merchant_panel_x = 200
-merchant_panel_y = 100
-merchant_panel_w = 624
-merchant_panel_h = 568
-
 [ui.portrait]
 x = 643
 y = 46
@@ -185,6 +180,36 @@ w = 217
 h = 17
 label = "Experience"
 
+[ui.merchant]
+panel_x = 200
+panel_y = 100
+panel_w  = 542
+panel_h  = 481
+
+[ui.merchant.buy]
+x = 55
+y = 431
+w = 121
+h = 27
+
+[ui.merchant.sell]
+x = 367
+y = 431
+w = 121
+h = 27
+
+[ui.merchant.plus]
+x = 310
+y = 434
+w = 20
+h = 20
+
+[ui.merchant.minus]
+x = 212
+y = 434
+w = 20
+h = 20
+
 [assets]
 menu_bg = "assets/interface/en_ventanalauncher.bmp"
 start_default = "assets/interface/en_boton-comenzar-default.bmp"
@@ -201,7 +226,15 @@ ui_frame = "assets/interface/en_ventanaprincipal_edit_v3.bmp"
 hp_bar = "assets/interface/en_barradevida.bmp"
 mp_bar = "assets/interface/en_barrademana.bmp"
 exp_bar = "assets/interface/en_barraexperiencia.bmp"
-merchant_bg = "assets/interface/en_comerciar.bmp"
+merchant_bg   = "assets/interface/en_comerciar.bmp"
+buy_default   = "assets/interface/en_boton-comprar-default.bmp"
+buy_hover     = "assets/interface/en_boton-comprar-over.bmp"
+sell_default  = "assets/interface/en_boton-vender-default.bmp"
+sell_hover    = "assets/interface/en_boton-vender-over.bmp"
+plus_default  = "assets/interface/en_boton-mas-default.bmp"
+plus_hover    = "assets/interface/en_boton-mas-over.bmp"
+minus_default = "assets/interface/en_boton-menos-default.bmp"
+minus_hover   = "assets/interface/en_boton-menos-over.bmp"
 
 [[sprites]]
 path = "assets/Graficos/1071.png"

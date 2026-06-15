@@ -127,6 +127,15 @@ void parse_viewport_config(const toml::table& root, ClientConfig& config) {
     }
 }
 
+void parse_merchant_button(const toml::table& tbl, const char* key, MerchantButtonConfig& btn) {
+    if (auto subtbl = tbl[key].as_table()) {
+        btn.x = toml_get_int(*subtbl, "x", btn.x);
+        btn.y = toml_get_int(*subtbl, "y", btn.y);
+        btn.w = toml_get_int(*subtbl, "w", btn.w);
+        btn.h = toml_get_int(*subtbl, "h", btn.h);
+    }
+}
+
 void parse_stat_bar(const toml::table& tbl, const char* key, StatBarConfig& bar) {
     if (auto subtbl = tbl[key].as_table()) {
         bar.x = toml_get_int(*subtbl, "x", bar.x);
@@ -237,14 +246,17 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
                    "defense_rect", config.ui.defense_rect);
 
     if (auto tbl = root["ui"].as_table()) {
-        config.ui.merchant_panel_x =
-                toml_get_int(*tbl, "merchant_panel_x", config.ui.merchant_panel_x);
-        config.ui.merchant_panel_y =
-                toml_get_int(*tbl, "merchant_panel_y", config.ui.merchant_panel_y);
-        config.ui.merchant_panel_w =
-                toml_get_int(*tbl, "merchant_panel_w", config.ui.merchant_panel_w);
-        config.ui.merchant_panel_h =
-                toml_get_int(*tbl, "merchant_panel_h", config.ui.merchant_panel_h);
+        if (auto merchant_tbl = (*tbl)["merchant"].as_table()) {
+            auto& m = config.ui.merchant;
+            m.panel_x = toml_get_int(*merchant_tbl, "panel_x", m.panel_x);
+            m.panel_y = toml_get_int(*merchant_tbl, "panel_y", m.panel_y);
+            m.panel_w = toml_get_int(*merchant_tbl, "panel_w", m.panel_w);
+            m.panel_h = toml_get_int(*merchant_tbl, "panel_h", m.panel_h);
+            parse_merchant_button(*merchant_tbl, "buy",   m.buy);
+            parse_merchant_button(*merchant_tbl, "sell",  m.sell);
+            parse_merchant_button(*merchant_tbl, "plus",  m.plus);
+            parse_merchant_button(*merchant_tbl, "minus", m.minus);
+        }
     }
 
     if (auto portrait = root["ui"].as_table()) {
@@ -299,6 +311,22 @@ void parse_assets_config(const toml::table& root, ClientConfig& config) {
         config.ui.asset_exp_bar = toml_get_string(*tbl, "exp_bar", config.ui.asset_exp_bar);
         config.ui.asset_merchant_bg =
                 toml_get_string(*tbl, "merchant_bg", config.ui.asset_merchant_bg);
+        config.ui.asset_buy_default =
+                toml_get_string(*tbl, "buy_default", config.ui.asset_buy_default);
+        config.ui.asset_buy_hover =
+                toml_get_string(*tbl, "buy_hover", config.ui.asset_buy_hover);
+        config.ui.asset_sell_default =
+                toml_get_string(*tbl, "sell_default", config.ui.asset_sell_default);
+        config.ui.asset_sell_hover =
+                toml_get_string(*tbl, "sell_hover", config.ui.asset_sell_hover);
+        config.ui.asset_plus_default =
+                toml_get_string(*tbl, "plus_default", config.ui.asset_plus_default);
+        config.ui.asset_plus_hover =
+                toml_get_string(*tbl, "plus_hover", config.ui.asset_plus_hover);
+        config.ui.asset_minus_default =
+                toml_get_string(*tbl, "minus_default", config.ui.asset_minus_default);
+        config.ui.asset_minus_hover =
+                toml_get_string(*tbl, "minus_hover", config.ui.asset_minus_hover);
     }
 }
 
