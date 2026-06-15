@@ -146,6 +146,8 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const EquipItemCmd& cmd) { return handle_equip(player_id, cmd); },
                     [&](const UnequipItemCmd& cmd) { return handle_unequip(player_id, cmd); },
                     [&](const NpcHealCmd&) { return handle_npc_heal(player_id); },
+                    [&](const NpcBuyCmd& cmd) { return handle_npc_buy(player_id, cmd); },
+                    [&](const NpcSellCmd& cmd) { return handle_npc_sell(player_id, cmd); },
                     [](const auto&) { return CommandResult{}; },
             },
             cmd);
@@ -567,10 +569,6 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             return handle_resurrect(player_id);
         if (cmd_name == "/curar")
             return handle_npc_heal(player_id);
-        if (cmd_name == "/comprar")
-            return handle_npc_buy(player_id, args);
-        if (cmd_name == "/vender")
-            return handle_npc_sell(player_id, args);
         if (cmd_name == "/equipar") {
             try {
                 int idx = std::stoi(args);
@@ -1341,7 +1339,8 @@ std::variant<Game::VendorContext, CommandResult> Game::resolve_vendor_ctx(
                          .range = map.tile_size() * balance.merchant.interaction_range_tiles};
 }
 
-CommandResult Game::handle_npc_buy(uint16_t player_id, const std::string& item_name) {
+CommandResult Game::handle_npc_buy(uint16_t player_id, const NpcBuyCmd& cmd) {
+    const std::string& item_name = cmd.item_name;
     auto ctx_or_err = resolve_vendor_ctx(player_id, item_name, "comprar");
     if (auto* err = std::get_if<CommandResult>(&ctx_or_err))
         return std::move(*err);
@@ -1406,7 +1405,8 @@ CommandResult Game::handle_npc_buy(uint16_t player_id, const std::string& item_n
     return {.private_events = {msg, inv_ev, gold_ev}};
 }
 
-CommandResult Game::handle_npc_sell(uint16_t player_id, const std::string& item_name) {
+CommandResult Game::handle_npc_sell(uint16_t player_id, const NpcSellCmd& cmd) {
+    const std::string& item_name = cmd.item_name;
     auto ctx_or_err = resolve_vendor_ctx(player_id, item_name, "vender");
     if (auto* err = std::get_if<CommandResult>(&ctx_or_err))
         return std::move(*err);

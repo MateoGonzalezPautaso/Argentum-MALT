@@ -708,10 +708,14 @@ void GameController::handle_player_stats(const PlayerStatsEvent& e) {
 }
 
 void GameController::flush_pending_chat() {
-    if (!chat_input.has_pending_message()) {
+    if (!chat_input.has_pending_message())
         return;
-    }
     std::string text = chat_input.pop_pending_message();
 
-    command_queue.push(SendChatMsgCmd{std::move(text)});
+    if (text.rfind("/comprar ", 0) == 0)
+        command_queue.push(NpcBuyCmd{text.substr(9)});
+    else if (text.rfind("/vender ", 0) == 0)
+        command_queue.push(NpcSellCmd{text.substr(8)});
+    else
+        command_queue.push(SendChatMsgCmd{std::move(text)});
 }

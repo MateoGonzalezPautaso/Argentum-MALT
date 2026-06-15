@@ -199,10 +199,14 @@ struct MeditateCmd {};
 struct ResurrectCmd {};
 
 // 0x0C
-struct NpcBuyCmd {};
+struct NpcBuyCmd {
+    std::string item_name;
+};
 
 // 0x0D
-struct NpcSellCmd {};
+struct NpcSellCmd {
+    std::string item_name;
+};
 
 // 0x0E
 struct NpcHealCmd {};

@@ -69,6 +69,8 @@ private:
     ClientCommand recv_cast_spell();
     ClientCommand recv_equip_item();
     ClientCommand recv_unequip_item();
+    ClientCommand recv_npc_buy();
+    ClientCommand recv_npc_sell();
 };
 
 #endif  // SERVER_PROTOCOL_H_

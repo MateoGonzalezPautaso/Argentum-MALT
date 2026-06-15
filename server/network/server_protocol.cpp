@@ -33,6 +33,10 @@ ClientCommand ServerProtocol::recv_command() {
             return ResurrectCmd{};
         case OpCode::NPC_HEAL:
             return NpcHealCmd{};
+        case OpCode::NPC_BUY:
+            return recv_npc_buy();
+        case OpCode::NPC_SELL:
+            return recv_npc_sell();
         case OpCode::CAST_SPELL:
             return recv_cast_spell();
         case OpCode::CHEAT_INFINITE_HP:
@@ -349,4 +353,12 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },
                ev);
+}
+
+ClientCommand ServerProtocol::recv_npc_buy() {
+    return NpcBuyCmd{protocol.recv_str()};
+}
+
+ClientCommand ServerProtocol::recv_npc_sell() {
+    return NpcSellCmd{protocol.recv_str()};
 }

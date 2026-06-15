@@ -58,6 +58,16 @@ void ClientProtocol::send_resurrect() { protocol.send_opcode(OpCode::RESURRECT);
 
 void ClientProtocol::send_npc_heal(const NpcHealCmd&) { protocol.send_opcode(OpCode::NPC_HEAL); }
 
+void ClientProtocol::send_npc_buy(const NpcBuyCmd& cmd) {
+    protocol.send_opcode(OpCode::NPC_BUY);
+    protocol.send_str(cmd.item_name);
+}
+
+void ClientProtocol::send_npc_sell(const NpcSellCmd& cmd) {
+    protocol.send_opcode(OpCode::NPC_SELL);
+    protocol.send_str(cmd.item_name);
+}
+
 void ClientProtocol::send_cheat_infinite_hp() { protocol.send_opcode(OpCode::CHEAT_INFINITE_HP); }
 
 void ClientProtocol::send_cheat_infinite_mana() {
@@ -129,6 +139,8 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const EquipItemCmd& msg) { send_equip_item(msg); },
                        [this](const UnequipItemCmd& msg) { send_unequip_item(msg); },
                        [this](const NpcHealCmd& msg) { send_npc_heal(msg); },
+                       [this](const NpcBuyCmd& msg) { send_npc_buy(msg); },
+                       [this](const NpcSellCmd& msg) { send_npc_sell(msg); },
                        [](const auto&) { throw std::runtime_error("Command not implemented"); },
                },
                cmd);
