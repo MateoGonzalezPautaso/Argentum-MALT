@@ -33,7 +33,8 @@ GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& c
         arrow_cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW)) {
     world_renderer.set_direction_src_y(config.dir_src_y_down, config.dir_src_y_up,
                                        config.dir_src_y_left, config.dir_src_y_right);
-    merchant_renderer = std::make_unique<MerchantRenderer>(renderer, config.ui);
+    merchant_controller = std::make_unique<MerchantController>(renderer, config.ui,
+                                                               command_queue, player_stats);
 }
 
 GameController::~GameController() {
@@ -74,8 +75,8 @@ void GameController::render() {
     ui_renderer.render_inventory(player_stats.inventory);
     ui_renderer.render_equipped(player_stats.equipped);
     ui_renderer.render_stat_tooltips(mouse_x, mouse_y);
-    if (merchant_open)
-        merchant_renderer->render(renderer, player_stats.gold);
+    if (merchant_controller->is_open())
+        merchant_controller->render();
     renderer.Present();
 }
 
@@ -122,6 +123,7 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                     },
                     [this](const GoldUpdateEvent& e) { player_stats.gold = e.gold; },
                     [this](const NpcItemListEvent& e) {
+                        merchant_controller->on_item_list(e);
                         for (const auto& item : e.items)
                             chat_history.add_message(ChatMsgType::SYSTEM, "",
                                                      item.item_name + ": " +
@@ -247,7 +249,7 @@ void GameController::interact_with_prop(const std::string& prop_name) {
         audio_manager.play_sfx("merchant");
         chat_history.add_message(ChatMsgType::SYSTEM, "",
                                  "Comerciante: Pasa, todo lo que ves esta en venta.");
-        merchant_open = true;
+        merchant_controller->open();
     } else if (prop_name == "banquero") {
         audio_manager.play_sfx("banker");
         chat_history.add_message(ChatMsgType::SYSTEM, "",
@@ -470,13 +472,8 @@ bool GameController::handle_event(const SDL_Event& event) {
 }
 
 bool GameController::handle_mouse_button(const SDL_Event& event) {
-    if (merchant_open) {
-        SDL2pp::Rect panel(config.ui.merchant.panel_x, config.ui.merchant.panel_y,
-                           config.ui.merchant.panel_w, config.ui.merchant.panel_h);
-        if (!point_in_rect(event.button.x, event.button.y, panel))
-            merchant_open = false;
-        return true;
-    }
+    if (merchant_controller->is_open())
+        return merchant_controller->handle_mouse_button(event);
 
     chat_input.set_focus(ui_renderer.is_chat_input_hit(event.button.x, event.button.y));
 
@@ -556,12 +553,9 @@ bool GameController::handle_mouse_motion(const SDL_Event& event) {
     mouse_x = event.motion.x;
     mouse_y = event.motion.y;
 
-    if (merchant_open) {
-        merchant_renderer->set_buy_hovered(mouse_x, mouse_y);
-        merchant_renderer->set_sell_hovered(mouse_x, mouse_y);
-        merchant_renderer->set_plus_hovered(mouse_x, mouse_y);
-        merchant_renderer->set_minus_hovered(mouse_x, mouse_y);
-        SDL_SetCursor(merchant_renderer->is_any_button_hovered() ? hand_cursor : arrow_cursor);
+    if (merchant_controller->is_open()) {
+        merchant_controller->handle_mouse_motion(mouse_x, mouse_y);
+        SDL_SetCursor(merchant_controller->is_any_button_hovered() ? hand_cursor : arrow_cursor);
         return true;
     }
 
@@ -591,15 +585,11 @@ bool GameController::handle_keydown(const SDL_Event& event) {
     const uint32_t now = SDL_GetTicks();
     const bool ctrl = event.key.keysym.mod & KMOD_CTRL;
 
-    if (merchant_open && event.key.keysym.sym != SDLK_ESCAPE)
+    if (merchant_controller->handle_keydown(event))
         return true;
 
     switch (event.key.keysym.sym) {
         case SDLK_ESCAPE:
-            if (merchant_open) {
-                merchant_open = false;
-                return true;
-            }
             return false;
         case SDLK_LEFT:
             move_controller.cancel_move_target();

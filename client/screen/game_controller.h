@@ -16,7 +16,7 @@
 #include "../input/move_controller.h"
 #include "../render/ui_renderer.h"
 #include "../render/world_renderer.h"
-#include "../render/merchant_renderer.h"
+#include "merchant_controller.h"
 
 class GameController {
 public:
@@ -43,7 +43,7 @@ private:
     std::string current_map_name = "city";
     WorldRenderer world_renderer;
     UIRenderer ui_renderer;
-    std::unique_ptr<MerchantRenderer> merchant_renderer;
+    std::unique_ptr<MerchantController> merchant_controller;
     Queue<ClientCommand>& command_queue;
     MoveController move_controller;
     MoveConfig move_config;
@@ -51,7 +51,6 @@ private:
     SDL_Cursor* arrow_cursor;
     int mouse_x = 0;
     int mouse_y = 0;
-    bool merchant_open = false;
 
     bool handle_mouse_button(const SDL_Event& event);
     bool handle_mouse_motion(const SDL_Event& event);
