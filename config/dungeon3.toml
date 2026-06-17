@@ -892,6 +892,12 @@ height = 401
 paths = [ 'assets/Graficos/5153.png' ]
 width = 178
 
+    [prop.tiles.arbol_dung1.hitbox]
+    h = 80
+    w = 55
+    x = 15
+    y = 320
+
     [prop.tiles.arbol_dung1.src]
     h = 401
     w = 178
@@ -902,6 +908,12 @@ width = 178
 height = 278
 paths = [ 'assets/Graficos/5153.png' ]
 width = 190
+
+    [prop.tiles.arbol_dung2.hitbox]
+    h = 60
+    w = 60
+    x = 65
+    y = 200
 
     [prop.tiles.arbol_dung2.src]
     h = 278
@@ -914,6 +926,12 @@ height = 197
 paths = [ 'assets/Graficos/5153.png' ]
 width = 163
 
+    [prop.tiles.arbol_dung3.hitbox]
+    h = 50
+    w = 50
+    x = 56
+    y = 130
+
     [prop.tiles.arbol_dung3.src]
     h = 197
     w = 163
@@ -924,6 +942,12 @@ width = 163
 height = 284
 paths = [ 'assets/Graficos/5153.png' ]
 width = 128
+
+    [prop.tiles.arbol_dung4.hitbox]
+    h = 50
+    w = 40
+    x = 44
+    y = 220
 
     [prop.tiles.arbol_dung4.src]
     h = 284
@@ -1032,6 +1056,12 @@ height = 196
 paths = [ 'assets/Graficos/5157.png' ]
 width = 85
 
+    [prop.tiles.columna1.hitbox]
+    h = 160
+    w = 55
+    x = 15
+    y = 30
+
     [prop.tiles.columna1.src]
     h = 196
     w = 85
@@ -1042,6 +1072,12 @@ width = 85
 height = 212
 paths = [ 'assets/Graficos/5157.png' ]
 width = 167
+
+    [prop.tiles.columna2.hitbox]
+    h = 50
+    w = 90
+    x = 38
+    y = 155
 
     [prop.tiles.columna2.src]
     h = 212
@@ -1157,6 +1193,12 @@ height = 99
 paths = [ 'assets/Graficos/5157.png' ]
 width = 132
 
+    [prop.tiles.monticulo.hitbox]
+    h = 65
+    w = 100
+    x = 16
+    y = 25
+
     [prop.tiles.monticulo.src]
     h = 99
     w = 132
@@ -1167,6 +1209,12 @@ width = 132
 height = 79
 paths = [ 'assets/Graficos/5153.png' ]
 width = 102
+
+    [prop.tiles.piedra1.hitbox]
+    h = 55
+    w = 80
+    x = 11
+    y = 20
 
     [prop.tiles.piedra1.src]
     h = 79
@@ -1179,6 +1227,12 @@ height = 91
 paths = [ 'assets/Graficos/5153.png' ]
 width = 115
 
+    [prop.tiles.piedra2.hitbox]
+    h = 65
+    w = 90
+    x = 12
+    y = 20
+
     [prop.tiles.piedra2.src]
     h = 91
     w = 115
@@ -1190,6 +1244,12 @@ height = 85
 paths = [ 'assets/Graficos/5153.png' ]
 width = 103
 
+    [prop.tiles.piedra3.hitbox]
+    h = 60
+    w = 80
+    x = 11
+    y = 20
+
     [prop.tiles.piedra3.src]
     h = 85
     w = 103
@@ -1200,6 +1260,12 @@ width = 103
 height = 448
 paths = [ 'assets/Graficos/5153.png' ]
 width = 283
+
+    [prop.tiles.piedra4.hitbox]
+    h = 320
+    w = 200
+    x = 41
+    y = 100
 
     [prop.tiles.piedra4.src]
     h = 448
