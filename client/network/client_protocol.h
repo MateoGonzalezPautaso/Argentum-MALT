@@ -89,6 +89,7 @@ private:
     ServerEvent recv_spell_effect();
     ServerEvent recv_map_transition();
     ServerEvent recv_player_stats();
+    ServerEvent recv_npc_item_list();
 };
 
 #endif  // CLIENT_PROTOCOL_H_

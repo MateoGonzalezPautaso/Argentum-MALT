@@ -421,7 +421,9 @@ struct ItemDroppedEvent {};
 struct ItemPickedEvent {};
 
 // 0x95
-struct NpcItemListEvent {};
+struct NpcItemListEvent {
+    std::vector<NpcItemEntry> items;
+};
 
 // 0x96
 struct TransactionOkEvent {};

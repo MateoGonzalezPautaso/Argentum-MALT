@@ -58,6 +58,10 @@ void ClientProtocol::send_resurrect() { protocol.send_opcode(OpCode::RESURRECT);
 
 void ClientProtocol::send_npc_heal(const NpcHealCmd&) { protocol.send_opcode(OpCode::NPC_HEAL); }
 
+void ClientProtocol::send_npc_list(const NpcListCmd&) {
+    protocol.send_opcode(OpCode::NPC_LIST);
+}
+
 void ClientProtocol::send_npc_buy(const NpcBuyCmd& cmd) {
     protocol.send_opcode(OpCode::NPC_BUY);
     protocol.send_str(cmd.item_name);
@@ -139,6 +143,7 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const EquipItemCmd& msg) { send_equip_item(msg); },
                        [this](const UnequipItemCmd& msg) { send_unequip_item(msg); },
                        [this](const NpcHealCmd& msg) { send_npc_heal(msg); },
+                       [this](const NpcListCmd& msg) { send_npc_list(msg); },
                        [this](const NpcBuyCmd& msg) { send_npc_buy(msg); },
                        [this](const NpcSellCmd& msg) { send_npc_sell(msg); },
                        [](const auto&) { throw std::runtime_error("Command not implemented"); },
@@ -222,6 +227,8 @@ ServerEvent ClientProtocol::recv_event() {
             return recv_player_stats();
         case OpCode::GOLD_UPDATE:
             return GoldUpdateEvent{protocol.recv_uint32()};
+        case OpCode::NPC_ITEM_LIST:
+            return recv_npc_item_list();
         default:
             throw std::runtime_error("Unknown event opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
@@ -394,4 +401,19 @@ ServerEvent ClientProtocol::recv_character_error() {
     ev.error_code = static_cast<CharacterError>(protocol.recv_uint8());
     ev.message = protocol.recv_str();
     return ev;
+}
+
+ServerEvent ClientProtocol::recv_npc_item_list() {
+    uint16_t count = protocol.recv_uint16();
+    std::vector<NpcItemEntry> items;
+    items.reserve(count);
+    for (uint16_t i = 0; i < count; ++i) {
+        NpcItemEntry entry;
+        entry.item_name = protocol.recv_str();
+        entry.item_type = static_cast<ItemType>(protocol.recv_uint8());
+        entry.sprite_id = protocol.recv_uint8();
+        entry.price = protocol.recv_uint32();
+        items.push_back(std::move(entry));
+    }
+    return NpcItemListEvent{std::move(items)};
 }

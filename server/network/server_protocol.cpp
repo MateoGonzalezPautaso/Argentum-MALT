@@ -33,6 +33,8 @@ ClientCommand ServerProtocol::recv_command() {
             return ResurrectCmd{};
         case OpCode::NPC_HEAL:
             return NpcHealCmd{};
+        case OpCode::NPC_LIST:
+            return NpcListCmd{};
         case OpCode::NPC_BUY:
             return recv_npc_buy();
         case OpCode::NPC_SELL:
@@ -350,9 +352,21 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [this](const InventoryUpdateEvent& msg) { send_inventory_update(msg); },
                        [this](const EquipUpdateEvent& msg) { send_equip_update(msg); },
                        [this](const GoldUpdateEvent& msg) { send_gold_update(msg); },
+                       [this](const NpcItemListEvent& msg) { send_npc_item_list(msg); },
                        [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },
                ev);
+}
+
+void ServerProtocol::send_npc_item_list(const NpcItemListEvent& ev) {
+    protocol.send_opcode(OpCode::NPC_ITEM_LIST);
+    protocol.send_uint16(static_cast<uint16_t>(ev.items.size()));
+    for (const auto& item : ev.items) {
+        protocol.send_str(item.item_name);
+        protocol.send_uint8(static_cast<uint8_t>(item.item_type));
+        protocol.send_uint8(item.sprite_id);
+        protocol.send_uint32(item.price);
+    }
 }
 
 ClientCommand ServerProtocol::recv_npc_buy() {
