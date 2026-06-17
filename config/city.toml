@@ -41427,7 +41427,7 @@ paths = [
 width = 260
 
     [prop.tiles.windmill.hitbox]
-    h = 798
+    h = 79
     w = 146
     x = 49
     y = 179
