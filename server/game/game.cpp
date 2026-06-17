@@ -146,6 +146,7 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const EquipItemCmd& cmd) { return handle_equip(player_id, cmd); },
                     [&](const UnequipItemCmd& cmd) { return handle_unequip(player_id, cmd); },
                     [&](const NpcHealCmd&) { return handle_npc_heal(player_id); },
+                    [&](const NpcListCmd&) { return handle_npc_list(player_id); },
                     [&](const NpcBuyCmd& cmd) { return handle_npc_buy(player_id, cmd); },
                     [&](const NpcSellCmd& cmd) { return handle_npc_sell(player_id, cmd); },
                     [](const auto&) { return CommandResult{}; },
@@ -1337,6 +1338,46 @@ std::variant<Game::VendorContext, CommandResult> Game::resolve_vendor_ctx(
                          .px = static_cast<int>(player.pos_x()),
                          .py = static_cast<int>(player.pos_y()),
                          .range = map.tile_size() * balance.merchant.interaction_range_tiles};
+}
+
+CommandResult Game::handle_npc_list(uint16_t player_id) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+
+    Player& player = it->second;
+
+    if (player.is_dead()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden listar"};
+        return {.private_events = {msg}};
+    }
+
+    auto map_it = maps.find(player.get_current_map());
+    if (map_it == maps.end())
+        return {};
+
+    const Map& map = map_it->second;
+    const int range = map.tile_size() * balance.merchant.interaction_range_tiles;
+    const int px = static_cast<int>(player.pos_x());
+    const int py = static_cast<int>(player.pos_y());
+
+    const bool near_comerciante = map.prop_grid().is_in_range_of("comerciante", px, py, range);
+    const bool near_sacerdote = map.prop_grid().is_in_range_of("sacerdote", px, py, range);
+
+    if (!near_comerciante && !near_sacerdote) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un comerciante ni un sacerdote cerca"};
+        return {.private_events = {msg}};
+    }
+
+    const std::string vendor_name = near_comerciante ? "comerciante" : "sacerdote";
+
+    std::vector<NpcItemEntry> items;
+    for (const auto& item : item_catalog.all()) {
+        if (vendor_sells(balance.vendors, vendor_name, item.type))
+            items.push_back({item.name, item.type, 0, item.price});
+    }
+
+    return {.private_events = {NpcItemListEvent{std::move(items)}}};
 }
 
 CommandResult Game::handle_npc_buy(uint16_t player_id, const NpcBuyCmd& cmd) {

@@ -91,6 +91,7 @@ private:
     CommandResult handle_equip(uint16_t player_id, const EquipItemCmd& cmd);
     CommandResult handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd);
     CommandResult handle_npc_heal(uint16_t player_id);
+    CommandResult handle_npc_list(uint16_t player_id);
 
     std::tuple<uint16_t, uint16_t, uint16_t, uint16_t> compute_combat_ranges(const Player& p) const;
     PlayerStatsEvent make_player_stats_event(const Player& p) const;

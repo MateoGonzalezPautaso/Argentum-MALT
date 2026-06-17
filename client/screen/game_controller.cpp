@@ -121,6 +121,13 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                         world_renderer.trigger_spell_effect(e.effect_type, wx, wy);
                     },
                     [this](const GoldUpdateEvent& e) { player_stats.gold = e.gold; },
+                    [this](const NpcItemListEvent& e) {
+                        for (const auto& item : e.items)
+                            chat_history.add_message(ChatMsgType::SYSTEM, "",
+                                                     item.item_name + ": " +
+                                                             std::to_string(item.price) +
+                                                             " de oro");
+                    },
                     [](const auto&) {},
             },
             ev);
@@ -712,7 +719,9 @@ void GameController::flush_pending_chat() {
         return;
     std::string text = chat_input.pop_pending_message();
 
-    if (text.rfind("/comprar ", 0) == 0)
+    if (text == "/listar")
+        command_queue.push(NpcListCmd{});
+    else if (text.rfind("/comprar ", 0) == 0)
         command_queue.push(NpcBuyCmd{text.substr(9)});
     else if (text.rfind("/vender ", 0) == 0)
         command_queue.push(NpcSellCmd{text.substr(8)});
