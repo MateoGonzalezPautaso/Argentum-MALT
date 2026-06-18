@@ -149,6 +149,30 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const NpcListCmd&) { return handle_npc_list(player_id); },
                     [&](const NpcBuyCmd& cmd) { return handle_npc_buy(player_id, cmd); },
                     [&](const NpcSellCmd& cmd) { return handle_npc_sell(player_id, cmd); },
+                    [&](const ClanFoundCmd& cmd) {
+                        return clan_handler.handle_found_clan(player_id, cmd.clan_name);
+                    },
+                    [&](const ClanJoinRequestCmd& cmd) {
+                        return clan_handler.handle_join_clan(player_id, cmd.clan_name);
+                    },
+                    [&](const ClanReviewCmd&) {
+                        return clan_handler.handle_clan_status(player_id);
+                    },
+                    [&](const ClanAcceptCmd& cmd) {
+                        return clan_handler.handle_clan_accept(player_id, cmd.target_nick);
+                    },
+                    [&](const ClanRejectCmd& cmd) {
+                        return clan_handler.handle_clan_reject(player_id, cmd.target_nick);
+                    },
+                    [&](const ClanBanCmd& cmd) {
+                        return clan_handler.handle_clan_ban(player_id, cmd.target_nick);
+                    },
+                    [&](const ClanKickCmd& cmd) {
+                        return clan_handler.handle_clan_kick(player_id, cmd.target_nick);
+                    },
+                    [&](const ClanLeaveCmd&) {
+                        return clan_handler.handle_leave_clan(player_id);
+                    },
                     [](const auto&) { return CommandResult{}; },
             },
             cmd);

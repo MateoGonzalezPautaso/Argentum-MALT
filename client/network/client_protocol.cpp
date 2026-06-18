@@ -102,6 +102,40 @@ void ClientProtocol::send_cheat_clear_inventory() {
 
 void ClientProtocol::send_cheat_reset_mana() { protocol.send_opcode(OpCode::CHEAT_RESET_MANA); }
 
+void ClientProtocol::send_clan_found(const ClanFoundCmd& cmd) {
+    protocol.send_opcode(OpCode::CLAN_FOUND);
+    protocol.send_str(cmd.clan_name);
+}
+
+void ClientProtocol::send_clan_join_request(const ClanJoinRequestCmd& cmd) {
+    protocol.send_opcode(OpCode::CLAN_JOIN_REQUEST);
+    protocol.send_str(cmd.clan_name);
+}
+
+void ClientProtocol::send_clan_review() { protocol.send_opcode(OpCode::CLAN_REVIEW); }
+
+void ClientProtocol::send_clan_accept(const ClanAcceptCmd& cmd) {
+    protocol.send_opcode(OpCode::CLAN_ACCEPT);
+    protocol.send_str(cmd.target_nick);
+}
+
+void ClientProtocol::send_clan_reject(const ClanRejectCmd& cmd) {
+    protocol.send_opcode(OpCode::CLAN_REJECT);
+    protocol.send_str(cmd.target_nick);
+}
+
+void ClientProtocol::send_clan_ban(const ClanBanCmd& cmd) {
+    protocol.send_opcode(OpCode::CLAN_BAN);
+    protocol.send_str(cmd.target_nick);
+}
+
+void ClientProtocol::send_clan_kick(const ClanKickCmd& cmd) {
+    protocol.send_opcode(OpCode::CLAN_KICK);
+    protocol.send_str(cmd.target_nick);
+}
+
+void ClientProtocol::send_clan_leave() { protocol.send_opcode(OpCode::CLAN_LEAVE); }
+
 void ClientProtocol::send_change_map(const ChangeMapCmd& cmd) {
     protocol.send_opcode(OpCode::CHANGE_MAP);
     protocol.send_str(cmd.prop_name);
@@ -146,6 +180,14 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const NpcListCmd& msg) { send_npc_list(msg); },
                        [this](const NpcBuyCmd& msg) { send_npc_buy(msg); },
                        [this](const NpcSellCmd& msg) { send_npc_sell(msg); },
+                       [this](const ClanFoundCmd& msg) { send_clan_found(msg); },
+                       [this](const ClanJoinRequestCmd& msg) { send_clan_join_request(msg); },
+                       [this](const ClanReviewCmd&) { send_clan_review(); },
+                       [this](const ClanAcceptCmd& msg) { send_clan_accept(msg); },
+                       [this](const ClanRejectCmd& msg) { send_clan_reject(msg); },
+                       [this](const ClanBanCmd& msg) { send_clan_ban(msg); },
+                       [this](const ClanKickCmd& msg) { send_clan_kick(msg); },
+                       [this](const ClanLeaveCmd&) { send_clan_leave(); },
                        [](const auto&) { throw std::runtime_error("Command not implemented"); },
                },
                cmd);

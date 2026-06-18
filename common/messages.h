@@ -227,13 +227,13 @@ struct PrivateMsgCmd {
 };
 
 // 0x13 – 0x1A  Clanes
-struct ClanFoundCmd {};
-struct ClanJoinRequestCmd {};
+struct ClanFoundCmd { std::string clan_name; };
+struct ClanJoinRequestCmd { std::string clan_name; };
 struct ClanReviewCmd {};
-struct ClanAcceptCmd {};
-struct ClanRejectCmd {};
-struct ClanBanCmd {};
-struct ClanKickCmd {};
+struct ClanAcceptCmd { std::string target_nick; };
+struct ClanRejectCmd { std::string target_nick; };
+struct ClanBanCmd { std::string target_nick; };
+struct ClanKickCmd { std::string target_nick; };
 struct ClanLeaveCmd {};
 
 // 0x1E

@@ -71,6 +71,22 @@ ClientCommand ServerProtocol::recv_command() {
             return recv_equip_item();
         case OpCode::UNEQUIP_ITEM:
             return recv_unequip_item();
+        case OpCode::CLAN_FOUND:
+            return ClanFoundCmd{protocol.recv_str()};
+        case OpCode::CLAN_JOIN_REQUEST:
+            return ClanJoinRequestCmd{protocol.recv_str()};
+        case OpCode::CLAN_REVIEW:
+            return ClanReviewCmd{};
+        case OpCode::CLAN_ACCEPT:
+            return ClanAcceptCmd{protocol.recv_str()};
+        case OpCode::CLAN_REJECT:
+            return ClanRejectCmd{protocol.recv_str()};
+        case OpCode::CLAN_BAN:
+            return ClanBanCmd{protocol.recv_str()};
+        case OpCode::CLAN_KICK:
+            return ClanKickCmd{protocol.recv_str()};
+        case OpCode::CLAN_LEAVE:
+            return ClanLeaveCmd{};
         default:
             throw std::runtime_error("Unknown command opcode: " +
                                      std::to_string(static_cast<int>(opcode)));

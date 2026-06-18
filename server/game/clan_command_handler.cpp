@@ -20,22 +20,6 @@ ClanCommandHandler::ClanCommandHandler(ClanManager& clan_manager,
 std::optional<CommandResult> ClanCommandHandler::handle(uint16_t player_id,
                                                         const std::string& cmd_name,
                                                         const std::string& args) {
-    if (cmd_name == "/fundar-clan")
-        return handle_found_clan(player_id, args);
-    if (cmd_name == "/unirse")
-        return handle_join_clan(player_id, args);
-    if (cmd_name == "/revisar-clan")
-        return handle_clan_status(player_id);
-    if (cmd_name == "/clan-aceptar")
-        return handle_clan_accept(player_id, args);
-    if (cmd_name == "/clan-rechazar")
-        return handle_clan_reject(player_id, args);
-    if (cmd_name == "/clan-ban")
-        return handle_clan_ban(player_id, args);
-    if (cmd_name == "/clan-kick")
-        return handle_clan_kick(player_id, args);
-    if (cmd_name == "/dejar-clan")
-        return handle_leave_clan(player_id);
     if (cmd_name == "/c" || cmd_name == "/clan")
         return handle_clan_chat(player_id, args);
     return std::nullopt;

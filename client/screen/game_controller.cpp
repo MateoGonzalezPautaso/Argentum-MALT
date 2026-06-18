@@ -737,6 +737,22 @@ void GameController::flush_pending_chat() {
             command_queue.push(UnequipItemCmd{EquipSlot::HELMET});
         else if (slot == "shield")
             command_queue.push(UnequipItemCmd{EquipSlot::SHIELD});
+    } else if (text.rfind("/fundar-clan ", 0) == 0) {
+        command_queue.push(ClanFoundCmd{text.substr(13)});
+    } else if (text.rfind("/unirse ", 0) == 0) {
+        command_queue.push(ClanJoinRequestCmd{text.substr(8)});
+    } else if (text == "/revisar-clan") {
+        command_queue.push(ClanReviewCmd{});
+    } else if (text.rfind("/clan-aceptar ", 0) == 0) {
+        command_queue.push(ClanAcceptCmd{text.substr(14)});
+    } else if (text.rfind("/clan-rechazar ", 0) == 0) {
+        command_queue.push(ClanRejectCmd{text.substr(15)});
+    } else if (text.rfind("/clan-ban ", 0) == 0) {
+        command_queue.push(ClanBanCmd{text.substr(10)});
+    } else if (text.rfind("/clan-kick ", 0) == 0) {
+        command_queue.push(ClanKickCmd{text.substr(11)});
+    } else if (text == "/dejar-clan") {
+        command_queue.push(ClanLeaveCmd{});
     } else {
         command_queue.push(SendChatMsgCmd{std::move(text)});
     }
