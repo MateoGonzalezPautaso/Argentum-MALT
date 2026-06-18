@@ -39,6 +39,10 @@ ClientCommand ServerProtocol::recv_command() {
             return recv_npc_buy();
         case OpCode::NPC_SELL:
             return recv_npc_sell();
+        case OpCode::BANK_DEPOSIT:
+            return recv_bank_deposit();
+        case OpCode::BANK_WITHDRAW:
+            return recv_bank_withdraw();
         case OpCode::CAST_SPELL:
             return recv_cast_spell();
         case OpCode::CHEAT_INFINITE_HP:
@@ -369,6 +373,7 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [this](const EquipUpdateEvent& msg) { send_equip_update(msg); },
                        [this](const GoldUpdateEvent& msg) { send_gold_update(msg); },
                        [this](const NpcItemListEvent& msg) { send_npc_item_list(msg); },
+                       [this](const BankUpdateEvent& msg) { send_bank_update(msg); },
                        [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },
                ev);
@@ -385,10 +390,43 @@ void ServerProtocol::send_npc_item_list(const NpcItemListEvent& ev) {
     }
 }
 
+void ServerProtocol::send_bank_update(const BankUpdateEvent& ev) {
+    protocol.send_opcode(OpCode::BANK_UPDATE);
+    protocol.send_uint8(static_cast<uint8_t>(ev.slots.size()));
+    for (const auto& slot: ev.slots) {
+        protocol.send_uint8(slot.slot_index);
+        protocol.send_uint8(static_cast<uint8_t>(slot.item_type));
+        protocol.send_str(slot.item_name);
+    }
+    protocol.send_uint32(ev.gold);
+}
+
 ClientCommand ServerProtocol::recv_npc_buy() {
     return NpcBuyCmd{protocol.recv_str()};
 }
 
 ClientCommand ServerProtocol::recv_npc_sell() {
     return NpcSellCmd{protocol.recv_str()};
+}
+
+ClientCommand ServerProtocol::recv_bank_deposit() {
+    BankDepositCmd cmd;
+    cmd.is_gold = protocol.recv_uint8() != 0;
+    if (cmd.is_gold) {
+        cmd.gold_amount = protocol.recv_uint32();
+    } else {
+        cmd.item_name = protocol.recv_str();
+    }
+    return cmd;
+}
+
+ClientCommand ServerProtocol::recv_bank_withdraw() {
+    BankWithdrawCmd cmd;
+    cmd.is_gold = protocol.recv_uint8() != 0;
+    if (cmd.is_gold) {
+        cmd.gold_amount = protocol.recv_uint32();
+    } else {
+        cmd.item_name = protocol.recv_str();
+    }
+    return cmd;
 }
