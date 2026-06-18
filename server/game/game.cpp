@@ -570,26 +570,6 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
             return handle_resurrect(player_id);
         if (cmd_name == "/curar")
             return handle_npc_heal(player_id);
-        if (cmd_name == "/equipar") {
-            try {
-                int idx = std::stoi(args);
-                return handle_equip(player_id, EquipItemCmd{static_cast<uint8_t>(idx)});
-            } catch (...) {
-                return {};
-            }
-        }
-        if (cmd_name == "/desequipar") {
-            if (args == "weapon")
-                return handle_unequip(player_id, UnequipItemCmd{EquipSlot::WEAPON});
-            if (args == "armor")
-                return handle_unequip(player_id, UnequipItemCmd{EquipSlot::ARMOR});
-            if (args == "helmet")
-                return handle_unequip(player_id, UnequipItemCmd{EquipSlot::HELMET});
-            if (args == "shield")
-                return handle_unequip(player_id, UnequipItemCmd{EquipSlot::SHIELD});
-            return {};
-        }
-
         ChatMsgEvent ev{ChatMsgType::SYSTEM, "", "Comando " + cmd_name + " no reconocido"};
         return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = {}};
     }
@@ -1243,8 +1223,7 @@ CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
                                equipped_slots[3]};
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
 
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Equipaste slot " + std::to_string(cmd.slot_index)};
-    std::vector<ServerEvent> private_events{inv_ev, msg};
+    std::vector<ServerEvent> private_events{inv_ev};
     if (consumed_potion)
         private_events.push_back(
                 HealReceivedEvent{player_id, player.get_hp_current(), player.get_mana_current()});
