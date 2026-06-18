@@ -521,8 +521,6 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         return {};
 
     if (it->second.is_dead()) {
-        if (text[0] == '/' && text.substr(0, 10) == "/resucitar")
-            return handle_resurrect(player_id);
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden interactuar"};
         return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
@@ -564,12 +562,6 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         if (cmd_name == "/help")
             return handle_help();
 
-        if (cmd_name == "/meditar")
-            return handle_meditate(player_id);
-        if (cmd_name == "/resucitar")
-            return handle_resurrect(player_id);
-        if (cmd_name == "/curar")
-            return handle_npc_heal(player_id);
         ChatMsgEvent ev{ChatMsgType::SYSTEM, "", "Comando " + cmd_name + " no reconocido"};
         return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = {}};
     }

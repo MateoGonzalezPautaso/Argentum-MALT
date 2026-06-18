@@ -716,6 +716,12 @@ void GameController::flush_pending_chat() {
         command_queue.push(NpcBuyCmd{text.substr(9)});
     } else if (text.rfind("/vender ", 0) == 0) {
         command_queue.push(NpcSellCmd{text.substr(8)});
+    } else if (text == "/meditar") {
+        command_queue.push(MeditateCmd{});
+    } else if (text == "/resucitar") {
+        command_queue.push(ResurrectCmd{});
+    } else if (text == "/curar") {
+        command_queue.push(NpcHealCmd{});
     } else if (text.rfind("/equipar ", 0) == 0) {
         try {
             int idx = std::stoi(text.substr(9));
