@@ -209,6 +209,7 @@ void ServerProtocol::send_entity_spawn(const EntitySpawnEvent& ev) {
     protocol.send_uint8(static_cast<uint8_t>(ev.armor_type));
     protocol.send_uint8(static_cast<uint8_t>(ev.helmet_type));
     protocol.send_uint8(static_cast<uint8_t>(ev.shield_type));
+    protocol.send_uint16(ev.sprite_id);
 }
 
 void ServerProtocol::send_entity_despawn(const EntityDespawnEvent& ev) {

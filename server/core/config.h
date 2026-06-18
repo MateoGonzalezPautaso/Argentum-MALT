@@ -23,6 +23,8 @@ struct AttackConfig {
     double clan_bonus_max = 0.25;
     double critical_chance = 0.003;
     uint32_t spell_attack_range_px = 200;
+    uint32_t npc_vision_range_px = 0;
+    uint32_t npc_speed = 4;
 };
 
 struct ClanConfig {
@@ -120,6 +122,7 @@ struct NpcTemplate {
     std::string name;
     uint32_t base_hp     = 0;
     uint32_t base_damage = 0;
+    uint16_t sprite_id   = 0;
 };
 
 struct InventoryConfig {

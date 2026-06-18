@@ -70,6 +70,7 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         maps.emplace(name, Map(tc));
     }
     combat_controller.set_clan_manager(clan_manager);
+    combat_controller.set_maps(maps);
 }
 
 Map& Game::player_map(const Player& p) {
@@ -391,7 +392,7 @@ EnemyNpc Game::create_random_npc(Position pos, uint8_t level) {
     int roll = rng.get_random_int(0, static_cast<int>(npc_templates.size()) - 1);
     const NpcTemplate& t = npc_templates[roll];
     return EnemyNpc(pos, t.base_hp * level, t.base_damage * level, rng, item_catalog, level,
-                    t.name);
+                    t.name, t.sprite_id);
 }
 
 CommandResult Game::process_pending_resurrections() {
@@ -466,7 +467,8 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
         it->second.set_meditating(false);
     CommandResult result;
     const Map& map = player_map(it->second);
-    if (!map.is_position_in_spawn_zone(it->second.pos_x(), it->second.pos_y())) {
+    if (enemy_npcs.find(cmd.target_id) == enemy_npcs.end() &&
+        !map.is_position_in_spawn_zone(it->second.pos_x(), it->second.pos_y())) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar en una zona segura"};
         return {.private_events = {msg}};
     }
@@ -1034,6 +1036,7 @@ EntitySpawnEvent Game::make_npc_spawn(const EnemyNpc& npc, uint16_t npc_id) cons
             .entity_name = npc.get_name(),
             .entity_race = Race::HUMAN,
             .entity_class = PlayerClass::WARRIOR,
+            .sprite_id = npc.get_sprite_id(),
     };
 }
 

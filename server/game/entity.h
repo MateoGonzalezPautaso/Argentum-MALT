@@ -12,12 +12,15 @@ private:
     uint32_t hp_current;
     std::string name;
     Position pos;
+    Direction dir = Direction::SOUTH;
     uint8_t level;
     uint32_t hp_max;
     std::string current_map;
+    uint16_t sprite_id = 0;
 
 public:
-    Entity(uint32_t hp_max, const std::string& name, Position pos, uint8_t level);
+    Entity(uint32_t hp_max, const std::string& name, Position pos, uint8_t level,
+           uint16_t sprite_id = 0);
     bool try_attack(uint32_t current_tick, uint32_t cooldown_ticks);
     uint32_t get_hp_current() const { return hp_current; }
     void kill() { hp_current = 0; }
@@ -26,11 +29,14 @@ public:
     uint16_t pos_x() const { return pos.x; }
     uint16_t pos_y() const { return pos.y; }
     void set_pos(uint16_t x, uint16_t y) { pos = {x, y}; }
+    Direction get_dir() const { return dir; }
+    void set_dir(Direction d) { dir = d; }
     uint8_t get_level() const { return level; }
     uint32_t get_hp_max() const { return hp_max; }
     bool is_dead() const;
     const std::string& get_current_map() const { return current_map; }
     void set_current_map(const std::string& map) { current_map = map; }
+    uint16_t get_sprite_id() const { return sprite_id; }
     virtual ~Entity() = default;
     virtual void take_damage(uint32_t damage);
 

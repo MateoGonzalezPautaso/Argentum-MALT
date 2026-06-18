@@ -2,58 +2,58 @@
 name = "Weak goblin"
 base_hp = 100
 base_damage = 5
-sprite_id = 1
+sprite_id = 4754
 
 [[npc]]
 name = "Strong goblin"
 base_hp = 250
 base_damage = 12
-sprite_id = 2
+sprite_id = 4755
 
 [[npc]]
 name = "Basic skeleton"
 base_hp = 175
 base_damage = 10
-sprite_id = 3
+sprite_id = 4080
 
 [[npc]]
 name = "Warrior skeleton"
 base_hp = 425
 base_damage = 22
-sprite_id = 4
+sprite_id = 4336
 
 [[npc]]
 name = "Zombie"
 base_hp = 375
 base_damage = 15
-sprite_id = 5
+sprite_id = 4795
 
 [[npc]]
 name = "Orc"
 base_hp = 600
 base_damage = 28
-sprite_id = 6
+sprite_id = 4780
 
 [[npc]]
 name = "Small spider"
 base_hp = 80
 base_damage = 4
-sprite_id = 7
+sprite_id = 4707
 
 [[npc]]
 name = "Big spider"
 base_hp = 325
 base_damage = 17
-sprite_id = 8
+sprite_id = 4709
 
 [[npc]]
 name = "Stone golem"
 base_hp = 900
 base_damage = 40
-sprite_id = 9
+sprite_id = 4580
 
 [[npc]]
 name = "Iron golem"
 base_hp = 1350
 base_damage = 55
-sprite_id = 10
+sprite_id = 4582

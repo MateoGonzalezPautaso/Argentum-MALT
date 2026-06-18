@@ -20,6 +20,7 @@ std::vector<NpcTemplate> load_npc_templates(const std::string& path) {
             t.name        = toml_get_string(*tbl, "name", "Unknown");
             t.base_hp     = static_cast<uint32_t>(toml_get_int(*tbl, "base_hp", 100));
             t.base_damage = static_cast<uint32_t>(toml_get_int(*tbl, "base_damage", 5));
+            t.sprite_id   = static_cast<uint16_t>(toml_get_int(*tbl, "sprite_id", 0));
             templates.push_back(std::move(t));
         }
     }
@@ -88,6 +89,10 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*attack, "critical_chance", config.attack.critical_chance);
         config.attack.spell_attack_range_px =
                 toml_get_int(*attack, "spell_attack_range_px", config.attack.spell_attack_range_px);
+        config.attack.npc_vision_range_px = static_cast<uint32_t>(
+                toml_get_int(*attack, "npc_vision_range_px", config.attack.npc_vision_range_px));
+        config.attack.npc_speed = static_cast<uint32_t>(
+                toml_get_int(*attack, "npc_speed", config.attack.npc_speed));
     }
 
     if (auto inventory = root["inventory"].as_table()) {
