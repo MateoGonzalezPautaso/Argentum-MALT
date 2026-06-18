@@ -120,8 +120,8 @@ void WorldRenderer::set_movable_position(int x, int y) {
 }
 
 void WorldRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::string& name,
-                                 Race race, PlayerClass player_class) {
-    sprite_renderer.spawn_entity(entity_id, x, y, name, race, player_class);
+                                 Race race, PlayerClass player_class, uint16_t sprite_id) {
+    sprite_renderer.spawn_entity(entity_id, x, y, name, race, player_class, sprite_id);
 }
 
 void WorldRenderer::set_local_player_info(Race race, PlayerClass player_class) {

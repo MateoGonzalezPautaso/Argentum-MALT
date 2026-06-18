@@ -43,7 +43,8 @@ public:
     void set_movable_position(int x, int y);
     void spawn_entity(uint16_t entity_id, int x, int y, const std::string& name,
                       Race race = static_cast<Race>(0),
-                      PlayerClass player_class = static_cast<PlayerClass>(0));
+                      PlayerClass player_class = static_cast<PlayerClass>(0),
+                      uint16_t sprite_id = 0);
     void despawn_entity(uint16_t entity_id);
     void clear_all_entities();
     void move_entity(uint16_t entity_id, int x, int y);
@@ -120,8 +121,9 @@ private:
 
     SpriteRender build_sprite_render(const SpriteConfig& sprite_config);
     SpriteConfig resolve_entity_skin(const SpriteConfig& config, Race race,
-                                     PlayerClass player_class) const;
-    std::vector<SpriteRender> build_entity_parts(int x, int y, Race race, PlayerClass player_class);
+                                     PlayerClass player_class, uint16_t sprite_id) const;
+    std::vector<SpriteRender> build_entity_parts(int x, int y, Race race, PlayerClass player_class,
+                                                  uint16_t sprite_id);
     void position_anchored_parts(std::vector<SpriteRender>& parts);
     void create_entity_name_label(uint16_t entity_id, const std::string& name);
     SpriteRender* find_movable_sprite();
@@ -137,8 +139,9 @@ private:
 
     struct Drawable {
         SDL2pp::Texture* texture;
-        SDL2pp::Rect* src;
+        SDL2pp::Rect src;
         SDL2pp::Rect dst;
+        bool use_src = false;
         int foot_y;
         uint8_t alpha;
     };
@@ -160,6 +163,9 @@ private:
     std::unordered_map<uint16_t, std::vector<SpriteRender>> entity_sprites;
     std::unordered_map<uint16_t, EntityNameRender> entity_name_render;
     std::unordered_map<uint16_t, EntityEquipRenderState> entity_equip_state_;
+    std::unordered_map<uint16_t, uint16_t> entity_sprite_ids;
+    std::unordered_map<uint16_t, int> entity_frame_w_;
+    std::unordered_map<uint16_t, int> entity_frame_h_;
     SkinConfig skin_config;
     std::vector<OverlayEffect> overlays;
     std::unordered_map<uint8_t, std::vector<OverlayEffect>> spell_overlay_pools;

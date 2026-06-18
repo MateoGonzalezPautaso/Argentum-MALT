@@ -353,6 +353,27 @@ void parse_skin_config(const toml::table& root, ClientConfig& config) {
             }
         }
     }
+
+    auto npc_tbl = (*skins_tbl)["npc"].as_table();
+    if (npc_tbl) {
+        for (const auto& [key, value]: *npc_tbl) {
+            try {
+                uint16_t id = static_cast<uint16_t>(std::stoul(std::string(key.str())));
+                if (auto tbl = value.as_table()) {
+                    NpcSkinDef def;
+                    def.path = toml_get_string(*tbl, "path", "");
+                    def.frame_w = toml_get_int(*tbl, "frame_w", 0);
+                    def.frame_h = toml_get_int(*tbl, "frame_h", 0);
+                    def.src_x = toml_get_int(*tbl, "src_x", 0);
+                    def.src_y = toml_get_int(*tbl, "src_y", 0);
+                    config.skins.npc[id] = std::move(def);
+                } else if (auto path = value.value<std::string>()) {
+                    config.skins.npc[id] = NpcSkinDef{*path, 0, 0, 0, 0};
+                }
+            } catch (...) {
+            }
+        }
+    }
 }
 
 void parse_movement_config(const toml::table& root, ClientConfig& config) {

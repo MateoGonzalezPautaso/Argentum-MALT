@@ -277,6 +277,18 @@ visible = true
   dwarf = "assets/Graficos/429.png"
   gnome = "assets/Graficos/425.png"
 
+  [skins.npc]
+  4754 = { path = "assets/Graficos/4754.png", frame_w = 32, frame_h = 64 }
+  4755 = { path = "assets/Graficos/4754.png", frame_w = 32, frame_h = 64, src_x = 256 }
+  4080 = { path = "assets/Graficos/4080.png", frame_w = 26, frame_h = 50 }
+  4336 = { path = "assets/Graficos/4336.png", frame_w = 26, frame_h = 50 }
+  4795 = { path = "assets/Graficos/4795.png", frame_w = 86, frame_h = 86 }
+  4707 = { path = "assets/Graficos/4707.png", frame_w = 48, frame_h = 64 }
+  4709 = { path = "assets/Graficos/4709.png", frame_w = 48, frame_h = 64 }
+  4780 = { path = "assets/Graficos/4780.png", frame_w = 128, frame_h = 128 }
+  4580 = { path = "assets/Graficos/4580.png", frame_w = 160, frame_h = 160 }
+  4582 = { path = "assets/Graficos/4582.png", frame_w = 160, frame_h = 160 }
+
 [movement]
 move_step = 8
 walk_src_step = 27

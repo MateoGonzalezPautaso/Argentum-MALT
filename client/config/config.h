@@ -216,9 +216,18 @@ struct UIConfig {
     MerchantUIConfig merchant;
 };
 
+struct NpcSkinDef {
+    std::string path;
+    int frame_w = 0;
+    int frame_h = 0;
+    int src_x = 0;
+    int src_y = 0;
+};
+
 struct SkinConfig {
     std::map<std::string, std::string> body;
     std::map<std::string, std::string> head;
+    std::map<uint16_t, NpcSkinDef> npc;
 
     std::string head_path_for(Race race) const {
         auto it = head.find(race_to_skin_key(race));
@@ -228,6 +237,27 @@ struct SkinConfig {
     std::string body_path_for(PlayerClass pc) const {
         auto it = body.find(class_to_skin_key(pc));
         return it != body.end() ? it->second : "";
+    }
+
+    std::string npc_path_for(uint16_t sprite_id) const {
+        auto it = npc.find(sprite_id);
+        return it != npc.end() ? it->second.path : "";
+    }
+    int npc_frame_w(uint16_t sprite_id) const {
+        auto it = npc.find(sprite_id);
+        return it != npc.end() ? it->second.frame_w : 0;
+    }
+    int npc_frame_h(uint16_t sprite_id) const {
+        auto it = npc.find(sprite_id);
+        return it != npc.end() ? it->second.frame_h : 0;
+    }
+    int npc_src_x(uint16_t sprite_id) const {
+        auto it = npc.find(sprite_id);
+        return it != npc.end() ? it->second.src_x : 0;
+    }
+    int npc_src_y(uint16_t sprite_id) const {
+        auto it = npc.find(sprite_id);
+        return it != npc.end() ? it->second.src_y : 0;
     }
 
 private:
