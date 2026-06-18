@@ -23,6 +23,8 @@ clan_bonus_range_px = 200
 clan_bonus_per_member = 0.05
 clan_bonus_max = 0.25
 critical_chance = 0.003
+npc_vision_range_px = 200
+npc_speed = 2
 
 [clan]
 max_members = 16

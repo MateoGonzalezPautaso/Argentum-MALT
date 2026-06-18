@@ -343,7 +343,7 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
     std::vector<ServerEvent> broadcast;
     std::map<uint16_t, std::vector<ServerEvent>> targeted;
 
-    for (auto& [npc_id, npc]: enemy_npcs) {
+    for (auto& [npc_id, npc] : enemy_npcs) {
         if (npc.is_dead())
             continue;
 
@@ -351,7 +351,67 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
         if (!target)
             continue;
 
-        if (!in_range(npc.pos_x(), npc.pos_y(), target->pos_x(), target->pos_y()))
+        bool in_attack_range =
+                in_range(npc.pos_x(), npc.pos_y(), target->pos_x(), target->pos_y(),
+                         config.attack_range_px);
+        bool in_vision_range =
+                in_range(npc.pos_x(), npc.pos_y(), target->pos_x(), target->pos_y(),
+                         config.npc_vision_range_px);
+
+        if (!in_vision_range)
+            continue;
+
+        const Map* map = nullptr;
+        if (maps) {
+            auto it = maps->find(npc.get_current_map());
+            if (it != maps->end())
+                map = &it->second;
+        }
+
+        bool player_in_safe_zone =
+                map && !map->is_position_in_spawn_zone(target->pos_x(), target->pos_y());
+
+        // Chase: move toward player if not in attack range or cooldown active, and player not in safe zone
+        bool should_chase = in_vision_range && !player_in_safe_zone;
+        if (should_chase && !in_attack_range) {
+            int dx = static_cast<int>(target->pos_x()) - static_cast<int>(npc.pos_x());
+            int dy = static_cast<int>(target->pos_y()) - static_cast<int>(npc.pos_y());
+
+            Direction move_dir;
+            int step_x = 0, step_y = 0;
+            int speed = static_cast<int>(config.npc_speed);
+
+            if (std::abs(dx) > std::abs(dy)) {
+                step_x = (dx > 0) ? speed : -speed;
+                move_dir = (dx > 0) ? Direction::EAST : Direction::WEST;
+            } else {
+                step_y = (dy > 0) ? speed : -speed;
+                move_dir = (dy > 0) ? Direction::SOUTH : Direction::NORTH;
+            }
+
+            int new_x = static_cast<int>(npc.pos_x()) + step_x;
+            int new_y = static_cast<int>(npc.pos_y()) + step_y;
+
+            if (new_x < 0) new_x = 0;
+            if (new_y < 0) new_y = 0;
+
+            // Don't enter safe zones (non-spawn areas) or non-walkable tiles
+            if (map && (!map->is_position_in_spawn_zone(new_x, new_y) ||
+                        !map->is_walkable(new_x, new_y)))
+                continue;
+
+            npc.set_pos(static_cast<uint16_t>(new_x), static_cast<uint16_t>(new_y));
+            npc.set_dir(move_dir);
+
+            EntityMoveEvent move_ev{npc_id, npc.get_pos(), move_dir};
+            for (const auto& [pid, player] : players) {
+                if (player.get_current_map() == npc.get_current_map())
+                    targeted[pid].push_back(move_ev);
+            }
+        }
+
+        // Attack if in range and cooldown OK
+        if (!in_attack_range)
             continue;
 
         if (!npc.try_attack(current_tick, config.cooldown_ticks))

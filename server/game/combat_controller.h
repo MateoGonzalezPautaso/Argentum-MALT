@@ -4,12 +4,14 @@
 #include <cstdint>
 #include <map>
 #include <string>
+#include <unordered_map>
 
 #include "../../common/messages.h"
 #include "../core/config.h"
 
 #include "command_result.h"
 #include "enemy_npc.h"
+#include "map.h"
 #include "player.h"
 
 class ClanManager;
@@ -23,6 +25,8 @@ public:
     void set_clan_manager(ClanManager& mgr);
     CommandResult melee_attack(uint16_t attacker_id, uint16_t target_id, uint32_t current_tick);
     CommandResult update_npc_ai(uint32_t current_tick);
+
+    void set_maps(const std::unordered_map<std::string, Map>& m) { maps = &m; }
 
     CommandResult spell_attack_player(uint16_t attacker_id, uint16_t target_id,
                                       uint32_t current_tick);
@@ -64,6 +68,7 @@ private:
     Rng rng;
     std::map<uint16_t, EnemyNpc>& enemy_npcs;
     NpcDropConfig npc_drop_config;
+    const std::unordered_map<std::string, Map>* maps = nullptr;
 };
 
 #endif

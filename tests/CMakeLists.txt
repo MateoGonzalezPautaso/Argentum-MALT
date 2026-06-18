@@ -22,6 +22,8 @@ target_sources(taller_tests
     ${CMAKE_SOURCE_DIR}/server/game/combat_controller.cpp
     ${CMAKE_SOURCE_DIR}/server/game/enemy_npc.cpp
     ${CMAKE_SOURCE_DIR}/server/game/entity.cpp
+    ${CMAKE_SOURCE_DIR}/server/game/map.cpp
+    ${CMAKE_SOURCE_DIR}/server/game/prop_grid.cpp
     ${CMAKE_SOURCE_DIR}/server/persistence/clan_persistence.cpp
     ${CMAKE_SOURCE_DIR}/server/persistence/clan_record.cpp
     ${CMAKE_SOURCE_DIR}/editor/io/toml_serializer.cpp
