@@ -944,6 +944,142 @@ width = 260
     x = 0
     y = 0
 
+[prop.tiles.rocanieve1]
+height = 445
+paths = ['assets/Graficos/5167.png']
+width = 698
+
+    [prop.tiles.rocanieve1.hitbox]
+    h = 80
+    w = 558
+    x = 70
+    y = 365
+
+    [prop.tiles.rocanieve1.src]
+    h = 445
+    w = 698
+    x = 0
+    y = 0
+
+[prop.tiles.rocanieve2]
+height = 90
+paths = ['assets/Graficos/5167.png']
+width = 153
+
+    [prop.tiles.rocanieve2.hitbox]
+    h = 30
+    w = 120
+    x = 16
+    y = 60
+
+    [prop.tiles.rocanieve2.src]
+    h = 90
+    w = 153
+    x = 489
+    y = 711
+
+[prop.tiles.rocanieve3]
+height = 87
+paths = ['assets/Graficos/5167.png']
+width = 131
+
+    [prop.tiles.rocanieve3.hitbox]
+    h = 30
+    w = 100
+    x = 15
+    y = 57
+
+    [prop.tiles.rocanieve3.src]
+    h = 87
+    w = 131
+    x = 5
+    y = 740
+
+[prop.tiles.lenios1]
+height = 43
+paths = ['assets/Graficos/5167.png']
+width = 107
+
+    [prop.tiles.lenios1.hitbox]
+    h = 25
+    w = 90
+    x = 8
+    y = 18
+
+    [prop.tiles.lenios1.src]
+    h = 43
+    w = 107
+    x = 574
+    y = 811
+
+[prop.tiles.lenios2]
+height = 49
+paths = ['assets/Graficos/5167.png']
+width = 102
+
+    [prop.tiles.lenios2.hitbox]
+    h = 25
+    w = 85
+    x = 8
+    y = 24
+
+    [prop.tiles.lenios2.src]
+    h = 49
+    w = 102
+    x = 478
+    y = 809
+
+[prop.tiles.tiendanieve]
+height = 140
+paths = ['assets/Graficos/5167.png']
+width = 240
+
+    [prop.tiles.tiendanieve.hitbox]
+    h = 50
+    w = 200
+    x = 20
+    y = 90
+
+    [prop.tiles.tiendanieve.src]
+    h = 140
+    w = 240
+    x = 0
+    y = 837
+
+[prop.tiles.tiendanieve2]
+height = 201
+paths = ['assets/Graficos/5167.png']
+width = 268
+
+    [prop.tiles.tiendanieve2.hitbox]
+    h = 60
+    w = 220
+    x = 24
+    y = 141
+
+    [prop.tiles.tiendanieve2.src]
+    h = 201
+    w = 268
+    x = 530
+    y = 484
+
+[prop.tiles.rocanieve4]
+height = 548
+paths = ['assets/Graficos/5165.png']
+width = 820
+
+    [prop.tiles.rocanieve4.hitbox]
+    h = 100
+    w = 700
+    x = 60
+    y = 448
+
+    [prop.tiles.rocanieve4.src]
+    h = 548
+    w = 820
+    x = 0
+    y = 0
+
 [tilemap]
 path = 'assets/Graficos/5144.png'
 tile_size = 128
@@ -4628,5 +4764,325 @@ tile_size = 128
 
     [tilemap.tiles.a6449_77]
     path = 'assets/Graficos/6449.png'
+    x = 896
+    y = 896
+
+    [tilemap.tiles.a5168_00]
+    path = 'assets/Graficos/5168.png'
+    x = 0
+    y = 0
+
+    [tilemap.tiles.a5168_01]
+    path = 'assets/Graficos/5168.png'
+    x = 128
+    y = 0
+
+    [tilemap.tiles.a5168_02]
+    path = 'assets/Graficos/5168.png'
+    x = 256
+    y = 0
+
+    [tilemap.tiles.a5168_03]
+    path = 'assets/Graficos/5168.png'
+    x = 384
+    y = 0
+
+    [tilemap.tiles.a5168_04]
+    path = 'assets/Graficos/5168.png'
+    x = 512
+    y = 0
+
+    [tilemap.tiles.a5168_05]
+    path = 'assets/Graficos/5168.png'
+    x = 640
+    y = 0
+
+    [tilemap.tiles.a5168_06]
+    path = 'assets/Graficos/5168.png'
+    x = 768
+    y = 0
+
+    [tilemap.tiles.a5168_07]
+    path = 'assets/Graficos/5168.png'
+    x = 896
+    y = 0
+
+    [tilemap.tiles.a5168_10]
+    path = 'assets/Graficos/5168.png'
+    x = 0
+    y = 128
+
+    [tilemap.tiles.a5168_11]
+    path = 'assets/Graficos/5168.png'
+    x = 128
+    y = 128
+
+    [tilemap.tiles.a5168_12]
+    path = 'assets/Graficos/5168.png'
+    x = 256
+    y = 128
+
+    [tilemap.tiles.a5168_13]
+    path = 'assets/Graficos/5168.png'
+    x = 384
+    y = 128
+
+    [tilemap.tiles.a5168_14]
+    path = 'assets/Graficos/5168.png'
+    x = 512
+    y = 128
+
+    [tilemap.tiles.a5168_15]
+    path = 'assets/Graficos/5168.png'
+    x = 640
+    y = 128
+
+    [tilemap.tiles.a5168_16]
+    path = 'assets/Graficos/5168.png'
+    x = 768
+    y = 128
+
+    [tilemap.tiles.a5168_17]
+    path = 'assets/Graficos/5168.png'
+    x = 896
+    y = 128
+
+    [tilemap.tiles.a5168_20]
+    path = 'assets/Graficos/5168.png'
+    x = 0
+    y = 256
+
+    [tilemap.tiles.a5168_21]
+    path = 'assets/Graficos/5168.png'
+    x = 128
+    y = 256
+
+    [tilemap.tiles.a5168_22]
+    path = 'assets/Graficos/5168.png'
+    x = 256
+    y = 256
+
+    [tilemap.tiles.a5168_23]
+    path = 'assets/Graficos/5168.png'
+    x = 384
+    y = 256
+
+    [tilemap.tiles.a5168_24]
+    path = 'assets/Graficos/5168.png'
+    x = 512
+    y = 256
+
+    [tilemap.tiles.a5168_25]
+    path = 'assets/Graficos/5168.png'
+    x = 640
+    y = 256
+
+    [tilemap.tiles.a5168_26]
+    path = 'assets/Graficos/5168.png'
+    x = 768
+    y = 256
+
+    [tilemap.tiles.a5168_27]
+    path = 'assets/Graficos/5168.png'
+    x = 896
+    y = 256
+
+    [tilemap.tiles.a5168_30]
+    path = 'assets/Graficos/5168.png'
+    x = 0
+    y = 384
+
+    [tilemap.tiles.a5168_31]
+    path = 'assets/Graficos/5168.png'
+    x = 128
+    y = 384
+
+    [tilemap.tiles.a5168_32]
+    path = 'assets/Graficos/5168.png'
+    x = 256
+    y = 384
+
+    [tilemap.tiles.a5168_33]
+    path = 'assets/Graficos/5168.png'
+    x = 384
+    y = 384
+
+    [tilemap.tiles.a5168_34]
+    path = 'assets/Graficos/5168.png'
+    x = 512
+    y = 384
+
+    [tilemap.tiles.a5168_35]
+    path = 'assets/Graficos/5168.png'
+    x = 640
+    y = 384
+
+    [tilemap.tiles.a5168_36]
+    path = 'assets/Graficos/5168.png'
+    x = 768
+    y = 384
+
+    [tilemap.tiles.a5168_37]
+    path = 'assets/Graficos/5168.png'
+    x = 896
+    y = 384
+
+    [tilemap.tiles.a5168_40]
+    path = 'assets/Graficos/5168.png'
+    x = 0
+    y = 512
+
+    [tilemap.tiles.a5168_41]
+    path = 'assets/Graficos/5168.png'
+    x = 128
+    y = 512
+
+    [tilemap.tiles.a5168_42]
+    path = 'assets/Graficos/5168.png'
+    x = 256
+    y = 512
+
+    [tilemap.tiles.a5168_43]
+    path = 'assets/Graficos/5168.png'
+    x = 384
+    y = 512
+
+    [tilemap.tiles.a5168_44]
+    path = 'assets/Graficos/5168.png'
+    x = 512
+    y = 512
+
+    [tilemap.tiles.a5168_45]
+    path = 'assets/Graficos/5168.png'
+    x = 640
+    y = 512
+
+    [tilemap.tiles.a5168_46]
+    path = 'assets/Graficos/5168.png'
+    x = 768
+    y = 512
+
+    [tilemap.tiles.a5168_47]
+    path = 'assets/Graficos/5168.png'
+    x = 896
+    y = 512
+
+    [tilemap.tiles.a5168_50]
+    path = 'assets/Graficos/5168.png'
+    x = 0
+    y = 640
+
+    [tilemap.tiles.a5168_51]
+    path = 'assets/Graficos/5168.png'
+    x = 128
+    y = 640
+
+    [tilemap.tiles.a5168_52]
+    path = 'assets/Graficos/5168.png'
+    x = 256
+    y = 640
+
+    [tilemap.tiles.a5168_53]
+    path = 'assets/Graficos/5168.png'
+    x = 384
+    y = 640
+
+    [tilemap.tiles.a5168_54]
+    path = 'assets/Graficos/5168.png'
+    x = 512
+    y = 640
+
+    [tilemap.tiles.a5168_55]
+    path = 'assets/Graficos/5168.png'
+    x = 640
+    y = 640
+
+    [tilemap.tiles.a5168_56]
+    path = 'assets/Graficos/5168.png'
+    x = 768
+    y = 640
+
+    [tilemap.tiles.a5168_57]
+    path = 'assets/Graficos/5168.png'
+    x = 896
+    y = 640
+
+    [tilemap.tiles.a5168_60]
+    path = 'assets/Graficos/5168.png'
+    x = 0
+    y = 768
+
+    [tilemap.tiles.a5168_61]
+    path = 'assets/Graficos/5168.png'
+    x = 128
+    y = 768
+
+    [tilemap.tiles.a5168_62]
+    path = 'assets/Graficos/5168.png'
+    x = 256
+    y = 768
+
+    [tilemap.tiles.a5168_63]
+    path = 'assets/Graficos/5168.png'
+    x = 384
+    y = 768
+
+    [tilemap.tiles.a5168_64]
+    path = 'assets/Graficos/5168.png'
+    x = 512
+    y = 768
+
+    [tilemap.tiles.a5168_65]
+    path = 'assets/Graficos/5168.png'
+    x = 640
+    y = 768
+
+    [tilemap.tiles.a5168_66]
+    path = 'assets/Graficos/5168.png'
+    x = 768
+    y = 768
+
+    [tilemap.tiles.a5168_67]
+    path = 'assets/Graficos/5168.png'
+    x = 896
+    y = 768
+
+    [tilemap.tiles.a5168_70]
+    path = 'assets/Graficos/5168.png'
+    x = 0
+    y = 896
+
+    [tilemap.tiles.a5168_71]
+    path = 'assets/Graficos/5168.png'
+    x = 128
+    y = 896
+
+    [tilemap.tiles.a5168_72]
+    path = 'assets/Graficos/5168.png'
+    x = 256
+    y = 896
+
+    [tilemap.tiles.a5168_73]
+    path = 'assets/Graficos/5168.png'
+    x = 384
+    y = 896
+
+    [tilemap.tiles.a5168_74]
+    path = 'assets/Graficos/5168.png'
+    x = 512
+    y = 896
+
+    [tilemap.tiles.a5168_75]
+    path = 'assets/Graficos/5168.png'
+    x = 640
+    y = 896
+
+    [tilemap.tiles.a5168_76]
+    path = 'assets/Graficos/5168.png'
+    x = 768
+    y = 896
+
+    [tilemap.tiles.a5168_77]
+    path = 'assets/Graficos/5168.png'
     x = 896
     y = 896
