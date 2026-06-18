@@ -245,6 +245,7 @@ void GameController::interact_with_prop(const std::string& prop_name) {
     if (prop_name == "sacerdote") {
         audio_manager.play_sfx("priest");
         chat_history.add_message(ChatMsgType::SYSTEM, "", "Sacerdote: ¡SHALOM!");
+        merchant_controller->open();
     } else if (prop_name == "comerciante") {
         audio_manager.play_sfx("merchant");
         chat_history.add_message(ChatMsgType::SYSTEM, "",
