@@ -648,20 +648,20 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
 CommandResult Game::handle_create_character(uint16_t player_id, const CreateCharacterCmd& cmd) {
     if (cmd.username.empty()) {
         CharacterErrorEvent err{CharacterError::INVALID_USERNAME,
-                                "El nombre de usuario no puede estar vacio"};
+                                "Username cannot be empty"};
         return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
     }
 
     PlayerRecord existing;
     if (player_data_service.player_exists(cmd.username)) {
         CharacterErrorEvent err{CharacterError::USERNAME_TAKEN,
-                                "El usuario " + cmd.username + " ya existe"};
+                                "User " + cmd.username + " already exists"};
         return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
     }
 
     if (is_username_logged_in(cmd.username)) {
         CharacterErrorEvent err{CharacterError::USERNAME_TAKEN,
-                                "El usuario " + cmd.username + " ya esta en juego"};
+                                "User " + cmd.username + " is already in game"};
         return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
     }
 
