@@ -92,6 +92,9 @@ private:
     CommandResult handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd);
     CommandResult handle_npc_heal(uint16_t player_id);
     CommandResult handle_npc_list(uint16_t player_id);
+    CommandResult handle_bank_deposit(uint16_t player_id, const BankDepositCmd& cmd);
+    CommandResult handle_bank_withdraw(uint16_t player_id, const BankWithdrawCmd& cmd);
+    BankUpdateEvent make_bank_update_event(const Player& p) const;
 
     std::tuple<uint16_t, uint16_t, uint16_t, uint16_t> compute_combat_ranges(const Player& p) const;
     PlayerStatsEvent make_player_stats_event(const Player& p) const;

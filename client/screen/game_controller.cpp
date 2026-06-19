@@ -130,6 +130,7 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                                                              std::to_string(item.price) +
                                                              " de oro");
                     },
+                    [this](const BankUpdateEvent& e) { handle_bank_update(e); },
                     [](const auto&) {},
             },
             ev);
@@ -684,6 +685,14 @@ void GameController::handle_map_transition(const MapTransitionEvent& e) {
     player_stats.pos = {e.pos_x, e.pos_y};
 }
 
+void GameController::handle_bank_update(const BankUpdateEvent& e) {
+    chat_history.add_message(ChatMsgType::SYSTEM, "", "Banco - Oro: " + std::to_string(e.gold));
+    for (const auto& slot : e.slots) {
+        if (slot.item_type != ItemType::NONE)
+            chat_history.add_message(ChatMsgType::SYSTEM, "", "Banco - " + slot.item_name);
+    }
+}
+
 void GameController::handle_player_stats(const PlayerStatsEvent& e) {
     if (e.level > player_stats.level) {
         audio_manager.play_sfx("level_up");
@@ -722,6 +731,20 @@ void GameController::flush_pending_chat() {
         command_queue.push(ResurrectCmd{});
     } else if (text == "/curar") {
         command_queue.push(NpcHealCmd{});
+    } else if (text.rfind("/depositar oro ", 0) == 0) {
+        try {
+            uint32_t amount = static_cast<uint32_t>(std::stoul(text.substr(15)));
+            command_queue.push(BankDepositCmd{true, "", amount});
+        } catch (...) {}
+    } else if (text.rfind("/depositar ", 0) == 0) {
+        command_queue.push(BankDepositCmd{false, text.substr(11), 0});
+    } else if (text.rfind("/retirar oro ", 0) == 0) {
+        try {
+            uint32_t amount = static_cast<uint32_t>(std::stoul(text.substr(13)));
+            command_queue.push(BankWithdrawCmd{true, "", amount});
+        } catch (...) {}
+    } else if (text.rfind("/retirar ", 0) == 0) {
+        command_queue.push(BankWithdrawCmd{false, text.substr(9), 0});
     } else if (text.rfind("/equipar ", 0) == 0) {
         try {
             int idx = std::stoi(text.substr(9));
