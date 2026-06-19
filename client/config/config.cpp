@@ -259,7 +259,9 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
             m.list_w        = toml_get_int(*merchant_tbl, "list_w",         m.list_w);
             m.list_h        = toml_get_int(*merchant_tbl, "list_h",         m.list_h);
             m.row_h         = toml_get_int(*merchant_tbl, "row_h",          m.row_h);
-            m.price_offset_x = toml_get_int(*merchant_tbl, "price_offset_x", m.price_offset_x);
+            m.price_offset_x      = toml_get_int(*merchant_tbl,    "price_offset_x",      m.price_offset_x);
+            m.sell_price_offset_x = toml_get_int(*merchant_tbl,    "sell_price_offset_x", m.sell_price_offset_x);
+            m.sell_price_ratio    = toml_get_double(*merchant_tbl, "sell_price_ratio",    m.sell_price_ratio);
         }
     }
 

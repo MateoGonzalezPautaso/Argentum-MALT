@@ -103,6 +103,8 @@ struct MerchantUIConfig {
     int list_h = 283;
     int row_h = 20;
     int price_offset_x = 335;
+    int sell_price_offset_x = 460;
+    double sell_price_ratio = 0.5;
 };
 
 struct InventoryPanelConfig {

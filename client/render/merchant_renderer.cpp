@@ -19,7 +19,9 @@ MerchantRenderer::MerchantRenderer(SDL2pp::Renderer& renderer, const UIConfig& c
         list_w_(cfg.merchant.list_w),
         list_h_(cfg.merchant.list_h),
         row_h_(cfg.merchant.row_h),
-        price_x_(cfg.merchant.panel_x + cfg.merchant.price_offset_x) {
+        price_x_(cfg.merchant.panel_x + cfg.merchant.price_offset_x),
+        sell_price_x_(cfg.merchant.panel_x + cfg.merchant.sell_price_offset_x),
+        sell_price_ratio_(cfg.merchant.sell_price_ratio) {
     const auto& m = cfg.merchant;
     buy_button.set_position(m.panel_x + m.buy.x,   m.panel_y + m.buy.y,  m.buy.w,  m.buy.h);
     sell_button.set_position(m.panel_x + m.sell.x, m.panel_y + m.sell.y, m.sell.w, m.sell.h);
@@ -58,7 +60,13 @@ void MerchantRenderer::render(SDL2pp::Renderer& renderer) {
                                      0, 0, true);
         texture::render_text_clipped(renderer, font,
                                      std::to_string(items_[i].price) + "g", price_color,
-                                     SDL2pp::Rect(price_x_, ry, list_x_ + list_w_ - price_x_, row_h_),
+                                     SDL2pp::Rect(price_x_, ry, sell_price_x_ - price_x_, row_h_),
+                                     0, 0, true);
+
+        uint32_t sell_price = static_cast<uint32_t>(items_[i].price * sell_price_ratio_);
+        texture::render_text_clipped(renderer, font,
+                                     std::to_string(sell_price) + "g", price_color,
+                                     SDL2pp::Rect(sell_price_x_, ry, list_x_ + list_w_ - sell_price_x_, row_h_),
                                      0, 0, true);
     }
 }

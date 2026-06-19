@@ -47,6 +47,8 @@ private:
     int list_h_ = 0;
     int row_h_ = 0;
     int price_x_ = 0;
+    int sell_price_x_ = 0;
+    double sell_price_ratio_ = 0.5;
 };
 
 #endif
