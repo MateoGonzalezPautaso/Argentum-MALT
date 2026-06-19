@@ -20,6 +20,7 @@ PlayerRecord::PlayerRecord() {
     mana_current = 0;
     mana_max = 0;
     gold = 0;
+    bank_gold = 0;
     std::memset(current_map, 0, sizeof(current_map));
     std::memset(equipped_type, 0, sizeof(equipped_type));
     std::memset(equipped_name, 0, sizeof(equipped_name));
@@ -69,6 +70,7 @@ void write_player_record(std::ostream& os, const PlayerRecord& rec) {
     endian_io::write_u32_le(os, rec.mana_current);
     endian_io::write_u32_le(os, rec.mana_max);
     endian_io::write_u32_le(os, rec.gold);
+    endian_io::write_u32_le(os, rec.bank_gold);
     os.write(rec.current_map, PlayerRecord::MAP_NAME_MAX);
     os.write(reinterpret_cast<const char*>(rec.equipped_type), PlayerRecord::EQUIPPED_SLOTS);
     for (std::size_t i = 0; i < PlayerRecord::EQUIPPED_SLOTS; ++i)
@@ -105,6 +107,8 @@ bool read_player_record(std::istream& is, PlayerRecord& rec) {
     if (!endian_io::read_u32_le(is, rec.mana_max))
         return false;
     if (!endian_io::read_u32_le(is, rec.gold))
+        return false;
+    if (!endian_io::read_u32_le(is, rec.bank_gold))
         return false;
 
     is.read(rec.current_map, PlayerRecord::MAP_NAME_MAX);
