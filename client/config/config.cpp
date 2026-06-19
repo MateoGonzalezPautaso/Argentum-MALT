@@ -254,9 +254,6 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
             m.panel_h = toml_get_int(*merchant_tbl, "panel_h", m.panel_h);
             parse_merchant_button(*merchant_tbl, "buy",   m.buy);
             parse_merchant_button(*merchant_tbl, "sell",  m.sell);
-            parse_merchant_button(*merchant_tbl, "plus",  m.plus);
-            parse_merchant_button(*merchant_tbl, "minus", m.minus);
-            parse_stat_bar(*merchant_tbl, "gold", m.gold_rect);
         }
     }
 
@@ -320,14 +317,6 @@ void parse_assets_config(const toml::table& root, ClientConfig& config) {
                 toml_get_string(*tbl, "sell_default", config.ui.asset_sell_default);
         config.ui.asset_sell_hover =
                 toml_get_string(*tbl, "sell_hover", config.ui.asset_sell_hover);
-        config.ui.asset_plus_default =
-                toml_get_string(*tbl, "plus_default", config.ui.asset_plus_default);
-        config.ui.asset_plus_hover =
-                toml_get_string(*tbl, "plus_hover", config.ui.asset_plus_hover);
-        config.ui.asset_minus_default =
-                toml_get_string(*tbl, "minus_default", config.ui.asset_minus_default);
-        config.ui.asset_minus_hover =
-                toml_get_string(*tbl, "minus_hover", config.ui.asset_minus_hover);
     }
 }
 

@@ -39,7 +39,7 @@ void MerchantController::on_item_list(const NpcItemListEvent& ev) {
 }
 
 void MerchantController::render() {
-    merchant_renderer_.render(renderer_, player_stats_.gold);
+    merchant_renderer_.render(renderer_);
 }
 
 bool MerchantController::handle_mouse_button(const SDL_Event& event) {
@@ -80,8 +80,6 @@ bool MerchantController::handle_mouse_motion(int x, int y) {
 
     merchant_renderer_.set_buy_hovered(x, y);
     merchant_renderer_.set_sell_hovered(x, y);
-    merchant_renderer_.set_plus_hovered(x, y);
-    merchant_renderer_.set_minus_hovered(x, y);
     return true;
 }
 

@@ -97,9 +97,6 @@ struct MerchantUIConfig {
     int panel_x = 200, panel_y = 100, panel_w = 624, panel_h = 568;
     MerchantButtonConfig buy  {265, 622, 122, 28};
     MerchantButtonConfig sell {452, 622, 122, 28};
-    MerchantButtonConfig plus {670, 430,  31, 28};
-    MerchantButtonConfig minus{704, 430,  31, 28};
-    StatBarConfig gold_rect{100, 20, 100, 20};
 };
 
 struct InventoryPanelConfig {
@@ -192,10 +189,7 @@ struct UIConfig {
     std::string asset_buy_hover     = "assets/interface/en_boton-comprar-over.bmp";
     std::string asset_sell_default  = "assets/interface/en_boton-vender-default.bmp";
     std::string asset_sell_hover    = "assets/interface/en_boton-vender-over.bmp";
-    std::string asset_plus_default  = "assets/interface/en_boton-mas-default.bmp";
-    std::string asset_plus_hover    = "assets/interface/en_boton-mas-over.bmp";
-    std::string asset_minus_default = "assets/interface/en_boton-menos-default.bmp";
-    std::string asset_minus_hover   = "assets/interface/en_boton-menos-over.bmp";
+
 
     int login_title_spacing = 20;
     int login_field_spacing = 30;
