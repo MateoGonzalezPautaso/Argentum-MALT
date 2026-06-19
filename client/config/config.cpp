@@ -252,8 +252,13 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
             m.panel_y = toml_get_int(*merchant_tbl, "panel_y", m.panel_y);
             m.panel_w = toml_get_int(*merchant_tbl, "panel_w", m.panel_w);
             m.panel_h = toml_get_int(*merchant_tbl, "panel_h", m.panel_h);
-            parse_merchant_button(*merchant_tbl, "buy",   m.buy);
-            parse_merchant_button(*merchant_tbl, "sell",  m.sell);
+            parse_merchant_button(*merchant_tbl, "buy",  m.buy);
+            parse_merchant_button(*merchant_tbl, "sell", m.sell);
+            m.list_offset_x = toml_get_int(*merchant_tbl, "list_offset_x", m.list_offset_x);
+            m.list_offset_y = toml_get_int(*merchant_tbl, "list_offset_y", m.list_offset_y);
+            m.list_w        = toml_get_int(*merchant_tbl, "list_w",         m.list_w);
+            m.list_h        = toml_get_int(*merchant_tbl, "list_h",         m.list_h);
+            m.row_h         = toml_get_int(*merchant_tbl, "row_h",          m.row_h);
         }
     }
 

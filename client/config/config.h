@@ -97,6 +97,11 @@ struct MerchantUIConfig {
     int panel_x = 200, panel_y = 100, panel_w = 624, panel_h = 568;
     MerchantButtonConfig buy  {265, 622, 122, 28};
     MerchantButtonConfig sell {452, 622, 122, 28};
+    int list_offset_x = 34;
+    int list_offset_y = 114;
+    int list_w = 474;
+    int list_h = 283;
+    int row_h = 20;
 };
 
 struct InventoryPanelConfig {

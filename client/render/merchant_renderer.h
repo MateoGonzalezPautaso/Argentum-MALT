@@ -24,6 +24,8 @@ public:
 
     void set_items(const std::vector<NpcItemEntry>& items);
     void set_selected(int idx);
+    void set_scroll(int offset);
+    int max_scroll() const;
     int item_at(int x, int y) const;
     bool is_buy_hit(int x, int y) const;
     bool is_sell_hit(int x, int y) const;
@@ -38,10 +40,12 @@ private:
 
     std::vector<NpcItemEntry> items_;
     int selected_idx_ = -1;
+    int scroll_offset_ = 0;
     int list_x_ = 0;
     int list_y_ = 0;
     int list_w_ = 0;
-    int row_h_ = 20;
+    int list_h_ = 0;
+    int row_h_ = 0;
 };
 
 #endif

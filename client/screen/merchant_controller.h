@@ -24,6 +24,7 @@ public:
     bool handle_mouse_button(const SDL_Event& event);
     bool handle_mouse_motion(int x, int y);
     bool handle_keydown(const SDL_Event& event);
+    void handle_scroll(int delta);
 
     void on_item_list(const NpcItemListEvent& ev);
     void render();
@@ -36,6 +37,7 @@ private:
     bool open_ = false;
     std::vector<NpcItemEntry> items_;
     int selected_idx_ = -1;
+    int scroll_offset_ = 0;
 
     void close();
 };

@@ -14,9 +14,11 @@ MerchantRenderer::MerchantRenderer(SDL2pp::Renderer& renderer, const UIConfig& c
         sell_button(SDL2pp::Texture(renderer, texture::load_surface(cfg.asset_sell_default)),
                     SDL2pp::Texture(renderer, texture::load_surface(cfg.asset_sell_hover))),
         font(TTF_OpenFont(cfg.font_path.c_str(), cfg.font_bar_size)),
-        list_x_(cfg.merchant.panel_x + 30),
-        list_y_(cfg.merchant.panel_y + 85),
-        list_w_(450) {
+        list_x_(cfg.merchant.panel_x + cfg.merchant.list_offset_x),
+        list_y_(cfg.merchant.panel_y + cfg.merchant.list_offset_y),
+        list_w_(cfg.merchant.list_w),
+        list_h_(cfg.merchant.list_h),
+        row_h_(cfg.merchant.row_h) {
     const auto& m = cfg.merchant;
     buy_button.set_position(m.panel_x + m.buy.x,   m.panel_y + m.buy.y,  m.buy.w,  m.buy.h);
     sell_button.set_position(m.panel_x + m.sell.x, m.panel_y + m.sell.y, m.sell.w, m.sell.h);
@@ -38,8 +40,11 @@ void MerchantRenderer::render(SDL2pp::Renderer& renderer) {
     SDL_Color name_color{220, 220, 220, 255};
     SDL_Color price_color{255, 215, 0, 255};
 
-    for (int i = 0; i < static_cast<int>(items_.size()); ++i) {
-        int ry = list_y_ + i * row_h_;
+    for (int i = scroll_offset_; i < static_cast<int>(items_.size()); ++i) {
+        int ry = list_y_ + (i - scroll_offset_) * row_h_;
+        if (ry + row_h_ > list_y_ + list_h_)
+            break;
+
         SDL2pp::Rect row_rect(list_x_, ry, list_w_, row_h_);
 
         if (i == selected_idx_) {
@@ -68,10 +73,21 @@ void MerchantRenderer::set_selected(int idx) {
 int MerchantRenderer::item_at(int x, int y) const {
     if (items_.empty() || x < list_x_ || x >= list_x_ + list_w_ || y < list_y_)
         return -1;
-    int idx = (y - list_y_) / row_h_;
+    if (y >= list_y_ + list_h_)
+        return -1;
+    int idx = scroll_offset_ + (y - list_y_) / row_h_;
     if (idx < 0 || idx >= static_cast<int>(items_.size()))
         return -1;
     return idx;
+}
+
+void MerchantRenderer::set_scroll(int offset) {
+    scroll_offset_ = std::max(0, std::min(offset, max_scroll()));
+}
+
+int MerchantRenderer::max_scroll() const {
+    int visible_rows = list_h_ / row_h_;
+    return std::max(0, static_cast<int>(items_.size()) - visible_rows);
 }
 
 bool MerchantRenderer::is_buy_hit(int x, int y) const {

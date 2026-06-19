@@ -451,6 +451,10 @@ bool GameController::handle_event(const SDL_Event& event) {
     }
 
     if (event.type == SDL_MOUSEWHEEL) {
+        if (merchant_controller->is_open()) {
+            merchant_controller->handle_scroll(event.wheel.y);
+            return true;
+        }
         int max_scroll = static_cast<int>(chat_history.get_messages().size()) - 1;
         chat_scroll = std::clamp(chat_scroll + event.wheel.y, 0, std::max(0, max_scroll));
         chat_history.consume_new_message();

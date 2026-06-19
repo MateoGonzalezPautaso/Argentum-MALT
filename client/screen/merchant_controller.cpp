@@ -27,15 +27,27 @@ void MerchantController::close() {
     open_ = false;
     items_.clear();
     selected_idx_ = -1;
+    scroll_offset_ = 0;
     merchant_renderer_.set_items({});
     merchant_renderer_.set_selected(-1);
+    merchant_renderer_.set_scroll(0);
 }
 
 void MerchantController::on_item_list(const NpcItemListEvent& ev) {
     items_ = ev.items;
     selected_idx_ = ev.items.empty() ? -1 : 0;
+    scroll_offset_ = 0;
     merchant_renderer_.set_items(ev.items);
     merchant_renderer_.set_selected(selected_idx_);
+    merchant_renderer_.set_scroll(0);
+}
+
+void MerchantController::handle_scroll(int delta) {
+    if (!open_)
+        return;
+    scroll_offset_ = std::max(0, scroll_offset_ - delta);
+    merchant_renderer_.set_scroll(scroll_offset_);
+    scroll_offset_ = std::max(0, std::min(scroll_offset_, merchant_renderer_.max_scroll()));
 }
 
 void MerchantController::render() {
