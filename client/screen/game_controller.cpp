@@ -735,21 +735,27 @@ void GameController::flush_pending_chat() {
         try {
             uint32_t amount = static_cast<uint32_t>(std::stoul(text.substr(15)));
             command_queue.push(BankDepositCmd{true, "", amount});
-        } catch (...) {}
+        } catch (...) {
+            chat_history.add_message(ChatMsgType::SYSTEM, "", "Uso: /depositar oro <cantidad>");
+        }
     } else if (text.rfind("/depositar ", 0) == 0) {
         command_queue.push(BankDepositCmd{false, text.substr(11), 0});
     } else if (text.rfind("/retirar oro ", 0) == 0) {
         try {
             uint32_t amount = static_cast<uint32_t>(std::stoul(text.substr(13)));
             command_queue.push(BankWithdrawCmd{true, "", amount});
-        } catch (...) {}
+        } catch (...) {
+            chat_history.add_message(ChatMsgType::SYSTEM, "", "Uso: /retirar oro <cantidad>");
+        }
     } else if (text.rfind("/retirar ", 0) == 0) {
         command_queue.push(BankWithdrawCmd{false, text.substr(9), 0});
     } else if (text.rfind("/equipar ", 0) == 0) {
         try {
             int idx = std::stoi(text.substr(9));
             command_queue.push(EquipItemCmd{static_cast<uint8_t>(idx)});
-        } catch (...) {}
+        } catch (...) {
+            chat_history.add_message(ChatMsgType::SYSTEM, "", "Uso: /equipar <slot>");
+        }
     } else if (text.rfind("/desequipar ", 0) == 0) {
         std::string slot = text.substr(12);
         if (slot == "weapon")
