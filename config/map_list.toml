@@ -2,5 +2,6 @@ maps = [
     { name = 'city', path = 'config/city.toml' },
     { name = 'dungeon', path = 'config/dungeon.toml' },
     { name = 'dungeon2', path = 'config/dungeon2.toml' },
-    { name = 'dungeon3', path = 'config/dungeon3.toml' }
+    { name = 'dungeon3', path = 'config/dungeon3.toml' },
+    { name = 'city_test', path = 'config/city_test.toml' }
 ]
