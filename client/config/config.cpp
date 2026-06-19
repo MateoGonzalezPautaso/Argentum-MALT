@@ -366,6 +366,7 @@ void parse_skin_config(const toml::table& root, ClientConfig& config) {
                     def.frame_h = toml_get_int(*tbl, "frame_h", 0);
                     def.src_x = toml_get_int(*tbl, "src_x", 0);
                     def.src_y = toml_get_int(*tbl, "src_y", 0);
+                    def.frames_per_dir = toml_get_int(*tbl, "frames_per_dir", 4);
                     config.skins.npc[id] = std::move(def);
                 } else if (auto path = value.value<std::string>()) {
                     config.skins.npc[id] = NpcSkinDef{*path, 0, 0, 0, 0};

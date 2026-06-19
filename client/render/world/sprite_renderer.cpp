@@ -194,6 +194,7 @@ void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::s
     if (sprite_id > 0) {
         entity_frame_w_[entity_id] = skin_config.npc_frame_w(sprite_id);
         entity_frame_h_[entity_id] = skin_config.npc_frame_h(sprite_id);
+        entity_base_src_x_[entity_id] = skin_config.npc_src_x(sprite_id);
     }
     auto parts = build_entity_parts(x, y, race, player_class, sprite_id);
     if (parts.empty()) {
@@ -222,6 +223,7 @@ void SpriteRenderer::despawn_entity(uint16_t entity_id) {
     entity_sprite_ids.erase(entity_id);
     entity_frame_w_.erase(entity_id);
     entity_frame_h_.erase(entity_id);
+    entity_base_src_x_.erase(entity_id);
 }
 
 void SpriteRenderer::clear_all_entities() {
@@ -231,6 +233,7 @@ void SpriteRenderer::clear_all_entities() {
     entity_sprite_ids.clear();
     entity_frame_w_.clear();
     entity_frame_h_.clear();
+    entity_base_src_x_.clear();
 }
 
 void SpriteRenderer::set_skin_config(const SkinConfig& cfg) { skin_config = cfg; }
@@ -471,18 +474,14 @@ void SpriteRenderer::step_entity_src_x(uint16_t entity_id, int step, int frame_c
     if (it == entity_sprites.end()) {
         return;
     }
-    auto fw_it = entity_frame_w_.find(entity_id);
+    // NPCs don't animate horizontally — their walk frames are on different rows
+    if (entity_frame_w_.count(entity_id))
+        return;
     for (auto& sprite: it->second) {
         if (!sprite.movable) {
             continue;
         }
-        if (fw_it != entity_frame_w_.end() && fw_it->second > 0) {
-            int tex_w = sprite.frames.empty() ? 0 : sprite.frames[0].GetWidth();
-            int npc_frame_count = (tex_w > 0 && fw_it->second > 0) ? (tex_w / fw_it->second) : 1;
-            advance_src_x(sprite, fw_it->second, npc_frame_count);
-        } else {
-            advance_src_x(sprite, step, frame_count);
-        }
+        advance_src_x(sprite, step, frame_count);
     }
 }
 

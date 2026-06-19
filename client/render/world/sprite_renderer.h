@@ -166,6 +166,7 @@ private:
     std::unordered_map<uint16_t, uint16_t> entity_sprite_ids;
     std::unordered_map<uint16_t, int> entity_frame_w_;
     std::unordered_map<uint16_t, int> entity_frame_h_;
+    std::unordered_map<uint16_t, int> entity_base_src_x_;
     SkinConfig skin_config;
     std::vector<OverlayEffect> overlays;
     std::unordered_map<uint8_t, std::vector<OverlayEffect>> spell_overlay_pools;
