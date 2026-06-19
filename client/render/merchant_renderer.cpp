@@ -13,6 +13,7 @@ MerchantRenderer::MerchantRenderer(SDL2pp::Renderer& renderer, const UIConfig& c
                    SDL2pp::Texture(renderer, texture::load_surface(cfg.asset_buy_hover))),
         sell_button(SDL2pp::Texture(renderer, texture::load_surface(cfg.asset_sell_default)),
                     SDL2pp::Texture(renderer, texture::load_surface(cfg.asset_sell_hover))),
+        sell_disabled_tex_(renderer, texture::load_surface(cfg.asset_sell_disabled)),
         font(TTF_OpenFont(cfg.font_path.c_str(), cfg.font_bar_size)),
         list_x_(cfg.merchant.panel_x + cfg.merchant.list_offset_x),
         list_y_(cfg.merchant.panel_y + cfg.merchant.list_offset_y),
@@ -35,7 +36,11 @@ MerchantRenderer::~MerchantRenderer() {
 void MerchantRenderer::render(SDL2pp::Renderer& renderer) {
     renderer.Copy(bg_texture, SDL2pp::NullOpt, panel_rect);
     buy_button.render(renderer);
-    sell_button.render(renderer);
+    if (sell_enabled_) {
+        sell_button.render(renderer);
+    } else {
+        renderer.Copy(sell_disabled_tex_, SDL2pp::NullOpt, sell_button.rect);
+    }
 
     if (!font || items_.empty())
         return;
@@ -104,7 +109,11 @@ bool MerchantRenderer::is_buy_hit(int x, int y) const {
 }
 
 bool MerchantRenderer::is_sell_hit(int x, int y) const {
-    return sell_button.is_hit(x, y);
+    return sell_enabled_ && sell_button.is_hit(x, y);
+}
+
+void MerchantRenderer::set_sell_enabled(bool enabled) {
+    sell_enabled_ = enabled;
 }
 
 void MerchantRenderer::set_buy_hovered(int x, int y) {

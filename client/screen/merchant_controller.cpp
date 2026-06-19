@@ -10,8 +10,9 @@ MerchantController::MerchantController(SDL2pp::Renderer& renderer, const UIConfi
         player_stats_(player_stats),
         command_queue_(command_queue) {}
 
-void MerchantController::open() {
+void MerchantController::open(bool sell_enabled) {
     open_ = true;
+    merchant_renderer_.set_sell_enabled(sell_enabled);
     command_queue_.push(NpcListCmd{});
 }
 

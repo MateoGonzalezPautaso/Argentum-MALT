@@ -197,6 +197,7 @@ struct UIConfig {
     std::string asset_buy_hover     = "assets/interface/en_boton-comprar-over.bmp";
     std::string asset_sell_default  = "assets/interface/en_boton-vender-default.bmp";
     std::string asset_sell_hover    = "assets/interface/en_boton-vender-over.bmp";
+    std::string asset_sell_disabled = "assets/interface/en_boton-vender-off.bmp";
 
 
     int login_title_spacing = 20;

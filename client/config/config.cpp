@@ -325,6 +325,8 @@ void parse_assets_config(const toml::table& root, ClientConfig& config) {
                 toml_get_string(*tbl, "sell_default", config.ui.asset_sell_default);
         config.ui.asset_sell_hover =
                 toml_get_string(*tbl, "sell_hover", config.ui.asset_sell_hover);
+        config.ui.asset_sell_disabled =
+                toml_get_string(*tbl, "sell_disabled", config.ui.asset_sell_disabled);
     }
 }
 

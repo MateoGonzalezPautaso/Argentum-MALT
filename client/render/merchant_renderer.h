@@ -19,6 +19,7 @@ public:
 
     void set_buy_hovered(int x, int y);
     void set_sell_hovered(int x, int y);
+    void set_sell_enabled(bool enabled);
 
     bool is_any_button_hovered() const;
 
@@ -36,6 +37,7 @@ private:
     SDL2pp::Rect panel_rect;
     Button buy_button;
     Button sell_button;
+    SDL2pp::Texture sell_disabled_tex_;
     TTF_Font* font = nullptr;
 
     std::vector<NpcItemEntry> items_;
@@ -49,6 +51,7 @@ private:
     int price_x_ = 0;
     int sell_price_x_ = 0;
     double sell_price_ratio_ = 0.5;
+    bool sell_enabled_ = true;
 };
 
 #endif

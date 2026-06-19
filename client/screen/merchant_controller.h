@@ -17,7 +17,7 @@ public:
     MerchantController(SDL2pp::Renderer& renderer, const UIConfig& cfg,
                        Queue<ClientCommand>& command_queue, const PlayerStats& player_stats);
 
-    void open();
+    void open(bool sell_enabled = true);
     bool is_open() const;
     bool is_any_button_hovered() const;
 
