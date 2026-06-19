@@ -117,6 +117,7 @@ CommandResult ClanCommandHandler::handle_clan_status(uint16_t player_id) {
         if (m.is_founder)
             msg += " (fundador)";
         msg += m.is_online ? " [En linea]" : " [Desconectado]";
+        msg += "\n";
     }
     if (!requests.empty()) {
         msg += "\nPedidos pendientes:";
