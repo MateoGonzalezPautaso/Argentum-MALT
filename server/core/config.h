@@ -126,6 +126,7 @@ struct InventoryConfig {
     int max_slots = 20;
     int max_hp_potions = 10;
     int max_mana_potions = 10;
+    int max_bank_slots = 40;
 };
 
 struct BalanceConfig {

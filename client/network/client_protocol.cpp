@@ -72,6 +72,26 @@ void ClientProtocol::send_npc_sell(const NpcSellCmd& cmd) {
     protocol.send_str(cmd.item_name);
 }
 
+void ClientProtocol::send_bank_deposit(const BankDepositCmd& cmd) {
+    protocol.send_opcode(OpCode::BANK_DEPOSIT);
+    protocol.send_uint8(cmd.is_gold ? 1 : 0);
+    if (cmd.is_gold) {
+        protocol.send_uint32(cmd.gold_amount);
+    } else {
+        protocol.send_str(cmd.item_name);
+    }
+}
+
+void ClientProtocol::send_bank_withdraw(const BankWithdrawCmd& cmd) {
+    protocol.send_opcode(OpCode::BANK_WITHDRAW);
+    protocol.send_uint8(cmd.is_gold ? 1 : 0);
+    if (cmd.is_gold) {
+        protocol.send_uint32(cmd.gold_amount);
+    } else {
+        protocol.send_str(cmd.item_name);
+    }
+}
+
 void ClientProtocol::send_cheat_infinite_hp() { protocol.send_opcode(OpCode::CHEAT_INFINITE_HP); }
 
 void ClientProtocol::send_cheat_infinite_mana() {
@@ -185,6 +205,8 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const NpcListCmd& msg) { send_npc_list(msg); },
                        [this](const NpcBuyCmd& msg) { send_npc_buy(msg); },
                        [this](const NpcSellCmd& msg) { send_npc_sell(msg); },
+                       [this](const BankDepositCmd& msg) { send_bank_deposit(msg); },
+                       [this](const BankWithdrawCmd& msg) { send_bank_withdraw(msg); },
                        [this](const ClanFoundCmd& msg) { send_clan_found(msg); },
                        [this](const ClanJoinRequestCmd& msg) { send_clan_join_request(msg); },
                        [this](const ClanReviewCmd&) { send_clan_review(); },
@@ -277,6 +299,8 @@ ServerEvent ClientProtocol::recv_event() {
             return GoldUpdateEvent{protocol.recv_uint32()};
         case OpCode::NPC_ITEM_LIST:
             return recv_npc_item_list();
+        case OpCode::BANK_UPDATE:
+            return recv_bank_update();
         default:
             throw std::runtime_error("Unknown event opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
@@ -449,6 +473,21 @@ ServerEvent ClientProtocol::recv_character_error() {
     ev.error_code = static_cast<CharacterError>(protocol.recv_uint8());
     ev.message = protocol.recv_str();
     return ev;
+}
+
+ServerEvent ClientProtocol::recv_bank_update() {
+    uint8_t count = protocol.recv_uint8();
+    std::vector<InventorySlot> slots;
+    slots.reserve(count);
+    for (uint8_t i = 0; i < count; ++i) {
+        InventorySlot slot;
+        slot.slot_index = protocol.recv_uint8();
+        slot.item_type = static_cast<ItemType>(protocol.recv_uint8());
+        slot.item_name = protocol.recv_str();
+        slots.push_back(std::move(slot));
+    }
+    uint32_t gold = protocol.recv_uint32();
+    return BankUpdateEvent{std::move(slots), gold};
 }
 
 ServerEvent ClientProtocol::recv_npc_item_list() {

@@ -77,6 +77,7 @@ private:
     void handle_inventory_update(const InventoryUpdateEvent& e);
     void handle_equip_update(const EquipUpdateEvent& e);
     void handle_player_stats(const PlayerStatsEvent& e);
+    void handle_bank_update(const BankUpdateEvent& e);
 };
 
 #endif

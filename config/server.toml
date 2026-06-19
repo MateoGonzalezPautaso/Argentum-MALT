@@ -35,6 +35,7 @@ spawn_radius = 10
 max_slots = 20
 max_hp_potions = 10
 max_mana_potions = 10
+max_bank_slots = 40
 
 [balance]
 starting_gold = 0

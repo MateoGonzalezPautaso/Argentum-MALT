@@ -7,7 +7,7 @@
 
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
                PlayerClass player_class, const BalanceConfig& balance, uint8_t equip_capacity,
-               uint8_t hp_potion_capacity, uint8_t mana_potion_capacity):
+               uint8_t hp_potion_capacity, uint8_t mana_potion_capacity, uint8_t bank_capacity):
         Entity(0, username, pos, 1),
         id(id),
         dir(dir),
@@ -18,7 +18,9 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         mana_max(0),
         gold(balance.starting_gold),
         balance(balance),
-        inv(equip_capacity, hp_potion_capacity, mana_potion_capacity) {
+        inv(equip_capacity, hp_potion_capacity, mana_potion_capacity),
+        bank_inv(bank_capacity),
+        bank_gold(0) {
     UpdateStats stats = update_stats();
     set_hp_max(stats.hp_max);
     set_hp_current(stats.hp_max);
@@ -36,7 +38,8 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
                PlayerClass player_class, const BalanceConfig& balance, uint8_t level,
                uint32_t experience, uint32_t hp_current, uint32_t hp_max, uint32_t mana_current,
                uint32_t mana_max, uint32_t gold, uint8_t equip_capacity,
-               uint8_t hp_potion_capacity, uint8_t mana_potion_capacity):
+               uint8_t hp_potion_capacity, uint8_t mana_potion_capacity, uint8_t bank_capacity,
+               uint32_t bank_gold):
         Entity(hp_max, username, pos, level),
         id(id),
         dir(dir),
@@ -47,7 +50,9 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         mana_max(mana_max),
         gold(gold),
         balance(balance),
-        inv(equip_capacity, hp_potion_capacity, mana_potion_capacity) {
+        inv(equip_capacity, hp_potion_capacity, mana_potion_capacity),
+        bank_inv(bank_capacity),
+        bank_gold(bank_gold) {
     set_hp_current(hp_current);
     UpdateStats stats = update_stats();
     strength = stats.strength;
@@ -351,4 +356,25 @@ void Player::remove_inventory_item(uint8_t slot_index) { inv.clear(slot_index); 
 
 std::vector<InventorySlotRecord> Player::dump_inventory_records() const {
     return inv.to_records();
+}
+
+bool Player::take_bank_gold(uint32_t amount) {
+    if (amount > bank_gold)
+        return false;
+    bank_gold -= amount;
+    return true;
+}
+
+std::vector<InventorySlot> Player::dump_bank() const { return bank_inv.dump_slots(); }
+
+bool Player::add_to_bank(ItemType type, const std::string& name) {
+    return bank_inv.place(type, name);
+}
+
+void Player::remove_bank_item(uint8_t slot_index) { bank_inv.clear(slot_index); }
+
+std::vector<InventorySlotRecord> Player::dump_bank_records() const { return bank_inv.to_records(); }
+
+void Player::load_bank(const std::vector<InventorySlotRecord>& records) {
+    bank_inv.from_records(records);
 }

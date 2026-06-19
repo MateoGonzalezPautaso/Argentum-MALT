@@ -147,6 +147,10 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const UnequipItemCmd& cmd) { return handle_unequip(player_id, cmd); },
                     [&](const NpcHealCmd&) { return handle_npc_heal(player_id); },
                     [&](const NpcListCmd&) { return handle_npc_list(player_id); },
+                    [&](const BankDepositCmd& cmd) { return handle_bank_deposit(player_id, cmd); },
+                    [&](const BankWithdrawCmd& cmd) {
+                        return handle_bank_withdraw(player_id, cmd);
+                    },
                     [&](const NpcBuyCmd& cmd) { return handle_npc_buy(player_id, cmd); },
                     [&](const NpcSellCmd& cmd) { return handle_npc_sell(player_id, cmd); },
                     [&](const ClanFoundCmd& cmd) {
@@ -706,7 +710,8 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
 
     Player player(player_id, cmd.username, Position{rec.pos_x, rec.pos_y}, Direction::SOUTH,
                   cmd.race, cmd.player_class, balance, inventory_config.max_slots,
-                  inventory_config.max_hp_potions, inventory_config.max_mana_potions);
+                  inventory_config.max_hp_potions, inventory_config.max_mana_potions,
+                  inventory_config.max_bank_slots);
     player.set_current_map(balance.starting_map);
     rec.hp_current = player.get_hp_current();
     rec.hp_max = player.get_hp_max();
@@ -747,8 +752,6 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     CharacterCreatedEvent created{make_login_ok(p)};
     EntitySpawnEvent spawn = make_entity_spawn(p);
     std::vector<ServerEvent> private_events = {created};
-    auto other_spawns = make_existing_spawns(p.get_id(), p.get_current_map());
-    private_events.insert(private_events.end(), other_spawns.begin(), other_spawns.end());
 
     InventoryUpdateEvent inv_event{p.dump_inventory()};
     private_events.push_back(inv_event);
@@ -760,6 +763,17 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     private_events.push_back(equip_ev);
 
     private_events.push_back(make_player_stats_event(p));
+
+    if (p.get_current_map() != "city") {
+        private_events.push_back(MapTransitionEvent{
+                .map_name = p.get_current_map(),
+                .pos_x = p.pos_x(),
+                .pos_y = p.pos_y(),
+        });
+    }
+
+    auto other_spawns = make_existing_spawns(p.get_id(), p.get_current_map());
+    private_events.insert(private_events.end(), other_spawns.begin(), other_spawns.end());
 
     CommandResult r;
     r.private_events = std::move(private_events);
@@ -1361,9 +1375,15 @@ CommandResult Game::handle_npc_list(uint16_t player_id) {
 
     const bool near_comerciante = map.prop_grid().is_in_range_of("comerciante", px, py, range);
     const bool near_sacerdote = map.prop_grid().is_in_range_of("sacerdote", px, py, range);
+    const bool near_banquero = map.prop_grid().is_in_range_of("banquero", px, py, range);
+
+    if (near_banquero && !near_comerciante && !near_sacerdote) {
+        return {.private_events = {make_bank_update_event(player)}};
+    }
 
     if (!near_comerciante && !near_sacerdote) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un comerciante ni un sacerdote cerca"};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                         "No hay un comerciante, sacerdote ni banquero cerca"};
         return {.private_events = {msg}};
     }
 
@@ -1490,6 +1510,140 @@ CommandResult Game::handle_npc_sell(uint16_t player_id, const NpcSellCmd& cmd) {
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                      "Vendiste " + item_name + " por " + std::to_string(sell_price) + " de oro"};
     return {.private_events = {msg, inv_ev, gold_ev}};
+}
+
+BankUpdateEvent Game::make_bank_update_event(const Player& p) const {
+    return BankUpdateEvent{p.dump_bank(), p.get_bank_gold()};
+}
+
+CommandResult Game::handle_bank_deposit(uint16_t player_id, const BankDepositCmd& cmd) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+
+    if (player.is_dead()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden depositar"};
+        return {.private_events = {msg}};
+    }
+
+    auto map_it = maps.find(player.get_current_map());
+    if (map_it == maps.end())
+        return {};
+
+    const Map& map = map_it->second;
+    const int range = map.tile_size() * balance.merchant.interaction_range_tiles;
+    const int px = static_cast<int>(player.pos_x());
+    const int py = static_cast<int>(player.pos_y());
+
+    if (!map.prop_grid().is_in_range_of("banquero", px, py, range)) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un banquero cerca"};
+        return {.private_events = {msg}};
+    }
+
+    if (cmd.is_gold) {
+        if (cmd.gold_amount == 0 || player.get_gold() < cmd.gold_amount) {
+            ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Oro insuficiente"};
+            return {.private_events = {msg}};
+        }
+        player.spend_gold(cmd.gold_amount);
+        player.add_bank_gold(cmd.gold_amount);
+
+        GoldUpdateEvent gold_ev{player.get_gold()};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                         "Depositaste " + std::to_string(cmd.gold_amount) + " de oro"};
+        return {.private_events = {msg, gold_ev, make_bank_update_event(player)}};
+    }
+
+    const Item* item_def = item_catalog.find_by_name(cmd.item_name);
+    if (!item_def) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Objeto '" + cmd.item_name + "' no encontrado"};
+        return {.private_events = {msg}};
+    }
+
+    std::vector<InventorySlot> slots = player.dump_inventory();
+    auto slot_it = std::find_if(slots.begin(), slots.end(), [&](const InventorySlot& slot) {
+        return slot.item_type == item_def->type;
+    });
+    if (slot_it == slots.end()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                         "No tenés '" + item_def->name + "' en el inventario"};
+        return {.private_events = {msg}};
+    }
+
+    if (!player.add_to_bank(item_def->type, item_def->name)) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El banco está lleno"};
+        return {.private_events = {msg}};
+    }
+    player.remove_inventory_item(static_cast<uint8_t>(slot_it->slot_index));
+
+    InventoryUpdateEvent inv_ev{player.dump_inventory()};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Depositaste " + item_def->name};
+    return {.private_events = {msg, inv_ev, make_bank_update_event(player)}};
+}
+
+CommandResult Game::handle_bank_withdraw(uint16_t player_id, const BankWithdrawCmd& cmd) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+
+    if (player.is_dead()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden retirar"};
+        return {.private_events = {msg}};
+    }
+
+    auto map_it = maps.find(player.get_current_map());
+    if (map_it == maps.end())
+        return {};
+
+    const Map& map = map_it->second;
+    const int range = map.tile_size() * balance.merchant.interaction_range_tiles;
+    const int px = static_cast<int>(player.pos_x());
+    const int py = static_cast<int>(player.pos_y());
+
+    if (!map.prop_grid().is_in_range_of("banquero", px, py, range)) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un banquero cerca"};
+        return {.private_events = {msg}};
+    }
+
+    if (cmd.is_gold) {
+        if (cmd.gold_amount == 0 || !player.take_bank_gold(cmd.gold_amount)) {
+            ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No tenés suficiente oro en el banco"};
+            return {.private_events = {msg}};
+        }
+        player.gain_gold(cmd.gold_amount);
+
+        GoldUpdateEvent gold_ev{player.get_gold()};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                         "Retiraste " + std::to_string(cmd.gold_amount) + " de oro"};
+        return {.private_events = {msg, gold_ev, make_bank_update_event(player)}};
+    }
+
+    const Item* item_def = item_catalog.find_by_name(cmd.item_name);
+    if (!item_def) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Objeto '" + cmd.item_name + "' no encontrado"};
+        return {.private_events = {msg}};
+    }
+
+    std::vector<InventorySlot> slots = player.dump_bank();
+    auto slot_it = std::find_if(slots.begin(), slots.end(), [&](const InventorySlot& slot) {
+        return slot.item_type == item_def->type;
+    });
+    if (slot_it == slots.end()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No tenés '" + item_def->name + "' en el banco"};
+        return {.private_events = {msg}};
+    }
+
+    if (!player.add_item(item_def->type, item_def->name)) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Inventario lleno"};
+        return {.private_events = {msg}};
+    }
+    player.remove_bank_item(static_cast<uint8_t>(slot_it->slot_index));
+
+    InventoryUpdateEvent inv_ev{player.dump_inventory()};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Retiraste " + item_def->name};
+    return {.private_events = {msg, inv_ev, make_bank_update_event(player)}};
 }
 
 CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {

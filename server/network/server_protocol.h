@@ -31,6 +31,7 @@ public:
     void send_item_dropped(const ItemDroppedEvent& ev);
     void send_item_picked(const ItemPickedEvent& ev);
     void send_npc_item_list(const NpcItemListEvent& ev);
+    void send_bank_update(const BankUpdateEvent& ev);
     void send_transaction_ok(const TransactionOkEvent& ev);
     void send_transaction_error(const TransactionErrorEvent& ev);
     void send_chat_msg(const ChatMsgEvent& ev);
@@ -71,6 +72,8 @@ private:
     ClientCommand recv_unequip_item();
     ClientCommand recv_npc_buy();
     ClientCommand recv_npc_sell();
+    ClientCommand recv_bank_deposit();
+    ClientCommand recv_bank_withdraw();
 };
 
 #endif  // SERVER_PROTOCOL_H_

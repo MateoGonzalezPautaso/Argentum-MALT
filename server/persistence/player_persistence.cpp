@@ -132,6 +132,7 @@ void PlayerPersistence::save(const Player& player) {
     rec.gold = player.get_gold();
     rec.strength = player.get_strength();
     rec.agility = player.get_agility();
+    rec.bank_gold = player.get_bank_gold();
     rec.set_current_map(player.get_current_map());
     save(player.get_name(), rec);
 }

@@ -91,6 +91,7 @@ private:
     ServerEvent recv_map_transition();
     ServerEvent recv_player_stats();
     ServerEvent recv_npc_item_list();
+    ServerEvent recv_bank_update();
 };
 
 #endif  // CLIENT_PROTOCOL_H_

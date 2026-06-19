@@ -81,6 +81,7 @@ enum class OpCode : uint8_t {
     HEAL_RECEIVED = 0x9C,
     MAP_TRANSITION = 0x9D,
     SPELL_EFFECT = 0x9E,
+    BANK_UPDATE = 0x9F,
 };
 
 class Protocol {

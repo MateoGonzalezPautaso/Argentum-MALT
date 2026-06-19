@@ -10,6 +10,7 @@
 #include "../core/config.h"
 
 #include "entity.h"
+#include "inventory.h"
 #include "player_inventory.h"
 
 struct UpdateStats {
@@ -39,19 +40,21 @@ private:
     InventorySlot equipped[EQUIP_SLOT_COUNT];
     uint32_t strength;
     uint32_t agility;
+    Inventory bank_inv;
+    uint32_t bank_gold;
 
     UpdateStats update_stats() const;
 
 public:
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
            PlayerClass player_class, const BalanceConfig& balance, uint8_t equip_capacity,
-           uint8_t hp_potion_capacity, uint8_t mana_potion_capacity);
+           uint8_t hp_potion_capacity, uint8_t mana_potion_capacity, uint8_t bank_capacity);
 
     Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
            PlayerClass player_class, const BalanceConfig& balance, uint8_t level,
            uint32_t experience, uint32_t hp_current, uint32_t hp_max, uint32_t mana_current,
            uint32_t mana_max, uint32_t gold, uint8_t equip_capacity, uint8_t hp_potion_capacity,
-           uint8_t mana_potion_capacity);
+           uint8_t mana_potion_capacity, uint8_t bank_capacity, uint32_t bank_gold);
 
     uint16_t get_id() const { return id; }
     Direction get_dir() const { return dir; }
@@ -89,6 +92,16 @@ public:
     void gain_gold(uint32_t amount);
     void spend_gold(uint32_t amount);
     uint32_t take_excess_gold();
+
+    uint32_t get_bank_gold() const { return bank_gold; }
+    void add_bank_gold(uint32_t amount) { bank_gold += amount; }
+    bool take_bank_gold(uint32_t amount);
+
+    std::vector<InventorySlot> dump_bank() const;
+    bool add_to_bank(ItemType type, const std::string& name);
+    void remove_bank_item(uint8_t slot_index);
+    std::vector<InventorySlotRecord> dump_bank_records() const;
+    void load_bank(const std::vector<InventorySlotRecord>& records);
 
     uint32_t exp_to_next_level() const;
 

@@ -212,10 +212,18 @@ struct NpcSellCmd {
 struct NpcHealCmd {};
 
 // 0x0F
-struct BankDepositCmd {};
+struct BankDepositCmd {
+    bool is_gold = false;
+    std::string item_name;
+    uint32_t gold_amount = 0;
+};
 
 // 0x10
-struct BankWithdrawCmd {};
+struct BankWithdrawCmd {
+    bool is_gold = false;
+    std::string item_name;
+    uint32_t gold_amount = 0;
+};
 
 // 0x11
 struct NpcListCmd {};
@@ -475,6 +483,12 @@ struct HealReceivedEvent {
     uint32_t mana_current;
 };
 
+// 0x9F
+struct BankUpdateEvent {
+    std::vector<InventorySlot> slots;
+    uint32_t gold = 0;
+};
+
 /*
  * ServerEvent es la variante que engloba todos los eventos.
  * El cliente hace std::visit sobre esta variante para renderizar/actualizar estado.
@@ -487,6 +501,7 @@ using ServerEvent =
                      MeditationStopEvent, InventoryUpdateEvent, EquipUpdateEvent, GoldUpdateEvent,
                      ItemDroppedEvent, ItemPickedEvent, NpcItemListEvent, TransactionOkEvent,
                      TransactionErrorEvent, ChatMsgEvent, ClanNotificationEvent, ClanUpdateEvent,
-                     ServerMsgEvent, MapTransitionEvent, HealReceivedEvent, SpellEffectEvent>;
+                     ServerMsgEvent, MapTransitionEvent, HealReceivedEvent, SpellEffectEvent,
+                     BankUpdateEvent>;
 
 #endif  // MESSAGES_H_
