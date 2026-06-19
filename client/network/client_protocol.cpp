@@ -129,6 +129,11 @@ void ClientProtocol::send_clan_ban(const ClanBanCmd& cmd) {
     protocol.send_str(cmd.target_nick);
 }
 
+void ClientProtocol::send_clan_unban(const ClanUnbanCmd& cmd) {
+    protocol.send_opcode(OpCode::CLAN_UNBAN);
+    protocol.send_str(cmd.target_nick);
+}
+
 void ClientProtocol::send_clan_kick(const ClanKickCmd& cmd) {
     protocol.send_opcode(OpCode::CLAN_KICK);
     protocol.send_str(cmd.target_nick);
@@ -186,6 +191,7 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const ClanAcceptCmd& msg) { send_clan_accept(msg); },
                        [this](const ClanRejectCmd& msg) { send_clan_reject(msg); },
                        [this](const ClanBanCmd& msg) { send_clan_ban(msg); },
+                       [this](const ClanUnbanCmd& msg) { send_clan_unban(msg); },
                        [this](const ClanKickCmd& msg) { send_clan_kick(msg); },
                        [this](const ClanLeaveCmd&) { send_clan_leave(); },
                        [](const auto&) { throw std::runtime_error("Command not implemented"); },

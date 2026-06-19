@@ -233,6 +233,7 @@ struct ClanReviewCmd {};
 struct ClanAcceptCmd { std::string target_nick; };
 struct ClanRejectCmd { std::string target_nick; };
 struct ClanBanCmd { std::string target_nick; };
+struct ClanUnbanCmd { std::string target_nick; };
 struct ClanKickCmd { std::string target_nick; };
 struct ClanLeaveCmd {};
 
@@ -267,8 +268,8 @@ using ClientCommand = std::variant<
         LoginCmd, CreateCharacterCmd, MoveCmd, AttackCmd, CastSpellCmd, PickupItemCmd, DropItemCmd,
         EquipItemCmd, UnequipItemCmd, MeditateCmd, ResurrectCmd, NpcBuyCmd, NpcSellCmd, NpcHealCmd,
         BankDepositCmd, BankWithdrawCmd, NpcListCmd, PrivateMsgCmd, SendChatMsgCmd, ClanFoundCmd,
-        ClanJoinRequestCmd, ClanReviewCmd, ClanAcceptCmd, ClanRejectCmd, ClanBanCmd, ClanKickCmd,
-        ClanLeaveCmd, CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd, CheatLevelUpCmd,
+        ClanJoinRequestCmd, ClanReviewCmd, ClanAcceptCmd, ClanRejectCmd, ClanBanCmd, ClanUnbanCmd,
+        ClanKickCmd, ClanLeaveCmd, CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd, CheatLevelUpCmd,
         CheatLevelDownCmd, CheatAddGoldCmd, CheatResetGoldCmd, CheatVelocityCmd, CheatReviveCmd,
         CheatFillInventoryCmd, CheatClearInventoryCmd, CheatResetManaCmd, ChangeMapCmd>;
 

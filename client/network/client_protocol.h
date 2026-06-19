@@ -36,6 +36,7 @@ public:
     void send_clan_accept(const ClanAcceptCmd& cmd);
     void send_clan_reject(const ClanRejectCmd& cmd);
     void send_clan_ban(const ClanBanCmd& cmd);
+    void send_clan_unban(const ClanUnbanCmd& cmd);
     void send_clan_kick(const ClanKickCmd& cmd);
     void send_clan_leave();
 

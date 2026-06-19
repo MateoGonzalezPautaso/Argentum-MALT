@@ -83,6 +83,8 @@ ClientCommand ServerProtocol::recv_command() {
             return ClanRejectCmd{protocol.recv_str()};
         case OpCode::CLAN_BAN:
             return ClanBanCmd{protocol.recv_str()};
+        case OpCode::CLAN_UNBAN:
+            return ClanUnbanCmd{protocol.recv_str()};
         case OpCode::CLAN_KICK:
             return ClanKickCmd{protocol.recv_str()};
         case OpCode::CLAN_LEAVE:

@@ -160,6 +160,7 @@ lines = [
     "/clan-aceptar <nick> - Acepta un pedido de ingreso al clan",
     "/clan-rechazar <nick> - Rechaza un pedido de ingreso al clan",
     "/clan-ban <nick> - Banea a un jugador del clan",
+    "/clan-unban <nick> - Desbanea a un jugador del clan",
     "/clan-kick <nick> - Expulsa a un miembro del clan",
     "/dejar-clan - Deja el clan actual",
     "/c <mensaje> - Habla por el chat del clan",
