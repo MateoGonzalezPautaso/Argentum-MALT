@@ -46,6 +46,7 @@ private:
     int list_w_ = 0;
     int list_h_ = 0;
     int row_h_ = 0;
+    int price_x_ = 0;
 };
 
 #endif

@@ -188,8 +188,9 @@ panel_h  = 481
 list_offset_x = 34
 list_offset_y = 114
 list_w = 474
-list_h = 283
+list_h = 263
 row_h  = 20
+price_offset_x = 335
 
 [ui.merchant.buy]
 x = 55
