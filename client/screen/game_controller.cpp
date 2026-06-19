@@ -747,6 +747,8 @@ void GameController::flush_pending_chat() {
         command_queue.push(ClanAcceptCmd{text.substr(14)});
     } else if (text.rfind("/clan-rechazar ", 0) == 0) {
         command_queue.push(ClanRejectCmd{text.substr(15)});
+    } else if (text.rfind("/clan-unban ", 0) == 0) {
+        command_queue.push(ClanUnbanCmd{text.substr(12)});
     } else if (text.rfind("/clan-ban ", 0) == 0) {
         command_queue.push(ClanBanCmd{text.substr(10)});
     } else if (text.rfind("/clan-kick ", 0) == 0) {

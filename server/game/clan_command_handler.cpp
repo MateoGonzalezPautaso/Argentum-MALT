@@ -211,6 +211,20 @@ CommandResult ClanCommandHandler::handle_clan_ban(uint16_t player_id, const std:
     return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = std::move(targeted)};
 }
 
+CommandResult ClanCommandHandler::handle_clan_unban(uint16_t player_id, const std::string& args) {
+    if (args.empty())
+        return system_msg("Uso: /clan-unban <nick>");
+
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+
+    const std::string& sender_name = it->second.get_name();
+    ClanResult result = clan_manager.unban_member(sender_name, args);
+
+    return system_msg(result.error_msg);
+}
+
 CommandResult ClanCommandHandler::handle_clan_kick(uint16_t player_id, const std::string& args) {
     if (args.empty())
         return system_msg("Uso: /clan-kick <nick>");

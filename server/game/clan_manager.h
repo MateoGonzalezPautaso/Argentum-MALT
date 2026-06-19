@@ -28,6 +28,8 @@ public:
     ClanResult reject_member(const std::string& founder_username,
                              const std::string& target_username);
     ClanResult ban_member(const std::string& founder_username, const std::string& target_username);
+    ClanResult unban_member(const std::string& founder_username,
+                            const std::string& target_username);
     ClanResult kick_member(const std::string& founder_username, const std::string& target_username);
     ClanResult leave_clan(const std::string& username);
 

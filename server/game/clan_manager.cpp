@@ -162,6 +162,27 @@ ClanResult ClanManager::ban_member(const std::string& founder_username,
     return {true, target_username + " ha sido baneado del clan"};
 }
 
+ClanResult ClanManager::unban_member(const std::string& founder_username,
+                                     const std::string& target_username) {
+    auto* clan = find_clan_by_member(founder_username);
+    if (!clan) {
+        return {false, "No perteneces a ningun clan"};
+    }
+
+    if (clan->founder != founder_username) {
+        return {false, "Solo el fundador puede desbanear miembros"};
+    }
+
+    auto ban_it = clan->banned.find(target_username);
+    if (ban_it == clan->banned.end()) {
+        return {false, target_username + " no esta baneado de este clan"};
+    }
+
+    clan->banned.erase(ban_it);
+    save_clan(*clan);
+    return {true, target_username + " ha sido desbaneado del clan"};
+}
+
 ClanResult ClanManager::kick_member(const std::string& founder_username,
                                     const std::string& target_username) {
     auto* clan = find_clan_by_member(founder_username);

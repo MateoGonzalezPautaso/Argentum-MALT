@@ -28,6 +28,7 @@ public:
     CommandResult handle_clan_accept(uint16_t player_id, const std::string& target_nick);
     CommandResult handle_clan_reject(uint16_t player_id, const std::string& target_nick);
     CommandResult handle_clan_ban(uint16_t player_id, const std::string& target_nick);
+    CommandResult handle_clan_unban(uint16_t player_id, const std::string& target_nick);
     CommandResult handle_clan_kick(uint16_t player_id, const std::string& target_nick);
     CommandResult handle_leave_clan(uint16_t player_id);
 

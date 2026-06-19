@@ -167,6 +167,9 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const ClanBanCmd& cmd) {
                         return clan_handler.handle_clan_ban(player_id, cmd.target_nick);
                     },
+                    [&](const ClanUnbanCmd& cmd) {
+                        return clan_handler.handle_clan_unban(player_id, cmd.target_nick);
+                    },
                     [&](const ClanKickCmd& cmd) {
                         return clan_handler.handle_clan_kick(player_id, cmd.target_nick);
                     },
