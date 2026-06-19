@@ -10,10 +10,13 @@ PlayerDataService::PlayerDataService(const std::string& data_dir, const ServerCo
                               static_cast<uint8_t>(config.inventory.max_slots +
                                                    config.inventory.max_hp_potions +
                                                    config.inventory.max_mana_potions)),
+        bank_persistence(data_dir + "/bank.dat", data_dir + "/bank.idx",
+                         static_cast<uint8_t>(config.inventory.max_bank_slots)),
         balance(config.balance),
         inv_capacity(static_cast<uint8_t>(config.inventory.max_slots)),
         hp_potion_capacity(static_cast<uint8_t>(config.inventory.max_hp_potions)),
-        mana_potion_capacity(static_cast<uint8_t>(config.inventory.max_mana_potions)) {}
+        mana_potion_capacity(static_cast<uint8_t>(config.inventory.max_mana_potions)),
+        bank_capacity(static_cast<uint8_t>(config.inventory.max_bank_slots)) {}
 
 bool PlayerDataService::player_exists(const std::string& username) {
     PlayerRecord dummy;
@@ -33,7 +36,8 @@ std::optional<Player> PlayerDataService::load_player(uint16_t player_id,
                   static_cast<Direction>(rec.dir), static_cast<Race>(rec.race),
                   static_cast<PlayerClass>(rec.player_class), balance, rec.level, rec.experience,
                   rec.hp_current, rec.hp_max, rec.mana_current, rec.mana_max, rec.gold,
-                  inv_capacity, hp_potion_capacity, mana_potion_capacity);
+                  inv_capacity, hp_potion_capacity, mana_potion_capacity, bank_capacity,
+                  rec.bank_gold);
 
     player.set_current_map(rec.get_current_map());
 
@@ -43,6 +47,13 @@ std::optional<Player> PlayerDataService::load_player(uint16_t player_id,
     } else if (!inventory_persistence.save(username, player.dump_inventory_records())) {
         std::cerr << "[PlayerDataService] could not initialize inventory for '" << username
                   << "'\n";
+    }
+
+    std::vector<InventorySlotRecord> bank_records;
+    if (bank_persistence.load(username, bank_records)) {
+        player.load_bank(bank_records);
+    } else if (!bank_persistence.save(username, player.dump_bank_records())) {
+        std::cerr << "[PlayerDataService] could not initialize bank for '" << username << "'\n";
     }
 
     InventorySlot rec_equipped[EQUIP_SLOT_COUNT];
@@ -74,6 +85,7 @@ void PlayerDataService::save_player(const Player& player) {
     rec.gold = player.get_gold();
     rec.strength = player.get_strength();
     rec.agility = player.get_agility();
+    rec.bank_gold = player.get_bank_gold();
 
     InventorySlot equipped[EQUIP_SLOT_COUNT];
     player.dump_equipped(equipped);
@@ -88,6 +100,11 @@ void PlayerDataService::save_player(const Player& player) {
 
     if (!inventory_persistence.save(player.get_name(), player.dump_inventory_records())) {
         std::cerr << "[PlayerDataService] failed to save inventory for '" << player.get_name()
+                  << "'\n";
+    }
+
+    if (!bank_persistence.save(player.get_name(), player.dump_bank_records())) {
+        std::cerr << "[PlayerDataService] failed to save bank for '" << player.get_name()
                   << "'\n";
     }
 }
