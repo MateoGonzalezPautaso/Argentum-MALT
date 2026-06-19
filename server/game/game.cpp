@@ -749,8 +749,6 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     CharacterCreatedEvent created{make_login_ok(p)};
     EntitySpawnEvent spawn = make_entity_spawn(p);
     std::vector<ServerEvent> private_events = {created};
-    auto other_spawns = make_existing_spawns(p.get_id(), p.get_current_map());
-    private_events.insert(private_events.end(), other_spawns.begin(), other_spawns.end());
 
     InventoryUpdateEvent inv_event{p.dump_inventory()};
     private_events.push_back(inv_event);
@@ -762,6 +760,17 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     private_events.push_back(equip_ev);
 
     private_events.push_back(make_player_stats_event(p));
+
+    if (p.get_current_map() != "city") {
+        private_events.push_back(MapTransitionEvent{
+                .map_name = p.get_current_map(),
+                .pos_x = p.pos_x(),
+                .pos_y = p.pos_y(),
+        });
+    }
+
+    auto other_spawns = make_existing_spawns(p.get_id(), p.get_current_map());
+    private_events.insert(private_events.end(), other_spawns.begin(), other_spawns.end());
 
     CommandResult r;
     r.private_events = std::move(private_events);
