@@ -48,6 +48,10 @@ bool Engine::dispatch_menu_event(const SDL_Event& event, GameState& state) {
     if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
         if (menu_ctrl.is_start_hit(event.button.x, event.button.y)) {
             state = GameState::Login;
+        } else if (menu_ctrl.is_audio_hit(event.button.x, event.button.y)) {
+            bool muted = !audio_manager.is_muted();
+            audio_manager.set_muted(muted);
+            menu_ctrl.set_audio_muted(muted);
         }
         return true;
     }

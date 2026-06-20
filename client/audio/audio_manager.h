@@ -21,10 +21,14 @@ public:
     void play_sfx(const std::string& name) const;
     void play_sfx_at(const std::string& name, int source_x, int source_y) const;
     void set_player_position(int x, int y);
+    void set_muted(bool muted);
+    bool is_muted() const { return muted_; }
 
 private:
     int player_x_ = 0;
     int player_y_ = 0;
+    bool muted_ = false;
+    int current_music_volume_ = MIX_MAX_VOLUME;
 
     static constexpr int MAX_HEAR_RANGE = 640;
 

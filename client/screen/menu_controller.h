@@ -12,7 +12,8 @@ public:
 
     void handle_mouse_motion(int x, int y);
     bool is_start_hit(int x, int y) const;
-    bool is_settings_hit(int x, int y) const;
+    bool is_audio_hit(int x, int y) const;
+    void set_audio_muted(bool muted);
     void render();
 
 private:

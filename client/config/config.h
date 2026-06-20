@@ -165,10 +165,10 @@ struct UIConfig {
     int start_y = 568;
     int start_w = 330;
     int start_h = 65;
-    int settings_x = 688;
-    int settings_y = 335;
-    int settings_w = 270;
-    int settings_h = 45;
+    int audio_x = 685;
+    int audio_y = 335;
+    int audio_w = 272;
+    int audio_h = 43;
     std::string font_path = "assets/OUTPUT/Cardo.ttf";
     int font_name_size = 12;
     int font_chat_size = 16;
@@ -178,8 +178,9 @@ struct UIConfig {
     std::string asset_menu_bg = "assets/interface/en_ventanalauncher.bmp";
     std::string asset_start_default = "assets/interface/en_boton-comenzar-default.bmp";
     std::string asset_start_hover = "assets/interface/en_boton-comenzar-over.bmp";
-    std::string asset_settings_default = "assets/interface/en_boton-config-default.bmp";
-    std::string asset_settings_hover = "assets/interface/en_boton-config-over.bmp";
+    std::string asset_audio_default = "assets/interface/en_boton-audio-default.bmp";
+    std::string asset_audio_hover = "assets/interface/en_boton-audio-over.bmp";
+    std::string asset_audio_off = "assets/interface/en_boton-audio-off.bmp";
     std::string asset_login_bg = "assets/BabelUI/static/media/leather_brown..png";
     std::string asset_login_logo = "assets/BabelUI/static/media/ao20_logo_med..png";
     std::string asset_connect_default = "assets/interface/en_boton-conectar-default.bmp";

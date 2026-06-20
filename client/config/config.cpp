@@ -170,10 +170,10 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
         config.ui.start_y = toml_get_int(*tbl, "start_y", config.ui.start_y);
         config.ui.start_w = toml_get_int(*tbl, "start_w", config.ui.start_w);
         config.ui.start_h = toml_get_int(*tbl, "start_h", config.ui.start_h);
-        config.ui.settings_x = toml_get_int(*tbl, "settings_x", config.ui.settings_x);
-        config.ui.settings_y = toml_get_int(*tbl, "settings_y", config.ui.settings_y);
-        config.ui.settings_w = toml_get_int(*tbl, "settings_w", config.ui.settings_w);
-        config.ui.settings_h = toml_get_int(*tbl, "settings_h", config.ui.settings_h);
+        config.ui.audio_x = toml_get_int(*tbl, "audio_x", config.ui.audio_x);
+        config.ui.audio_y = toml_get_int(*tbl, "audio_y", config.ui.audio_y);
+        config.ui.audio_w = toml_get_int(*tbl, "audio_w", config.ui.audio_w);
+        config.ui.audio_h = toml_get_int(*tbl, "audio_h", config.ui.audio_h);
         config.ui.login_title_spacing =
                 toml_get_int(*tbl, "login_title_spacing", config.ui.login_title_spacing);
         config.ui.login_field_spacing =
@@ -296,10 +296,12 @@ void parse_assets_config(const toml::table& root, ClientConfig& config) {
                 toml_get_string(*tbl, "start_default", config.ui.asset_start_default);
         config.ui.asset_start_hover =
                 toml_get_string(*tbl, "start_hover", config.ui.asset_start_hover);
-        config.ui.asset_settings_default =
-                toml_get_string(*tbl, "settings_default", config.ui.asset_settings_default);
-        config.ui.asset_settings_hover =
-                toml_get_string(*tbl, "settings_hover", config.ui.asset_settings_hover);
+        config.ui.asset_audio_default =
+                toml_get_string(*tbl, "audio_default", config.ui.asset_audio_default);
+        config.ui.asset_audio_hover =
+                toml_get_string(*tbl, "audio_hover", config.ui.asset_audio_hover);
+        config.ui.asset_audio_off =
+                toml_get_string(*tbl, "audio_off", config.ui.asset_audio_off);
         config.ui.asset_login_bg = toml_get_string(*tbl, "login_bg", config.ui.asset_login_bg);
         config.ui.asset_login_logo =
                 toml_get_string(*tbl, "login_logo", config.ui.asset_login_logo);

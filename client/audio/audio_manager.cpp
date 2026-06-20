@@ -48,20 +48,30 @@ AudioManager::~AudioManager() {
 }
 
 void AudioManager::play_menu_music() {
-    if (!menu_music_) {
+    if (!menu_music_)
         return;
-    }
-    Mix_VolumeMusic(MIX_MAX_VOLUME);
+    current_music_volume_ = MIX_MAX_VOLUME;
+    Mix_VolumeMusic(muted_ ? 0 : current_music_volume_);
     Mix_PlayMusic(menu_music_, -1);
 }
 
 void AudioManager::play_game_music() {
-    if (!game_music_) {
+    if (!game_music_)
         return;
-    }
-    int volume = static_cast<int>(MIX_MAX_VOLUME * 0.3f);
-    Mix_VolumeMusic(volume);
+    current_music_volume_ = static_cast<int>(MIX_MAX_VOLUME * 0.3f);
+    Mix_VolumeMusic(muted_ ? 0 : current_music_volume_);
     Mix_PlayMusic(game_music_, -1);
+}
+
+void AudioManager::set_muted(bool muted) {
+    muted_ = muted;
+    if (muted) {
+        Mix_VolumeMusic(0);
+        Mix_Volume(-1, 0);
+    } else {
+        Mix_VolumeMusic(current_music_volume_);
+        Mix_Volume(-1, MIX_MAX_VOLUME);
+    }
 }
 
 void AudioManager::play_sfx(const std::string& name) const {
