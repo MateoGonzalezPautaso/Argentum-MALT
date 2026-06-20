@@ -75,6 +75,8 @@ void AudioManager::set_muted(bool muted) {
 }
 
 void AudioManager::play_sfx(const std::string& name) const {
+    if (muted_)
+        return;
     auto it = sfx_.find(name);
     if (it == sfx_.end()) {
         return;
@@ -96,6 +98,8 @@ int AudioManager::distance_volume(int source_x, int source_y) const {
 }
 
 void AudioManager::play_sfx_at(const std::string& name, int source_x, int source_y) const {
+    if (muted_)
+        return;
     auto it = sfx_.find(name);
     if (it == sfx_.end()) {
         return;
