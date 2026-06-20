@@ -131,6 +131,13 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                                                              " de oro");
                     },
                     [this](const BankUpdateEvent& e) { handle_bank_update(e); },
+                    [this](const ItemDroppedEvent& e) {
+                        world_renderer.spawn_ground_item(e.pos.x, e.pos.y, e.item_type,
+                                                         e.item_name);
+                    },
+                    [this](const ItemPickedEvent& e) {
+                        world_renderer.despawn_ground_item(e.pos.x, e.pos.y);
+                    },
                     [](const auto&) {},
             },
             ev);
@@ -197,7 +204,7 @@ void GameController::handle_entity_spawn(const EntitySpawnEvent& e) {
 }
 
 void GameController::load_game_assets() {
-    world_renderer.load_assets(config.tilemap, config.sprites, config.skins);
+    world_renderer.load_assets(config.tilemap, config.sprites, config.skins, config.item_sprites);
 }
 
 void GameController::handle_login_ok(const LoginOkEvent& e) {
@@ -683,6 +690,7 @@ void GameController::handle_map_transition(const MapTransitionEvent& e) {
 
     current_map_name = e.map_name;
     world_renderer.clear_entities();
+    world_renderer.clear_ground_items();
     world_renderer.load_map(it->second);
     world_renderer.set_movable_position(e.pos_x, e.pos_y);
     move_controller.set_position(e.pos_x, e.pos_y);

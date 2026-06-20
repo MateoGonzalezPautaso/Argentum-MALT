@@ -11,6 +11,7 @@
 #include "../config/config.h"
 #include "world/animation_system.h"
 #include "world/camera.h"
+#include "world/ground_item_renderer.h"
 #include "world/prop_renderer.h"
 #include "world/sprite_renderer.h"
 #include "world/tilemap_renderer.h"
@@ -20,7 +21,8 @@ public:
     WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig& background,
                   const ViewportConfig& viewport_cfg, const FontConfig& font_cfg);
     void load_assets(const TilemapConfig& tilemap, const std::vector<SpriteConfig>& sprites_config,
-                     const SkinConfig& skin_config);
+                     const SkinConfig& skin_config,
+                     const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites);
     ~WorldRenderer();
 
     void render();
@@ -63,6 +65,10 @@ public:
     void trigger_damage_overlay_at(int world_x, int world_y);
     void trigger_spell_effect(uint8_t effect_type, int world_x, int world_y);
     bool get_entity_world_position(uint16_t entity_id, int& x, int& y) const;
+
+    void spawn_ground_item(int world_x, int world_y, ItemType type, const std::string& name);
+    void despawn_ground_item(int world_x, int world_y);
+    void clear_ground_items();
     void set_show_hitboxes(bool v) { show_hitboxes_ = v; }
     bool get_show_hitboxes() const { return show_hitboxes_; }
 
@@ -77,8 +83,10 @@ private:
     int window_w;
     int window_h;
 
+    std::unordered_map<uint8_t, ItemSpriteDef> item_sprites_;
     TilemapRenderer tilemap_renderer;
     PropRenderer prop_renderer;
+    GroundItemRenderer ground_item_renderer;
     Camera camera;
     SpriteRenderer sprite_renderer;
     AnimationSystem anim_system;

@@ -17,6 +17,7 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig&
         window_h(viewport_cfg.logical_h),
         tilemap_renderer(renderer),
         prop_renderer(renderer),
+        ground_item_renderer(renderer, item_sprites_),
         camera(viewport_cfg, 0, 0, false, window_w, window_h),
         sprite_renderer(renderer, nullptr, window_w, window_h, false, 0, 0) {
     name_font = TTF_OpenFont(font_cfg.path.c_str(), font_cfg.name_size);
@@ -44,7 +45,9 @@ void WorldRenderer::load_tilemap_data(const TilemapConfig& tilemap) {
 
 void WorldRenderer::load_assets(const TilemapConfig& tilemap,
                                 const std::vector<SpriteConfig>& sprites_config,
-                                const SkinConfig& skin_config) {
+                                const SkinConfig& skin_config,
+                                const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites) {
+    item_sprites_ = item_sprites;
     load_tilemap_data(tilemap);
 
     sprite_renderer.load_sprites(sprites_config);
@@ -90,6 +93,7 @@ void WorldRenderer::render() {
 
     const int foot_y = sprite_renderer.movable_foot_y();
     prop_renderer.render_behind(cam, foot_y);
+    ground_item_renderer.render(cam);
 
     const uint32_t now = SDL_GetTicks();
     anim_system.set_now(now);
@@ -225,3 +229,14 @@ void WorldRenderer::trigger_spell_effect(uint8_t effect_type, int world_x, int w
 bool WorldRenderer::get_entity_world_position(uint16_t entity_id, int& x, int& y) const {
     return sprite_renderer.get_entity_world_position(entity_id, x, y);
 }
+
+void WorldRenderer::spawn_ground_item(int world_x, int world_y, ItemType type,
+                                      const std::string& name) {
+    ground_item_renderer.add_item(world_x, world_y, type, name);
+}
+
+void WorldRenderer::despawn_ground_item(int world_x, int world_y) {
+    ground_item_renderer.remove_item(world_x, world_y);
+}
+
+void WorldRenderer::clear_ground_items() { ground_item_renderer.clear(); }
