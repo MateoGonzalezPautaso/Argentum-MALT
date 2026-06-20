@@ -433,12 +433,14 @@ struct ItemDroppedEvent {
     Position pos;
     ItemType item_type = ItemType::NONE;
     std::string item_name;
+    uint32_t amount = 0;  // > 0 solo cuando item_type == GOLD_DROP
 };
 
 // 0x94
 struct ItemPickedEvent {
     Position pos;
     std::string item_name;
+    uint32_t amount = 0;  // > 0 solo cuando se levantó oro (GOLD_DROP)
 };
 
 // 0x95

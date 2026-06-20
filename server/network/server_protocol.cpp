@@ -405,6 +405,7 @@ void ServerProtocol::send_item_dropped(const ItemDroppedEvent& ev) {
     protocol.send_uint16(ev.pos.y);
     protocol.send_uint8(static_cast<uint8_t>(ev.item_type));
     protocol.send_str(ev.item_name);
+    protocol.send_uint32(ev.amount);
 }
 
 void ServerProtocol::send_item_picked(const ItemPickedEvent& ev) {
@@ -412,6 +413,7 @@ void ServerProtocol::send_item_picked(const ItemPickedEvent& ev) {
     protocol.send_uint16(ev.pos.x);
     protocol.send_uint16(ev.pos.y);
     protocol.send_str(ev.item_name);
+    protocol.send_uint32(ev.amount);
 }
 
 void ServerProtocol::send_bank_update(const BankUpdateEvent& ev) {

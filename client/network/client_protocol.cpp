@@ -513,6 +513,7 @@ ServerEvent ClientProtocol::recv_item_dropped() {
     ev.pos.y = protocol.recv_uint16();
     ev.item_type = static_cast<ItemType>(protocol.recv_uint8());
     ev.item_name = protocol.recv_str();
+    ev.amount = protocol.recv_uint32();
     return ev;
 }
 
@@ -521,6 +522,7 @@ ServerEvent ClientProtocol::recv_item_picked() {
     ev.pos.x = protocol.recv_uint16();
     ev.pos.y = protocol.recv_uint16();
     ev.item_name = protocol.recv_str();
+    ev.amount = protocol.recv_uint32();
     return ev;
 }
 
