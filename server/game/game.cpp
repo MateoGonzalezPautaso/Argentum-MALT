@@ -323,6 +323,7 @@ CommandResult Game::tick() {
     for (auto& ev: res_result.broadcast_events) result.broadcast_events.push_back(std::move(ev));
 
     CommandResult npc_result = combat_controller.update_npc_ai(tick_count);
+    commit_ground_drops(npc_result, npc_result.ground_drops);
     for (auto& ev: npc_result.targeted_events)
         for (auto& se: ev.second) result.targeted_events[ev.first].push_back(std::move(se));
     for (auto& ev: npc_result.broadcast_events) result.broadcast_events.push_back(std::move(ev));
@@ -473,6 +474,7 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
         return {.private_events = {msg}};
     }
     result = combat_controller.melee_attack(player_id, cmd.target_id, tick_count);
+    commit_ground_drops(result, result.ground_drops);
 
     // Convert combat broadcasts to per-map events
     result.map_events = std::move(result.broadcast_events);
@@ -538,6 +540,7 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
         result = combat_controller.spell_attack_player(player_id, cmd.target_id, tick_count);
     else
         result = combat_controller.spell_attack_npc(player_id, cmd.target_id, tick_count);
+    commit_ground_drops(result, result.ground_drops);
     result.map_events = std::move(result.broadcast_events);
     uint8_t effect_type = item->spell_effect_id;
     if (effect_type == 0)
@@ -1089,12 +1092,7 @@ std::vector<ServerEvent> Game::make_existing_ground_items(const std::string& map
         return events;
 
     for (const auto& [cell, vec]: map_it->second) {
-        for (const auto& item: vec) {
-            events.push_back(
-                    ItemDroppedEvent{Position{static_cast<uint16_t>(item.px),
-                                             static_cast<uint16_t>(item.py)},
-                                     item.type, item.name});
-        }
+        for (const auto& item: vec) events.push_back(item);
     }
     return events;
 }
@@ -1106,6 +1104,23 @@ void Game::append_existing_entities(std::vector<ServerEvent>& events, uint16_t e
 
     std::vector<ServerEvent> items = make_existing_ground_items(map_name);
     events.insert(events.end(), items.begin(), items.end());
+}
+
+void Game::commit_ground_drops(
+        CommandResult& result, const std::map<std::string, std::vector<ItemDroppedEvent>>& drops) {
+    for (const auto& [map_name, items]: drops) {
+        auto map_it = maps.find(map_name);
+        if (map_it == maps.end())
+            continue;
+
+        std::vector<uint16_t> player_ids = get_player_ids_on_map(map_name);
+        for (const auto& item: items) {
+            auto cell = tile_cell(map_it->second, item.pos.x, item.pos.y);
+            ground_items[map_name][cell].push_back(item);
+
+            for (uint16_t pid: player_ids) result.targeted_events[pid].push_back(item);
+        }
+    }
 }
 
 Position Game::cell_center_pos(int tile_size, std::pair<int, int> cell) {
@@ -1708,15 +1723,15 @@ CommandResult Game::handle_pickup_item(uint16_t player_id, const PickupItemCmd& 
     if (cell_it == map_it->second.end() || cell_it->second.empty())
         return {.private_events = {not_found_msg}};
 
-    std::vector<GroundItem>& vec = cell_it->second;
-    std::vector<GroundItem>::iterator pick_it;
+    std::vector<ItemDroppedEvent>& vec = cell_it->second;
+    std::vector<ItemDroppedEvent>::iterator pick_it;
     if (cmd.item_name.empty()) {
         pick_it = vec.begin();
     } else {
-        pick_it = std::find_if(vec.begin(), vec.end(), [&](const GroundItem& g) {
-            if (g.name.size() != cmd.item_name.size())
+        pick_it = std::find_if(vec.begin(), vec.end(), [&](const ItemDroppedEvent& g) {
+            if (g.item_name.size() != cmd.item_name.size())
                 return false;
-            return std::equal(g.name.begin(), g.name.end(), cmd.item_name.begin(),
+            return std::equal(g.item_name.begin(), g.item_name.end(), cmd.item_name.begin(),
                               [](unsigned char a, unsigned char b) {
                                   return std::tolower(a) == std::tolower(b);
                               });
@@ -1728,8 +1743,9 @@ CommandResult Game::handle_pickup_item(uint16_t player_id, const PickupItemCmd& 
         }
     }
 
-    const GroundItem ground_item = *pick_it;
-    if (!player.add_item(ground_item.type, ground_item.name)) {
+    const ItemDroppedEvent ground_item = *pick_it;
+    const bool is_gold = ground_item.item_type == ItemType::GOLD_DROP;
+    if (!is_gold && !player.add_item(ground_item.item_type, ground_item.item_name)) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Inventario lleno"};
         return {.private_events = {msg}};
     }
@@ -1737,13 +1753,19 @@ CommandResult Game::handle_pickup_item(uint16_t player_id, const PickupItemCmd& 
     if (vec.empty())
         map_it->second.erase(cell_it);
 
-    Position pos{static_cast<uint16_t>(ground_item.px), static_cast<uint16_t>(ground_item.py)};
-
-    InventoryUpdateEvent inv_ev{player.dump_inventory()};
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Recogiste " + ground_item.name};
     CommandResult result;
-    result.private_events = {msg, inv_ev};
-    result.map_events = {ItemPickedEvent{pos, ground_item.name}};
+    if (is_gold) {
+        player.gain_gold(ground_item.amount);
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                         "Recogiste " + std::to_string(ground_item.amount) + " de oro"};
+        result.private_events = {msg, GoldUpdateEvent{player.get_gold()}};
+    } else {
+        InventoryUpdateEvent inv_ev{player.dump_inventory()};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Recogiste " + ground_item.item_name};
+        result.private_events = {msg, inv_ev};
+    }
+    result.map_events = {
+            ItemPickedEvent{ground_item.pos, ground_item.item_name, ground_item.amount}};
     return result;
 }
 
@@ -1778,19 +1800,17 @@ CommandResult Game::handle_drop_item(uint16_t player_id, const DropItemCmd& cmd)
     const Map& map = player_map(player);
     auto cell = tile_cell(map, static_cast<int>(player.pos_x()), static_cast<int>(player.pos_y()));
 
-    int px = static_cast<int>(player.pos_x());
-    int py = static_cast<int>(player.pos_y());
+    Position pos{player.pos_x(), player.pos_y()};
 
     player.remove_inventory_item(static_cast<uint8_t>(slot_it->slot_index));
-    ground_items[map_name][cell].push_back(GroundItem{item_def->type, item_def->name, px, py});
-
-    Position pos{static_cast<uint16_t>(px), static_cast<uint16_t>(py)};
+    ItemDroppedEvent drop_ev{pos, item_def->type, item_def->name};
+    ground_items[map_name][cell].push_back(drop_ev);
 
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Tiraste " + item_def->name};
     CommandResult result;
     result.private_events = {msg, inv_ev};
-    result.map_events = {ItemDroppedEvent{pos, item_def->type, item_def->name}};
+    result.map_events = {drop_ev};
     return result;
 }
 

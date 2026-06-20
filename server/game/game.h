@@ -51,13 +51,9 @@ private:
     uint16_t next_npc_id = 2000;
     uint32_t mob_spawn_tick = 0;
 
-    struct GroundItem {
-        ItemType type;
-        std::string name;
-        int px = 0, py = 0;  // posición exacta en pixels donde fue dropeado
-    };
     // mapa -> celda (tile_x, tile_y) -> lista de items tirados en el piso
-    std::map<std::string, std::map<std::pair<int, int>, std::vector<GroundItem>>> ground_items;
+    std::map<std::string, std::map<std::pair<int, int>, std::vector<ItemDroppedEvent>>>
+            ground_items;
 
     struct PendingResurrection {
         uint32_t remaining_ticks;
@@ -133,6 +129,8 @@ private:
     std::vector<ServerEvent> make_existing_ground_items(const std::string& map_name) const;
     void append_existing_entities(std::vector<ServerEvent>& events, uint16_t exclude_id,
                                   const std::string& map_name) const;
+    void commit_ground_drops(CommandResult& result,
+                             const std::map<std::string, std::vector<ItemDroppedEvent>>& drops);
     Map& player_map(const Player& p);
     const Map& player_map(const Player& p) const;
     bool try_map_transition(Player& player, CommandResult& result);
