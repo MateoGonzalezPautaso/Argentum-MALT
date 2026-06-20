@@ -1,5 +1,9 @@
 #include "ground_item_renderer.h"
 
+#include <cmath>
+
+#include <SDL2/SDL.h>
+
 #include "../texture_loader.h"
 
 GroundItemRenderer::GroundItemRenderer(
@@ -56,6 +60,8 @@ void GroundItemRenderer::render(const SDL2pp::Rect& cam) {
     const int vw = cam.GetW();
     const int vh = cam.GetH();
 
+    uint32_t ticks = SDL_GetTicks();
+
     for (const auto& [pos, item]: items) {
         int screen_x = pos.first - cam.GetX() - display_size / 2;
         int screen_y = pos.second - cam.GetY() - display_size / 2;
@@ -65,6 +71,10 @@ void GroundItemRenderer::render(const SDL2pp::Rect& cam) {
         if (screen_y + display_size < 0 || screen_y > vh)
             continue;
 
-        draw_item(item, screen_x, screen_y);
+        int phase = (pos.first * 137 + pos.second * 31) % static_cast<int>(float_period_ms_);
+        double t = static_cast<double>((ticks + phase) % float_period_ms_) / float_period_ms_;
+        int float_offset = static_cast<int>(std::round(float_amplitude_ * std::sin(2.0 * M_PI * t)));
+
+        draw_item(item, screen_x, screen_y + float_offset);
     }
 }

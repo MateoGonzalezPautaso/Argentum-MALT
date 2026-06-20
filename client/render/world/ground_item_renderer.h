@@ -34,6 +34,8 @@ private:
     std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>> texture_cache;
     std::map<std::pair<int, int>, GroundItem> items;
     int display_size;
+    int float_amplitude_ = 4;
+    uint32_t float_period_ms_ = 1200;
 
     SDL2pp::Texture* get_or_load_texture(const ItemSpriteDef& def);
     void draw_item(const GroundItem& item, int screen_x, int screen_y);
