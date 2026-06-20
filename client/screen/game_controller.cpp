@@ -136,7 +136,7 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                                                          e.item_name);
                     },
                     [this](const ItemPickedEvent& e) {
-                        world_renderer.despawn_ground_item(e.pos.x, e.pos.y);
+                        world_renderer.despawn_ground_item(e.pos.x, e.pos.y, e.item_name);
                     },
                     [](const auto&) {},
             },
@@ -748,7 +748,9 @@ void GameController::flush_pending_chat() {
     } else if (text == "/curar") {
         command_queue.push(NpcHealCmd{});
     } else if (text == "/tomar") {
-        command_queue.push(PickupItemCmd{});
+        command_queue.push(PickupItemCmd{""});
+    } else if (text.rfind("/tomar ", 0) == 0) {
+        command_queue.push(PickupItemCmd{text.substr(7)});
     } else if (text.rfind("/tirar ", 0) == 0) {
         command_queue.push(DropItemCmd{text.substr(7)});
     } else if (text.rfind("/depositar oro ", 0) == 0) {

@@ -1088,11 +1088,13 @@ std::vector<ServerEvent> Game::make_existing_ground_items(const std::string& map
     if (map_it == ground_items.end())
         return events;
 
-    auto tilemap_it = maps.find(map_name);
-    const int tile_size = tilemap_it != maps.end() ? tilemap_it->second.tile_size() : 0;
-
-    for (const auto& [cell, item]: map_it->second) {
-        events.push_back(ItemDroppedEvent{cell_center_pos(tile_size, cell), item.type, item.name});
+    for (const auto& [cell, vec]: map_it->second) {
+        for (const auto& item: vec) {
+            events.push_back(
+                    ItemDroppedEvent{Position{static_cast<uint16_t>(item.px),
+                                             static_cast<uint16_t>(item.py)},
+                                     item.type, item.name});
+        }
     }
     return events;
 }
@@ -1683,7 +1685,7 @@ std::pair<int, int> Game::tile_cell(const Map& map, int px, int py) {
     return {px / tile_size, py / tile_size};
 }
 
-CommandResult Game::handle_pickup_item(uint16_t player_id, const PickupItemCmd&) {
+CommandResult Game::handle_pickup_item(uint16_t player_id, const PickupItemCmd& cmd) {
     auto it = players.find(player_id);
     if (it == players.end())
         return {};
@@ -1702,24 +1704,46 @@ CommandResult Game::handle_pickup_item(uint16_t player_id, const PickupItemCmd&)
     auto map_it = ground_items.find(map_name);
     if (map_it == ground_items.end())
         return {.private_events = {not_found_msg}};
-    auto item_it = map_it->second.find(cell);
-    if (item_it == map_it->second.end())
+    auto cell_it = map_it->second.find(cell);
+    if (cell_it == map_it->second.end() || cell_it->second.empty())
         return {.private_events = {not_found_msg}};
 
-    const GroundItem ground_item = item_it->second;
+    std::vector<GroundItem>& vec = cell_it->second;
+    std::vector<GroundItem>::iterator pick_it;
+    if (cmd.item_name.empty()) {
+        pick_it = vec.begin();
+    } else {
+        pick_it = std::find_if(vec.begin(), vec.end(), [&](const GroundItem& g) {
+            if (g.name.size() != cmd.item_name.size())
+                return false;
+            return std::equal(g.name.begin(), g.name.end(), cmd.item_name.begin(),
+                              [](unsigned char a, unsigned char b) {
+                                  return std::tolower(a) == std::tolower(b);
+                              });
+        });
+        if (pick_it == vec.end()) {
+            ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                             "No hay '" + cmd.item_name + "' en el piso aquí"};
+            return {.private_events = {msg}};
+        }
+    }
+
+    const GroundItem ground_item = *pick_it;
     if (!player.add_item(ground_item.type, ground_item.name)) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Inventario lleno"};
         return {.private_events = {msg}};
     }
-    map_it->second.erase(item_it);
+    vec.erase(pick_it);
+    if (vec.empty())
+        map_it->second.erase(cell_it);
 
-    Position pos = cell_center_pos(map.tile_size(), cell);
+    Position pos{static_cast<uint16_t>(ground_item.px), static_cast<uint16_t>(ground_item.py)};
 
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Recogiste " + ground_item.name};
     CommandResult result;
     result.private_events = {msg, inv_ev};
-    result.map_events = {ItemPickedEvent{pos}};
+    result.map_events = {ItemPickedEvent{pos, ground_item.name}};
     return result;
 }
 
@@ -1754,16 +1778,13 @@ CommandResult Game::handle_drop_item(uint16_t player_id, const DropItemCmd& cmd)
     const Map& map = player_map(player);
     auto cell = tile_cell(map, static_cast<int>(player.pos_x()), static_cast<int>(player.pos_y()));
 
-    auto map_it = ground_items.find(map_name);
-    if (map_it != ground_items.end() && map_it->second.contains(cell)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Ya hay un objeto en el piso aquí"};
-        return {.private_events = {msg}};
-    }
+    int px = static_cast<int>(player.pos_x());
+    int py = static_cast<int>(player.pos_y());
 
     player.remove_inventory_item(static_cast<uint8_t>(slot_it->slot_index));
-    ground_items[map_name][cell] = GroundItem{item_def->type, item_def->name};
+    ground_items[map_name][cell].push_back(GroundItem{item_def->type, item_def->name, px, py});
 
-    Position pos = cell_center_pos(map.tile_size(), cell);
+    Position pos{static_cast<uint16_t>(px), static_cast<uint16_t>(py)};
 
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Tiraste " + item_def->name};

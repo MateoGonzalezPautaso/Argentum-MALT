@@ -54,9 +54,10 @@ private:
     struct GroundItem {
         ItemType type;
         std::string name;
+        int px = 0, py = 0;  // posición exacta en pixels donde fue dropeado
     };
-    // mapa -> celda (tile_x, tile_y) -> item tirado en el piso
-    std::map<std::string, std::map<std::pair<int, int>, GroundItem>> ground_items;
+    // mapa -> celda (tile_x, tile_y) -> lista de items tirados en el piso
+    std::map<std::string, std::map<std::pair<int, int>, std::vector<GroundItem>>> ground_items;
 
     struct PendingResurrection {
         uint32_t remaining_ticks;

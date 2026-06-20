@@ -1,5 +1,6 @@
 #include "ground_item_renderer.h"
 
+#include <algorithm>
 #include <cmath>
 
 #include <SDL2/SDL.h>
@@ -9,6 +10,7 @@
 namespace {
 constexpr int PHASE_HASH_X_PRIME = 137;
 constexpr int PHASE_HASH_Y_PRIME = 31;
+constexpr int PHASE_HASH_T_PRIME = 53;
 constexpr uint8_t FALLBACK_COLOR = 80;
 constexpr uint8_t FALLBACK_ALPHA = 200;
 }  // namespace
@@ -21,11 +23,20 @@ GroundItemRenderer::GroundItemRenderer(
 
 void GroundItemRenderer::add_item(int world_x, int world_y, ItemType type,
                                   const std::string& name) {
-    items[{world_x, world_y}] = GroundItem{type, name};
+    items[{world_x, world_y}].push_back(GroundItem{type, name});
 }
 
-void GroundItemRenderer::remove_item(int world_x, int world_y) {
-    items.erase({world_x, world_y});
+void GroundItemRenderer::remove_item(int world_x, int world_y, const std::string& item_name) {
+    auto it = items.find({world_x, world_y});
+    if (it == items.end())
+        return;
+    auto& vec = it->second;
+    auto elem = std::find_if(vec.begin(), vec.end(),
+                             [&](const GroundItem& g) { return g.name == item_name; });
+    if (elem != vec.end())
+        vec.erase(elem);
+    if (vec.empty())
+        items.erase(it);
 }
 
 void GroundItemRenderer::clear() { items.clear(); }
@@ -70,7 +81,7 @@ void GroundItemRenderer::render(const SDL2pp::Rect& cam) {
 
     uint32_t ticks = SDL_GetTicks();
 
-    for (const auto& [pos, item]: items) {
+    for (const auto& [pos, vec]: items) {
         int screen_x = pos.first - cam.GetX() - half;
         int screen_y = pos.second - cam.GetY() - half;
 
@@ -79,13 +90,16 @@ void GroundItemRenderer::render(const SDL2pp::Rect& cam) {
         if (screen_y + config_.display_size < 0 || screen_y > vh)
             continue;
 
-        int phase = (pos.first * PHASE_HASH_X_PRIME + pos.second * PHASE_HASH_Y_PRIME) %
-                    static_cast<int>(config_.float_period_ms);
-        double t = static_cast<double>((ticks + phase) % config_.float_period_ms) /
-                   config_.float_period_ms;
-        int float_offset =
-                static_cast<int>(std::round(config_.float_amplitude * std::sin(2.0 * M_PI * t)));
+        for (const auto& item: vec) {
+            int phase = (pos.first * PHASE_HASH_X_PRIME + pos.second * PHASE_HASH_Y_PRIME +
+                         static_cast<int>(item.type) * PHASE_HASH_T_PRIME) %
+                        static_cast<int>(config_.float_period_ms);
+            double t = static_cast<double>((ticks + phase) % config_.float_period_ms) /
+                       config_.float_period_ms;
+            int float_offset = static_cast<int>(
+                    std::round(config_.float_amplitude * std::sin(2.0 * M_PI * t)));
 
-        draw_item(item, screen_x, screen_y + float_offset);
+            draw_item(item, screen_x, screen_y + float_offset);
+        }
     }
 }

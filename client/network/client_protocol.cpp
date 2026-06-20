@@ -92,7 +92,10 @@ void ClientProtocol::send_bank_withdraw(const BankWithdrawCmd& cmd) {
     }
 }
 
-void ClientProtocol::send_pickup_item() { protocol.send_opcode(OpCode::PICKUP_ITEM); }
+void ClientProtocol::send_pickup_item(const PickupItemCmd& cmd) {
+    protocol.send_opcode(OpCode::PICKUP_ITEM);
+    protocol.send_str(cmd.item_name);
+}
 
 void ClientProtocol::send_drop_item(const DropItemCmd& cmd) {
     protocol.send_opcode(OpCode::DROP_ITEM);
@@ -214,7 +217,7 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const NpcSellCmd& msg) { send_npc_sell(msg); },
                        [this](const BankDepositCmd& msg) { send_bank_deposit(msg); },
                        [this](const BankWithdrawCmd& msg) { send_bank_withdraw(msg); },
-                       [this](const PickupItemCmd&) { send_pickup_item(); },
+                       [this](const PickupItemCmd& msg) { send_pickup_item(msg); },
                        [this](const DropItemCmd& msg) { send_drop_item(msg); },
                        [this](const ClanFoundCmd& msg) { send_clan_found(msg); },
                        [this](const ClanJoinRequestCmd& msg) { send_clan_join_request(msg); },
@@ -517,6 +520,7 @@ ServerEvent ClientProtocol::recv_item_picked() {
     ItemPickedEvent ev;
     ev.pos.x = protocol.recv_uint16();
     ev.pos.y = protocol.recv_uint16();
+    ev.item_name = protocol.recv_str();
     return ev;
 }
 

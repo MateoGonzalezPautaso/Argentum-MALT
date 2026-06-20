@@ -21,7 +21,7 @@ public:
     void apply_config(const GroundItemConfig& cfg) { config_ = cfg; }
 
     void add_item(int world_x, int world_y, ItemType type, const std::string& name);
-    void remove_item(int world_x, int world_y);
+    void remove_item(int world_x, int world_y, const std::string& item_name);
     void clear();
     void render(const SDL2pp::Rect& cam);
 
@@ -34,7 +34,7 @@ private:
     SDL2pp::Renderer& renderer;
     const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites;
     std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>> texture_cache;
-    std::map<std::pair<int, int>, GroundItem> items;
+    std::map<std::pair<int, int>, std::vector<GroundItem>> items;
     GroundItemConfig config_;
 
     SDL2pp::Texture* get_or_load_texture(const ItemSpriteDef& def);

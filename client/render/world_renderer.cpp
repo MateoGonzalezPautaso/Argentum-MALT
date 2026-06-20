@@ -241,8 +241,8 @@ void WorldRenderer::spawn_ground_item(int world_x, int world_y, ItemType type,
     ground_item_renderer.add_item(world_x, world_y, type, name);
 }
 
-void WorldRenderer::despawn_ground_item(int world_x, int world_y) {
-    ground_item_renderer.remove_item(world_x, world_y);
+void WorldRenderer::despawn_ground_item(int world_x, int world_y, const std::string& item_name) {
+    ground_item_renderer.remove_item(world_x, world_y, item_name);
 }
 
 void WorldRenderer::clear_ground_items() { ground_item_renderer.clear(); }

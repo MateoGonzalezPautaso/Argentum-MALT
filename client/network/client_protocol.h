@@ -16,7 +16,7 @@ public:
     // TODO ...
     void send_attack(const AttackCmd& cmd);
     void send_cast_spell(const CastSpellCmd& cmd);
-    void send_pickup_item();
+    void send_pickup_item(const PickupItemCmd& cmd);
     void send_drop_item(const DropItemCmd& cmd);
     void send_equip_item(const EquipItemCmd& cmd);
     void send_unequip_item(const UnequipItemCmd& cmd);

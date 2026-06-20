@@ -177,7 +177,9 @@ struct CastSpellCmd {
 };
 
 // 0x06
-struct PickupItemCmd {};
+struct PickupItemCmd {
+    std::string item_name;  // vacío = levantar cualquiera del tile
+};
 
 // 0x07
 struct DropItemCmd {
@@ -436,6 +438,7 @@ struct ItemDroppedEvent {
 // 0x94
 struct ItemPickedEvent {
     Position pos;
+    std::string item_name;
 };
 
 // 0x95

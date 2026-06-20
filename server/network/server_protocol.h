@@ -75,6 +75,7 @@ private:
     ClientCommand recv_bank_deposit();
     ClientCommand recv_bank_withdraw();
     ClientCommand recv_drop_item();
+    ClientCommand recv_pickup_item();
 };
 
 #endif  // SERVER_PROTOCOL_H_

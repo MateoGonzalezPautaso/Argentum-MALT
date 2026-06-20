@@ -70,7 +70,7 @@ public:
     bool get_entity_world_position(uint16_t entity_id, int& x, int& y) const;
 
     void spawn_ground_item(int world_x, int world_y, ItemType type, const std::string& name);
-    void despawn_ground_item(int world_x, int world_y);
+    void despawn_ground_item(int world_x, int world_y, const std::string& item_name);
     void clear_ground_items();
     void set_show_hitboxes(bool v) { show_hitboxes_ = v; }
     bool get_show_hitboxes() const { return show_hitboxes_; }

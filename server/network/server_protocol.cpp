@@ -44,7 +44,7 @@ ClientCommand ServerProtocol::recv_command() {
         case OpCode::BANK_WITHDRAW:
             return recv_bank_withdraw();
         case OpCode::PICKUP_ITEM:
-            return PickupItemCmd{};
+            return recv_pickup_item();
         case OpCode::DROP_ITEM:
             return recv_drop_item();
         case OpCode::CAST_SPELL:
@@ -411,6 +411,7 @@ void ServerProtocol::send_item_picked(const ItemPickedEvent& ev) {
     protocol.send_opcode(OpCode::ITEM_PICKED);
     protocol.send_uint16(ev.pos.x);
     protocol.send_uint16(ev.pos.y);
+    protocol.send_str(ev.item_name);
 }
 
 void ServerProtocol::send_bank_update(const BankUpdateEvent& ev) {
@@ -458,4 +459,8 @@ ClientCommand ServerProtocol::recv_drop_item() {
     DropItemCmd cmd;
     cmd.item_name = protocol.recv_str();
     return cmd;
+}
+
+ClientCommand ServerProtocol::recv_pickup_item() {
+    return PickupItemCmd{protocol.recv_str()};
 }
