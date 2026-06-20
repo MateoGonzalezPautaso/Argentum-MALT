@@ -514,17 +514,21 @@ color_b = 40
 
 [[item_sprites]]
 item_type = "HEALTH_POTION"
+path      = "assets/Graficos/102.png"
+src_x = 0
+src_y = 192
+src_w = 32
+src_h = 32
 category = "Pocion de vida"
-color_r = 40
-color_g = 140
-color_b = 60
 
 [[item_sprites]]
 item_type = "MANA_POTION"
+path      = "assets/Graficos/102.png"
+src_x = 96
+src_y = 192
+src_w = 32
+src_h = 32
 category = "Pocion de mana"
-color_r = 40
-color_g = 140
-color_b = 60
 
 [[equip_overlays]]
 item_type = "SWORD"
