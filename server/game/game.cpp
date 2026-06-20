@@ -153,6 +153,8 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     },
                     [&](const NpcBuyCmd& cmd) { return handle_npc_buy(player_id, cmd); },
                     [&](const NpcSellCmd& cmd) { return handle_npc_sell(player_id, cmd); },
+                    [&](const PickupItemCmd& cmd) { return handle_pickup_item(player_id, cmd); },
+                    [&](const DropItemCmd& cmd) { return handle_drop_item(player_id, cmd); },
                     [&](const ClanFoundCmd& cmd) {
                         return clan_handler.handle_found_clan(player_id, cmd.clan_name);
                     },
@@ -426,11 +428,11 @@ CommandResult Game::process_pending_resurrections() {
 
             player.resurrect();
 
-            std::vector<ServerEvent> existing = make_existing_spawns(player_id, pending.target_map);
-            existing.insert(existing.begin(),
-                            MapTransitionEvent{pending.target_map, pending.target_pos.x,
-                                               pending.target_pos.y});
-            result.targeted_events[player_id] = std::move(existing);
+            std::vector<ServerEvent> private_events;
+            private_events.push_back(MapTransitionEvent{pending.target_map, pending.target_pos.x,
+                                                          pending.target_pos.y});
+            append_existing_entities(private_events, player_id, pending.target_map);
+            result.targeted_events[player_id] = std::move(private_events);
 
             EntitySpawnEvent spawn = make_entity_spawn(player);
             PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
@@ -655,8 +657,7 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
             });
         }
 
-        auto existing = make_existing_spawns(p.get_id(), p.get_current_map());
-        private_events.insert(private_events.end(), existing.begin(), existing.end());
+        append_existing_entities(private_events, p.get_id(), p.get_current_map());
 
         // Notify clan members of login
         CommandResult login_result;
@@ -772,8 +773,7 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
         });
     }
 
-    auto other_spawns = make_existing_spawns(p.get_id(), p.get_current_map());
-    private_events.insert(private_events.end(), other_spawns.begin(), other_spawns.end());
+    append_existing_entities(private_events, p.get_id(), p.get_current_map());
 
     CommandResult r;
     r.private_events = std::move(private_events);
@@ -1077,6 +1077,35 @@ std::string Game::get_player_map_name(uint16_t player_id) const {
     if (it == players.end())
         return "city";
     return it->second.get_current_map();
+}
+
+std::vector<ServerEvent> Game::make_existing_ground_items(const std::string& map_name) const {
+    std::vector<ServerEvent> events;
+    auto map_it = ground_items.find(map_name);
+    if (map_it == ground_items.end())
+        return events;
+
+    auto tilemap_it = maps.find(map_name);
+    const int tile_size = tilemap_it != maps.end() ? tilemap_it->second.tile_size() : 0;
+
+    for (const auto& [cell, item]: map_it->second) {
+        events.push_back(ItemDroppedEvent{cell_center_pos(tile_size, cell), item.type, item.name});
+    }
+    return events;
+}
+
+void Game::append_existing_entities(std::vector<ServerEvent>& events, uint16_t exclude_id,
+                                    const std::string& map_name) const {
+    std::vector<ServerEvent> spawns = make_existing_spawns(exclude_id, map_name);
+    events.insert(events.end(), spawns.begin(), spawns.end());
+
+    std::vector<ServerEvent> items = make_existing_ground_items(map_name);
+    events.insert(events.end(), items.begin(), items.end());
+}
+
+Position Game::cell_center_pos(int tile_size, std::pair<int, int> cell) {
+    return Position{static_cast<uint16_t>(cell.first * tile_size + tile_size / 2),
+                    static_cast<uint16_t>(cell.second * tile_size + tile_size / 2)};
 }
 
 std::vector<uint16_t> Game::get_player_ids_on_map(const std::string& map_name) const {
@@ -1646,6 +1675,101 @@ CommandResult Game::handle_bank_withdraw(uint16_t player_id, const BankWithdrawC
     return {.private_events = {msg, inv_ev, make_bank_update_event(player)}};
 }
 
+std::pair<int, int> Game::tile_cell(const Map& map, int px, int py) {
+    const int tile_size = map.tile_size();
+    return {px / tile_size, py / tile_size};
+}
+
+CommandResult Game::handle_pickup_item(uint16_t player_id, const PickupItemCmd&) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+
+    if (player.is_dead()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden recoger objetos"};
+        return {.private_events = {msg}};
+    }
+
+    const std::string& map_name = player.get_current_map();
+    const Map& map = player_map(player);
+    auto cell = tile_cell(map, static_cast<int>(player.pos_x()), static_cast<int>(player.pos_y()));
+
+    ChatMsgEvent not_found_msg{ChatMsgType::SYSTEM, "", "No hay nada para recoger aquí"};
+    auto map_it = ground_items.find(map_name);
+    if (map_it == ground_items.end())
+        return {.private_events = {not_found_msg}};
+    auto item_it = map_it->second.find(cell);
+    if (item_it == map_it->second.end())
+        return {.private_events = {not_found_msg}};
+
+    const GroundItem ground_item = item_it->second;
+    if (!player.add_item(ground_item.type, ground_item.name)) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Inventario lleno"};
+        return {.private_events = {msg}};
+    }
+    map_it->second.erase(item_it);
+
+    Position pos = cell_center_pos(map.tile_size(), cell);
+
+    InventoryUpdateEvent inv_ev{player.dump_inventory()};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Recogiste " + ground_item.name};
+    CommandResult result;
+    result.private_events = {msg, inv_ev};
+    result.map_events = {ItemPickedEvent{pos}};
+    return result;
+}
+
+CommandResult Game::handle_drop_item(uint16_t player_id, const DropItemCmd& cmd) {
+    auto it = players.find(player_id);
+    if (it == players.end())
+        return {};
+    Player& player = it->second;
+
+    if (player.is_dead()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden tirar objetos"};
+        return {.private_events = {msg}};
+    }
+
+    const Item* item_def = item_catalog.find_by_name(cmd.item_name);
+    if (!item_def) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Objeto '" + cmd.item_name + "' no encontrado"};
+        return {.private_events = {msg}};
+    }
+
+    std::vector<InventorySlot> slots = player.dump_inventory();
+    auto slot_it = std::find_if(slots.begin(), slots.end(), [&](const InventorySlot& slot) {
+        return slot.item_type == item_def->type;
+    });
+    if (slot_it == slots.end()) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
+                         "No tenés '" + item_def->name + "' en el inventario"};
+        return {.private_events = {msg}};
+    }
+
+    const std::string& map_name = player.get_current_map();
+    const Map& map = player_map(player);
+    auto cell = tile_cell(map, static_cast<int>(player.pos_x()), static_cast<int>(player.pos_y()));
+
+    auto map_it = ground_items.find(map_name);
+    if (map_it != ground_items.end() && map_it->second.contains(cell)) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Ya hay un objeto en el piso aquí"};
+        return {.private_events = {msg}};
+    }
+
+    player.remove_inventory_item(static_cast<uint8_t>(slot_it->slot_index));
+    ground_items[map_name][cell] = GroundItem{item_def->type, item_def->name};
+
+    Position pos = cell_center_pos(map.tile_size(), cell);
+
+    InventoryUpdateEvent inv_ev{player.dump_inventory()};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Tiraste " + item_def->name};
+    CommandResult result;
+    result.private_events = {msg, inv_ev};
+    result.map_events = {ItemDroppedEvent{pos, item_def->type, item_def->name}};
+    return result;
+}
+
 CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
     auto it = players.find(player_id);
     if (it == players.end())
@@ -1778,8 +1902,7 @@ void Game::notify_player_transition(CommandResult& result, const Player& player,
             .pos_y = spawn.y,
     });
 
-    std::vector<ServerEvent> others = make_existing_spawns(player.get_id(), map_name);
-    result.private_events.insert(result.private_events.end(), others.begin(), others.end());
+    append_existing_entities(result.private_events, player.get_id(), map_name);
 }
 
 void Game::notify_others_spawn(CommandResult& result, const Player& player,

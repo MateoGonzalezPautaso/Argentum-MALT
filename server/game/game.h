@@ -51,6 +51,13 @@ private:
     uint16_t next_npc_id = 2000;
     uint32_t mob_spawn_tick = 0;
 
+    struct GroundItem {
+        ItemType type;
+        std::string name;
+    };
+    // mapa -> celda (tile_x, tile_y) -> item tirado en el piso
+    std::map<std::string, std::map<std::pair<int, int>, GroundItem>> ground_items;
+
     struct PendingResurrection {
         uint32_t remaining_ticks;
         std::string target_map;
@@ -95,6 +102,10 @@ private:
     CommandResult handle_bank_deposit(uint16_t player_id, const BankDepositCmd& cmd);
     CommandResult handle_bank_withdraw(uint16_t player_id, const BankWithdrawCmd& cmd);
     BankUpdateEvent make_bank_update_event(const Player& p) const;
+    CommandResult handle_pickup_item(uint16_t player_id, const PickupItemCmd& cmd);
+    CommandResult handle_drop_item(uint16_t player_id, const DropItemCmd& cmd);
+    static std::pair<int, int> tile_cell(const Map& map, int px, int py);
+    static Position cell_center_pos(int tile_size, std::pair<int, int> cell);
 
     std::tuple<uint16_t, uint16_t, uint16_t, uint16_t> compute_combat_ranges(const Player& p) const;
     PlayerStatsEvent make_player_stats_event(const Player& p) const;
@@ -118,6 +129,9 @@ private:
     std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id) const;
     std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id,
                                                   const std::string& map_name) const;
+    std::vector<ServerEvent> make_existing_ground_items(const std::string& map_name) const;
+    void append_existing_entities(std::vector<ServerEvent>& events, uint16_t exclude_id,
+                                  const std::string& map_name) const;
     Map& player_map(const Player& p);
     const Map& player_map(const Player& p) const;
     bool try_map_transition(Player& player, CommandResult& result);
