@@ -25,4 +25,4 @@ Arquitectura, protocolo, configuración y detalles de implementación. *(En cons
 ---
 
 
-*Repositorio: [github.com/.../TA045-1C2026](https://github.com/.../TA045-1C2026)*
+*Repositorio: [github.com/.../Argentum-MALT](https://github.com/MateoGonzalezPautaso/Argentum-MALT)*
