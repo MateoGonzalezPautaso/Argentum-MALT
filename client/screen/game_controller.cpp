@@ -735,6 +735,10 @@ void GameController::flush_pending_chat() {
         command_queue.push(ResurrectCmd{});
     } else if (text == "/curar") {
         command_queue.push(NpcHealCmd{});
+    } else if (text == "/tomar") {
+        command_queue.push(PickupItemCmd{});
+    } else if (text.rfind("/tirar ", 0) == 0) {
+        command_queue.push(DropItemCmd{text.substr(7)});
     } else if (text.rfind("/depositar oro ", 0) == 0) {
         try {
             uint32_t amount = static_cast<uint32_t>(std::stoul(text.substr(15)));
