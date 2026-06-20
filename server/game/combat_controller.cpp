@@ -168,6 +168,14 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
                                                        static_cast<int>(attacker.get_level()) + 10,
                                                0));
 
+    if (npc_target.is_dead()) {
+        double random_double = rng.get_random_double(0, 0.1);
+        attacker.gain_experience(random_double * npc_target.get_hp_max() *
+                                  std::max(static_cast<int>(npc_target.get_level()) -
+                                                   static_cast<int>(attacker.get_level()) + 10,
+                                           0));
+    }
+
     bool esquivado_npc = false;
     CommandResult result = notify_entity_attacked(
             attacker, npc_target_id, damage, npc_target.get_hp_current(), npc_target.get_hp_max(),
@@ -320,6 +328,14 @@ CommandResult CombatController::spell_attack_npc(uint16_t attacker_id, uint16_t 
     attacker.gain_experience(damage * std::max(static_cast<int>(npc_target.get_level()) -
                                                        static_cast<int>(attacker.get_level()) + 10,
                                                0));
+
+    if (npc_target.is_dead()) {
+        double random_double = rng.get_random_double(0, 0.1);
+        attacker.gain_experience(random_double * npc_target.get_hp_max() *
+                                  std::max(static_cast<int>(npc_target.get_level()) -
+                                                   static_cast<int>(attacker.get_level()) + 10,
+                                           0));
+    }
 
     CommandResult result = notify_entity_attacked(
             attacker, npc_target_id, damage, npc_target.get_hp_current(), npc_target.get_hp_max(),
