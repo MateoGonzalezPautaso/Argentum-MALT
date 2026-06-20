@@ -1,0 +1,66 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+/* Solarized light palette */
+$solar-base03:  #002b36;
+$solar-base02:  #073642;
+$solar-base01:  #586e75;
+$solar-base00:  #657b83;
+$solar-base0:   #839496;
+$solar-base1:   #93a1a1;
+$solar-base2:   #eee8d5;
+$solar-base3:   #fdf6e3;
+$solar-yellow:  #b58900;
+$solar-orange:  #cb4b16;
+$solar-red:     #dc322f;
+$solar-magenta: #d33682;
+$solar-violet:  #6c71c4;
+$solar-blue:    #268bd2;
+$solar-cyan:    #2aa198;
+$solar-green:   #859900;
+
+body {
+  background-color: $solar-base3;
+  color: $solar-base00;
+}
+
+a {
+  color: $solar-blue;
+}
+
+.site-header {
+  border-top: 5px solid $solar-blue;
+  border-bottom: 1px solid $solar-base2;
+  background-color: $solar-base3;
+}
+
+.site-title {
+  color: $solar-base01;
+  padding-left: 48px;
+  background: url('../images/Mazmorra.png') left center no-repeat;
+  background-size: 40px 40px;
+}
+
+.site-nav .page-link {
+  color: $solar-base00;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: $solar-base01;
+}
+
+pre, code {
+  background-color: $solar-base2;
+  border: 1px solid darken($solar-base2, 5%);
+  color: $solar-base01;
+}
+
+.highlight pre {
+  background-color: $solar-base2;
+}
+
+.post-content {
+  color: $solar-base00;
+}

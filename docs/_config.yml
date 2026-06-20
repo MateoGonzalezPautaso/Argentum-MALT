@@ -2,9 +2,6 @@ title: Argentum Online
 description: Todo sobre el proyecto final de TA045
 theme: minima
 
-minima:
-  skin: solarized
-
 header_pages:
   - index.md
   - manual.md
