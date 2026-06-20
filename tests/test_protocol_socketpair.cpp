@@ -455,7 +455,13 @@ TEST_F(ProtocolTest, MultipleEventsInSequence) {
                                        Direction::SOUTH,
                                        "hero",
                                        Race::HUMAN,
-                                       PlayerClass::WARRIOR});
+                                       PlayerClass::WARRIOR,
+                                       ItemType::NONE,
+                                       ItemType::NONE,
+                                       ItemType::NONE,
+                                       ItemType::NONE,
+                                       0,
+                                       ""});
     server.send_event(EntityMoveEvent{1, {10, 0}, Direction::EAST});
 
     EXPECT_TRUE(std::holds_alternative<LoginOkEvent>(client.recv_event()));

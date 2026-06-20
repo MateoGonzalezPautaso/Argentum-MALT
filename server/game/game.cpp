@@ -1041,6 +1041,7 @@ EntitySpawnEvent Game::make_npc_spawn(const EnemyNpc& npc, uint16_t npc_id) cons
             .entity_race = Race::HUMAN,
             .entity_class = PlayerClass::WARRIOR,
             .sprite_id = npc.get_sprite_id(),
+            .clan_name = "",
     };
 }
 
