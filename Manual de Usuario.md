@@ -372,12 +372,12 @@ Para desequipar un objeto, haz click izquierdo sobre él en el slot del item equ
 
 ### 9.1 Tipos de NPCs
 
-| NPC | Función |
-|-----|---------|
-| **Sacerdote** | Cura al jugador (`/curar`), revive instantáneamente, vende bastones y pociones |
-| **Sanadora** | Revive al jugador con una demora proporcional a la distancia (no vende ítems) |
-| **Mercader** | Compra y vende armas, armaduras y pociones |
-| **Banquero** | Depósito y retiro de ítems y oro (sucursal universal) |
+| NPC | Función | Imagen |
+|-----|---------|--------|
+| **Sacerdote** | Cura al jugador (`/curar`), revive instantáneamente, vende bastones y pociones | ![Sacerdote](docs/images/Sacerdote.png) |
+| **Sanadora** | Revive al jugador con una demora proporcional a la distancia (no vende ítems) | ![Sanadora](docs/images/Sanador.png) |
+| **Mercader** | Compra y vende armas, armaduras y pociones | ![Mercader](docs/images/Mercader.png) |
+| **Banquero** | Depósito y retiro de ítems y oro (sucursal universal) | ![Banquero](docs/images/Banquero.png) |
 
 
 ### 9.2 Zonas seguras vs. zona salvaje
