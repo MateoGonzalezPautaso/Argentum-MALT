@@ -24,7 +24,9 @@ private:
     SDL2pp::Texture background_texture;
     SDL2pp::Texture logo_texture;
     Button connect_button;
-    Button back_button;
+    Button audio_button;
+    SDL2pp::Texture audio_off_texture;
+    bool audio_muted_ = false;
     Button new_account_button;
 
     SDL2pp::Rect background_rect;
@@ -50,11 +52,12 @@ public:
     bool is_username_hit(int x, int y) const;
     bool is_password_hit(int x, int y) const;
     bool is_connect_button_hit(int x, int y) const;
-    bool is_back_button_hit(int x, int y) const;
+    bool is_audio_hit(int x, int y) const;
 
     void set_connect_button_hovered(int x, int y);
-    void set_back_button_hovered(int x, int y);
+    void set_audio_button_hovered(int x, int y);
     void set_new_account_button_hovered(int x, int y);
+    void set_audio_muted(bool muted) { audio_muted_ = muted; }
 
     void set_error(const std::string& text);
     void clear_error();

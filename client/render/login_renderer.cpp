@@ -18,8 +18,10 @@ LoginRenderer::LoginRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
         connect_button(
                 SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_connect_default)),
                 SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_connect_hover))),
-        back_button(SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_back_default)),
-                    SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_back_hover))),
+        audio_button(
+                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_default)),
+                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_hover))),
+        audio_off_texture(renderer, texture::load_surface(ui_cfg.asset_audio_off)),
         new_account_button(
                 SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_new_account_default)),
                 SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_new_account_hover))),
@@ -70,7 +72,16 @@ void LoginRenderer::render() {
                       ui_cfg.placeholder_password);
 
     connect_button.render(renderer);
-    back_button.render(renderer);
+    if (audio_muted_) {
+        renderer.Copy(audio_off_texture, SDL2pp::NullOpt, audio_button.rect);
+        if (audio_button.hovered) {
+            renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
+            renderer.SetDrawColor(255, 255, 255, 50);
+            renderer.FillRect(audio_button.rect);
+        }
+    } else {
+        audio_button.render(renderer);
+    }
     new_account_button.render(renderer);
 
     render_error();
@@ -90,7 +101,7 @@ bool LoginRenderer::is_connect_button_hit(int x, int y) const {
     return connect_button.is_hit(x, y);
 }
 
-bool LoginRenderer::is_back_button_hit(int x, int y) const { return back_button.is_hit(x, y); }
+bool LoginRenderer::is_audio_hit(int x, int y) const { return audio_button.is_hit(x, y); }
 
 bool LoginRenderer::is_new_account_hit(int x, int y) const {
     return new_account_button.is_hit(x, y);
@@ -104,8 +115,8 @@ void LoginRenderer::set_connect_button_hovered(int x, int y) {
     connect_button.hovered = connect_button.is_hit(x, y);
 }
 
-void LoginRenderer::set_back_button_hovered(int x, int y) {
-    back_button.hovered = back_button.is_hit(x, y);
+void LoginRenderer::set_audio_button_hovered(int x, int y) {
+    audio_button.hovered = audio_button.is_hit(x, y);
 }
 
 void LoginRenderer::init_layout() {
@@ -140,9 +151,9 @@ void LoginRenderer::init_layout() {
     const int button_y = password_y + ui_cfg.login_field_h + ui_cfg.login_button_spacing;
     connect_button.set_position(button_x, button_y, button_w, button_h);
 
-    const int back_w = back_button.default_tex.GetWidth();
-    const int back_h = back_button.default_tex.GetHeight();
-    back_button.set_position(ui_cfg.back_button_x, ui_cfg.back_button_y, back_w, back_h);
+    const int audio_w = audio_button.default_tex.GetWidth();
+    const int audio_h = audio_button.default_tex.GetHeight();
+    audio_button.set_position(ui_cfg.back_button_x, ui_cfg.back_button_y, audio_w, audio_h);
 
     const int na_w = new_account_button.default_tex.GetWidth();
     const int na_h = new_account_button.default_tex.GetHeight();

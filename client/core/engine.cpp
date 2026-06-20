@@ -48,6 +48,7 @@ bool Engine::dispatch_menu_event(const SDL_Event& event, GameState& state) {
     if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
         if (menu_ctrl.is_start_hit(event.button.x, event.button.y)) {
             state = GameState::Login;
+            login_ctrl.set_audio_muted(audio_manager.is_muted());
         } else if (menu_ctrl.is_audio_hit(event.button.x, event.button.y)) {
             bool muted = !audio_manager.is_muted();
             audio_manager.set_muted(muted);
@@ -66,6 +67,15 @@ void Engine::dispatch_login_event(const SDL_Event& event, GameState& state) {
     if (event.type == SDL_MOUSEMOTION) {
         login_ctrl.handle_mouse_motion(event.motion.x, event.motion.y);
         return;
+    }
+    if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+        if (login_ctrl.is_audio_hit(event.button.x, event.button.y)) {
+            bool muted = !audio_manager.is_muted();
+            audio_manager.set_muted(muted);
+            menu_ctrl.set_audio_muted(muted);
+            login_ctrl.set_audio_muted(muted);
+            return;
+        }
     }
     login_ctrl.handle_event(event);
     if (login_ctrl.wants_create_character()) {

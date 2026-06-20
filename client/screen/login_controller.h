@@ -27,6 +27,9 @@ public:
     bool wants_create_character() const { return create_char_requested; }
     void reset_create_char_request() { create_char_requested = false; }
 
+    bool is_audio_hit(int x, int y) const;
+    void set_audio_muted(bool muted);
+
     void render();
 
 private:
