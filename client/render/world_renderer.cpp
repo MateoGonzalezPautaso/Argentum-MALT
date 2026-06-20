@@ -214,6 +214,10 @@ void WorldRenderer::step_entity_src_x(uint16_t entity_id, int step, int frame_co
     sprite_renderer.step_entity_src_x(entity_id, step, frame_count);
 }
 
+void WorldRenderer::note_entity_moved(uint16_t entity_id) {
+    sprite_renderer.note_entity_moved(entity_id);
+}
+
 void WorldRenderer::set_entity_alpha(uint16_t entity_id, uint8_t alpha) {
     sprite_renderer.set_entity_alpha(entity_id, alpha);
 }

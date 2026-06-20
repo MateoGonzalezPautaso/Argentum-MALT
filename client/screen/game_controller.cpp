@@ -150,6 +150,7 @@ void GameController::handle_entity_move(const EntityMoveEvent& e) {
         return;
     }
     world_renderer.move_entity(e.entity_id, e.entity_pos.x, e.entity_pos.y);
+    world_renderer.note_entity_moved(e.entity_id);
     world_renderer.set_entity_src_y(e.entity_id, move_config.body_src_y_for(e.entity_dir),
                                     move_config.head_src_y_for(e.entity_dir));
     world_renderer.step_entity_src_x(e.entity_id, move_config.walk_src_step,

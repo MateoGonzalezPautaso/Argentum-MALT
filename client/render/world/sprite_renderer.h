@@ -56,6 +56,7 @@ public:
     void set_anchor_src_y(int y);
     void set_entity_src_y(uint16_t entity_id, int body_src_y, int head_src_y);
     void step_entity_src_x(uint16_t entity_id, int step, int frame_count);
+    void note_entity_moved(uint16_t entity_id);
     void set_entity_alpha(uint16_t entity_id, uint8_t alpha);
     void set_movable_alpha(uint8_t alpha);
     void update_anchor_positions();
@@ -167,6 +168,8 @@ private:
     std::unordered_map<uint16_t, int> entity_frame_w_;
     std::unordered_map<uint16_t, int> entity_frame_h_;
     std::unordered_map<uint16_t, int> entity_base_src_x_;
+    std::unordered_map<uint16_t, int> entity_base_src_y_;
+    std::unordered_map<uint16_t, uint32_t> entity_last_move_tick_;
     SkinConfig skin_config;
     std::vector<OverlayEffect> overlays;
     std::unordered_map<uint8_t, std::vector<OverlayEffect>> spell_overlay_pools;

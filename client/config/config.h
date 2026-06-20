@@ -223,6 +223,10 @@ struct NpcSkinDef {
     int src_x = 0;
     int src_y = 0;
     int frames_per_dir = 4;
+    int walk_row_offset = 4;
+    bool swap_lr = false;
+    std::vector<int> row_positions;
+    std::vector<int> frame_positions;
 };
 
 struct SkinConfig {
@@ -264,8 +268,25 @@ struct SkinConfig {
         auto it = npc.find(sprite_id);
         return it != npc.end() ? it->second.frames_per_dir : 0;
     }
+    int npc_walk_row_offset(uint16_t sprite_id) {
+        auto it = npc.find(sprite_id);
+        return it != npc.end() ? it->second.walk_row_offset : 0;
+    }
+    bool npc_swap_lr(uint16_t sprite_id) {
+        auto it = npc.find(sprite_id);
+        return it != npc.end() ? it->second.swap_lr : false;
+    }
+    const std::vector<int>& npc_row_positions(uint16_t sprite_id) {
+        auto it = npc.find(sprite_id);
+        return it != npc.end() ? it->second.row_positions : empty_vec;
+    }
+    const std::vector<int>& npc_frame_positions(uint16_t sprite_id) {
+        auto it = npc.find(sprite_id);
+        return it != npc.end() ? it->second.frame_positions : empty_vec;
+    }
 
 private:
+    std::vector<int> empty_vec;
     static std::string class_to_skin_key(PlayerClass pc) {
         switch (pc) {
             case PlayerClass::MAGE:

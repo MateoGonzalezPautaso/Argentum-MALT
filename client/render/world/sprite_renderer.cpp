@@ -195,6 +195,7 @@ void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::s
         entity_frame_w_[entity_id] = skin_config.npc_frame_w(sprite_id);
         entity_frame_h_[entity_id] = skin_config.npc_frame_h(sprite_id);
         entity_base_src_x_[entity_id] = skin_config.npc_src_x(sprite_id);
+        entity_base_src_y_[entity_id] = skin_config.npc_src_y(sprite_id);
     }
     auto parts = build_entity_parts(x, y, race, player_class, sprite_id);
     if (parts.empty()) {
@@ -216,6 +217,10 @@ void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::s
     create_entity_name_label(entity_id, name);
 }
 
+void SpriteRenderer::note_entity_moved(uint16_t entity_id) {
+    entity_last_move_tick_[entity_id] = SDL_GetTicks();
+}
+
 void SpriteRenderer::despawn_entity(uint16_t entity_id) {
     entity_sprites.erase(entity_id);
     entity_name_render.erase(entity_id);
@@ -224,6 +229,8 @@ void SpriteRenderer::despawn_entity(uint16_t entity_id) {
     entity_frame_w_.erase(entity_id);
     entity_frame_h_.erase(entity_id);
     entity_base_src_x_.erase(entity_id);
+    entity_base_src_y_.erase(entity_id);
+    entity_last_move_tick_.erase(entity_id);
 }
 
 void SpriteRenderer::clear_all_entities() {
@@ -234,6 +241,8 @@ void SpriteRenderer::clear_all_entities() {
     entity_frame_w_.clear();
     entity_frame_h_.clear();
     entity_base_src_x_.clear();
+    entity_base_src_y_.clear();
+    entity_last_move_tick_.clear();
 }
 
 void SpriteRenderer::set_skin_config(const SkinConfig& cfg) { skin_config = cfg; }
@@ -454,15 +463,41 @@ void SpriteRenderer::set_entity_src_y(uint16_t entity_id, int body_src_y, int he
     }
     auto fh_it = entity_frame_h_.find(entity_id);
     int dir_index = body_src_y / 48;  // 0=down, 1=up, 2=left, 3=right
+    auto sid_it = entity_sprite_ids.find(entity_id);
+    if (sid_it != entity_sprite_ids.end() && skin_config.npc_swap_lr(sid_it->second)) {
+        if (dir_index == 2) dir_index = 3;
+        else if (dir_index == 3) dir_index = 2;
+    }
+    bool is_walking = false;
+    auto tick_it = entity_last_move_tick_.find(entity_id);
+    if (tick_it != entity_last_move_tick_.end()) {
+        uint32_t elapsed = SDL_GetTicks() - tick_it->second;
+        if (elapsed < 600)  // walking animation visible for 600ms after last move
+            is_walking = true;
+    }
     for (auto& sprite: it->second) {
         if (!sprite.use_src) {
             continue;
         }
         if (sprite.movable) {
-            if (fh_it != entity_frame_h_.end() && fh_it->second > 0)
-                sprite.src.SetY(dir_index * fh_it->second);
-            else
+            if (fh_it != entity_frame_h_.end() && fh_it->second > 0) {
+                int offset = is_walking ? skin_config.npc_walk_row_offset(
+                        entity_sprite_ids.at(entity_id)) : 0;
+                int row = dir_index + offset;
+                const auto& rp = skin_config.npc_row_positions(
+                        entity_sprite_ids.at(entity_id));
+                if (!rp.empty()) {
+                    int idx = std::min(row, static_cast<int>(rp.size()) - 1);
+                    idx = std::max(idx, 0);
+                    sprite.src.SetY(rp[idx]);
+                } else {
+                    int base_y = entity_base_src_y_.count(entity_id) ?
+                                         entity_base_src_y_.at(entity_id) : 0;
+                    sprite.src.SetY(base_y + row * fh_it->second);
+                }
+            } else {
                 sprite.src.SetY(body_src_y);
+            }
         } else if (sprite.anchor_to_movable) {
             sprite.src.SetY(head_src_y);
         }
@@ -474,14 +509,46 @@ void SpriteRenderer::step_entity_src_x(uint16_t entity_id, int step, int frame_c
     if (it == entity_sprites.end()) {
         return;
     }
-    // NPCs don't animate horizontally — their walk frames are on different rows
-    if (entity_frame_w_.count(entity_id))
-        return;
+    auto fw_it = entity_frame_w_.find(entity_id);
+    auto bx_it = entity_base_src_x_.find(entity_id);
     for (auto& sprite: it->second) {
         if (!sprite.movable) {
             continue;
         }
-        advance_src_x(sprite, step, frame_count);
+        if (fw_it != entity_frame_w_.end() && fw_it->second > 0 &&
+            bx_it != entity_base_src_x_.end()) {
+            const auto& fp = skin_config.npc_frame_positions(
+                    entity_sprite_ids.at(entity_id));
+            if (!fp.empty()) {
+                int current_x = sprite.src.GetX();
+                int current_idx = -1;
+                for (size_t i = 0; i < fp.size(); ++i) {
+                    if (fp[i] == current_x) {
+                        current_idx = static_cast<int>(i);
+                        break;
+                    }
+                }
+                if (current_idx < 0)
+                    current_idx = 0;
+                int next_idx = (current_idx + 1) % static_cast<int>(fp.size());
+                sprite.src.SetX(fp[next_idx]);
+            } else {
+                int npc_step = fw_it->second;
+                int npc_frames = skin_config.npc_frames_per_dir(
+                        entity_sprite_ids.at(entity_id));
+                if (npc_frames <= 0)
+                    npc_frames = frame_count;
+                if (npc_frames <= 1)
+                    continue;
+                int current = (sprite.src.GetX() - bx_it->second) / npc_step;
+                if (current < 0)
+                    current = 0;
+                int next = (current + 1) % npc_frames;
+                sprite.src.SetX(bx_it->second + next * npc_step);
+            }
+        } else {
+            advance_src_x(sprite, step, frame_count);
+        }
     }
 }
 
