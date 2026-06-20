@@ -1,4 +1,5 @@
 title: Argentum Online
-description: MMORPG argentino — Manual, documentación y recursos
-theme: jekyll-theme-cayman
+description: Todo sobre el proyecto final de TA045
+theme: jekyll-theme-minima
+logo: images/Mazmorra.png
 show_downloads: false

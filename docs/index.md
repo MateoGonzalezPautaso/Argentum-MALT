@@ -14,10 +14,14 @@ Estilo gráfico 2D top-down y ambientación de fantasía medieval. Creá tu pers
 
 ## Secciones
 
-|  |  |
-|---|---|
-| [📖 **Manual de Usuario**](manual) | Guía completa del juego: instalación, controles, combate, ítems, clanes, comandos y más. |
-| [🔧 **Documentación técnica**](documentacion) | Arquitectura, protocolo, configuración y detalles de implementación. *(En construcción)* |
+
+**[Manual de Usuario](manual)**
+
+Guía completa del juego: instalación, controles, combate, ítems, clanes, comandos y más.
+
+**[Documentación técnica](documentacion)**
+
+Arquitectura, protocolo, configuración y detalles de implementación. *(En construcción)*
 
 ---
 
