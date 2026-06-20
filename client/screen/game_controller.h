@@ -64,7 +64,7 @@ private:
     void handle_login_ok(const LoginOkEvent& e);
     void handle_damage_received(const DamageReceivedEvent& e);
     void handle_attack_dodged(const AttackDodgedEvent& e);
-    void interact_with_prop(const std::string& prop_name);
+    void interact_with_prop(const std::string& prop_name, int world_x, int world_y);
     bool is_clickable_prop(const std::string& prop_name) const;
     bool is_transition_prop(const std::string& prop_name) const;
     void handle_chat_msg(const ChatMsgEvent& e);

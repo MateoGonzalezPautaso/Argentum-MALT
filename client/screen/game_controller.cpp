@@ -264,22 +264,22 @@ void GameController::handle_damage_received(const DamageReceivedEvent& e) {
     world_renderer.trigger_damage_overlay_at(wx, wy);
 }
 
-void GameController::interact_with_prop(const std::string& prop_name) {
+void GameController::interact_with_prop(const std::string& prop_name, int world_x, int world_y) {
     if (prop_name == "sacerdote") {
-        audio_manager.play_sfx("priest");
+        audio_manager.play_sfx_at("priest", world_x, world_y);
         chat_history.add_message(ChatMsgType::SYSTEM, "", "Sacerdote: ¡SHALOM!");
         merchant_controller->open(false);
     } else if (prop_name == "comerciante") {
-        audio_manager.play_sfx("merchant");
+        audio_manager.play_sfx_at("merchant", world_x, world_y);
         chat_history.add_message(ChatMsgType::SYSTEM, "",
                                  "Comerciante: Pasa, todo lo que ves esta en venta.");
         merchant_controller->open(true);
     } else if (prop_name == "banquero") {
-        audio_manager.play_sfx("banker");
+        audio_manager.play_sfx_at("banker", world_x, world_y);
         chat_history.add_message(ChatMsgType::SYSTEM, "",
                                  "Banquero: El que deposita dolares, recibira dolares...");
     } else if (prop_name == "sanadora") {
-        audio_manager.play_sfx("healer");
+        audio_manager.play_sfx_at("healer", world_x, world_y);
         chat_history.add_message(ChatMsgType::SYSTEM, "", "Sanadora: Dejame ver esa herida.");
     } else if (is_transition_prop(prop_name)) {
         command_queue.push(ChangeMapCmd{prop_name});
@@ -565,7 +565,7 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
         if (event.button.button == SDL_BUTTON_LEFT) {
             std::string prop_name;
             if (world_renderer.hit_test_prop(world_x, world_y, prop_name)) {
-                interact_with_prop(prop_name);
+                interact_with_prop(prop_name, world_x, world_y);
                 return true;
             }
         }
