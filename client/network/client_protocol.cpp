@@ -92,6 +92,13 @@ void ClientProtocol::send_bank_withdraw(const BankWithdrawCmd& cmd) {
     }
 }
 
+void ClientProtocol::send_pickup_item() { protocol.send_opcode(OpCode::PICKUP_ITEM); }
+
+void ClientProtocol::send_drop_item(const DropItemCmd& cmd) {
+    protocol.send_opcode(OpCode::DROP_ITEM);
+    protocol.send_str(cmd.item_name);
+}
+
 void ClientProtocol::send_cheat_infinite_hp() { protocol.send_opcode(OpCode::CHEAT_INFINITE_HP); }
 
 void ClientProtocol::send_cheat_infinite_mana() {
@@ -207,6 +214,8 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const NpcSellCmd& msg) { send_npc_sell(msg); },
                        [this](const BankDepositCmd& msg) { send_bank_deposit(msg); },
                        [this](const BankWithdrawCmd& msg) { send_bank_withdraw(msg); },
+                       [this](const PickupItemCmd&) { send_pickup_item(); },
+                       [this](const DropItemCmd& msg) { send_drop_item(msg); },
                        [this](const ClanFoundCmd& msg) { send_clan_found(msg); },
                        [this](const ClanJoinRequestCmd& msg) { send_clan_join_request(msg); },
                        [this](const ClanReviewCmd&) { send_clan_review(); },
@@ -301,6 +310,10 @@ ServerEvent ClientProtocol::recv_event() {
             return recv_npc_item_list();
         case OpCode::BANK_UPDATE:
             return recv_bank_update();
+        case OpCode::ITEM_DROPPED:
+            return recv_item_dropped();
+        case OpCode::ITEM_PICKED:
+            return recv_item_picked();
         default:
             throw std::runtime_error("Unknown event opcode: " +
                                      std::to_string(static_cast<int>(opcode)));
@@ -488,6 +501,22 @@ ServerEvent ClientProtocol::recv_bank_update() {
     }
     uint32_t gold = protocol.recv_uint32();
     return BankUpdateEvent{std::move(slots), gold};
+}
+
+ServerEvent ClientProtocol::recv_item_dropped() {
+    ItemDroppedEvent ev;
+    ev.pos.x = protocol.recv_uint16();
+    ev.pos.y = protocol.recv_uint16();
+    ev.item_type = static_cast<ItemType>(protocol.recv_uint8());
+    ev.item_name = protocol.recv_str();
+    return ev;
+}
+
+ServerEvent ClientProtocol::recv_item_picked() {
+    ItemPickedEvent ev;
+    ev.pos.x = protocol.recv_uint16();
+    ev.pos.y = protocol.recv_uint16();
+    return ev;
 }
 
 ServerEvent ClientProtocol::recv_npc_item_list() {

@@ -43,6 +43,10 @@ ClientCommand ServerProtocol::recv_command() {
             return recv_bank_deposit();
         case OpCode::BANK_WITHDRAW:
             return recv_bank_withdraw();
+        case OpCode::PICKUP_ITEM:
+            return PickupItemCmd{};
+        case OpCode::DROP_ITEM:
+            return recv_drop_item();
         case OpCode::CAST_SPELL:
             return recv_cast_spell();
         case OpCode::CHEAT_INFINITE_HP:
@@ -376,6 +380,8 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [this](const GoldUpdateEvent& msg) { send_gold_update(msg); },
                        [this](const NpcItemListEvent& msg) { send_npc_item_list(msg); },
                        [this](const BankUpdateEvent& msg) { send_bank_update(msg); },
+                       [this](const ItemDroppedEvent& msg) { send_item_dropped(msg); },
+                       [this](const ItemPickedEvent& msg) { send_item_picked(msg); },
                        [](const auto&) { throw std::runtime_error("Event type not implemented"); },
                },
                ev);
@@ -390,6 +396,20 @@ void ServerProtocol::send_npc_item_list(const NpcItemListEvent& ev) {
         protocol.send_uint8(item.sprite_id);
         protocol.send_uint32(item.price);
     }
+}
+
+void ServerProtocol::send_item_dropped(const ItemDroppedEvent& ev) {
+    protocol.send_opcode(OpCode::ITEM_DROPPED);
+    protocol.send_uint16(ev.pos.x);
+    protocol.send_uint16(ev.pos.y);
+    protocol.send_uint8(static_cast<uint8_t>(ev.item_type));
+    protocol.send_str(ev.item_name);
+}
+
+void ServerProtocol::send_item_picked(const ItemPickedEvent& ev) {
+    protocol.send_opcode(OpCode::ITEM_PICKED);
+    protocol.send_uint16(ev.pos.x);
+    protocol.send_uint16(ev.pos.y);
 }
 
 void ServerProtocol::send_bank_update(const BankUpdateEvent& ev) {
@@ -430,5 +450,11 @@ ClientCommand ServerProtocol::recv_bank_withdraw() {
     } else {
         cmd.item_name = protocol.recv_str();
     }
+    return cmd;
+}
+
+ClientCommand ServerProtocol::recv_drop_item() {
+    DropItemCmd cmd;
+    cmd.item_name = protocol.recv_str();
     return cmd;
 }
