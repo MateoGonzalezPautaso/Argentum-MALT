@@ -77,6 +77,14 @@ void GameController::render() {
     ui_renderer.render_stat_tooltips(mouse_x, mouse_y);
     if (merchant_controller->is_open())
         merchant_controller->render();
+
+    {
+        int px, py;
+        if (world_renderer.get_movable_position(px, py)) {
+            audio_manager.set_player_position(px, py);
+        }
+    }
+
     renderer.Present();
 }
 
@@ -88,14 +96,17 @@ void GameController::apply_server_event(const ServerEvent& ev) {
                     [this](const LoginOkEvent& e) { handle_login_ok(e); },
                     [this](const EntityDespawnEvent& e) { handle_entity_despawn(e); },
                     [this](const DamageReceivedEvent& e) {
-                        audio_manager.play_sfx("hit");
+                        uint16_t src = (e.target_id == player_stats.player_id)
+                                               ? e.attacker_id
+                                               : e.target_id;
+                        play_spatial_sfx("hit", src);
                         handle_damage_received(e);
                     },
-                    [this](const DamageDealtEvent&) {
+                    [this](const DamageDealtEvent& e) {
                         auto weapon = player_stats.equipped[0].item_type;
                         auto it = weapon_sounds.find(weapon);
                         if (it != weapon_sounds.end()) {
-                            audio_manager.play_sfx(it->second);
+                            play_spatial_sfx(it->second, e.target_id);
                         }
                     },
                     [this](const AttackDodgedEvent& e) { handle_attack_dodged(e); },
@@ -728,6 +739,15 @@ void GameController::handle_player_stats(const PlayerStatsEvent& e) {
     player_stats.dodge_chance = e.dodge_chance;
     player_stats.strength = e.strength;
     player_stats.agility = e.agility;
+}
+
+void GameController::play_spatial_sfx(const std::string& name, uint16_t entity_id) {
+    int sx, sy;
+    if (world_renderer.get_entity_world_position(entity_id, sx, sy)) {
+        audio_manager.play_sfx_at(name, sx, sy);
+    } else {
+        audio_manager.play_sfx(name);
+    }
 }
 
 void GameController::flush_pending_chat() {
