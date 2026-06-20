@@ -221,6 +221,11 @@ void SpriteRenderer::note_entity_moved(uint16_t entity_id) {
     entity_last_move_tick_[entity_id] = SDL_GetTicks();
 }
 
+void SpriteRenderer::set_entity_clan_name(uint16_t entity_id, const std::string& name) {
+    if (!name.empty())
+        entity_clan_name_[entity_id] = name;
+}
+
 void SpriteRenderer::despawn_entity(uint16_t entity_id) {
     entity_sprites.erase(entity_id);
     entity_name_render.erase(entity_id);
@@ -231,6 +236,7 @@ void SpriteRenderer::despawn_entity(uint16_t entity_id) {
     entity_base_src_x_.erase(entity_id);
     entity_base_src_y_.erase(entity_id);
     entity_last_move_tick_.erase(entity_id);
+    entity_clan_name_.erase(entity_id);
 }
 
 void SpriteRenderer::clear_all_entities() {
@@ -243,6 +249,7 @@ void SpriteRenderer::clear_all_entities() {
     entity_base_src_x_.clear();
     entity_base_src_y_.clear();
     entity_last_move_tick_.clear();
+    entity_clan_name_.clear();
 }
 
 void SpriteRenderer::set_skin_config(const SkinConfig& cfg) { skin_config = cfg; }
@@ -711,8 +718,21 @@ void SpriteRenderer::render_entity_names(const SDL2pp::Rect& cam) {
         auto& body = pair.second[0];
         const int name_x = body.dst.GetX() + (body.dst.GetW() - name_it->second.w) / 2 - cam.GetX();
         const int name_y = body.dst.GetY() - name_it->second.h - 24 - cam.GetY();
+
+        SDL_Color color = {255, 255, 255, 255};
+        if (entity_sprite_ids.count(eid))
+            color = {255, 80, 80, 255};
+        else if (!local_clan_name.empty()) {
+            auto clan_it = entity_clan_name_.find(eid);
+            if (clan_it != entity_clan_name_.end() && clan_it->second == local_clan_name)
+                color = {80, 255, 80, 255};
+        }
+
+        SDL_Texture* tex = name_it->second.texture.Get();
+        SDL_SetTextureColorMod(tex, color.r, color.g, color.b);
         renderer.Copy(name_it->second.texture, SDL2pp::NullOpt,
                       SDL2pp::Rect(name_x, name_y, name_it->second.w, name_it->second.h));
+        SDL_SetTextureColorMod(tex, 255, 255, 255);
     }
 }
 

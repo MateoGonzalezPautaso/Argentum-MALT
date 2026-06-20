@@ -21,6 +21,10 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
         hp_bar_texture(renderer, texture::load_surface(ui_cfg.asset_hp_bar)),
         mp_bar_texture(renderer, texture::load_surface(ui_cfg.asset_mp_bar)),
         exp_bar_texture(renderer, texture::load_surface(ui_cfg.asset_exp_bar)),
+        audio_button(
+                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_default)),
+                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_hover))),
+        audio_off_texture(renderer, texture::load_surface(ui_cfg.asset_audio_off)),
         ui_frame_rect(0, 0, ui_cfg.window_w, ui_cfg.window_h),
         chat_input_rect(ui_cfg.chat_input_x, ui_cfg.chat_input_y, ui_cfg.chat_input_w,
                         ui_cfg.chat_input_h),
@@ -37,6 +41,8 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
         throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
     }
     inventory_renderer.set_font(bar_font);
+    audio_button.set_position(ui_cfg.game_audio_x, ui_cfg.game_audio_y,
+                              ui_cfg.game_audio_w, ui_cfg.game_audio_h);
 }
 
 UIRenderer::~UIRenderer() {
@@ -52,6 +58,25 @@ UIRenderer::~UIRenderer() {
 
 void UIRenderer::render_frame_background() {
     renderer.Copy(ui_frame_texture, SDL2pp::NullOpt, ui_frame_rect);
+}
+
+void UIRenderer::render_audio_button() {
+    if (audio_muted_) {
+        renderer.Copy(audio_off_texture, SDL2pp::NullOpt, audio_button.rect);
+        if (audio_button.hovered) {
+            renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
+            renderer.SetDrawColor(255, 255, 255, 50);
+            renderer.FillRect(audio_button.rect);
+        }
+    } else {
+        audio_button.render(renderer);
+    }
+}
+
+bool UIRenderer::is_audio_hit(int x, int y) const { return audio_button.is_hit(x, y); }
+
+void UIRenderer::set_audio_button_hovered(int x, int y) {
+    audio_button.hovered = audio_button.is_hit(x, y);
 }
 
 void UIRenderer::render_chat_input() {

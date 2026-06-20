@@ -435,6 +435,7 @@ ServerEvent ClientProtocol::recv_entity_spawn() {
     ev.helmet_type = static_cast<ItemType>(protocol.recv_uint8());
     ev.shield_type = static_cast<ItemType>(protocol.recv_uint8());
     ev.sprite_id = protocol.recv_uint16();
+    ev.clan_name = protocol.recv_str();
     return ev;
 }
 

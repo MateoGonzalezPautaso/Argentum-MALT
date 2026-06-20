@@ -218,6 +218,14 @@ void WorldRenderer::note_entity_moved(uint16_t entity_id) {
     sprite_renderer.note_entity_moved(entity_id);
 }
 
+void WorldRenderer::set_local_clan_name(const std::string& name) {
+    sprite_renderer.set_local_clan_name(name);
+}
+
+void WorldRenderer::set_entity_clan_name(uint16_t entity_id, const std::string& name) {
+    sprite_renderer.set_entity_clan_name(entity_id, name);
+}
+
 void WorldRenderer::set_entity_alpha(uint16_t entity_id, uint8_t alpha) {
     sprite_renderer.set_entity_alpha(entity_id, alpha);
 }

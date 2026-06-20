@@ -57,6 +57,8 @@ public:
     void set_entity_src_y(uint16_t entity_id, int body_src_y, int head_src_y);
     void step_entity_src_x(uint16_t entity_id, int step, int frame_count);
     void note_entity_moved(uint16_t entity_id);
+    void set_local_clan_name(const std::string& name) { local_clan_name = name; }
+    void set_entity_clan_name(uint16_t entity_id, const std::string& name);
     void set_entity_alpha(uint16_t entity_id, uint8_t alpha);
     void set_movable_alpha(uint8_t alpha);
     void update_anchor_positions();
@@ -170,6 +172,8 @@ private:
     std::unordered_map<uint16_t, int> entity_base_src_x_;
     std::unordered_map<uint16_t, int> entity_base_src_y_;
     std::unordered_map<uint16_t, uint32_t> entity_last_move_tick_;
+    std::string local_clan_name;
+    std::unordered_map<uint16_t, std::string> entity_clan_name_;
     SkinConfig skin_config;
     std::vector<OverlayEffect> overlays;
     std::unordered_map<uint8_t, std::vector<OverlayEffect>> spell_overlay_pools;

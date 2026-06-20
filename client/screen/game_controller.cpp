@@ -75,6 +75,8 @@ void GameController::render() {
     ui_renderer.render_inventory(player_stats.inventory);
     ui_renderer.render_equipped(player_stats.equipped);
     ui_renderer.render_stat_tooltips(mouse_x, mouse_y);
+    ui_renderer.set_audio_muted(audio_manager.is_muted());
+    ui_renderer.render_audio_button();
     if (merchant_controller->is_open())
         merchant_controller->render();
 
@@ -176,6 +178,8 @@ void GameController::handle_entity_spawn(const EntitySpawnEvent& e) {
     }
     world_renderer.spawn_entity(e.entity_id, e.entity_pos.x, e.entity_pos.y, e.entity_name,
                                 e.entity_race, e.entity_class, e.sprite_id);
+    if (e.entity_type != EntityType::NPC && !e.clan_name.empty())
+        world_renderer.set_entity_clan_name(e.entity_id, e.clan_name);
     world_renderer.set_entity_src_y(e.entity_id, move_config.body_src_y_for(e.entity_dir),
                                     move_config.head_src_y_for(e.entity_dir));
 
@@ -346,6 +350,7 @@ void GameController::handle_clan_notification(const ClanNotificationEvent& e) {
 }
 
 void GameController::handle_clan_update(const ClanUpdateEvent& e) {
+    world_renderer.set_local_clan_name(e.clan_name);
     std::string msg = "--- Clan: " + e.clan_name + " ---";
     for (const auto& m: e.members) {
         msg += "\n  " + m.username;
@@ -427,12 +432,13 @@ void GameController::handle_equip_update(const EquipUpdateEvent& e) {
 }
 
 void GameController::handle_entity_died(const EntityDiedEvent& e) {
-    world_renderer.set_entity_alpha(e.entity_id, 128);
     if (e.entity_id != player_stats.player_id) {
+        world_renderer.despawn_entity(e.entity_id);
         return;
     }
     audio_manager.play_sfx("death");
     player_is_ghost = true;
+    world_renderer.set_entity_alpha(e.entity_id, 128);
     world_renderer.set_movable_alpha(128);
 }
 
@@ -502,6 +508,12 @@ bool GameController::handle_event(const SDL_Event& event) {
 bool GameController::handle_mouse_button(const SDL_Event& event) {
     if (merchant_controller->is_open())
         return merchant_controller->handle_mouse_button(event);
+
+    if (event.button.button == SDL_BUTTON_LEFT &&
+        ui_renderer.is_audio_hit(event.button.x, event.button.y)) {
+        audio_manager.set_muted(!audio_manager.is_muted());
+        return true;
+    }
 
     chat_input.set_focus(ui_renderer.is_chat_input_hit(event.button.x, event.button.y));
 
@@ -587,9 +599,11 @@ bool GameController::handle_mouse_motion(const SDL_Event& event) {
         return true;
     }
 
+    ui_renderer.set_audio_button_hovered(mouse_x, mouse_y);
     ui_renderer.set_hover(mouse_x, mouse_y, player_stats.inventory, player_stats.equipped);
     ui_renderer.update_potion_button_hover(mouse_x, mouse_y, player_stats.inventory);
-    if (ui_renderer.is_hovering_occupied() || ui_renderer.get_hovered_potion() > 0) {
+    if (ui_renderer.is_audio_hit(mouse_x, mouse_y) ||
+        ui_renderer.is_hovering_occupied() || ui_renderer.get_hovered_potion() > 0) {
         SDL_SetCursor(hand_cursor);
         return true;
     }

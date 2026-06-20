@@ -174,6 +174,10 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
         config.ui.audio_y = toml_get_int(*tbl, "audio_y", config.ui.audio_y);
         config.ui.audio_w = toml_get_int(*tbl, "audio_w", config.ui.audio_w);
         config.ui.audio_h = toml_get_int(*tbl, "audio_h", config.ui.audio_h);
+        config.ui.game_audio_x = toml_get_int(*tbl, "game_audio_x", config.ui.game_audio_x);
+        config.ui.game_audio_y = toml_get_int(*tbl, "game_audio_y", config.ui.game_audio_y);
+        config.ui.game_audio_w = toml_get_int(*tbl, "game_audio_w", config.ui.game_audio_w);
+        config.ui.game_audio_h = toml_get_int(*tbl, "game_audio_h", config.ui.game_audio_h);
         config.ui.login_title_spacing =
                 toml_get_int(*tbl, "login_title_spacing", config.ui.login_title_spacing);
         config.ui.login_field_spacing =

@@ -169,6 +169,10 @@ struct UIConfig {
     int audio_y = 335;
     int audio_w = 272;
     int audio_h = 43;
+    int game_audio_x = 760;
+    int game_audio_y = 3;
+    int game_audio_w = 164;
+    int game_audio_h = 22;
     std::string font_path = "assets/OUTPUT/Cardo.ttf";
     int font_name_size = 12;
     int font_chat_size = 16;
