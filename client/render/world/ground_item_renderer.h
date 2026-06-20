@@ -16,7 +16,9 @@ class GroundItemRenderer {
 public:
     GroundItemRenderer(SDL2pp::Renderer& renderer,
                        const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites,
-                       int display_size = 32);
+                       const GroundItemConfig& cfg = {});
+
+    void apply_config(const GroundItemConfig& cfg) { config_ = cfg; }
 
     void add_item(int world_x, int world_y, ItemType type, const std::string& name);
     void remove_item(int world_x, int world_y);
@@ -33,9 +35,7 @@ private:
     const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites;
     std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>> texture_cache;
     std::map<std::pair<int, int>, GroundItem> items;
-    int display_size;
-    int float_amplitude_ = 4;
-    uint32_t float_period_ms_ = 1200;
+    GroundItemConfig config_;
 
     SDL2pp::Texture* get_or_load_texture(const ItemSpriteDef& def);
     void draw_item(const GroundItem& item, int screen_x, int screen_y);

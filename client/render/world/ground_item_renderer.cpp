@@ -6,11 +6,18 @@
 
 #include "../texture_loader.h"
 
+namespace {
+constexpr int PHASE_HASH_X_PRIME = 137;
+constexpr int PHASE_HASH_Y_PRIME = 31;
+constexpr uint8_t FALLBACK_COLOR = 80;
+constexpr uint8_t FALLBACK_ALPHA = 200;
+}  // namespace
+
 GroundItemRenderer::GroundItemRenderer(
         SDL2pp::Renderer& renderer,
         const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites,
-        int display_size):
-        renderer(renderer), item_sprites(item_sprites), display_size(display_size) {}
+        const GroundItemConfig& cfg):
+        renderer(renderer), item_sprites(item_sprites), config_(cfg) {}
 
 void GroundItemRenderer::add_item(int world_x, int world_y, ItemType type,
                                   const std::string& name) {
@@ -34,7 +41,7 @@ SDL2pp::Texture* GroundItemRenderer::get_or_load_texture(const ItemSpriteDef& de
 }
 
 void GroundItemRenderer::draw_item(const GroundItem& item, int screen_x, int screen_y) {
-    SDL2pp::Rect dst(screen_x, screen_y, display_size, display_size);
+    SDL2pp::Rect dst(screen_x, screen_y, config_.display_size, config_.display_size);
 
     auto it = item_sprites.find(static_cast<uint8_t>(item.type));
     if (it != item_sprites.end() && !it->second.path.empty()) {
@@ -43,15 +50,15 @@ void GroundItemRenderer::draw_item(const GroundItem& item, int screen_x, int scr
         SDL2pp::Rect src(def.src_x, def.src_y, def.src_w, def.src_h);
         renderer.Copy(*tex, src, dst);
     } else {
-        uint8_t r = 80, g = 80, b = 80;
+        uint8_t r = FALLBACK_COLOR, g = FALLBACK_COLOR, b = FALLBACK_COLOR;
         if (it != item_sprites.end()) {
             r = it->second.color_r;
             g = it->second.color_g;
             b = it->second.color_b;
         }
-        renderer.SetDrawColor(r, g, b, 200);
+        renderer.SetDrawColor(r, g, b, FALLBACK_ALPHA);
         renderer.FillRect(dst);
-        renderer.SetDrawColor(255, 255, 255, 200);
+        renderer.SetDrawColor(255, 255, 255, FALLBACK_ALPHA);
         renderer.DrawRect(dst);
     }
 }
@@ -59,21 +66,25 @@ void GroundItemRenderer::draw_item(const GroundItem& item, int screen_x, int scr
 void GroundItemRenderer::render(const SDL2pp::Rect& cam) {
     const int vw = cam.GetW();
     const int vh = cam.GetH();
+    const int half = config_.display_size / 2;
 
     uint32_t ticks = SDL_GetTicks();
 
     for (const auto& [pos, item]: items) {
-        int screen_x = pos.first - cam.GetX() - display_size / 2;
-        int screen_y = pos.second - cam.GetY() - display_size / 2;
+        int screen_x = pos.first - cam.GetX() - half;
+        int screen_y = pos.second - cam.GetY() - half;
 
-        if (screen_x + display_size < 0 || screen_x > vw)
+        if (screen_x + config_.display_size < 0 || screen_x > vw)
             continue;
-        if (screen_y + display_size < 0 || screen_y > vh)
+        if (screen_y + config_.display_size < 0 || screen_y > vh)
             continue;
 
-        int phase = (pos.first * 137 + pos.second * 31) % static_cast<int>(float_period_ms_);
-        double t = static_cast<double>((ticks + phase) % float_period_ms_) / float_period_ms_;
-        int float_offset = static_cast<int>(std::round(float_amplitude_ * std::sin(2.0 * M_PI * t)));
+        int phase = (pos.first * PHASE_HASH_X_PRIME + pos.second * PHASE_HASH_Y_PRIME) %
+                    static_cast<int>(config_.float_period_ms);
+        double t = static_cast<double>((ticks + phase) % config_.float_period_ms) /
+                   config_.float_period_ms;
+        int float_offset =
+                static_cast<int>(std::round(config_.float_amplitude * std::sin(2.0 * M_PI * t)));
 
         draw_item(item, screen_x, screen_y + float_offset);
     }

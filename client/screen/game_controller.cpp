@@ -204,7 +204,8 @@ void GameController::handle_entity_spawn(const EntitySpawnEvent& e) {
 }
 
 void GameController::load_game_assets() {
-    world_renderer.load_assets(config.tilemap, config.sprites, config.skins, config.item_sprites);
+    world_renderer.load_assets(config.tilemap, config.sprites, config.skins, config.item_sprites,
+                               config.ground_item);
 }
 
 void GameController::handle_login_ok(const LoginOkEvent& e) {

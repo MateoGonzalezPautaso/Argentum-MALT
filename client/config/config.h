@@ -271,6 +271,12 @@ struct SfxConfig {
     std::unordered_map<std::string, std::string> sounds;
 };
 
+struct GroundItemConfig {
+    int display_size = 32;
+    int float_amplitude = 4;
+    uint32_t float_period_ms = 1200;
+};
+
 struct ClientConfig {
     NetworkConfig network;
     WindowConfig window;
@@ -302,6 +308,7 @@ struct ClientConfig {
     int head_dir_src_y_left = 128;
     int head_dir_src_y_right = 192;
     SfxConfig sfx;
+    GroundItemConfig ground_item;
 };
 
 ClientConfig load_client_config(const std::string& path);

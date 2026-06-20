@@ -437,6 +437,17 @@ void parse_equip_overlays_config(const toml::table& root, ClientConfig& config) 
         }
     }
 }
+void parse_ground_item_config(const toml::table& root, ClientConfig& config) {
+    if (auto tbl = root["ground_items"].as_table()) {
+        config.ground_item.display_size =
+                toml_get_int(*tbl, "display_size", config.ground_item.display_size);
+        config.ground_item.float_amplitude =
+                toml_get_int(*tbl, "float_amplitude", config.ground_item.float_amplitude);
+        config.ground_item.float_period_ms =
+                toml_get_uint32(*tbl, "float_period_ms", config.ground_item.float_period_ms);
+    }
+}
+
 void parse_sfx_config(const toml::table& root, ClientConfig& config) {
     if (auto tbl = root["sfx"].as_table()) {
         for (const auto& [key, value]: *tbl) {
@@ -465,6 +476,7 @@ ClientConfig load_client_config(const std::string& path) {
     parse_item_sprites_config(root, config);
     parse_equip_overlays_config(root, config);
     parse_sfx_config(root, config);
+    parse_ground_item_config(root, config);
 
     config.tilemap_configs = load_all_map_configs("config/map_list.toml");
 

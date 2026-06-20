@@ -22,7 +22,8 @@ public:
                   const ViewportConfig& viewport_cfg, const FontConfig& font_cfg);
     void load_assets(const TilemapConfig& tilemap, const std::vector<SpriteConfig>& sprites_config,
                      const SkinConfig& skin_config,
-                     const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites);
+                     const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites,
+                     const GroundItemConfig& ground_item_cfg = {});
     ~WorldRenderer();
 
     void render();

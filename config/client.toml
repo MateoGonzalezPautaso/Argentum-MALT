@@ -603,3 +603,8 @@ flute = "154.ogg"
 sword = "180.ogg"
 hammer = "159.ogg"
 level_up = "112.ogg"
+
+[ground_items]
+display_size    = 32    # pixels en pantalla del sprite en el suelo
+float_amplitude = 4     # desplazamiento maximo vertical en pixels (+/-)
+float_period_ms = 1200  # duracion de un ciclo completo en ms

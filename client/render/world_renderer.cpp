@@ -46,8 +46,10 @@ void WorldRenderer::load_tilemap_data(const TilemapConfig& tilemap) {
 void WorldRenderer::load_assets(const TilemapConfig& tilemap,
                                 const std::vector<SpriteConfig>& sprites_config,
                                 const SkinConfig& skin_config,
-                                const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites) {
+                                const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites,
+                                const GroundItemConfig& ground_item_cfg) {
     item_sprites_ = item_sprites;
+    ground_item_renderer.apply_config(ground_item_cfg);
     load_tilemap_data(tilemap);
 
     sprite_renderer.load_sprites(sprites_config);
