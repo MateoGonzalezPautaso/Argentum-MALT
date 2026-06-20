@@ -81,7 +81,21 @@ void WorldRenderer::render_background_fallback(const SDL2pp::Rect& cam) {
 }
 
 void WorldRenderer::render() {
-    renderer.SetViewport(camera.viewport());
+    // SDL_RenderSetViewport multiplies its input by the scale factor but does NOT add
+    // the centering offset from SDL_RenderSetLogicalSize. We read the current base
+    // viewport (which contains the centering offset in scaled-logical units) and add
+    // the game area offset so that SDL's internal multiply produces correct physical coords.
+    renderer.SetLogicalSize(window_w, window_h);
+    SDL_Rect base_vp;
+    SDL_RenderGetViewport(renderer.Get(), &base_vp);
+    const SDL2pp::Rect& gv = camera.viewport();
+    SDL_Rect adjusted_gv = {
+        base_vp.x + gv.GetX(),
+        base_vp.y + gv.GetY(),
+        gv.GetW(),
+        gv.GetH(),
+    };
+    SDL_RenderSetViewport(renderer.Get(), &adjusted_gv);
 
     const SDL2pp::Rect cam =
             camera.compute_rect(sprite_renderer.movable_x(), sprite_renderer.movable_y(),
@@ -112,7 +126,7 @@ void WorldRenderer::render() {
         prop_renderer.render_hitboxes(cam);
     }
 
-    renderer.SetViewport(SDL2pp::NullOpt);
+    renderer.SetLogicalSize(window_w, window_h);
 }
 
 void WorldRenderer::set_movable_position(int x, int y) {

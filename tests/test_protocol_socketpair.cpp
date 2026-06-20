@@ -449,19 +449,16 @@ TEST_F(ProtocolTest, MultipleEventsInSequence) {
 
     server.send_event(LoginOkEvent{
             1, "hero", Race::HUMAN, PlayerClass::WARRIOR, 1, 0, 0, 100, 100, 50, 50, 0, {0, 0}});
-    server.send_event(EntitySpawnEvent{1,
-                                       EntityType::PLAYER,
-                                       {0, 0},
-                                       Direction::SOUTH,
-                                       "hero",
-                                       Race::HUMAN,
-                                       PlayerClass::WARRIOR,
-                                       ItemType::NONE,
-                                       ItemType::NONE,
-                                       ItemType::NONE,
-                                       ItemType::NONE,
-                                       0,
-                                       ""});
+    server.send_event(EntitySpawnEvent{
+            .entity_id = 1,
+            .entity_type = EntityType::PLAYER,
+            .entity_pos = {0, 0},
+            .entity_dir = Direction::SOUTH,
+            .entity_name = "hero",
+            .entity_race = Race::HUMAN,
+            .entity_class = PlayerClass::WARRIOR,
+            .clan_name = {},
+    });
     server.send_event(EntityMoveEvent{1, {10, 0}, Direction::EAST});
 
     EXPECT_TRUE(std::holds_alternative<LoginOkEvent>(client.recv_event()));
