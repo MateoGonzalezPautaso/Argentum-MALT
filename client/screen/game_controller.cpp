@@ -75,6 +75,8 @@ void GameController::render() {
     ui_renderer.render_inventory(player_stats.inventory);
     ui_renderer.render_equipped(player_stats.equipped);
     ui_renderer.render_stat_tooltips(mouse_x, mouse_y);
+    ui_renderer.set_audio_muted(audio_manager.is_muted());
+    ui_renderer.render_audio_button();
     if (merchant_controller->is_open())
         merchant_controller->render();
 
@@ -503,6 +505,12 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
     if (merchant_controller->is_open())
         return merchant_controller->handle_mouse_button(event);
 
+    if (event.button.button == SDL_BUTTON_LEFT &&
+        ui_renderer.is_audio_hit(event.button.x, event.button.y)) {
+        audio_manager.set_muted(!audio_manager.is_muted());
+        return true;
+    }
+
     chat_input.set_focus(ui_renderer.is_chat_input_hit(event.button.x, event.button.y));
 
     if (chat_input.is_focused()) {
@@ -587,9 +595,11 @@ bool GameController::handle_mouse_motion(const SDL_Event& event) {
         return true;
     }
 
+    ui_renderer.set_audio_button_hovered(mouse_x, mouse_y);
     ui_renderer.set_hover(mouse_x, mouse_y, player_stats.inventory, player_stats.equipped);
     ui_renderer.update_potion_button_hover(mouse_x, mouse_y, player_stats.inventory);
-    if (ui_renderer.is_hovering_occupied() || ui_renderer.get_hovered_potion() > 0) {
+    if (ui_renderer.is_audio_hit(mouse_x, mouse_y) ||
+        ui_renderer.is_hovering_occupied() || ui_renderer.get_hovered_potion() > 0) {
         SDL_SetCursor(hand_cursor);
         return true;
     }

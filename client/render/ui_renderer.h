@@ -12,6 +12,7 @@
 #include "../chat/chat_history.h"
 #include "../config/config.h"
 
+#include "button.h"
 #include "inventory_renderer.h"
 
 class ChatInput;
@@ -25,6 +26,9 @@ private:
     SDL2pp::Texture hp_bar_texture;
     SDL2pp::Texture mp_bar_texture;
     SDL2pp::Texture exp_bar_texture;
+    Button audio_button;
+    SDL2pp::Texture audio_off_texture;
+    bool audio_muted_ = false;
     SDL2pp::Rect ui_frame_rect;
     SDL2pp::Rect chat_input_rect;
     SDL2pp::Rect chat_history_rect;
@@ -46,6 +50,10 @@ public:
     ~UIRenderer();
 
     void render_frame_background();
+    void render_audio_button();
+    bool is_audio_hit(int x, int y) const;
+    void set_audio_button_hovered(int x, int y);
+    void set_audio_muted(bool muted) { audio_muted_ = muted; }
     void render_chat_input();
     void render_chat_history(const std::vector<ChatMessage>& messages, int scroll_offset = 0);
     void render_hp_bar(uint32_t current, uint32_t max);
