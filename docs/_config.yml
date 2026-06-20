@@ -1,5 +1,11 @@
 title: Argentum Online
 description: Todo sobre el proyecto final de TA045
-theme: jekyll-theme-minima
-logo: images/Mazmorra.png
-show_downloads: false
+theme: minima
+
+minima:
+  skin: solarized
+
+header_pages:
+  - index.md
+  - manual.md
+  - documentacion.md
