@@ -530,6 +530,15 @@ src_w = 32
 src_h = 32
 category = "Pocion de mana"
 
+[[item_sprites]]
+item_type = "GOLD_DROP"
+path      = "assets/Graficos/100.png"
+src_x = 0
+src_y = 320
+src_w = 32
+src_h = 32
+category = "Oro"
+
 [[equip_overlays]]
 item_type = "SWORD"
 path = "assets/Graficos/2101.png"
