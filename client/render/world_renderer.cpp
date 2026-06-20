@@ -240,6 +240,11 @@ void WorldRenderer::set_entity_clan_name(uint16_t entity_id, const std::string& 
     sprite_renderer.set_entity_clan_name(entity_id, name);
 }
 
+void WorldRenderer::set_entity_clan_by_username(const std::string& username,
+                                                 const std::string& clan) {
+    sprite_renderer.set_entity_clan_by_username(username, clan);
+}
+
 void WorldRenderer::set_entity_alpha(uint16_t entity_id, uint8_t alpha) {
     sprite_renderer.set_entity_alpha(entity_id, alpha);
 }

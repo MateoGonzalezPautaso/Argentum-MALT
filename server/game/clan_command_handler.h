@@ -37,6 +37,10 @@ private:
     std::map<uint16_t, Player>& players;
 
     CommandResult handle_clan_chat(uint16_t player_id, const std::string& args);
+    void send_clan_update(const std::string& clan_name,
+                          std::map<uint16_t, std::vector<ServerEvent>>& targeted);
+    void send_empty_clan_update(uint16_t player_id,
+                                std::map<uint16_t, std::vector<ServerEvent>>& targeted);
 };
 
 #endif  // CLAN_COMMAND_HANDLER_H

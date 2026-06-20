@@ -190,8 +190,8 @@ void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::s
     if (entity_part_configs.empty()) {
         return;
     }
-    entity_sprite_ids[entity_id] = sprite_id;
     if (sprite_id > 0) {
+        entity_sprite_ids[entity_id] = sprite_id;
         entity_frame_w_[entity_id] = skin_config.npc_frame_w(sprite_id);
         entity_frame_h_[entity_id] = skin_config.npc_frame_h(sprite_id);
         entity_base_src_x_[entity_id] = skin_config.npc_src_x(sprite_id);
@@ -214,6 +214,7 @@ void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::s
     }
     entity_equip_state_[entity_id] = std::move(equip_state);
 
+    entity_usernames_[entity_id] = name;
     create_entity_name_label(entity_id, name);
 }
 
@@ -224,6 +225,16 @@ void SpriteRenderer::note_entity_moved(uint16_t entity_id) {
 void SpriteRenderer::set_entity_clan_name(uint16_t entity_id, const std::string& name) {
     if (!name.empty())
         entity_clan_name_[entity_id] = name;
+}
+
+void SpriteRenderer::set_entity_clan_by_username(const std::string& username,
+                                                  const std::string& clan) {
+    for (const auto& [eid, name] : entity_usernames_) {
+        if (name == username) {
+            entity_clan_name_[eid] = clan;
+            return;
+        }
+    }
 }
 
 void SpriteRenderer::despawn_entity(uint16_t entity_id) {
@@ -237,6 +248,7 @@ void SpriteRenderer::despawn_entity(uint16_t entity_id) {
     entity_base_src_y_.erase(entity_id);
     entity_last_move_tick_.erase(entity_id);
     entity_clan_name_.erase(entity_id);
+    entity_usernames_.erase(entity_id);
 }
 
 void SpriteRenderer::clear_all_entities() {
@@ -250,6 +262,7 @@ void SpriteRenderer::clear_all_entities() {
     entity_base_src_y_.clear();
     entity_last_move_tick_.clear();
     entity_clan_name_.clear();
+    entity_usernames_.clear();
 }
 
 void SpriteRenderer::set_skin_config(const SkinConfig& cfg) { skin_config = cfg; }

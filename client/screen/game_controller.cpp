@@ -351,6 +351,8 @@ void GameController::handle_clan_notification(const ClanNotificationEvent& e) {
 
 void GameController::handle_clan_update(const ClanUpdateEvent& e) {
     world_renderer.set_local_clan_name(e.clan_name);
+    for (const auto& m : e.members)
+        world_renderer.set_entity_clan_by_username(m.username, e.clan_name);
     std::string msg = "--- Clan: " + e.clan_name + " ---";
     for (const auto& m: e.members) {
         msg += "\n  " + m.username;

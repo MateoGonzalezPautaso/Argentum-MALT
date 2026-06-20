@@ -53,6 +53,7 @@ public:
     void note_entity_moved(uint16_t entity_id);
     void set_local_clan_name(const std::string& name);
     void set_entity_clan_name(uint16_t entity_id, const std::string& name);
+    void set_entity_clan_by_username(const std::string& username, const std::string& clan);
     void set_entity_alpha(uint16_t entity_id, uint8_t alpha);
     void set_movable_alpha(uint8_t alpha);
     void set_local_player_info(Race race, PlayerClass player_class);
