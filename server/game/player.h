@@ -120,6 +120,7 @@ public:
     const InventorySlot& get_equipped(EquipSlot eslot) const;
     void dump_equipped(InventorySlot out[EQUIP_SLOT_COUNT]) const;
     void restore_equipment(const InventorySlot equipped[EQUIP_SLOT_COUNT]);
+    void clear_equipped();
 };
 
 #endif  // PLAYER_H

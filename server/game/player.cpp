@@ -340,6 +340,13 @@ void Player::restore_equipment(const InventorySlot equipment[EQUIP_SLOT_COUNT]) 
     }
 }
 
+void Player::clear_equipped() {
+    for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
+        equipped[i] = InventorySlot{};
+        equipped[i].item_type = ItemType::NONE;
+    }
+}
+
 std::vector<InventorySlot> Player::dump_inventory() const { return inv.dump_slots(); }
 
 void Player::clear_inventory() { inv.load_slots({}); }
