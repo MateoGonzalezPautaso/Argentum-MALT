@@ -429,12 +429,13 @@ void GameController::handle_equip_update(const EquipUpdateEvent& e) {
 }
 
 void GameController::handle_entity_died(const EntityDiedEvent& e) {
-    world_renderer.set_entity_alpha(e.entity_id, 128);
     if (e.entity_id != player_stats.player_id) {
+        world_renderer.despawn_entity(e.entity_id);
         return;
     }
     audio_manager.play_sfx("death");
     player_is_ghost = true;
+    world_renderer.set_entity_alpha(e.entity_id, 128);
     world_renderer.set_movable_alpha(128);
 }
 
