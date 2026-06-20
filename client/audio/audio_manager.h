@@ -26,7 +26,7 @@ private:
     int player_x_ = 0;
     int player_y_ = 0;
 
-    static constexpr int MAX_HEAR_RANGE = 2000;
+    static constexpr int MAX_HEAR_RANGE = 640;
 
     int distance_volume(int source_x, int source_y) const;
 
