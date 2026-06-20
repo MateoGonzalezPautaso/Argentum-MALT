@@ -1,5 +1,5 @@
 [mob_spawn_zones]
-limit = 40
+limit = 70
 interval_ticks = 80
 data = [
     [
