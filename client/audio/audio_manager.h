@@ -19,8 +19,17 @@ public:
     void play_menu_music();
     void play_game_music();
     void play_sfx(const std::string& name) const;
+    void play_sfx_at(const std::string& name, int source_x, int source_y) const;
+    void set_player_position(int x, int y);
 
 private:
+    int player_x_ = 0;
+    int player_y_ = 0;
+
+    static constexpr int MAX_HEAR_RANGE = 2000;
+
+    int distance_volume(int source_x, int source_y) const;
+
     Mix_Music* menu_music_;
     Mix_Music* game_music_;
     std::unordered_map<std::string, Mix_Chunk*> sfx_;

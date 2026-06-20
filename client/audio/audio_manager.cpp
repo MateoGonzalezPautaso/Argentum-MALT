@@ -1,5 +1,7 @@
 #include "audio_manager.h"
 
+#include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <string>
 
@@ -68,4 +70,28 @@ void AudioManager::play_sfx(const std::string& name) const {
         return;
     }
     Mix_PlayChannel(-1, it->second, 0);
+}
+
+void AudioManager::set_player_position(int x, int y) {
+    player_x_ = x;
+    player_y_ = y;
+}
+
+int AudioManager::distance_volume(int source_x, int source_y) const {
+    int dx = source_x - player_x_;
+    int dy = source_y - player_y_;
+    float dist = std::sqrt(static_cast<float>(dx * dx + dy * dy));
+    float clamped = std::min(dist, static_cast<float>(MAX_HEAR_RANGE));
+    return static_cast<int>(MIX_MAX_VOLUME * (1.0f - clamped / MAX_HEAR_RANGE));
+}
+
+void AudioManager::play_sfx_at(const std::string& name, int source_x, int source_y) const {
+    auto it = sfx_.find(name);
+    if (it == sfx_.end()) {
+        return;
+    }
+    int channel = Mix_PlayChannel(-1, it->second, 0);
+    if (channel >= 0) {
+        Mix_Volume(channel, distance_volume(source_x, source_y));
+    }
 }
