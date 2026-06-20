@@ -180,7 +180,9 @@ struct CastSpellCmd {
 struct PickupItemCmd {};
 
 // 0x07
-struct DropItemCmd {};
+struct DropItemCmd {
+    std::string item_name;
+};
 
 // 0x08
 struct EquipItemCmd {
@@ -424,10 +426,16 @@ struct GoldUpdateEvent {
 };
 
 // 0x93
-struct ItemDroppedEvent {};
+struct ItemDroppedEvent {
+    Position pos;
+    ItemType item_type = ItemType::NONE;
+    std::string item_name;
+};
 
 // 0x94
-struct ItemPickedEvent {};
+struct ItemPickedEvent {
+    Position pos;
+};
 
 // 0x95
 struct NpcItemListEvent {
