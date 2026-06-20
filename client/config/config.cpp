@@ -379,7 +379,9 @@ void parse_skin_config(const toml::table& root, ClientConfig& config) {
                     }
                     config.skins.npc[id] = std::move(def);
                 } else if (auto path = value.value<std::string>()) {
-                    config.skins.npc[id] = NpcSkinDef{*path, 0, 0, 0, 0};
+                    NpcSkinDef def;
+                    def.path = *path;
+                    config.skins.npc[id] = std::move(def);
                 }
             } catch (...) {
             }
