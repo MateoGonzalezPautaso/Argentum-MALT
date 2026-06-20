@@ -1024,6 +1024,7 @@ EntitySpawnEvent Game::make_entity_spawn(const Player& p) const {
             .armor_type = armor_type,
             .helmet_type = helmet_type,
             .shield_type = shield_type,
+            .clan_name = p.get_clan_name(),
     };
 }
 

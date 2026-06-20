@@ -178,6 +178,8 @@ void GameController::handle_entity_spawn(const EntitySpawnEvent& e) {
     }
     world_renderer.spawn_entity(e.entity_id, e.entity_pos.x, e.entity_pos.y, e.entity_name,
                                 e.entity_race, e.entity_class, e.sprite_id);
+    if (e.entity_type != EntityType::NPC && !e.clan_name.empty())
+        world_renderer.set_entity_clan_name(e.entity_id, e.clan_name);
     world_renderer.set_entity_src_y(e.entity_id, move_config.body_src_y_for(e.entity_dir),
                                     move_config.head_src_y_for(e.entity_dir));
 
@@ -348,6 +350,7 @@ void GameController::handle_clan_notification(const ClanNotificationEvent& e) {
 }
 
 void GameController::handle_clan_update(const ClanUpdateEvent& e) {
+    world_renderer.set_local_clan_name(e.clan_name);
     std::string msg = "--- Clan: " + e.clan_name + " ---";
     for (const auto& m: e.members) {
         msg += "\n  " + m.username;

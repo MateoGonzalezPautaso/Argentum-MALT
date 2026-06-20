@@ -359,6 +359,7 @@ struct EntitySpawnEvent {
     ItemType helmet_type = ItemType::NONE;
     ItemType shield_type = ItemType::NONE;
     uint16_t sprite_id = 0;
+    std::string clan_name;
 };
 
 // 0x87
