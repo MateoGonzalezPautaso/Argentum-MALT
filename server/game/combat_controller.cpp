@@ -104,8 +104,17 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
         if (excess > 0) {
             attacker.gain_gold(excess);
             result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
+            result.private_events.push_back(
+                    ChatMsgEvent{ChatMsgType::SYSTEM, "",
+                                "Le robaste " + std::to_string(excess) + " de oro a " +
+                                        target.get_name()});
             result.targeted_events[target_id].push_back(GoldUpdateEvent{target.get_gold()});
+            result.targeted_events[target_id].push_back(ChatMsgEvent{
+                    ChatMsgType::SYSTEM, "",
+                    attacker.get_name() + " te robó " + std::to_string(excess) + " de oro"});
         }
+
+        drop_inventory_on_death(target, result.ground_drops, result.targeted_events[target_id]);
     }
 
     return result;
@@ -266,8 +275,17 @@ CommandResult CombatController::spell_attack_player(uint16_t attacker_id, uint16
         if (excess > 0) {
             attacker.gain_gold(excess);
             result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
+            result.private_events.push_back(
+                    ChatMsgEvent{ChatMsgType::SYSTEM, "",
+                                "Le robaste " + std::to_string(excess) + " de oro a " +
+                                        target.get_name()});
             result.targeted_events[target_id].push_back(GoldUpdateEvent{target.get_gold()});
+            result.targeted_events[target_id].push_back(ChatMsgEvent{
+                    ChatMsgType::SYSTEM, "",
+                    attacker.get_name() + " te robó " + std::to_string(excess) + " de oro"});
         }
+
+        drop_inventory_on_death(target, result.ground_drops, result.targeted_events[target_id]);
     }
 
     return result;
@@ -339,9 +357,38 @@ Player* CombatController::get_nearest_player(const EnemyNpc& npc) {
     return nearest;
 }
 
+void CombatController::drop_inventory_on_death(
+        Player& target, std::map<std::string, std::vector<ItemDroppedEvent>>& drops,
+        std::vector<ServerEvent>& target_events) {
+    Position pos{target.pos_x(), target.pos_y()};
+    auto& map_drops = drops[target.get_current_map()];
+    for (const auto& slot: target.dump_inventory()) {
+        if (slot.item_type == ItemType::NONE)
+            continue;
+        map_drops.push_back(ItemDroppedEvent{pos, slot.item_type, slot.item_name, 0});
+    }
+    target.clear_inventory();
+
+    InventorySlot equipped[EQUIP_SLOT_COUNT];
+    target.dump_equipped(equipped);
+    for (const auto& slot: equipped) {
+        if (slot.item_type == ItemType::NONE)
+            continue;
+        map_drops.push_back(ItemDroppedEvent{pos, slot.item_type, slot.item_name, 0});
+    }
+    target.clear_equipped();
+
+    target_events.push_back(InventoryUpdateEvent{target.dump_inventory()});
+    target_events.push_back(EquipUpdateEvent{target.get_id(), target.get_equipped(EquipSlot::WEAPON),
+                                             target.get_equipped(EquipSlot::ARMOR),
+                                             target.get_equipped(EquipSlot::HELMET),
+                                             target.get_equipped(EquipSlot::SHIELD)});
+}
+
 CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
     std::vector<ServerEvent> broadcast;
     std::map<uint16_t, std::vector<ServerEvent>> targeted;
+    std::map<std::string, std::vector<ItemDroppedEvent>> ground_drops;
 
     for (auto& [npc_id, npc] : enemy_npcs) {
         if (npc.is_dead())
@@ -435,12 +482,22 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
 
         if (target->is_dead()) {
             target->lose_experience_on_death();
-            target->take_excess_gold();
 
+            uint32_t excess = target->take_excess_gold();
+            if (excess > 0) {
+                ground_drops[target->get_current_map()].push_back(
+                        ItemDroppedEvent{Position{target->pos_x(), target->pos_y()},
+                                         ItemType::GOLD_DROP, "Oro", excess});
+                targeted[target_id].push_back(
+                        ChatMsgEvent{ChatMsgType::SYSTEM, "",
+                                    "Perdiste " + std::to_string(excess) + " de oro al morir"});
+            }
             PlayerStatsEvent stats{};
             fill_player_stats_event(stats, *target);
             targeted[target_id].push_back(stats);
             targeted[target_id].push_back(GoldUpdateEvent{target->get_gold()});
+
+            drop_inventory_on_death(*target, ground_drops, targeted[target_id]);
 
             EntityDiedEvent died{target_id};
             broadcast.push_back(died);
@@ -449,7 +506,9 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
 
     return {.private_events = {},
             .broadcast_events = std::move(broadcast),
-            .targeted_events = std::move(targeted)};
+            .targeted_events = std::move(targeted),
+            .map_events = {},
+            .ground_drops = std::move(ground_drops)};
 }
 
 bool CombatController::is_critical_attack(const Player& attacker) {

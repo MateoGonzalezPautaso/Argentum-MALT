@@ -56,6 +56,9 @@ private:
     uint32_t calculate_defense(const Player& target);
     uint32_t calculate_object_defense(const InventorySlot& object_slot);
     Player* get_nearest_player(const EnemyNpc& npc);
+    void drop_inventory_on_death(Player& target,
+                                 std::map<std::string, std::vector<ItemDroppedEvent>>& drops,
+                                 std::vector<ServerEvent>& target_events);
     CommandResult melee_attack_player(uint16_t attacker_id, uint16_t target_id,
                                       uint32_t current_tick);
     CommandResult melee_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,
