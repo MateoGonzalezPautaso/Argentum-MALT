@@ -1,0 +1,10 @@
+# Valores compartidos entre server.toml y client.toml.
+
+[network]
+port = 1234
+
+[movement]
+move_step = 8
+
+[merchant]
+sell_price_ratio = 0.5
