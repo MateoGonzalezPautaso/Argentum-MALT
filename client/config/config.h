@@ -279,27 +279,27 @@ struct SkinConfig {
         auto it = npc.find(sprite_id);
         return it != npc.end() ? it->second.src_y : 0;
     }
-    int npc_frames_per_dir(uint16_t sprite_id) {
+    int npc_frames_per_dir(uint16_t sprite_id) const {
         auto it = npc.find(sprite_id);
         return it != npc.end() ? it->second.frames_per_dir : 0;
     }
-    int npc_walk_row_offset(uint16_t sprite_id) {
+    int npc_walk_row_offset(uint16_t sprite_id) const {
         auto it = npc.find(sprite_id);
         return it != npc.end() ? it->second.walk_row_offset : 0;
     }
-    bool npc_swap_lr(uint16_t sprite_id) {
+    bool npc_swap_lr(uint16_t sprite_id) const {
         auto it = npc.find(sprite_id);
         return it != npc.end() ? it->second.swap_lr : false;
     }
-    const std::vector<int>& npc_row_positions(uint16_t sprite_id) {
+    const std::vector<int>& npc_row_positions(uint16_t sprite_id) const {
         auto it = npc.find(sprite_id);
         return it != npc.end() ? it->second.row_positions : empty_vec;
     }
-    const std::vector<int>& npc_frame_positions(uint16_t sprite_id) {
+    const std::vector<int>& npc_frame_positions(uint16_t sprite_id) const {
         auto it = npc.find(sprite_id);
         return it != npc.end() ? it->second.frame_positions : empty_vec;
     }
-    int speed(uint16_t sprite_id) {
+    int speed(uint16_t sprite_id) const {
         auto it = npc.find(sprite_id);
         return it != npc.end() ? it->second.speed : 0;
     }

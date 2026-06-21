@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 
 #include "../../common/socket.h"
+#include "../../common/visit.h"
 
 ClientProtocol::ClientProtocol(Socket&& skt): skt(std::move(skt)), protocol(this->skt) {}
 
@@ -44,8 +45,6 @@ void ClientProtocol::send_chat_msg(const SendChatMsgCmd& cmd) {
     protocol.send_opcode(OpCode::SEND_CHAT);
     protocol.send_str(cmd.text);
 }
-
-#include "../../common/visit.h"
 
 void ClientProtocol::send_cast_spell(const CastSpellCmd& cmd) {
     protocol.send_opcode(OpCode::CAST_SPELL);

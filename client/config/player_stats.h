@@ -30,7 +30,7 @@ struct PlayerStats {
     uint16_t agility = 0;
     Position pos;
     std::vector<InventorySlot> inventory;
-    InventorySlot equipped[4] = {};
+    InventorySlot equipped[EQUIP_SLOT_COUNT] = {};
 };
 
 #endif  // CLIENT_PLAYER_STATS_H

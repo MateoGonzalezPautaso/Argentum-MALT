@@ -84,12 +84,12 @@ public:
     int get_first_mana_potion_slot() const { return first_mana_potion_slot_; }
     void render_portrait(Race race, PlayerClass player_class, uint8_t level);
     void set_hover(int mx, int my, const std::vector<InventorySlot>& slots,
-                   const InventorySlot equipped[4]);
+                   const InventorySlot equipped[EQUIP_SLOT_COUNT]);
     bool is_hovering_occupied() const;
     int get_hovered_inv_slot() const;
     int get_hovered_equip_slot() const;
     void render_inventory(const std::vector<InventorySlot>& slots);
-    void render_equipped(const InventorySlot equipped[4]);
+    void render_equipped(const InventorySlot equipped[EQUIP_SLOT_COUNT]);
     bool is_chat_input_hit(int x, int y) const;
     void render_stat_tooltips(int mx, int my) const;
 
