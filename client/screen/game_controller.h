@@ -19,6 +19,7 @@
 #include "../render/ui_renderer.h"
 #include "../render/world_renderer.h"
 #include "merchant_controller.h"
+#include "server_event_handler.h"
 
 class GameController {
 public:
@@ -47,7 +48,6 @@ private:
     std::string current_map_name = "city";
     WorldRenderer world_renderer;
     UIRenderer ui_renderer;
-    std::unique_ptr<MerchantController> merchant_controller;
     Queue<ClientCommand>& command_queue;
     MoveController move_controller;
     MoveConfig move_config;
@@ -56,36 +56,17 @@ private:
     int mouse_x = 0;
     int mouse_y = 0;
     std::unordered_map<SDL_Keycode, ClientCommand> cheat_commands_;
+    std::unique_ptr<MerchantController> merchant_controller;
+    ServerEventHandler event_handler_;
 
     bool handle_mouse_button(const SDL_Event& event);
     bool handle_mouse_motion(const SDL_Event& event);
     bool handle_keydown(const SDL_Event& event);
     void flush_pending_chat();
     void apply_movement_visual(Direction dir, bool advance_frame);
-
-    void handle_entity_move(const EntityMoveEvent& e);
-    void handle_entity_spawn(const EntitySpawnEvent& e);
-    void handle_entity_despawn(const EntityDespawnEvent& e);
-    void handle_login_ok(const LoginOkEvent& e);
-    void handle_damage_received(const DamageReceivedEvent& e);
-    void handle_attack_dodged(const AttackDodgedEvent& e);
     void interact_with_prop(const std::string& prop_name, int world_x, int world_y);
     bool is_clickable_prop(const std::string& prop_name) const;
     bool is_transition_prop(const std::string& prop_name) const;
-    void handle_chat_msg(const ChatMsgEvent& e);
-    void handle_entity_died(const EntityDiedEvent& e);
-    void handle_player_respawned(const PlayerRespawnedEvent& e);
-    void handle_clan_notification(const ClanNotificationEvent& e);
-    void handle_clan_update(const ClanUpdateEvent& e);
-    void handle_map_transition(const MapTransitionEvent& e);
-    void handle_heal_received(const HealReceivedEvent& e);
-    void handle_inventory_update(const InventoryUpdateEvent& e);
-    void handle_equip_update(const EquipUpdateEvent& e);
-    void handle_player_stats(const PlayerStatsEvent& e);
-    void handle_bank_update(const BankUpdateEvent& e);
-    void play_spatial_sfx(const std::string& name, uint16_t entity_id);
-    void apply_equipment_overlays(uint16_t entity_id, bool is_local,
-                                  const ItemType equipped_types[EQUIP_SLOT_COUNT]);
 };
 
 #endif
