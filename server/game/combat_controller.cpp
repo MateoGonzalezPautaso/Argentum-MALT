@@ -92,7 +92,7 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
     uint32_t damage = calculate_damage(attacker);
     bool esquivado = false;
     if (is_critical_attack(attacker)) {
-        damage *= 2;
+        damage *= static_cast<uint32_t>(config.critical_multiplier);
     } else {
         esquivado = GameFormulas::is_dodged(config, target.get_agility(), rng);
         if (esquivado)
@@ -103,8 +103,9 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
     damage = damage > defense ? (damage - defense) : 0;
 
     target.take_damage(damage);
-    attacker.gain_experience(GameFormulas::attack_experience(damage, attacker.get_level(),
-                                                             target.get_level()));
+    attacker.gain_experience(GameFormulas::attack_experience(
+            damage, attacker.get_level(), target.get_level(),
+            balance.experience_level_offset));
 
     CommandResult result =
             notify_entity_attacked(attacker, target_id, damage, target.get_hp_current(),
@@ -176,12 +177,13 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
 
     uint32_t damage = calculate_damage(attacker);
     if (is_critical_attack(attacker)) {
-        damage *= 2;
+        damage *= static_cast<uint32_t>(config.critical_multiplier);
     }
 
     npc_target.take_damage(damage);
-    attacker.gain_experience(GameFormulas::attack_experience(damage, attacker.get_level(),
-                                                             npc_target.get_level()));
+    attacker.gain_experience(GameFormulas::attack_experience(
+            damage, attacker.get_level(), npc_target.get_level(),
+            balance.experience_level_offset));
 
     bool esquivado_npc = false;
     CommandResult result = notify_entity_attacked(
@@ -260,7 +262,7 @@ CommandResult CombatController::spell_attack_player(uint16_t attacker_id, uint16
     uint32_t damage = calculate_damage(attacker);
     bool esquivado = false;
     if (is_critical_attack(attacker)) {
-        damage *= 2;
+        damage *= static_cast<uint32_t>(config.critical_multiplier);
     } else {
         esquivado = GameFormulas::is_dodged(config, target.get_agility(), rng);
         if (esquivado)
@@ -271,8 +273,9 @@ CommandResult CombatController::spell_attack_player(uint16_t attacker_id, uint16
     damage = damage > defense ? (damage - defense) : 0;
 
     target.take_damage(damage);
-    attacker.gain_experience(GameFormulas::attack_experience(damage, attacker.get_level(),
-                                                             target.get_level()));
+    attacker.gain_experience(GameFormulas::attack_experience(
+            damage, attacker.get_level(), target.get_level(),
+            balance.experience_level_offset));
 
     CommandResult result =
             notify_entity_attacked(attacker, target_id, damage, target.get_hp_current(),
@@ -326,12 +329,13 @@ CommandResult CombatController::spell_attack_npc(uint16_t attacker_id, uint16_t 
 
     uint32_t damage = calculate_damage(attacker);
     if (is_critical_attack(attacker)) {
-        damage *= 2;
+        damage *= static_cast<uint32_t>(config.critical_multiplier);
     }
 
     npc_target.take_damage(damage);
-    attacker.gain_experience(GameFormulas::attack_experience(damage, attacker.get_level(),
-                                                             npc_target.get_level()));
+    attacker.gain_experience(GameFormulas::attack_experience(
+            damage, attacker.get_level(), npc_target.get_level(),
+            balance.experience_level_offset));
 
     CommandResult result = notify_entity_attacked(
             attacker, npc_target_id, damage, npc_target.get_hp_current(), npc_target.get_hp_max(),

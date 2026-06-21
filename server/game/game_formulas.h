@@ -46,9 +46,9 @@ public:
     static uint32_t npc_hp(uint32_t base_hp, uint8_t level);
     static uint32_t npc_damage(uint32_t base_damage, uint8_t level);
 
-    // Experiencia de ataque: Daño * max(NivelDelOtro - Nivel + 10, 0)
+    // Experiencia de ataque: Daño * max(NivelDelOtro - Nivel + level_diff_offset, 0)
     static uint32_t attack_experience(uint32_t damage, uint8_t attacker_level,
-                                      uint8_t target_level);
+                                       uint8_t target_level, int level_diff_offset);
 
     // Recuperación pasiva por segundo: FRazaRecuperacion * 1s
     static uint32_t hp_regen_per_second(double race_recovery_factor);
