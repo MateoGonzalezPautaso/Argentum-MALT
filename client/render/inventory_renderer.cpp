@@ -7,7 +7,7 @@ InventoryRenderer::InventoryRenderer(
         SDL2pp::Renderer& renderer, TTF_Font* font, const InventoryPanelConfig& cfg,
         const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites):
         renderer(renderer), font(font), cfg(cfg), item_sprites(item_sprites),
-        texture_cache_(renderer) {}
+        texture_cache_(renderer), item_drawer_(texture_cache_) {}
 
 const ItemSpriteDef* InventoryRenderer::find_sprite(ItemType type) const {
     auto it = item_sprites.find(static_cast<uint8_t>(type));
@@ -16,33 +16,7 @@ const ItemSpriteDef* InventoryRenderer::find_sprite(ItemType type) const {
 
 void InventoryRenderer::render_item_sprite(ItemType type, const std::string& name,
                                            const SDL2pp::Rect& dst) {
-    const ItemSpriteDef* def = find_sprite(type);
-    if (def && !def->path.empty()) {
-        SDL2pp::Texture& tex = texture_cache_.get(def->path);
-        SDL2pp::Rect src(def->src_x, def->src_y, def->src_w, def->src_h);
-        renderer.Copy(tex, src, dst);
-    } else {
-        uint8_t r = 80, g = 80, b = 80;
-        if (def) {
-            r = def->color_r;
-            g = def->color_g;
-            b = def->color_b;
-        }
-        renderer.SetDrawColor(r, g, b, 255);
-        renderer.FillRect(dst);
-        renderer.SetDrawColor(255, 255, 255, 255);
-        renderer.DrawRect(dst);
-
-        if (font && !name.empty()) {
-            auto result = texture::render_text(renderer, font, name, {255, 255, 255, 255});
-            if (result.w > 0) {
-                int tx = dst.x + (dst.w - result.w) / 2;
-                int ty = dst.y + (dst.h - result.h) / 2;
-                SDL2pp::Rect text_dst(tx, ty, result.w, result.h);
-                renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
-            }
-        }
-    }
+    item_drawer_.draw(renderer, find_sprite(type), dst, 255, font, name);
 }
 
 void InventoryRenderer::update_hover(int mx, int my, const std::vector<InventorySlot>& slots,

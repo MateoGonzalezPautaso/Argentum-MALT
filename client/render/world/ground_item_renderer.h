@@ -10,6 +10,7 @@
 
 #include "../../../common/messages.h"
 #include "../../config/config.h"
+#include "../item_sprite_drawer.h"
 #include "../texture_cache.h"
 
 class GroundItemRenderer {
@@ -34,6 +35,7 @@ private:
     SDL2pp::Renderer& renderer;
     const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites;
     TextureCache texture_cache_;
+    ItemSpriteDrawer item_drawer_;
     std::map<std::pair<int, int>, std::vector<GroundItem>> items;
     GroundItemConfig config_;
 

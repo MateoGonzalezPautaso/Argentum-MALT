@@ -10,6 +10,7 @@
 
 #include "../../common/messages.h"
 #include "../config/config.h"
+#include "item_sprite_drawer.h"
 #include "texture_cache.h"
 
 class InventoryRenderer {
@@ -19,6 +20,7 @@ private:
     const InventoryPanelConfig& cfg;
     const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites;
     TextureCache texture_cache_;
+    ItemSpriteDrawer item_drawer_;
 
     int hovered_inv_slot = -1;
     int hovered_equip_slot = -1;
