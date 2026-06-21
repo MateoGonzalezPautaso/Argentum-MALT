@@ -42,12 +42,12 @@ public:
     void set_name_font(TTF_Font* font) { name_font = font; }
 
     void set_movable_position(int x, int y);
-    void spawn_entity(uint16_t entity_id, int x, int y, const std::string& name,
-                      Race race = static_cast<Race>(0),
-                      PlayerClass player_class = static_cast<PlayerClass>(0),
-                      uint16_t sprite_id = 0);
-    void despawn_entity(uint16_t entity_id);
-    void clear_all_entities();
+    void add_entity(uint16_t entity_id, int x, int y, const std::string& name,
+                    Race race = static_cast<Race>(0),
+                    PlayerClass player_class = static_cast<PlayerClass>(0),
+                    uint16_t sprite_id = 0);
+    void remove_entity(uint16_t entity_id);
+    void clear_entities();
     void move_entity(uint16_t entity_id, int x, int y);
     bool get_movable_position(int& x, int& y) const;
     int movable_foot_y() const;
@@ -92,7 +92,7 @@ public:
     void trigger_spell_effect(uint8_t effect_type, int world_x, int world_y);
     void set_walk_anim_timeout(uint32_t ms) { walk_anim_timeout_ms_ = ms; }
     bool get_entity_world_position(uint16_t entity_id, int& x, int& y) const;
-    void tick_overlays(const AnimationSystem& anim);
+    void advance_overlays();
     void render_overlays(const SDL2pp::Rect& cam);
 
     bool empty() const { return sprites.empty(); }

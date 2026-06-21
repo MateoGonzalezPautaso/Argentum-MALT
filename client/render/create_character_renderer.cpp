@@ -169,14 +169,14 @@ bool CreateCharacterRenderer::is_back_button_hit(int x, int y) const {
     return back_button.is_hit(x, y);
 }
 
-int CreateCharacterRenderer::race_hit(int x, int y) const {
+int CreateCharacterRenderer::race_at(int x, int y) const {
     for (int i = 0; i < 4; ++i)
         if (point_in_rect(x, y, race_rects[i]))
             return i;
     return -1;
 }
 
-int CreateCharacterRenderer::class_hit(int x, int y) const {
+int CreateCharacterRenderer::class_at(int x, int y) const {
     for (int i = 0; i < 4; ++i)
         if (point_in_rect(x, y, class_rects[i]))
             return i;

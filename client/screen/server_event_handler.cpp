@@ -166,9 +166,9 @@ void ServerEventHandler::handle_entity_spawn(const EntitySpawnEvent& e) {
         world_renderer_.sprites().set_movable_position(e.entity_pos.x, e.entity_pos.y);
         return;
     }
-    world_renderer_.sprites().spawn_entity(e.entity_id, e.entity_pos.x, e.entity_pos.y,
-                                           e.entity_name, e.entity_race, e.entity_class,
-                                           e.sprite_id);
+    world_renderer_.sprites().add_entity(e.entity_id, e.entity_pos.x, e.entity_pos.y,
+                                          e.entity_name, e.entity_race, e.entity_class,
+                                          e.sprite_id);
     if (e.entity_type != EntityType::NPC && !e.clan_name.empty())
         world_renderer_.sprites().set_entity_clan_name(e.entity_id, e.clan_name);
     world_renderer_.sprites().set_entity_src_y(e.entity_id,
@@ -205,7 +205,7 @@ void ServerEventHandler::handle_login_ok(const LoginOkEvent& e) {
 }
 
 void ServerEventHandler::handle_entity_despawn(const EntityDespawnEvent& e) {
-    world_renderer_.sprites().despawn_entity(e.entity_id);
+    world_renderer_.sprites().remove_entity(e.entity_id);
 }
 
 void ServerEventHandler::handle_damage_received(const DamageReceivedEvent& e) {
@@ -303,7 +303,7 @@ void ServerEventHandler::handle_equip_update(const EquipUpdateEvent& e) {
 
 void ServerEventHandler::handle_entity_died(const EntityDiedEvent& e) {
     if (e.entity_id != player_stats_.player_id) {
-        world_renderer_.sprites().despawn_entity(e.entity_id);
+        world_renderer_.sprites().remove_entity(e.entity_id);
         return;
     }
     audio_manager_.play_sfx("death");
@@ -336,7 +336,7 @@ void ServerEventHandler::handle_map_transition(const MapTransitionEvent& e) {
         return;
 
     current_map_name_ = e.map_name;
-    world_renderer_.sprites().clear_all_entities();
+    world_renderer_.sprites().clear_entities();
     world_renderer_.ground_items().clear();
     world_renderer_.load_map(it->second);
     world_renderer_.sprites().set_movable_position(e.pos_x, e.pos_y);

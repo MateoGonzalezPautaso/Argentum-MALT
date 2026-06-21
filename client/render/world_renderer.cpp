@@ -113,7 +113,7 @@ void WorldRenderer::render() {
     const uint32_t now = SDL_GetTicks();
     anim_system.set_now(now);
     sprite_renderer.tick_animations(anim_system);
-    sprite_renderer.tick_overlays(anim_system);
+    sprite_renderer.advance_overlays();
     prop_renderer.tick_animations(anim_system);
     sprite_renderer.update_anchor_positions();
     sprite_renderer.render(cam);

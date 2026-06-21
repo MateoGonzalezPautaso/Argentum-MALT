@@ -37,10 +37,10 @@ void CreateCharacterController::handle_event(const SDL_Event& event) {
             back_requested = true;
         } else {
             // Selección de raza y clase: específico de CreateCharacterController.
-            const int r = renderer.race_hit(x, y);
+            const int r = renderer.race_at(x, y);
             if (r >= 0)
                 race = RACES[r];
-            const int c = renderer.class_hit(x, y);
+            const int c = renderer.class_at(x, y);
             if (c >= 0)
                 player_class = CLASSES[c];
         }

@@ -191,8 +191,8 @@ void SpriteRenderer::create_entity_name_label(uint16_t entity_id, const std::str
             EntityNameRender{SDL2pp::Texture(renderer, wrapped), text_w, text_h});
 }
 
-void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::string& name,
-                                  Race race, PlayerClass player_class, uint16_t sprite_id) {
+void SpriteRenderer::add_entity(uint16_t entity_id, int x, int y, const std::string& name,
+                                Race race, PlayerClass player_class, uint16_t sprite_id) {
     if (entity_part_configs.empty()) {
         return;
     }
@@ -245,11 +245,11 @@ void SpriteRenderer::set_entity_clan_by_username(const std::string& username,
     }
 }
 
-void SpriteRenderer::despawn_entity(uint16_t entity_id) {
+void SpriteRenderer::remove_entity(uint16_t entity_id) {
     entities_.erase(entity_id);
 }
 
-void SpriteRenderer::clear_all_entities() {
+void SpriteRenderer::clear_entities() {
     entities_.clear();
 }
 
@@ -825,8 +825,7 @@ bool SpriteRenderer::get_entity_world_position(uint16_t entity_id, int& x, int& 
     return true;
 }
 
-void SpriteRenderer::tick_overlays(const AnimationSystem& anim) {
-    (void)anim;
+void SpriteRenderer::advance_overlays() {
     uint32_t now = SDL_GetTicks();
     auto tick_pool = [&](std::vector<OverlayEffect>& pool) {
         for (auto& ov: pool) {
