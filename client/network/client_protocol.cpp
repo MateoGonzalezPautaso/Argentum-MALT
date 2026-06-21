@@ -11,7 +11,7 @@
 
 ClientProtocol::ClientProtocol(Socket&& skt): skt(std::move(skt)), protocol(this->skt) {}
 
-void ClientProtocol::shutdown() { skt.shutdown(SHUT_RDWR); }
+void ClientProtocol::shutdown_from_other_thread() { skt.shutdown_from_other_thread(SHUT_RDWR); }
 
 void ClientProtocol::send_login(const LoginCmd& cmd) {
     protocol.send_opcode(OpCode::LOGIN);

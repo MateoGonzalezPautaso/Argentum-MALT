@@ -61,7 +61,8 @@ public:
     // Recibe y deserializa el próximo evento del servidor.
     ServerEvent recv_event();
 
-    void shutdown();
+    // Para destrabar `recv_event()` desde otro thread
+    void shutdown_from_other_thread();
 
     ClientProtocol(const ClientProtocol&) = delete;
     ClientProtocol& operator=(const ClientProtocol&) = delete;

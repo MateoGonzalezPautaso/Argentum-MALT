@@ -11,7 +11,7 @@
 
 ServerProtocol::ServerProtocol(Socket&& skt): skt(std::move(skt)), protocol(this->skt) {}
 
-void ServerProtocol::shutdown() { skt.shutdown(SHUT_RDWR); }
+void ServerProtocol::shutdown_from_other_thread() { skt.shutdown_from_other_thread(SHUT_RDWR); }
 
 ClientCommand ServerProtocol::recv_command() {
     OpCode opcode = protocol.recv_opcode();
