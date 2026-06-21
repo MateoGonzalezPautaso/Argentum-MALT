@@ -1,7 +1,5 @@
 #include "menu_renderer.h"
 
-#include <algorithm>
-
 #include "texture_loader.h"
 
 MenuRenderer::MenuRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg):
@@ -22,16 +20,7 @@ void MenuRenderer::render() {
     renderer.SetDrawColor(0, 0, 0, 255);
     renderer.Clear();
     renderer.Copy(menu_background_texture, SDL2pp::NullOpt, menu_background_rect);
-    if (audio_muted_) {
-        renderer.Copy(audio_off_texture, SDL2pp::NullOpt, audio_button.rect);
-        if (audio_button.hovered) {
-            renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
-            renderer.SetDrawColor(255, 255, 255, 50);
-            renderer.FillRect(audio_button.rect);
-        }
-    } else {
-        audio_button.render(renderer);
-    }
+    audio_button.render_togglable(renderer, audio_off_texture, audio_muted_);
     start_button.render(renderer);
     renderer.Present();
 }

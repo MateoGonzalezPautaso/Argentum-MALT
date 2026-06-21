@@ -72,16 +72,7 @@ void LoginRenderer::render() {
                       ui_cfg.placeholder_password);
 
     connect_button.render(renderer);
-    if (audio_muted_) {
-        renderer.Copy(audio_off_texture, SDL2pp::NullOpt, audio_button.rect);
-        if (audio_button.hovered) {
-            renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
-            renderer.SetDrawColor(255, 255, 255, 50);
-            renderer.FillRect(audio_button.rect);
-        }
-    } else {
-        audio_button.render(renderer);
-    }
+    audio_button.render_togglable(renderer, audio_off_texture, audio_muted_);
     new_account_button.render(renderer);
 
     render_error();

@@ -23,6 +23,19 @@ struct Button {
         renderer.Copy(tex, SDL2pp::NullOpt, rect);
     }
 
+    void render_togglable(SDL2pp::Renderer& renderer, SDL2pp::Texture& off_tex, bool toggled) {
+        if (toggled) {
+            renderer.Copy(off_tex, SDL2pp::NullOpt, rect);
+            if (hovered) {
+                renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
+                renderer.SetDrawColor(255, 255, 255, 50);
+                renderer.FillRect(rect);
+            }
+        } else {
+            render(renderer);
+        }
+    }
+
     bool is_hit(int x, int y) const { return point_in_rect(x, y, rect); }
 };
 

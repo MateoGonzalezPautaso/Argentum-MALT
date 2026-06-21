@@ -76,16 +76,7 @@ void UIRenderer::render_frame_background() {
 }
 
 void UIRenderer::render_audio_button() {
-    if (audio_muted_) {
-        renderer.Copy(audio_off_texture, SDL2pp::NullOpt, audio_button.rect);
-        if (audio_button.hovered) {
-            renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
-            renderer.SetDrawColor(255, 255, 255, 50);
-            renderer.FillRect(audio_button.rect);
-        }
-    } else {
-        audio_button.render(renderer);
-    }
+    audio_button.render_togglable(renderer, audio_off_texture, audio_muted_);
 }
 
 bool UIRenderer::is_audio_hit(int x, int y) const { return audio_button.is_hit(x, y); }
@@ -117,16 +108,7 @@ bool UIRenderer::is_chat_input_hit(int x, int y) const {
 }
 
 void UIRenderer::render_expand_button() {
-    if (chat_expanded_) {
-        renderer.Copy(expand_active_texture, SDL2pp::NullOpt, expand_button.rect);
-        if (expand_button.hovered) {
-            renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
-            renderer.SetDrawColor(255, 255, 255, 50);
-            renderer.FillRect(expand_button.rect);
-        }
-    } else {
-        expand_button.render(renderer);
-    }
+    expand_button.render_togglable(renderer, expand_active_texture, chat_expanded_);
 }
 
 bool UIRenderer::is_expand_hit(int x, int y) const {
