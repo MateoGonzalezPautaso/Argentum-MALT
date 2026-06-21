@@ -457,8 +457,8 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
             }
         }
 
-        // Attack if in range and cooldown OK
-        if (!in_attack_range)
+        // Attack if in range, target not in a safe zone, and cooldown OK
+        if (!in_attack_range || player_in_safe_zone)
             continue;
 
         if (!npc.try_attack(current_tick, config.cooldown_ticks))

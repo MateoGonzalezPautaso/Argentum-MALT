@@ -376,7 +376,7 @@ Para desequipar un objeto, haz click izquierdo sobre él en el slot del item equ
 |-----|---------|--------|
 | **Sacerdote** | Cura al jugador (`/curar`), revive instantáneamente, vende bastones y pociones | ![Sacerdote](images/Sacerdote.png) |
 | **Sanadora** | Revive al jugador con una demora proporcional a la distancia (no vende ítems) | ![Sanadora](images/Sanador.png) |
-| **Mercader** | Compra y vende armas, armaduras y pociones | ![Mercader](images/Mercader.png) |
+| **Mercader** | Compra y vende armas, armaduras, cascos, escudos y pociones (nunca hechizos) | ![Mercader](images/Mercader.png) |
 | **Banquero** | Depósito y retiro de ítems y oro (sucursal universal) | ![Banquero](images/Banquero.png) |
 
 
