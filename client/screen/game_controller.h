@@ -2,6 +2,7 @@
 #define CLIENT_GAME_CONTROLLER_H
 
 #include <string>
+#include <unordered_map>
 
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
@@ -54,6 +55,7 @@ private:
     SDL_Cursor* arrow_cursor;
     int mouse_x = 0;
     int mouse_y = 0;
+    std::unordered_map<SDL_Keycode, ClientCommand> cheat_commands_;
 
     bool handle_mouse_button(const SDL_Event& event);
     bool handle_mouse_motion(const SDL_Event& event);

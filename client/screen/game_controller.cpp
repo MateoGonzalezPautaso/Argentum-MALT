@@ -30,7 +30,21 @@ GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& c
         move_controller(this->command_queue, MoveConfig(config), SDL_GetTicks()),
         move_config(config),
         hand_cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND)),
-        arrow_cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW)) {
+        arrow_cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW)),
+        cheat_commands_{
+                {SDLK_h, ClientCommand{CheatInfiniteHpCmd{}}},
+                {SDLK_i, ClientCommand{CheatFillInventoryCmd{}}},
+                {SDLK_m, ClientCommand{CheatInfiniteManaCmd{}}},
+                {SDLK_k, ClientCommand{CheatDieCmd{}}},
+                {SDLK_l, ClientCommand{CheatClearInventoryCmd{}}},
+                {SDLK_v, ClientCommand{CheatLevelUpCmd{}}},
+                {SDLK_b, ClientCommand{CheatLevelDownCmd{}}},
+                {SDLK_g, ClientCommand{CheatAddGoldCmd{}}},
+                {SDLK_0, ClientCommand{CheatResetGoldCmd{}}},
+                {SDLK_9, ClientCommand{CheatResetManaCmd{}}},
+                {SDLK_f, ClientCommand{CheatVelocityCmd{}}},
+                {SDLK_r, ClientCommand{CheatReviveCmd{}}},
+        } {
     world_renderer.set_direction_src_y(config.dir_src_y_down, config.dir_src_y_up,
                                        config.dir_src_y_left, config.dir_src_y_right);
     merchant_controller = std::make_unique<MerchantController>(renderer, config.ui,
@@ -678,57 +692,18 @@ bool GameController::handle_keydown(const SDL_Event& event) {
                     move_controller.move_direction(Direction::SOUTH, now).has_value());
             break;
         case SDLK_h:
-            if (ctrl)
-                command_queue.push(CheatInfiniteHpCmd{});
-            else
+            if (!ctrl)
                 world_renderer.set_show_hitboxes(!world_renderer.get_show_hitboxes());
-            break;
-        case SDLK_i:
-            if (ctrl)
-                command_queue.push(CheatFillInventoryCmd{});
-            break;
-        case SDLK_m:
-            if (ctrl)
-                command_queue.push(CheatInfiniteManaCmd{});
-            break;
-        case SDLK_k:
-            if (ctrl)
-                command_queue.push(CheatDieCmd{});
-            break;
-        case SDLK_l:
-            if (ctrl)
-                command_queue.push(CheatClearInventoryCmd{});
-            break;
-        case SDLK_v:
-            if (ctrl)
-                command_queue.push(CheatLevelUpCmd{});
-            break;
-        case SDLK_b:
-            if (ctrl)
-                command_queue.push(CheatLevelDownCmd{});
-            break;
-        case SDLK_g:
-            if (ctrl)
-                command_queue.push(CheatAddGoldCmd{});
-            break;
-        case SDLK_0:
-            if (ctrl)
-                command_queue.push(CheatResetGoldCmd{});
-            break;
-        case SDLK_9:
-            if (ctrl)
-                command_queue.push(CheatResetManaCmd{});
-            break;
-        case SDLK_f:
-            if (ctrl)
-                command_queue.push(CheatVelocityCmd{});
-            break;
-        case SDLK_r:
-            if (ctrl)
-                command_queue.push(CheatReviveCmd{});
             break;
         default:
             break;
+    }
+
+    if (ctrl) {
+        auto it = cheat_commands_.find(event.key.keysym.sym);
+        if (it != cheat_commands_.end())
+            command_queue.push(it->second);
+        return true;
     }
 
     return true;
