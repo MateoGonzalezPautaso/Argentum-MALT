@@ -58,15 +58,20 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         sprite_height(config.sprite_height),
         balance(config.balance),
         inventory_config(config.inventory),
-        mob_spawn_radius(config.mob_spawn_radius),
+        mob_spawn(config.mob_spawn),
         item_catalog(config.item_catalog),
         rng(),
         combat_controller(config.attack, players, config.item_catalog, enemy_npcs,
-                          config.balance.npc_drop),
+                          config.balance.npc_drop, config.balance.npc_drop_dungeon),
         tick_rate_hz(config.tick_rate_hz),
         cheats_enabled(config.cheats_enabled),
-        help_lines(config.help_lines),
-        npc_templates(config.npc_templates) {
+        help_lines(config.help_lines) {
+    for (const auto& tmpl: config.npc_templates) {
+        if (tmpl.dungeon_only)
+            dungeon_npc_templates.push_back(tmpl);
+        else
+            world_npc_templates.push_back(tmpl);
+    }
     for (const auto& [name, tc]: tilemap_configs) {
         maps.emplace(name, Map(tc));
     }
@@ -378,7 +383,7 @@ CommandResult Game::spawn_mobs() {
             if (player.get_current_map() != map_name || player.is_dead())
                 continue;
             pos_opt = map.find_random_mob_spawn_pos_near(rng, player.pos_x(), player.pos_y(),
-                                                         mob_spawn_radius);
+                                                         mob_spawn.spawn_radius);
             if (pos_opt.has_value())
                 break;
         }
@@ -390,8 +395,11 @@ CommandResult Game::spawn_mobs() {
         Position spawn_pos{static_cast<uint16_t>(pos_opt->first),
                            static_cast<uint16_t>(pos_opt->second)};
 
-        uint8_t level = static_cast<uint8_t>(rng.get_random_int(1, 5));
-        EnemyNpc npc = create_random_npc(spawn_pos, level);
+        bool is_dungeon = cfg.map_type == MapType::DUNGEON;
+        const MobLevelRange& level_range = is_dungeon ? mob_spawn.dungeon : mob_spawn.world;
+        uint8_t level = static_cast<uint8_t>(
+                rng.get_random_int(level_range.min_level, level_range.max_level));
+        EnemyNpc npc = create_random_npc(spawn_pos, level, is_dungeon);
         uint16_t npc_id = next_npc_id++;
         npc.set_current_map(map_name);
 
@@ -405,11 +413,12 @@ CommandResult Game::spawn_mobs() {
     return result;
 }
 
-EnemyNpc Game::create_random_npc(Position pos, uint8_t level) {
-    if (npc_templates.empty())
+EnemyNpc Game::create_random_npc(Position pos, uint8_t level, bool dungeon) {
+    const std::vector<NpcTemplate>& pool = dungeon ? dungeon_npc_templates : world_npc_templates;
+    if (pool.empty())
         return EnemyNpc(pos, 100 * level, 5 * level, rng, item_catalog, level, "NPC");
-    int roll = rng.get_random_int(0, static_cast<int>(npc_templates.size()) - 1);
-    const NpcTemplate& t = npc_templates[roll];
+    int roll = rng.get_random_int(0, static_cast<int>(pool.size()) - 1);
+    const NpcTemplate& t = pool[roll];
     return EnemyNpc(pos, t.base_hp * level, t.base_damage * level, rng, item_catalog, level, t.name,
                     t.sprite_id, t.speed);
 }

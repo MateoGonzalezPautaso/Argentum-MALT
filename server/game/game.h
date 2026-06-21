@@ -38,7 +38,7 @@ private:
     int sprite_height;
     BalanceConfig balance;
     InventoryConfig inventory_config;
-    int mob_spawn_radius;
+    MobSpawnConfig mob_spawn;
     const ItemCatalog& item_catalog;
     Rng rng;
     CombatController combat_controller;
@@ -49,7 +49,8 @@ private:
     std::unordered_map<uint16_t, double> hp_regen_accum;
     std::unordered_map<uint16_t, double> mana_regen_accum;
     std::map<uint16_t, EnemyNpc> enemy_npcs;
-    std::vector<NpcTemplate> npc_templates;
+    std::vector<NpcTemplate> world_npc_templates;
+    std::vector<NpcTemplate> dungeon_npc_templates;
     uint16_t next_npc_id = 2000;
     uint32_t mob_spawn_tick = 0;
 
@@ -70,7 +71,7 @@ private:
     CommandResult apply_regen();
     CommandResult process_pending_resurrections();
     CommandResult spawn_mobs();
-    EnemyNpc create_random_npc(Position pos, uint8_t level);
+    EnemyNpc create_random_npc(Position pos, uint8_t level, bool dungeon);
 
     CommandResult handle_login(uint16_t player_id, const LoginCmd& cmd);
     CommandResult handle_create_character(uint16_t player_id, const CreateCharacterCmd& cmd);
