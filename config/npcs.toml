@@ -27,12 +27,14 @@ name = "Zombie"
 base_hp = 375
 base_damage = 15
 sprite_id = 4795
+speed = 1
 
 [[npc]]
 name = "Orc"
 base_hp = 600
 base_damage = 28
 sprite_id = 4780
+speed = 1
 
 [[npc]]
 name = "Small spider"
@@ -51,9 +53,11 @@ name = "Stone golem"
 base_hp = 900
 base_damage = 40
 sprite_id = 4580
+speed = 1
 
 [[npc]]
 name = "Iron golem"
 base_hp = 1350
 base_damage = 55
 sprite_id = 4582
+speed = 1

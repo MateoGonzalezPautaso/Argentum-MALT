@@ -23,7 +23,6 @@ struct UpdateStats {
 class Player: public Entity {
 private:
     uint16_t id;
-    Direction dir;
     Race race;
     PlayerClass player_class;
     uint32_t experience;
@@ -57,7 +56,6 @@ public:
            uint8_t mana_potion_capacity, uint8_t bank_capacity, uint32_t bank_gold);
 
     uint16_t get_id() const { return id; }
-    Direction get_dir() const { return dir; }
     Race get_race() const { return race; }
     PlayerClass get_player_class() const { return player_class; }
 

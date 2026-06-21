@@ -2,9 +2,11 @@
 
 EnemyNpc::EnemyNpc(Position position, uint32_t hp_max, uint32_t damage, Rng& rng,
                    const ItemCatalog& catalog, uint8_t level, const std::string& name,
-                   uint16_t sprite_id):
-        Entity(hp_max, name, position, level, sprite_id),
-        damage(damage), rng(rng), catalog(catalog) {}
+                   uint16_t sprite_id, uint32_t speed):
+        Entity(hp_max, name, position, level, sprite_id, speed),
+        damage(damage),
+        rng(rng),
+        catalog(catalog) {}
 
 EnemyDrop EnemyNpc::get_kill_reward(const NpcDropConfig& drop_config) {
     double r = rng.get_random_double(0, 100);

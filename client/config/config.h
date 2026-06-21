@@ -95,8 +95,8 @@ struct MerchantButtonConfig {
 
 struct MerchantUIConfig {
     int panel_x = 200, panel_y = 100, panel_w = 624, panel_h = 568;
-    MerchantButtonConfig buy  {265, 622, 122, 28};
-    MerchantButtonConfig sell {452, 622, 122, 28};
+    MerchantButtonConfig buy{265, 622, 122, 28};
+    MerchantButtonConfig sell{452, 622, 122, 28};
     int list_offset_x = 34;
     int list_offset_y = 114;
     int list_w = 474;
@@ -197,11 +197,11 @@ struct UIConfig {
     std::string asset_hp_bar = "assets/interface/en_barradevida.bmp";
     std::string asset_mp_bar = "assets/interface/en_barrademana.bmp";
     std::string asset_exp_bar = "assets/interface/en_barraexperiencia.bmp";
-    std::string asset_merchant_bg   = "assets/interface/en_comerciar.bmp";
-    std::string asset_buy_default   = "assets/interface/en_boton-comprar-default.bmp";
-    std::string asset_buy_hover     = "assets/interface/en_boton-comprar-over.bmp";
-    std::string asset_sell_default  = "assets/interface/en_boton-vender-default.bmp";
-    std::string asset_sell_hover    = "assets/interface/en_boton-vender-over.bmp";
+    std::string asset_merchant_bg = "assets/interface/en_comerciar.bmp";
+    std::string asset_buy_default = "assets/interface/en_boton-comprar-default.bmp";
+    std::string asset_buy_hover = "assets/interface/en_boton-comprar-over.bmp";
+    std::string asset_sell_default = "assets/interface/en_boton-vender-default.bmp";
+    std::string asset_sell_hover = "assets/interface/en_boton-vender-over.bmp";
     std::string asset_sell_disabled = "assets/interface/en_boton-vender-off.bmp";
     std::string asset_expand_default = "assets/interface/en_boton-sm-mas-default.bmp";
     std::string asset_expand_hover   = "assets/interface/en_boton-sm-mas-over.bmp";
@@ -241,6 +241,7 @@ struct NpcSkinDef {
     bool swap_lr = false;
     std::vector<int> row_positions;
     std::vector<int> frame_positions;
+    int speed = 2;
 };
 
 struct SkinConfig {
@@ -297,6 +298,10 @@ struct SkinConfig {
     const std::vector<int>& npc_frame_positions(uint16_t sprite_id) {
         auto it = npc.find(sprite_id);
         return it != npc.end() ? it->second.frame_positions : empty_vec;
+    }
+    int speed(uint16_t sprite_id) {
+        auto it = npc.find(sprite_id);
+        return it != npc.end() ? it->second.speed : 0;
     }
 
 private:

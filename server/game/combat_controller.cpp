@@ -11,7 +11,10 @@ CombatController::CombatController(const AttackConfig& config, std::map<uint16_t
                                    const ItemCatalog& catalog,
                                    std::map<uint16_t, EnemyNpc>& enemy_npcs,
                                    const NpcDropConfig& drop_config):
-        config(config), players(players), item_catalog_(catalog), enemy_npcs(enemy_npcs),
+        config(config),
+        players(players),
+        item_catalog_(catalog),
+        enemy_npcs(enemy_npcs),
         npc_drop_config(drop_config) {}
 
 void CombatController::set_clan_manager(ClanManager& mgr) { clan_manager = &mgr; }
@@ -104,10 +107,9 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
         if (excess > 0) {
             attacker.gain_gold(excess);
             result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
-            result.private_events.push_back(
-                    ChatMsgEvent{ChatMsgType::SYSTEM, "",
-                                "Le robaste " + std::to_string(excess) + " de oro a " +
-                                        target.get_name()});
+            result.private_events.push_back(ChatMsgEvent{
+                    ChatMsgType::SYSTEM, "",
+                    "Le robaste " + std::to_string(excess) + " de oro a " + target.get_name()});
             result.targeted_events[target_id].push_back(GoldUpdateEvent{target.get_gold()});
             result.targeted_events[target_id].push_back(ChatMsgEvent{
                     ChatMsgType::SYSTEM, "",
@@ -182,13 +184,12 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
         if (drop.item.has_value()) {
             const Item& item = drop.item.value();
             if (attacker.add_item(item.type, item.name)) {
-                result.private_events.push_back(
-                        InventoryUpdateEvent{attacker.dump_inventory()});
+                result.private_events.push_back(InventoryUpdateEvent{attacker.dump_inventory()});
             } else {
-                result.private_events.push_back(ChatMsgEvent{
-                        ChatMsgType::SYSTEM, "",
-                        npc_target.get_name() + " solto " + item.name +
-                                " pero tu inventario esta lleno"});
+                result.private_events.push_back(
+                        ChatMsgEvent{ChatMsgType::SYSTEM, "",
+                                     npc_target.get_name() + " solto " + item.name +
+                                             " pero tu inventario esta lleno"});
             }
         }
     }
@@ -275,10 +276,9 @@ CommandResult CombatController::spell_attack_player(uint16_t attacker_id, uint16
         if (excess > 0) {
             attacker.gain_gold(excess);
             result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
-            result.private_events.push_back(
-                    ChatMsgEvent{ChatMsgType::SYSTEM, "",
-                                "Le robaste " + std::to_string(excess) + " de oro a " +
-                                        target.get_name()});
+            result.private_events.push_back(ChatMsgEvent{
+                    ChatMsgType::SYSTEM, "",
+                    "Le robaste " + std::to_string(excess) + " de oro a " + target.get_name()});
             result.targeted_events[target_id].push_back(GoldUpdateEvent{target.get_gold()});
             result.targeted_events[target_id].push_back(ChatMsgEvent{
                     ChatMsgType::SYSTEM, "",
@@ -379,10 +379,10 @@ void CombatController::drop_inventory_on_death(
     target.clear_equipped();
 
     target_events.push_back(InventoryUpdateEvent{target.dump_inventory()});
-    target_events.push_back(EquipUpdateEvent{target.get_id(), target.get_equipped(EquipSlot::WEAPON),
-                                             target.get_equipped(EquipSlot::ARMOR),
-                                             target.get_equipped(EquipSlot::HELMET),
-                                             target.get_equipped(EquipSlot::SHIELD)});
+    target_events.push_back(EquipUpdateEvent{
+            target.get_id(), target.get_equipped(EquipSlot::WEAPON),
+            target.get_equipped(EquipSlot::ARMOR), target.get_equipped(EquipSlot::HELMET),
+            target.get_equipped(EquipSlot::SHIELD)});
 }
 
 CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
@@ -390,7 +390,7 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
     std::map<uint16_t, std::vector<ServerEvent>> targeted;
     std::map<std::string, std::vector<ItemDroppedEvent>> ground_drops;
 
-    for (auto& [npc_id, npc] : enemy_npcs) {
+    for (auto& [npc_id, npc]: enemy_npcs) {
         if (npc.is_dead())
             continue;
 
@@ -398,12 +398,10 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
         if (!target)
             continue;
 
-        bool in_attack_range =
-                in_range(npc.pos_x(), npc.pos_y(), target->pos_x(), target->pos_y(),
-                         config.attack_range_px);
-        bool in_vision_range =
-                in_range(npc.pos_x(), npc.pos_y(), target->pos_x(), target->pos_y(),
-                         config.npc_vision_range_px);
+        bool in_attack_range = in_range(npc.pos_x(), npc.pos_y(), target->pos_x(), target->pos_y(),
+                                        config.attack_range_px);
+        bool in_vision_range = in_range(npc.pos_x(), npc.pos_y(), target->pos_x(), target->pos_y(),
+                                        config.npc_vision_range_px);
 
         if (!in_vision_range)
             continue;
@@ -418,7 +416,8 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
         bool player_in_safe_zone =
                 map && !map->is_position_in_spawn_zone(target->pos_x(), target->pos_y());
 
-        // Chase: move toward player if not in attack range or cooldown active, and player not in safe zone
+        // Chase: move toward player if not in attack range or cooldown active, and player not in
+        // safe zone
         bool should_chase = in_vision_range && !player_in_safe_zone;
         if (should_chase && !in_attack_range) {
             int dx = static_cast<int>(target->pos_x()) - static_cast<int>(npc.pos_x());
@@ -426,7 +425,7 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
 
             Direction move_dir;
             int step_x = 0, step_y = 0;
-            int speed = static_cast<int>(config.npc_speed);
+            int speed = static_cast<int>(npc.get_speed());
 
             if (std::abs(dx) > std::abs(dy)) {
                 step_x = (dx > 0) ? speed : -speed;
@@ -439,26 +438,28 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
             int new_x = static_cast<int>(npc.pos_x()) + step_x;
             int new_y = static_cast<int>(npc.pos_y()) + step_y;
 
-            if (new_x < 0) new_x = 0;
-            if (new_y < 0) new_y = 0;
+            if (new_x < 0)
+                new_x = 0;
+            if (new_y < 0)
+                new_y = 0;
 
             // Don't enter safe zones (non-spawn areas) or non-walkable tiles
-            if (map && (!map->is_position_in_spawn_zone(new_x, new_y) ||
-                        !map->is_walkable(new_x, new_y)))
+            if (map &&
+                (!map->is_position_in_spawn_zone(new_x, new_y) || !map->is_walkable(new_x, new_y)))
                 continue;
 
             npc.set_pos(static_cast<uint16_t>(new_x), static_cast<uint16_t>(new_y));
             npc.set_dir(move_dir);
 
             EntityMoveEvent move_ev{npc_id, npc.get_pos(), move_dir};
-            for (const auto& [pid, player] : players) {
+            for (const auto& [pid, player]: players) {
                 if (player.get_current_map() == npc.get_current_map())
                     targeted[pid].push_back(move_ev);
             }
         }
 
-        // Attack if in range and cooldown OK
-        if (!in_attack_range)
+        // Attack if in range, target not in a safe zone, and cooldown OK
+        if (!in_attack_range || player_in_safe_zone)
             continue;
 
         if (!npc.try_attack(current_tick, config.cooldown_ticks))
@@ -497,7 +498,7 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
                                          ItemType::GOLD_DROP, "Oro", excess});
                 targeted[target_id].push_back(
                         ChatMsgEvent{ChatMsgType::SYSTEM, "",
-                                    "Perdiste " + std::to_string(excess) + " de oro al morir"});
+                                     "Perdiste " + std::to_string(excess) + " de oro al morir"});
             }
             PlayerStatsEvent stats{};
             fill_player_stats_event(stats, *target);
