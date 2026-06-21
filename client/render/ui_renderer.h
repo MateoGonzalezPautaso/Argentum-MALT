@@ -33,6 +33,7 @@ private:
     SDL2pp::Texture expand_active_texture;
     SDL2pp::Texture big_chat_texture_;
     bool chat_expanded_ = false;
+    int expanded_input_y_ = 0;
     SDL2pp::Rect ui_frame_rect;
     SDL2pp::Rect chat_input_rect;
     SDL2pp::Rect chat_history_rect;

@@ -522,6 +522,8 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
         ui_renderer.is_expand_hit(event.button.x, event.button.y)) {
         chat_expanded_ = !chat_expanded_;
         ui_renderer.set_chat_expanded(chat_expanded_);
+        if (chat_expanded_ && !chat_input.is_focused())
+            chat_input.set_focus(true);
         return true;
     }
 

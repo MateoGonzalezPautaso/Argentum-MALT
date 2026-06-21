@@ -35,9 +35,6 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
                         ui_cfg.chat_input_h),
         chat_history_rect(ui_cfg.chat_history_x, ui_cfg.chat_history_y, ui_cfg.chat_history_w,
                           ui_cfg.chat_history_h),
-        expanded_chat_history_rect(ui_cfg.chat_history_x, ui_cfg.chat_history_y,
-                                   ui_cfg.chat_history_w,
-                                   ui_cfg.chat_history_h + ui_cfg.chat_expand_amount),
         ui_cfg(ui_cfg),
         inventory_renderer(renderer, bar_font, ui_cfg.inventory_panel, item_sprites) {
     chat_font = TTF_OpenFont(ui_cfg.font_path.c_str(), ui_cfg.font_chat_size);
@@ -54,6 +51,13 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
     const int expand_x = ui_cfg.chat_input_x + ui_cfg.chat_input_w + ui_cfg.chat_expand_btn_gap;
     expand_button.set_position(expand_x, ui_cfg.chat_input_y,
                                ui_cfg.chat_expand_btn_w, ui_cfg.chat_expand_btn_h);
+
+    const int orig_gap = ui_cfg.chat_input_y - (ui_cfg.chat_history_y + ui_cfg.chat_history_h);
+    const int img_bottom = ui_cfg.chat_history_y + big_chat_texture_.GetHeight();
+    expanded_input_y_ = img_bottom - ui_cfg.chat_input_h - orig_gap;
+    expanded_chat_history_rect = SDL2pp::Rect(
+            ui_cfg.chat_history_x, ui_cfg.chat_history_y, ui_cfg.chat_history_w,
+            expanded_input_y_ - orig_gap - ui_cfg.chat_history_y);
 }
 
 UIRenderer::~UIRenderer() {
@@ -135,11 +139,11 @@ void UIRenderer::set_expand_button_hovered(int x, int y) {
 
 void UIRenderer::set_chat_expanded(bool expanded) {
     chat_expanded_ = expanded;
-    const int y_offset = expanded ? ui_cfg.chat_expand_amount : 0;
-    chat_input_rect = SDL2pp::Rect(ui_cfg.chat_input_x, ui_cfg.chat_input_y + y_offset,
+    const int input_y = expanded ? expanded_input_y_ : ui_cfg.chat_input_y;
+    chat_input_rect = SDL2pp::Rect(ui_cfg.chat_input_x, input_y,
                                    ui_cfg.chat_input_w, ui_cfg.chat_input_h);
     const int expand_btn_x = ui_cfg.chat_input_x + ui_cfg.chat_input_w + ui_cfg.chat_expand_btn_gap;
-    expand_button.rect = SDL2pp::Rect(expand_btn_x, ui_cfg.chat_input_y + y_offset,
+    expand_button.rect = SDL2pp::Rect(expand_btn_x, input_y,
                                       ui_cfg.chat_expand_btn_w, ui_cfg.chat_expand_btn_h);
 }
 
