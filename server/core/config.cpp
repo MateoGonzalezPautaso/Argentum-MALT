@@ -22,6 +22,7 @@ std::vector<NpcTemplate> load_npc_templates(const std::string& path) {
             t.base_damage = static_cast<uint32_t>(toml_get_int(*tbl, "base_damage", 5));
             t.sprite_id = static_cast<uint16_t>(toml_get_int(*tbl, "sprite_id", 0));
             t.speed = static_cast<uint32_t>(toml_get_int(*tbl, "speed", 2));
+            t.dungeon_only = toml_get_bool(*tbl, "dungeon_only", false);
             templates.push_back(std::move(t));
         }
     }
@@ -114,7 +115,19 @@ ServerConfig load_server_config(const std::string& path) {
     }
 
     if (auto mob_spawn = root["mob_spawn"].as_table()) {
-        config.mob_spawn_radius = toml_get_int(*mob_spawn, "spawn_radius", config.mob_spawn_radius);
+        config.mob_spawn.spawn_radius =
+                toml_get_int(*mob_spawn, "spawn_radius", config.mob_spawn.spawn_radius);
+        config.mob_spawn.world.min_level =
+                toml_get_int(*mob_spawn, "min_level", config.mob_spawn.world.min_level);
+        config.mob_spawn.world.max_level =
+                toml_get_int(*mob_spawn, "max_level", config.mob_spawn.world.max_level);
+
+        if (auto dungeon = (*mob_spawn)["dungeon"].as_table()) {
+            config.mob_spawn.dungeon.min_level =
+                    toml_get_int(*dungeon, "min_level", config.mob_spawn.dungeon.min_level);
+            config.mob_spawn.dungeon.max_level =
+                    toml_get_int(*dungeon, "max_level", config.mob_spawn.dungeon.max_level);
+        }
     }
 
     if (auto balance = root["balance"].as_table()) {
@@ -146,6 +159,17 @@ ServerConfig load_server_config(const std::string& path) {
                     toml_get_double(*drop, "potion_chance", config.balance.npc_drop.potion_chance);
             config.balance.npc_drop.item_chance =
                     toml_get_double(*drop, "item_chance", config.balance.npc_drop.item_chance);
+        }
+
+        // Defaults to the same odds as the open world unless overridden.
+        config.balance.npc_drop_dungeon = config.balance.npc_drop;
+        if (auto drop_dungeon = (*balance)["npc_drop_dungeon"].as_table()) {
+            config.balance.npc_drop_dungeon.gold_chance = toml_get_double(
+                    *drop_dungeon, "gold_chance", config.balance.npc_drop_dungeon.gold_chance);
+            config.balance.npc_drop_dungeon.potion_chance = toml_get_double(
+                    *drop_dungeon, "potion_chance", config.balance.npc_drop_dungeon.potion_chance);
+            config.balance.npc_drop_dungeon.item_chance = toml_get_double(
+                    *drop_dungeon, "item_chance", config.balance.npc_drop_dungeon.item_chance);
         }
     }
 

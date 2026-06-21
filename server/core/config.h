@@ -124,6 +124,18 @@ struct NpcTemplate {
     uint32_t base_damage = 0;
     uint16_t sprite_id = 0;
     uint32_t speed = 2;
+    bool dungeon_only = false;
+};
+
+struct MobLevelRange {
+    int min_level = 1;
+    int max_level = 5;
+};
+
+struct MobSpawnConfig {
+    int spawn_radius = 10;
+    MobLevelRange world;
+    MobLevelRange dungeon{6, 15};
 };
 
 struct InventoryConfig {
@@ -154,6 +166,7 @@ struct BalanceConfig {
     VendorsConfig vendors;
     MerchantConfig merchant;
     NpcDropConfig npc_drop;
+    NpcDropConfig npc_drop_dungeon;
 };
 
 struct ServerConfig {
@@ -170,7 +183,7 @@ struct ServerConfig {
     BalanceConfig balance;
     AttackConfig attack;
     ClanConfig clan;
-    int mob_spawn_radius = 10;
+    MobSpawnConfig mob_spawn;
     ItemCatalog item_catalog;
     std::vector<NpcTemplate> npc_templates;
     std::vector<std::string> help_lines;
