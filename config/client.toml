@@ -241,7 +241,9 @@ minus_hover    = "assets/interface/en_boton-menos-over.bmp"
 expand_default = "assets/interface/en_boton-sm-mas-default.bmp"
 expand_hover   = "assets/interface/en_boton-sm-mas-over.bmp"
 expand_off     = "assets/interface/en_boton-sm-mas-off.bmp"
-big_chat       = "assets/interface/big_chat.bmp"
+big_chat            = "assets/interface/big_chat.bmp"
+new_account_default = "assets/interface/en_boton-crear-pj-default.bmp"
+new_account_hover   = "assets/interface/en_boton-crear-pj-over.bmp"
 
 [[sprites]]
 path = "assets/Graficos/1071.png"

@@ -346,6 +346,10 @@ void parse_assets_config(const toml::table& root, ClientConfig& config) {
                 toml_get_string(*tbl, "expand_off", config.ui.asset_expand_off);
         config.ui.asset_big_chat =
                 toml_get_string(*tbl, "big_chat", config.ui.asset_big_chat);
+        config.ui.asset_new_account_default =
+                toml_get_string(*tbl, "new_account_default", config.ui.asset_new_account_default);
+        config.ui.asset_new_account_hover =
+                toml_get_string(*tbl, "new_account_hover", config.ui.asset_new_account_hover);
     }
 }
 
