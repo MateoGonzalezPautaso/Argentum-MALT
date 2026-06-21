@@ -68,8 +68,6 @@ void WorldRenderer::load_map(const TilemapConfig& tilemap) {
     load_tilemap_data(tilemap);
 }
 
-void WorldRenderer::clear_entities() { sprite_renderer.clear_all_entities(); }
-
 WorldRenderer::~WorldRenderer() {
     if (name_font) {
         TTF_CloseFont(name_font);
@@ -131,72 +129,6 @@ void WorldRenderer::render() {
     renderer.SetLogicalSize(window_w, window_h);
 }
 
-void WorldRenderer::set_movable_position(int x, int y) {
-    sprite_renderer.set_movable_position(x, y);
-}
-
-void WorldRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::string& name,
-                                 Race race, PlayerClass player_class, uint16_t sprite_id) {
-    sprite_renderer.spawn_entity(entity_id, x, y, name, race, player_class, sprite_id);
-}
-
-void WorldRenderer::set_local_player_info(Race race, PlayerClass player_class) {
-    sprite_renderer.set_local_player_info(race, player_class);
-}
-
-void WorldRenderer::update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y,
-                                             bool static_frame) {
-    sprite_renderer.update_equipment_overlay(slot, path, offset_y, static_frame);
-}
-
-void WorldRenderer::clear_equipment_overlay(uint8_t slot) {
-    sprite_renderer.clear_equipment_overlay(slot);
-}
-
-void WorldRenderer::update_entity_equipment_overlay(uint16_t entity_id, uint8_t slot,
-                                                    const std::string& path, int offset_y,
-                                                    bool static_frame) {
-    sprite_renderer.update_entity_equipment_overlay(entity_id, slot, path, offset_y, static_frame);
-}
-
-void WorldRenderer::clear_entity_equipment_overlay(uint16_t entity_id, uint8_t slot) {
-    sprite_renderer.clear_entity_equipment_overlay(entity_id, slot);
-}
-
-void WorldRenderer::set_entity_body_sprite(uint16_t entity_id, const std::string& path) {
-    sprite_renderer.set_entity_body_sprite(entity_id, path);
-}
-
-void WorldRenderer::reset_entity_body_sprite(uint16_t entity_id) {
-    sprite_renderer.reset_entity_body_sprite(entity_id);
-}
-
-void WorldRenderer::set_body_sprite(const std::string& path) {
-    sprite_renderer.set_body_sprite(path);
-}
-
-void WorldRenderer::reset_body_sprite() { sprite_renderer.reset_body_sprite(); }
-
-void WorldRenderer::set_direction_src_y(int down, int up, int left, int right) {
-    sprite_renderer.set_direction_src_y(down, up, left, right);
-}
-
-void WorldRenderer::despawn_entity(uint16_t entity_id) {
-    sprite_renderer.despawn_entity(entity_id);
-}
-
-void WorldRenderer::move_entity(uint16_t entity_id, int x, int y) {
-    sprite_renderer.move_entity(entity_id, x, y);
-}
-
-bool WorldRenderer::get_movable_position(int& x, int& y) const {
-    return sprite_renderer.get_movable_position(x, y);
-}
-
-int WorldRenderer::movable_w() const { return sprite_renderer.movable_w(); }
-
-int WorldRenderer::movable_h() const { return sprite_renderer.movable_h(); }
-
 void WorldRenderer::get_camera_offset(int& x, int& y) const {
     x = camera.offset_x();
     y = camera.offset_y();
@@ -206,72 +138,7 @@ bool WorldRenderer::screen_to_world(int screen_x, int screen_y, int& world_x, in
     return camera.screen_to_world(screen_x, screen_y, world_x, world_y);
 }
 
-bool WorldRenderer::hit_test_entity(int world_x, int world_y, uint16_t& out_entity_id) const {
-    return sprite_renderer.hit_test_entity(world_x, world_y, out_entity_id);
-}
-
 bool WorldRenderer::hit_test_prop(int world_x, int world_y, std::string& out_prop_name) const {
     return prop_renderer.hit_test_prop(world_x, world_y, out_prop_name);
 }
 
-void WorldRenderer::set_movable_src_y(int y) { sprite_renderer.set_movable_src_y(y); }
-
-void WorldRenderer::step_movable_src_x(int step, int frame_count) {
-    sprite_renderer.step_movable_src_x(step, frame_count);
-}
-
-void WorldRenderer::set_anchor_src_y(int y) { sprite_renderer.set_anchor_src_y(y); }
-
-void WorldRenderer::set_entity_src_y(uint16_t entity_id, int body_src_y, int head_src_y) {
-    sprite_renderer.set_entity_src_y(entity_id, body_src_y, head_src_y);
-}
-
-void WorldRenderer::step_entity_src_x(uint16_t entity_id, int step, int frame_count) {
-    sprite_renderer.step_entity_src_x(entity_id, step, frame_count);
-}
-
-void WorldRenderer::note_entity_moved(uint16_t entity_id) {
-    sprite_renderer.note_entity_moved(entity_id);
-}
-
-void WorldRenderer::set_local_clan_name(const std::string& name) {
-    sprite_renderer.set_local_clan_name(name);
-}
-
-void WorldRenderer::set_entity_clan_name(uint16_t entity_id, const std::string& name) {
-    sprite_renderer.set_entity_clan_name(entity_id, name);
-}
-
-void WorldRenderer::set_entity_clan_by_username(const std::string& username,
-                                                 const std::string& clan) {
-    sprite_renderer.set_entity_clan_by_username(username, clan);
-}
-
-void WorldRenderer::set_entity_alpha(uint16_t entity_id, uint8_t alpha) {
-    sprite_renderer.set_entity_alpha(entity_id, alpha);
-}
-
-void WorldRenderer::set_movable_alpha(uint8_t alpha) { sprite_renderer.set_movable_alpha(alpha); }
-
-void WorldRenderer::trigger_damage_overlay_at(int world_x, int world_y) {
-    sprite_renderer.trigger_damage_overlay_at(world_x, world_y);
-}
-
-void WorldRenderer::trigger_spell_effect(uint8_t effect_type, int world_x, int world_y) {
-    sprite_renderer.trigger_spell_effect(effect_type, world_x, world_y);
-}
-
-bool WorldRenderer::get_entity_world_position(uint16_t entity_id, int& x, int& y) const {
-    return sprite_renderer.get_entity_world_position(entity_id, x, y);
-}
-
-void WorldRenderer::spawn_ground_item(int world_x, int world_y, ItemType type,
-                                      const std::string& name) {
-    ground_item_renderer.add_item(world_x, world_y, type, name);
-}
-
-void WorldRenderer::despawn_ground_item(int world_x, int world_y, const std::string& item_name) {
-    ground_item_renderer.remove_item(world_x, world_y, item_name);
-}
-
-void WorldRenderer::clear_ground_items() { ground_item_renderer.clear(); }

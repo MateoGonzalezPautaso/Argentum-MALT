@@ -32,54 +32,16 @@ public:
     void render();
 
     void load_map(const TilemapConfig& tilemap);
-    void clear_entities();
-
-    void set_movable_position(int x, int y);
-    void spawn_entity(uint16_t entity_id, int x, int y, const std::string& name,
-                      Race race = static_cast<Race>(0),
-                      PlayerClass player_class = static_cast<PlayerClass>(0),
-                      uint16_t sprite_id = 0);
-    void despawn_entity(uint16_t entity_id);
-    void move_entity(uint16_t entity_id, int x, int y);
-    bool get_movable_position(int& x, int& y) const;
-    int movable_w() const;
-    int movable_h() const;
     void get_camera_offset(int& x, int& y) const;
     bool screen_to_world(int screen_x, int screen_y, int& world_x, int& world_y) const;
-    bool hit_test_entity(int world_x, int world_y, uint16_t& out_entity_id) const;
     bool hit_test_prop(int world_x, int world_y, std::string& out_prop_name) const;
-    void set_movable_src_y(int y);
-    void step_movable_src_x(int step, int frame_count);
-    void set_anchor_src_y(int y);
-    void set_entity_src_y(uint16_t entity_id, int body_src_y, int head_src_y);
-    void step_entity_src_x(uint16_t entity_id, int step, int frame_count);
-    void note_entity_moved(uint16_t entity_id);
-    void set_local_clan_name(const std::string& name);
-    void set_entity_clan_name(uint16_t entity_id, const std::string& name);
-    void set_entity_clan_by_username(const std::string& username, const std::string& clan);
-    void set_entity_alpha(uint16_t entity_id, uint8_t alpha);
-    void set_movable_alpha(uint8_t alpha);
-    void set_local_player_info(Race race, PlayerClass player_class);
-    void update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y = 0,
-                                  bool static_frame = false);
-    void clear_equipment_overlay(uint8_t slot);
-    void update_entity_equipment_overlay(uint16_t entity_id, uint8_t slot, const std::string& path,
-                                         int offset_y = 0, bool static_frame = false);
-    void clear_entity_equipment_overlay(uint16_t entity_id, uint8_t slot);
-    void set_entity_body_sprite(uint16_t entity_id, const std::string& path);
-    void reset_entity_body_sprite(uint16_t entity_id);
-    void set_body_sprite(const std::string& path);
-    void reset_body_sprite();
-    void set_direction_src_y(int down, int up, int left, int right);
-    void trigger_damage_overlay_at(int world_x, int world_y);
-    void trigger_spell_effect(uint8_t effect_type, int world_x, int world_y);
-    bool get_entity_world_position(uint16_t entity_id, int& x, int& y) const;
-
-    void spawn_ground_item(int world_x, int world_y, ItemType type, const std::string& name);
-    void despawn_ground_item(int world_x, int world_y, const std::string& item_name);
-    void clear_ground_items();
     void set_show_hitboxes(bool v) { show_hitboxes_ = v; }
     bool get_show_hitboxes() const { return show_hitboxes_; }
+
+    SpriteRenderer& sprites() { return sprite_renderer; }
+    const SpriteRenderer& sprites() const { return sprite_renderer; }
+    GroundItemRenderer& ground_items() { return ground_item_renderer; }
+    const GroundItemRenderer& ground_items() const { return ground_item_renderer; }
 
 private:
     void load_tilemap_data(const TilemapConfig& tilemap);

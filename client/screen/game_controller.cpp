@@ -39,8 +39,8 @@ GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& c
         event_handler_(player_stats, world_renderer, audio_manager, chat_history, move_controller,
                        config, move_config, *merchant_controller, player_is_ghost,
                        current_map_name) {
-    world_renderer.set_direction_src_y(config.dir_src_y_down, config.dir_src_y_up,
-                                       config.dir_src_y_left, config.dir_src_y_right);
+    world_renderer.sprites().set_direction_src_y(config.dir_src_y_down, config.dir_src_y_up,
+                                                 config.dir_src_y_left, config.dir_src_y_right);
 }
 
 GameController::~GameController() {
@@ -89,7 +89,7 @@ void GameController::render() {
 
     {
         int px, py;
-        if (world_renderer.get_movable_position(px, py)) {
+        if (world_renderer.sprites().get_movable_position(px, py)) {
             audio_manager.set_player_position(px, py);
         }
     }
@@ -108,11 +108,11 @@ void GameController::load_game_assets() {
 }
 
 void GameController::apply_movement_visual(Direction dir, bool advance_frame) {
-    world_renderer.set_movable_src_y(move_config.body_src_y_for(dir));
-    world_renderer.set_anchor_src_y(move_config.head_src_y_for(dir));
+    world_renderer.sprites().set_movable_src_y(move_config.body_src_y_for(dir));
+    world_renderer.sprites().set_anchor_src_y(move_config.head_src_y_for(dir));
     if (advance_frame) {
-        world_renderer.step_movable_src_x(move_config.walk_src_step,
-                                          move_config.walk_src_frames_for(dir));
+        world_renderer.sprites().step_movable_src_x(move_config.walk_src_step,
+                                                    move_config.walk_src_frames_for(dir));
     }
 }
 
@@ -218,7 +218,7 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
 
     if (!player_is_ghost) {
         uint16_t entity_id = 0;
-        if (world_renderer.hit_test_entity(world_x, world_y, entity_id)) {
+        if (world_renderer.sprites().hit_test_entity(world_x, world_y, entity_id)) {
             if (event.button.button == SDL_BUTTON_RIGHT) {
                 command_queue.push(CastSpellCmd{entity_id});
             } else {
@@ -229,9 +229,9 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
 
         if (event.button.button == SDL_BUTTON_RIGHT) {
             int sx, sy;
-            if (world_renderer.get_movable_position(sx, sy)) {
-                SDL2pp::Rect self_rect(sx, sy, world_renderer.movable_w(),
-                                       world_renderer.movable_h());
+            if (world_renderer.sprites().get_movable_position(sx, sy)) {
+                SDL2pp::Rect self_rect(sx, sy, world_renderer.sprites().movable_w(),
+                                       world_renderer.sprites().movable_h());
                 if (point_in_rect(world_x, world_y, self_rect)) {
                     command_queue.push(CastSpellCmd{player_stats.player_id});
                     return true;
@@ -279,7 +279,7 @@ bool GameController::handle_mouse_motion(const SDL_Event& event) {
     if (world_renderer.screen_to_world(event.motion.x, event.motion.y, world_x, world_y)) {
         uint16_t entity_id = 0;
         std::string prop_name;
-        bool show_hand = world_renderer.hit_test_entity(world_x, world_y, entity_id);
+        bool show_hand = world_renderer.sprites().hit_test_entity(world_x, world_y, entity_id);
         if (!show_hand && world_renderer.hit_test_prop(world_x, world_y, prop_name))
             show_hand = is_clickable_prop(prop_name);
         SDL_SetCursor(show_hand ? hand_cursor : arrow_cursor);
