@@ -346,6 +346,16 @@ struct SfxConfig {
     std::unordered_map<std::string, std::string> sounds;
 };
 
+struct AudioConfig {
+    std::string midi_music_path;
+    std::string mp3_music_path;
+    std::string sfx_prefix;
+    int frequency  = 44100;
+    int channels   = 2;
+    int chunksize  = 2048;
+    SfxConfig sfx;
+};
+
 struct GroundItemConfig {
     int display_size = 32;
     int float_amplitude = 4;
@@ -390,6 +400,7 @@ struct ClientConfig {
     int head_dir_src_y_left = 128;
     int head_dir_src_y_right = 192;
     SfxConfig sfx;
+    AudioConfig audio;
     GroundItemConfig ground_item;
     std::unordered_map<std::string, PropConfig> interactable_props;
 

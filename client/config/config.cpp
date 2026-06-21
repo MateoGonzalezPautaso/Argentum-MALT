@@ -508,11 +508,28 @@ void parse_ground_item_config(const toml::table& root, ClientConfig& config) {
     }
 }
 
+void parse_audio_config(const toml::table& root, ClientConfig& config) {
+    if (auto tbl = root["audio"].as_table()) {
+        config.audio.midi_music_path =
+                toml_get_string(*tbl, "midi_music_path", config.audio.midi_music_path);
+        config.audio.mp3_music_path =
+                toml_get_string(*tbl, "mp3_music_path", config.audio.mp3_music_path);
+        config.audio.sfx_prefix =
+                toml_get_string(*tbl, "sfx_prefix", config.audio.sfx_prefix);
+        config.audio.frequency  = toml_get_int(*tbl, "frequency",  config.audio.frequency);
+        config.audio.channels   = toml_get_int(*tbl, "channels",   config.audio.channels);
+        config.audio.chunksize  = toml_get_int(*tbl, "chunksize",  config.audio.chunksize);
+    }
+}
+
 void parse_sfx_config(const toml::table& root, ClientConfig& config) {
     if (auto tbl = root["sfx"].as_table()) {
         for (const auto& [key, value]: *tbl) {
             if (auto path = value.value<std::string>()) {
-                config.sfx.sounds[std::string(key.str())] = *path;
+                std::string k = std::string(key.str());
+                std::string v = *path;
+                config.sfx.sounds[k] = v;
+                config.audio.sfx.sounds[k] = v;
             }
         }
     }
@@ -550,6 +567,7 @@ ClientConfig load_client_config(const std::string& path) {
     parse_movement_config(root, config);
     parse_item_sprites_config(root, config);
     parse_equip_overlays_config(root, config);
+    parse_audio_config(root, config);
     parse_sfx_config(root, config);
     parse_ground_item_config(root, config);
     parse_interactable_props_config(root, config);

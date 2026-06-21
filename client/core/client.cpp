@@ -10,7 +10,7 @@ Client::Client(const ClientConfig& cfg):
         config(cfg),
         skt(cfg.network.host.c_str(), cfg.network.port.c_str()),
         protocol(std::move(skt)),
-        audio_manager(config.sfx),
+        audio_manager(config.audio),
         engine(config, command_queue, audio_manager),
         sender(protocol, command_queue),
         receiver(protocol, event_queue) {

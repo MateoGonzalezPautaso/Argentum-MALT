@@ -5,24 +5,25 @@
 #include <iostream>
 #include <string>
 
-AudioManager::AudioManager(const SfxConfig& sfx_cfg): menu_music_(nullptr), game_music_(nullptr) {
-    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+AudioManager::AudioManager(const AudioConfig& audio_cfg): menu_music_(nullptr), game_music_(nullptr) {
+    if (Mix_OpenAudio(audio_cfg.frequency, MIX_DEFAULT_FORMAT, audio_cfg.channels,
+                      audio_cfg.chunksize) < 0) {
         std::cerr << "AudioManager: Mix_OpenAudio failed - " << Mix_GetError() << std::endl;
         return;
     }
 
-    menu_music_ = Mix_LoadMUS("assets/midi/1.MID");
+    menu_music_ = Mix_LoadMUS(audio_cfg.midi_music_path.c_str());
     if (!menu_music_) {
         std::cerr << "AudioManager: failed to load menu music - " << Mix_GetError() << std::endl;
     }
 
-    game_music_ = Mix_LoadMUS("assets/Mp3/31.mp3");
+    game_music_ = Mix_LoadMUS(audio_cfg.mp3_music_path.c_str());
     if (!game_music_) {
         std::cerr << "AudioManager: failed to load game music - " << Mix_GetError() << std::endl;
     }
 
-    for (const auto& [name, filename]: sfx_cfg.sounds) {
-        std::string full_path = "assets/SoundsOgg/" + filename;
+    for (const auto& [name, filename]: audio_cfg.sfx.sounds) {
+        std::string full_path = audio_cfg.sfx_prefix + filename;
         Mix_Chunk* chunk = Mix_LoadWAV(full_path.c_str());
         if (!chunk) {
             std::cerr << "AudioManager: failed to load sfx '" << name << "' from " << full_path

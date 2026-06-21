@@ -627,6 +627,14 @@ path = "assets/Graficos/helmet_magic_hat.png"
 offset_y = -20
 static = true
 
+[audio]
+midi_music_path = "assets/midi/1.MID"
+mp3_music_path  = "assets/Mp3/31.mp3"
+sfx_prefix      = "assets/SoundsOgg/"
+frequency       = 44100
+channels        = 2
+chunksize       = 2048
+
 [sfx]
 death = "11.ogg"
 meditate = "20.ogg"

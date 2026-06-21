@@ -10,7 +10,7 @@
 
 class AudioManager {
 public:
-    explicit AudioManager(const SfxConfig& sfx_cfg);
+    explicit AudioManager(const AudioConfig& audio_cfg);
     ~AudioManager();
 
     AudioManager(const AudioManager&) = delete;
