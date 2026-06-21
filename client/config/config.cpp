@@ -517,6 +517,21 @@ void parse_sfx_config(const toml::table& root, ClientConfig& config) {
         }
     }
 }
+
+void parse_interactable_props_config(const toml::table& root, ClientConfig& config) {
+    if (auto props_tbl = root["interactable_props"].as_table()) {
+        for (const auto& [key, value]: *props_tbl) {
+            if (auto tbl = value.as_table()) {
+                PropConfig prop;
+                prop.dialog = toml_get_string(*tbl, "dialog", "");
+                prop.sfx = toml_get_string(*tbl, "sfx", "");
+                prop.opens_merchant = toml_get_bool(*tbl, "opens_merchant", false);
+                prop.merchant_sell_enabled = toml_get_bool(*tbl, "merchant_sell_enabled", false);
+                config.interactable_props[std::string(key.str())] = std::move(prop);
+            }
+        }
+    }
+}
 }  // namespace
 
 ClientConfig load_client_config(const std::string& path) {
@@ -537,6 +552,7 @@ ClientConfig load_client_config(const std::string& path) {
     parse_equip_overlays_config(root, config);
     parse_sfx_config(root, config);
     parse_ground_item_config(root, config);
+    parse_interactable_props_config(root, config);
 
     config.tilemap_configs = load_all_map_configs("config/map_list.toml");
 

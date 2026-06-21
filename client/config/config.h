@@ -352,6 +352,13 @@ struct GroundItemConfig {
     uint32_t float_period_ms = 1200;
 };
 
+struct PropConfig {
+    std::string dialog;           // texto que muestra al interactuar
+    std::string sfx;              
+    bool opens_merchant = false;  // true si abre la pantalla de comerciante
+    bool merchant_sell_enabled = false;  
+};
+
 struct ClientConfig {
     NetworkConfig network;
     WindowConfig window;
@@ -384,6 +391,11 @@ struct ClientConfig {
     int head_dir_src_y_right = 192;
     SfxConfig sfx;
     GroundItemConfig ground_item;
+    std::unordered_map<std::string, PropConfig> interactable_props;
+
+    const std::unordered_map<std::string, PropConfig>& get_interactable_props() const {
+        return interactable_props;
+    }
 };
 
 ClientConfig load_client_config(const std::string& path);

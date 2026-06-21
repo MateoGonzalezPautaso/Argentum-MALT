@@ -284,30 +284,24 @@ void GameController::handle_damage_received(const DamageReceivedEvent& e) {
 }
 
 void GameController::interact_with_prop(const std::string& prop_name, int world_x, int world_y) {
-    if (prop_name == "sacerdote") {
-        audio_manager.play_sfx_at("priest", world_x, world_y);
-        chat_history.add_message(ChatMsgType::SYSTEM, "", "Sacerdote: ¡SHALOM!");
-        merchant_controller->open(false);
-    } else if (prop_name == "comerciante") {
-        audio_manager.play_sfx_at("merchant", world_x, world_y);
-        chat_history.add_message(ChatMsgType::SYSTEM, "",
-                                 "Comerciante: Pasa, todo lo que ves esta en venta.");
-        merchant_controller->open(true);
-    } else if (prop_name == "banquero") {
-        audio_manager.play_sfx_at("banker", world_x, world_y);
-        chat_history.add_message(ChatMsgType::SYSTEM, "",
-                                 "Banquero: El que deposita dolares, recibira dolares...");
-    } else if (prop_name == "sanadora") {
-        audio_manager.play_sfx_at("healer", world_x, world_y);
-        chat_history.add_message(ChatMsgType::SYSTEM, "", "Sanadora: Dejame ver esa herida.");
-    } else if (is_transition_prop(prop_name)) {
+    auto it = config.get_interactable_props().find(prop_name);
+    if (it != config.get_interactable_props().end()) {
+        const PropConfig& prop = it->second;
+        if (!prop.sfx.empty())
+            audio_manager.play_sfx_at(prop.sfx, world_x, world_y);
+        if (!prop.dialog.empty())
+            chat_history.add_message(ChatMsgType::SYSTEM, "", prop.dialog);
+        if (prop.opens_merchant)
+            merchant_controller->open(prop.merchant_sell_enabled);
+        return;
+    }
+    if (is_transition_prop(prop_name)) {
         command_queue.push(ChangeMapCmd{prop_name});
     }
 }
 
 bool GameController::is_clickable_prop(const std::string& prop_name) const {
-    return prop_name == "sacerdote" || prop_name == "comerciante" || prop_name == "banquero" ||
-           prop_name == "sanadora" || is_transition_prop(prop_name);
+    return config.get_interactable_props().count(prop_name) > 0 || is_transition_prop(prop_name);
 }
 
 bool GameController::is_transition_prop(const std::string& prop_name) const {
