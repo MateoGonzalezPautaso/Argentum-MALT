@@ -168,11 +168,13 @@ A la derecha del chat, se muestra el nivel actual del personaje. El nivel se inc
 
 ### 4.7 Vestimenta
 
-El aspecto visual del personaje cambia según lo que tenga equipado:
-- **Armadura:** reemplaza la vestimenta del cuerpo del personaje. Si no hay armadura equipada, se muestra una vestimenta común por defecto.
-- **Arma o bastón, casco y escudo:** se dibujan como una capa superpuesta sobre el personaje.
+El personaje se dibuja combinando varias capas de sprites:
+- **Cuerpo:** por defecto depende de la **clase** del personaje (mago, clérigo, paladín o guerrero tienen cada uno su vestimenta común de base).
+- **Cabeza:** depende de la **raza** (humano, elfo, enano o gnomo), y no cambia al equipar o desequipar objetos.
+- **Armadura:** si hay una equipada, reemplaza el sprite del cuerpo (no el de la cabeza). Si no hay armadura equipada, se vuelve a mostrar la vestimenta común de la clase.
+- **Arma o bastón, casco y escudo:** se dibujan como una capa superpuesta sobre el personaje, sin reemplazar nada.
 
-El cambio es inmediato al equipar o desequipar un objeto (ver [7.6](#76-cómo-equipar-y-desequipar)), y es visible tanto para el propio jugador como para el resto de los jugadores en el mismo mapa.
+El cambio es inmediato al equipar o desequipar un objeto (ver [7.6](#76-cómo-equipar-y-desequipar)), y es visible tanto para el propio jugador como para el resto de los jugadores en el mismo mapa. Las criaturas (mobs) no tienen este sistema de capas: cada una usa un único sprite fijo (ver [9.4](#94-criaturas)).
 
 ---
 
@@ -631,38 +633,89 @@ Se activan desde el cliente con combinaciones de **Ctrl + tecla**.
 
 ## 15. Configuración
 
+> **Nota:** no existe un parámetro para limitar la cantidad máxima de jugadores conectados simultáneamente; el servidor acepta conexiones sin ese límite.
+
 ### 15.1 `server.toml`
 
 Ubicado en `config/server.toml`. Controla parámetros del servidor:
 
-| Parámetro | Descripción |
-|-----------|-------------|
-| `port` | Puerto de escucha (defecto: 1234) |
-| `ticks_per_second` | Ticks por segundo del game loop (defecto: 20) |
-| `cheats_enabled` | Habilita o deshabilita los comandos de debug |
-| `max_players` | Máximo de jugadores conectados simultáneamente |
-| `movement_speed` | Velocidad de movimiento en píxeles por tick |
-| `attack_cooldown` | Ticks de espera entre ataques |
-| `level_required_for_pvp` | Nivel mínimo para participar en PvP |
-| `level_diff_for_pvp` | Diferencia máxima de nivel permitida en PvP |
-| `race_*_factor` | Factores de raza para fuerza, agilidad, HP, maná |
-| `class_*_factor` | Factores de clase para fuerza, agilidad, HP, maná |
-| `starting_items` | Ítems iniciales por clase |
-| `[vendors]` | Inventario de cada NPC vendedor |
-| `[help]` | Texto de ayuda del comando `/help` |
+| Sección | Parámetro | Descripción |
+|---|---|---|
+| `[server]` | `port` | Puerto de escucha (defecto: 1234) |
+| `[server]` | `tick_rate_hz` | Ticks por segundo del game loop (defecto: 20) |
+| `[server]` | `save_interval_seconds` | Intervalo (en segundos) de persistencia automática de jugadores (defecto: 30) |
+| `[server]` | `cheats_enabled` | Habilita o deshabilita los comandos de debug |
+| `[movement]` | `move_step` | Velocidad de movimiento, en píxeles por tick |
+| `[sprite]` | `width`, `height` | Dimensiones en píxeles del sprite del personaje, usadas para colisiones |
+| `[attack]` | `base_damage` | Daño base de ataque |
+| `[attack]` | `attack_range_px` | Rango de ataque cuerpo a cuerpo (píxeles) |
+| `[attack]` | `spell_attack_range_px` | Rango de ataque a distancia (arco/hechizo), en píxeles |
+| `[attack]` | `damage_variance` | Variación aleatoria aplicada al daño base |
+| `[attack]` | `cooldown_ticks` | Ticks de espera entre ataques |
+| `[attack]` | `xp_per_level_kill` | Experiencia base otorgada por nivel de diferencia al matar |
+| `[attack]` | `newbie_level` | Nivel máximo considerado "newbie" (no puede atacar ni ser atacado) |
+| `[attack]` | `max_level_diff` | Diferencia máxima de nivel permitida en PvP |
+| `[attack]` | `clan_bonus_range_px` | Radio para que un aliado de clan otorgue bonificación |
+| `[attack]` | `clan_bonus_per_member` | Bonificación de daño/defensa por cada aliado cercano |
+| `[attack]` | `clan_bonus_max` | Tope de la bonificación de clan |
+| `[attack]` | `critical_chance` | Probabilidad base de golpe crítico |
+| `[attack]` | `npc_vision_range_px` | Rango de visión de las criaturas (píxeles) |
+| `[attack]` | `npc_speed` | Velocidad de movimiento de las criaturas |
+| `[clan]` | `max_members` | Máximo de miembros por clan (incluido el fundador) |
+| `[clan]` | `min_level_found` | Nivel mínimo para fundar un clan |
+| `[clan]` | `max_name_length` | Longitud máxima del nombre de un clan |
+| `[mob_spawn]` | `spawn_radius` | Radio alrededor del punto de spawn donde puede aparecer una criatura |
+| `[mob_spawn]` | `min_level`, `max_level` | Rango de nivel sorteado para criaturas en zona normal |
+| `[mob_spawn.dungeon]` | `min_level`, `max_level` | Rango de nivel sorteado para criaturas en mazmorra |
+| `[inventory]` | `max_slots` | Cantidad máxima de objetos en el inventario |
+| `[inventory]` | `max_hp_potions`, `max_mana_potions` | Tope de pociones de cada tipo en inventario |
+| `[inventory]` | `max_bank_slots` | Cantidad máxima de objetos en el banco |
+| `[balance]` | `starting_gold` | Oro inicial al crear personaje |
+| `[balance]` | `starting_pos_x`, `starting_pos_y`, `starting_map` | Posición y mapa donde aparece un personaje nuevo |
+| `[balance]` | `min_level`, `max_level` | Rango de nivel válido para un jugador |
+| `[balance]` | `gold_per_level` | Oro perdido al morir, por nivel |
+| `[balance]` | `level_exp_base`, `level_exp_exponent` | Parámetros de la fórmula de experiencia requerida por nivel |
+| `[balance]` | `gold_cap_base`, `gold_cap_exponent` | Parámetros de la fórmula de oro máximo "seguro" (ver [Consigna](consigna_Argentum)) |
+| `[balance.npc_drop]` | `gold_chance`, `potion_chance`, `item_chance` | Probabilidades de drop al matar criaturas en zona normal |
+| `[balance.npc_drop_dungeon]` | `gold_chance`, `potion_chance`, `item_chance` | Probabilidades de drop al matar criaturas en mazmorra |
+| `[recovery_rates]` | `human`, `elf`, `dwarf`, `gnome` | Tasa de recuperación de vida/maná por raza con el paso del tiempo |
+| `[constitution]` | `human`, `elf`, `dwarf`, `gnome` | Constitución base por raza (usada en la fórmula de vida máxima) |
+| `[intelligence]` | `human`, `elf`, `dwarf`, `gnome` | Inteligencia base por raza (usada en la fórmula de maná máximo) |
+| `[race_hp_factor]` / `[class_hp_factor]` | `human/elf/dwarf/gnome` · `warrior/paladin/cleric/mage` | Factores de raza y clase para vida máxima |
+| `[race_mana_factor]` / `[class_mana_factor]` | ídem | Factores de raza y clase para maná máximo |
+| `[class_meditation_factor]` | `warrior/paladin/cleric/mage` | Factor de clase para recuperación de maná meditando |
+| `[race_strength_factor]` / `[class_strength_factor]` | ídem | Factores de raza y clase para fuerza |
+| `[race_agility_factor]` / `[class_agility_factor]` | ídem | Factores de raza y clase para agilidad |
+| `[starting_items]` | `warrior`, `mage`, `paladin`, `cleric` | Ítems iniciales por clase |
+| `[merchant]` | `interaction_range_tiles` | Distancia máxima (en tiles) para interactuar con un NPC |
+| `[merchant]` | `sell_price_ratio` | Porcentaje del precio de compra que se recibe al vender |
+| `[vendors]` | — | Inventario de cada NPC vendedor (uno por nombre de NPC) |
+| `[help]` | `lines` | Texto de ayuda del comando `/help` |
 
 ### 15.2 `client.toml`
 
 Ubicado en `config/client.toml`. Controla parámetros del cliente:
 
-| Parámetro | Descripción |
-|-----------|-------------|
+| Sección | Descripción |
+|---|---|
 | `[network]` | Host y puerto del servidor (defecto: 127.0.0.1:1234) |
 | `[window]` | Dimensiones y título de la ventana |
-| `[sfx]` | Configuración de efectos de sonido y música |
-| `[assets]` | Rutas de los archivos de recursos (sprites, fuentes) |
-| `[movement]` | Parámetros de animación de movimiento |
-| `[ui]` | Posiciones de los elementos de la interfaz |
+| `[background]` | Imagen y posición del fondo de la pantalla de login |
+| `[viewport]` | Área lógica donde se dibuja el mundo dentro de la ventana del juego |
+| `[font]` | Ruta de la fuente y tamaños de texto usados en la interfaz |
+| `[ui]` (y subtablas `[ui.*]`) | Posiciones y dimensiones de cada elemento de la interfaz (inventario, barras de vida/maná/experiencia, oro, stats, comerciante, retrato, etc.) |
+| `[assets]` | Rutas de las imágenes de la interfaz (botones, fondos, barras) |
+| `[[sprites]]` | Sprites estáticos de ejemplo/depuración |
+| `[skins]` | Sprites de cuerpo por clase, de cabeza por raza, y de cada NPC |
+| `[movement]` | Parámetros de animación de movimiento (tamaño y cantidad de frames, velocidad) |
+| `[[item_sprites]]` | Sprite e ícono de cada tipo de ítem, para inventario y suelo |
+| `[[equip_overlays]]` | Sprite superpuesto al personaje al equipar cada tipo de ítem |
+| `[ground_items]` | Tamaño y animación de flotación de los ítems en el suelo |
+| `[audio]` | Música de fondo y configuración del mixer (frecuencia, canales) |
+| `[sfx]` | Archivo de sonido para cada efecto (golpe, muerte, meditar, subir de nivel, etc.) |
+| `[damage_overlay]` | Animación del número/efecto de daño sobre las entidades |
+| `[[spell_sheets]]` | Spritesheets de animación de cada hechizo |
+| `[interactable_props]` | Diálogo, sonido y comportamiento (vendedor/no) de cada tipo de NPC |
 
 ---
 
