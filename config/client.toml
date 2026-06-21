@@ -643,6 +643,30 @@ sword = "180.ogg"
 hammer = "159.ogg"
 level_up = "112.ogg"
 
+[interactable_props.sacerdote]
+dialog = "Sacerdote: ¡SHALOM!"
+sfx = "priest"
+opens_merchant = true
+merchant_sell_enabled = false
+
+[interactable_props.comerciante]
+dialog = "Comerciante: Pasa, todo lo que ves esta en venta."
+sfx = "merchant"
+opens_merchant = true
+merchant_sell_enabled = true
+
+[interactable_props.banquero]
+dialog = "Banquero: El que deposita dolares, recibira dolares..."
+sfx = "banker"
+opens_merchant = false
+merchant_sell_enabled = false
+
+[interactable_props.sanadora]
+dialog = "Sanadora: Dejame ver esa herida."
+sfx = "healer"
+opens_merchant = false
+merchant_sell_enabled = false
+
 [ground_items]
 display_size    = 32    # pixels en pantalla del sprite en el suelo
 float_amplitude = 4     # desplazamiento maximo vertical en pixels (+/-)
