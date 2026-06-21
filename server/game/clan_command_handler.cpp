@@ -200,6 +200,7 @@ CommandResult ClanCommandHandler::handle_clan_ban(uint16_t player_id, const std:
         for (auto& [pid, p]: players) {
             if (p.get_name() == args) {
                 p.set_clan_name("");
+                targeted[pid].push_back(ClanNotificationEvent{ClanNotifType::KICKED, args, clan_name});
                 send_empty_clan_update(pid, targeted);
                 break;
             }
@@ -241,6 +242,7 @@ CommandResult ClanCommandHandler::handle_clan_kick(uint16_t player_id, const std
         for (auto& [pid, p]: players) {
             if (p.get_name() == args) {
                 p.set_clan_name("");
+                targeted[pid].push_back(ClanNotificationEvent{ClanNotifType::KICKED, args, clan_name});
                 send_empty_clan_update(pid, targeted);
                 break;
             }

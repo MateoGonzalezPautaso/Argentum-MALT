@@ -225,90 +225,94 @@ Para resucitar, el jugador puede dirigirse al sanador de la ciudad más próxima
 ### 7.1 Armas
 
 Existen las siguentes armas en el juego:
-- Espada: arma de combate a mano, tiene un daño de 2 a 5.
+- Espada: arma de combate a mano, tiene un daño de 2 a 5. Precio: 50 de oro.
 
 ![Espada](images/Espada.png)
 
-- Hacha: arma de combate a mano, tiene un daño de 4 a 5.
+- Hacha: arma de combate a mano, tiene un daño de 4 a 5. Precio: 80 de oro.
 
 ![Hacha](images/hacha.png)
 
-- Martillo: arma de combate a mano, tiene un daño de 1 a 9.
+- Martillo: arma de combate a mano, tiene un daño de 1 a 9. Precio: 60 de oro.
 
 ![Martillo](images/Martillo.png)
 
-- Arco simple: arma a distancia, tiene un daño de 1 a 4. Las flechas son infinitas.
+- Arco simple: arma a distancia, tiene un daño de 1 a 4. Las flechas son infinitas. Precio: 70 de oro.
 
 ![Arco simple](images/ArcoSimple.png)
 
-- Arco compuesto: arma a distancia, tiene un daño de 4 a 16. Las flechas son infinitas.
+- Arco compuesto: arma a distancia, tiene un daño de 4 a 16. Las flechas son infinitas. Precio: 200 de oro.
 
 ![Arco compuesto](images/ArcoCompuesto.png)
 
 ### 7.2 Armaduras, cascos y escudos
 Existen las siguientes armaduras, cascos y escudos en el juego:
-- Armadura de cuero: ofrece una defensa entre 2 y 6
+- Armadura de cuero: ofrece una defensa entre 2 y 6. Precio: 80 de oro.
 
 ![Armadura de cuero](images/ArmaduraCuero.png)
 
-- Armadura de placas: ofrece una defensa entre 15 y 30
+- Armadura de placas: ofrece una defensa entre 15 y 30. Precio: 400 de oro.
 
 ![Armadura de placas](images/ArmaduraPlacas.png)
 
-- Tunica azul: ofrece una defensa entre 6 y 10
+- Tunica azul: ofrece una defensa entre 6 y 10. Precio: 120 de oro.
 
 ![Tunica azul](images/TunicaAzul.png)
 
-- Capucha: casco que ofrece defensa entre 1 y 4
+- Capucha: casco que ofrece defensa entre 1 y 4. Precio: 40 de oro.
 
 ![Capucha](images/Capucha.png)
 
-- Casco de hierro: ofrece defensa entre 4 y 8
+- Casco de hierro: ofrece defensa entre 4 y 8. Precio: 90 de oro.
 
 ![Casco de hierro](images/CascoDeHierro.png)
 
-- Escudo de tortuga: ofrece defensa entre 1 y 2
+- Escudo de tortuga: ofrece defensa entre 1 y 2. Precio: 50 de oro.
 
 ![Escudo de tortuga](images/EscudoTortuga.png)
 
-- Escudo de hierro: ofrece defensa entre 1 y 4
+- Escudo de hierro: ofrece defensa entre 1 y 4. Precio: 100 de oro.
 
 ![Escudo de hierro](images/EscudoDeHierro.png)
 
-- Sombrero mágico: casco que ofrece una defensa entre 4 y 12.
+- Sombrero mágico: casco que ofrece una defensa entre 4 y 12. Precio: 110 de oro.
 
 ![Sombrero mágico](images/SombreroMagico.png)
 
 ### 7.3 Bastones mágicos
 
-Existen los siguientes bastones mágicos en el juego:
-- Vara de fresno: permite lanzar el hechizo "flecha mágica" que tiene un daño a distancia de 2 a 4. Consume 5 de mana.
+Existen los siguientes bastones mágicos en el juego. Al igual que el arco, atacan a distancia (rango de 400 unidades):
+- Vara de fresno: permite lanzar el hechizo "flecha mágica" que tiene un daño a distancia de 2 a 4. Consume 5 de mana. Precio: 100 de oro.
 
 ![Vara de fresno](images/VaraFresno.png)
 
-- Flauta élfica: permite lanzar el hechizo "curar" sobre el jugador que restaura la vida. Consume 100 de mana.
+- Flauta élfica: permite lanzar el hechizo "curar" sobre el jugador que restaura la vida. Consume 100 de mana. Precio: 200 de oro.
 
 ![Flauta élfica](images/FlautaElfica.png)
 
-- Báculo nudoso: permite lanzar el hechizo "misil" que tiene un daño a distancia de 4 a 8. Consume 15 de mana.
+- Báculo nudoso: permite lanzar el hechizo "misil" que tiene un daño a distancia de 4 a 8. Consume 15 de mana. Precio: 150 de oro.
 
 ![Báculo nudoso](images/BaculoNudoso.png)
 
-- Báculo engarzado: permite lanzar el hechizo "explosion" que tiene un daño a distancia de 8 a 20. Consume 30 de mana.
+- Báculo engarzado: permite lanzar el hechizo "explosion" que tiene un daño a distancia de 8 a 20. Consume 30 de mana. Precio: 300 de oro.
 
 ![Báculo engarzado](images/BaculoAngarzado.png)
 
 ### 7.4 Pociones
-Existen las siguientes pociones en el juego:
--Pocion de salud: Restaura la salud del personaje.
+Existen las siguientes pociones en el juego. Ambas restauran el 100% del recurso correspondiente (no son parciales) y se consumen apenas se equipan:
+- Pocion de salud: Restaura toda la salud del personaje. Precio: 30 de oro.
 
 ![Pocion de salud](images/PotiVida.png)
 
--Pocion de maná: Restaura el maná del personaje.
+- Pocion de maná: Restaura todo el maná del personaje. Precio: 30 de oro.
 
 ![Pocion de maná](images/PotiMana.png)
 
-### 7.5 Cómo equipar y desequipar
+### 7.5 Compra y venta
+
+Los precios indicados en las secciones anteriores son el precio de compra a un NPC (`/comprar <objeto>`), que solo puede vender lo que tiene listado en su inventario (ver sección [9.1](#91-tipos-de-npcs)). Al vender un objeto a un comerciante (`/vender <objeto>`), se recibe el 50% del precio de compra del objeto.
+
+### 7.6 Cómo equipar y desequipar
 
 Para equipar un objeto, simplemente haz click izquierdo sobre él en tu inventario.
 
@@ -386,15 +390,17 @@ En las ciudades y zonas seguras, los jugadores no pueden atacarse entre sí ni s
 
 ### 9.3 Mazmorras
 
-El juego cuenta con portales que pueden llevarte a diferentes mazmorras, donde puedes encontrar monstruos. Las mazmorras son zonas de alto riesgo: los monstruos que aparecen ahí son de nivel 6 a 15 (contra nivel 1 a 5 en zonas normales) y, además, varios tipos de monstruo solo aparecen en mazmorras, con stats mucho más altos que su contraparte de ciudad:
+El juego cuenta con portales que pueden llevarte a diferentes mazmorras, donde puedes encontrar monstruos. Las mazmorras son zonas de alto riesgo: los monstruos que aparecen ahí son de nivel 6 a 15 (contra nivel 1 a 5 en zonas normales — ver [9.4](#94-criaturas) para cómo el nivel afecta sus stats) y, además, varios tipos de monstruo solo aparecen en mazmorras, con stats base mucho más altos que su contraparte de ciudad:
 
-| Monstruo (ciudad) | HP / Daño | Exclusivo de mazmorra | HP / Daño |
+| Monstruo (ciudad) | HP / Daño base | Exclusivo de mazmorra | HP / Daño base |
 |---|---|---|---|
 | Weak goblin | 100 / 5 | Strong goblin | 250 / 12 |
 | Basic skeleton | 175 / 10 | Warrior skeleton | 425 / 22 |
 | Small spider | 80 / 4 | Big spider | 325 / 17 |
 | Stone golem | 900 / 40 | Iron golem | 1350 / 55 |
 | — | — | Orc | 600 / 28 |
+
+Como en mazmorra el nivel sorteado es 6 a 15 en vez de 1 a 5, estos stats base se multiplican por un nivel mucho mayor (ver fórmula en [9.4](#94-criaturas)): por ejemplo, un Iron golem de nivel 15 llega a 20250 HP y 825 de daño.
 
 Las mazmorras también ofrecen la oportunidad de obtener objetos raros y experiencia valiosa: la probabilidad de que un monstruo deje oro, poción u objeto al morir es notablemente mayor que en zonas normales.
 
@@ -406,6 +412,52 @@ Las mazmorras también ofrecen la oportunidad de obtener objetos raros y experie
 
 ![Mazmorra](images/Mazmorra.png)
 
+### 9.4 Criaturas
+
+Las criaturas (mobs) atacan al jugador más cercano dentro de su rango de visión (250 px), incluso si el jugador no las ataca primero. Si el jugador se encuentra en una zona segura, la criatura no lo persigue ni lo ataca. Todas las criaturas atacan exclusivamente cuerpo a cuerpo.
+
+Periódicamente aparecen nuevas criaturas en las zonas de spawn de cada mapa, hasta un límite poblacional configurado por mapa, garantizando que siempre haya criaturas en Argentum sin saturar el mundo:
+
+| Mapa | Límite de población | Intervalo de spawn |
+|---|---|---|
+| Ciudad | 70 | cada 80 ticks |
+| Mazmorra 1 | 15 | cada 80 ticks |
+| Mazmorra 2 | 15 | cada 80 ticks |
+| Mazmorra 3 | 50 | cada 80 ticks |
+
+Al spawnear, cada criatura recibe un nivel al azar (1 a 5 en zonas normales, 6 a 15 en mazmorras) y sus stats finales se calculan multiplicando los valores base por ese nivel:
+
+```
+HP    = HP_base * Nivel
+Daño  = Daño_base * Nivel
+```
+
+Por eso una misma criatura puede ser mucho más débil o más fuerte según en qué nivel le tocó aparecer. Stats base (equivalentes a nivel 1) de cada tipo de criatura:
+
+| Criatura | HP base | Daño base | Velocidad | Exclusivo de mazmorra |
+|---|---|---|---|---|
+| Weak goblin | 100 | 5 | normal | No |
+| Strong goblin | 250 | 12 | normal | Sí |
+| Basic skeleton | 175 | 10 | normal | No |
+| Warrior skeleton | 425 | 22 | normal | Sí |
+| Zombie | 375 | 15 | lenta | No |
+| Orc | 600 | 28 | lenta | Sí |
+| Small spider | 80 | 4 | normal | No |
+| Big spider | 325 | 17 | normal | Sí |
+| Stone golem | 900 | 40 | lenta | No |
+| Iron golem | 1350 | 55 | lenta | Sí |
+
+> **Ejemplo:** un Weak goblin de nivel 5 (máximo en zona normal) tiene 500 HP y 25 de daño. Un Iron golem de nivel 15 (máximo en mazmorra) tiene 20250 HP y 825 de daño.
+
+Al morir, una criatura tiene una probabilidad de dejar caer algo al suelo (ver la sección [9.3](#93-mazmorras) para las probabilidades específicas en mazmorras). El oro obtenido es proporcional al HP máximo de la criatura (`rand(0.01, 0.2) * HP_max`), por lo que las criaturas de mayor nivel también dejan más oro:
+
+| Resultado | Probabilidad (zona normal) |
+|---|---|
+| Nada | 90% |
+| Oro | 8% |
+| Poción de vida o de maná (al azar) | 1% |
+| Objeto al azar | 1% |
+
 ---
 
 ## 10. Clanes
@@ -415,24 +467,40 @@ Las mazmorras también ofrecen la oportunidad de obtener objetos raros y experie
 Para fundar un clan, un jugador debe cumplir con los siguientes requisitos:
 - Tener un nivel de 6 o más.
 - Elegir un nombre único para el clan que no esté siendo utilizado por otro clan existente.
+- No pertenecer ya a un clan (cada jugador solo puede estar en uno a la vez).
 
+Un clan admite un máximo de **16 miembros**, incluido el fundador. Una vez alcanzado ese límite, no se pueden aceptar más solicitudes de ingreso hasta que algún miembro lo abandone, sea expulsado o baneado.
 
 ### 10.2 Administración de miembros
 
 | Comando | Acción |
 |---------|--------|
 | `/unirse <nombre>` | Solicitar unirse a un clan |
+| `/revisar-clan` | Ver miembros (con su estado online/offline) y solicitudes pendientes (solo fundador) |
 | `/clan-aceptar <nick>` | Aceptar una solicitud (solo fundador) |
 | `/clan-rechazar <nick>` | Rechazar una solicitud (solo fundador) |
-| `/clan-ban <nick>` | Banear a un jugador (solo fundador) |
-| `/clan-kick <nick>` | Expulsar a un miembro (solo fundador) |
+| `/clan-ban <nick>` | Banear a un jugador: lo expulsa (si era miembro) y le impide volver a pedir ingreso (solo fundador) |
+| `/clan-unban <nick>` | Quitar el baneo de un jugador, permitiéndole volver a pedir ingreso (solo fundador) |
+| `/clan-kick <nick>` | Expulsar a un miembro sin banearlo (solo fundador) |
 | `/dejar-clan` | Abandonar el clan |
+
+El fundador no puede banearse, expulsarse ni abandonar el clan a sí mismo: mientras siga en el clan, siempre es su fundador. Disolver un clan no está soportado.
 
 ### 10.3 Bonus de combate en grupo
 
-Los jugadores que pertenecen al mismo clan reciben una bonificación de defensa y de ataque proporcional a la cantidad de jugadores del clan en el lugar. Esto significa que cuantos más miembros del clan estén cerca, mayor será la bonificación para cada uno de ellos, lo que fomenta el juego en grupo y la cooperación entre los miembros del clan.
+Los jugadores que pertenecen al mismo clan reciben una bonificación de daño de ataque y de defensa proporcional a la cantidad de miembros de su clan que estén cerca (a menos de 200 px). Cada aliado cercano otorga **+5%** de bonificación, hasta un máximo de **+25%** (a partir de 5 aliados cercanos no se obtiene bonificación adicional). Esto significa que cuantos más miembros del clan estén cerca, mayor será la bonificación para cada uno de ellos, lo que fomenta el juego en grupo y la cooperación entre los miembros del clan.
 
-### 10.4 Chat de clan
+Además, los miembros de un mismo clan **no pueden atacarse entre sí**.
+
+### 10.4 Notificaciones de clan
+
+Los miembros de un clan reciben notificaciones automáticas (visibles en el chat) ante los siguientes eventos:
+- Un compañero de clan se conecta o se desconecta.
+- Un compañero de clan está siendo atacado.
+- Alguien solicita unirse al clan (solo el fundador).
+- El propio jugador es aceptado o rechazado al pedir unirse a un clan.
+
+### 10.5 Chat de clan
 
 Los miembros de un clan pueden comunicarse entre sí utilizando el chat de clan, que se activa con el comando /c <mensaje>. Este chat es exclusivo para los miembros del clan, lo que permite una comunicación más directa y privada entre ellos.
 

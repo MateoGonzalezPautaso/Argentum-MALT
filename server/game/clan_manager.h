@@ -20,6 +20,7 @@ public:
     ClanManager(ClanPersistence& persistence, const ClanConfig& config);
 
     int min_level_found() const { return config.min_level_found; }
+    int max_name_length() const { return config.max_name_length; }
 
     ClanResult create_clan(const std::string& founder_username, const std::string& clan_name);
     ClanResult request_join(const std::string& applicant_username, const std::string& clan_name);

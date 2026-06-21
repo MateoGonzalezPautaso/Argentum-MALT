@@ -27,6 +27,11 @@ ClanResult ClanManager::create_clan(const std::string& founder_username,
         return {false, "El nombre del clan no puede estar vacio"};
     }
 
+    if (static_cast<int>(clan_name.size()) > config.max_name_length) {
+        return {false, "El nombre del clan no puede superar los " +
+                              std::to_string(config.max_name_length) + " caracteres"};
+    }
+
     if (clans.find(clan_name) != clans.end()) {
         return {false, "Ya existe un clan con el nombre " + clan_name};
     }
