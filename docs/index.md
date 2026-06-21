@@ -10,7 +10,7 @@ Estilo gráfico 2D top-down y ambientación de fantasía medieval. Creá tu pers
 
 ## Secciones
 
-**[Video Trailer]**
+**Video Trailer**
 
 **[![Video Trailer](https://img.youtube.com/vi/Bh75WYytc_c/0.jpg)](https://youtu.be/Bh75WYytc_c)**
 
