@@ -26,6 +26,11 @@ Player make_mage_player(uint16_t id = 1) {
                   make_balance(), 20, 10, 10, 40);
 }
 
+Player make_player_of(Race race, PlayerClass player_class, uint16_t id = 1) {
+    return Player(id, "p", {100, 100}, Direction::SOUTH, race, player_class, make_balance(), 20,
+                  10, 10, 40);
+}
+
 }  // namespace
 
 // ─────────────────────────────────────────────────────────────
@@ -457,4 +462,69 @@ TEST(PlayerTest, AddItem_FailsWhenInventoryFull) {
         p.add_item(ItemType::GOLD_DROP, "Oro");
     }
     EXPECT_FALSE(p.add_item(ItemType::SWORD, "Espada"));
+}
+
+// ─────────────────────────────────────────────────────────────
+// Stats por raza/clase (consigna: VidaMax/ManaMax/Fuerza/Agilidad)
+// ─────────────────────────────────────────────────────────────
+
+TEST(PlayerTest, RaceClassStats_ElfMage_MatchesFormula) {
+    auto p = make_player_of(Race::ELF, PlayerClass::MAGE);
+    BalanceConfig bal = make_balance();
+
+    // VidaMax = Constitucion * FClaseVida * FRazaVida * Nivel
+    uint32_t expected_hp = static_cast<uint32_t>(bal.hp.constitution_elf *
+                                                  bal.hp.race_hp_factor_elf *
+                                                  bal.hp.class_hp_factor_mage * p.get_level());
+    // ManaMax = Inteligencia * FClaseMana * FRazaMana * Nivel
+    uint32_t expected_mana = static_cast<uint32_t>(
+            bal.mana.intelligence_elf * bal.mana.race_mana_factor_elf *
+            bal.mana.class_mana_factor_mage * p.get_level());
+
+    EXPECT_EQ(p.get_hp_max(), expected_hp);
+    EXPECT_EQ(p.get_mana_max(), expected_mana);
+}
+
+TEST(PlayerTest, RaceClassStats_DwarfPaladin_MatchesFormula) {
+    auto p = make_player_of(Race::DWARF, PlayerClass::PALADIN);
+    BalanceConfig bal = make_balance();
+
+    uint32_t expected_hp = static_cast<uint32_t>(bal.hp.constitution_dwarf *
+                                                  bal.hp.race_hp_factor_dwarf *
+                                                  bal.hp.class_hp_factor_paladin * p.get_level());
+    uint32_t expected_mana = static_cast<uint32_t>(
+            bal.mana.intelligence_dwarf * bal.mana.race_mana_factor_dwarf *
+            bal.mana.class_mana_factor_paladin * p.get_level());
+
+    EXPECT_EQ(p.get_hp_max(), expected_hp);
+    EXPECT_EQ(p.get_mana_max(), expected_mana);
+}
+
+TEST(PlayerTest, RaceClassStats_GnomeCleric_StrengthAndAgilityMatchFormula) {
+    auto p = make_player_of(Race::GNOME, PlayerClass::CLERIC);
+    BalanceConfig bal = make_balance();
+
+    uint32_t expected_strength = static_cast<uint32_t>(
+            std::ceil(bal.strength.race_strength_factor_gnome *
+                      bal.strength.class_strength_factor_cleric * p.get_level()));
+    uint32_t expected_agility =
+            static_cast<uint32_t>(std::ceil(bal.agility.race_agility_factor_gnome *
+                                            bal.agility.class_agility_factor_cleric * p.get_level()));
+
+    EXPECT_EQ(p.get_strength(), expected_strength);
+    EXPECT_EQ(p.get_agility(), expected_agility);
+}
+
+TEST(PlayerTest, Warrior_ManaMaxIsAlwaysZero) {
+    auto p = make_player_of(Race::HUMAN, PlayerClass::WARRIOR);
+    EXPECT_EQ(p.get_mana_max(), 0u);
+    EXPECT_EQ(p.get_mana_current(), 0u);
+}
+
+TEST(PlayerTest, Warrior_ManaMaxStaysZeroAfterLevelUp) {
+    auto p = make_player_of(Race::DWARF, PlayerClass::WARRIOR);
+    p.level_up();
+    p.level_up();
+    EXPECT_EQ(p.get_mana_max(), 0u);
+    EXPECT_EQ(p.get_mana_current(), 0u);
 }
