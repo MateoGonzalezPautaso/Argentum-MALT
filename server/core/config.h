@@ -22,6 +22,7 @@ struct AttackConfig {
     double clan_bonus_per_member = 0.05;
     double clan_bonus_max = 0.25;
     double critical_chance = 0.003;
+    int critical_multiplier = 2;
     double dodge_threshold = 0.001;
     uint32_t spell_attack_range_px = 200;
     uint32_t npc_vision_range_px = 0;
@@ -160,6 +161,8 @@ struct BalanceConfig {
     int gold_cap_base = 100;
     double gold_cap_exponent = 1.1;
     double exp_loss_on_death_ratio = 0.9;
+    double gold_excess_ratio = 0.5;
+    int experience_level_offset = 10;
     double npc_gold_reward_min_pct = 0.01;
     double npc_gold_reward_max_pct = 0.2;
     double extra_kill_exp_max_pct = 0.1;
