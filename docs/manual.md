@@ -386,7 +386,23 @@ En las ciudades y zonas seguras, los jugadores no pueden atacarse entre sí ni s
 
 ### 9.3 Mazmorras
 
-El juego cuenta con portales que pueden llevarte a diferentes mazmorras, donde puedes encontrar monstruos. Las mazmorras son zonas de alto riesgo, ya que los monstruos pueden ser muy poderosos, pero también ofrecen la oportunidad de obtener objetos raros y experiencia valiosa.
+El juego cuenta con portales que pueden llevarte a diferentes mazmorras, donde puedes encontrar monstruos. Las mazmorras son zonas de alto riesgo: los monstruos que aparecen ahí son de nivel 6 a 15 (contra nivel 1 a 5 en zonas normales) y, además, varios tipos de monstruo solo aparecen en mazmorras, con stats mucho más altos que su contraparte de ciudad:
+
+| Monstruo (ciudad) | HP / Daño | Exclusivo de mazmorra | HP / Daño |
+|---|---|---|---|
+| Weak goblin | 100 / 5 | Strong goblin | 250 / 12 |
+| Basic skeleton | 175 / 10 | Warrior skeleton | 425 / 22 |
+| Small spider | 80 / 4 | Big spider | 325 / 17 |
+| Stone golem | 900 / 40 | Iron golem | 1350 / 55 |
+| — | — | Orc | 600 / 28 |
+
+Las mazmorras también ofrecen la oportunidad de obtener objetos raros y experiencia valiosa: la probabilidad de que un monstruo deje oro, poción u objeto al morir es notablemente mayor que en zonas normales.
+
+| Drop | Zona normal | Mazmorra |
+|------|-------------|----------|
+| Oro | 8% | 20% |
+| Poción | 1% | 3% |
+| Objeto | 1% | 6% |
 
 ![Mazmorra](images/Mazmorra.png)
 
