@@ -4,8 +4,8 @@
 
 #include "../input/chat_input.h"
 
+#include "form_widgets.h"
 #include "geometry.h"
-#include "text_renderer.h"
 #include "texture_loader.h"
 
 LoginRenderer::LoginRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
@@ -155,44 +155,7 @@ void LoginRenderer::init_layout() {
 
 void LoginRenderer::render_text_field(const SDL2pp::Rect& rect, const std::string& text,
                                       bool focused, const std::string& placeholder) const {
-    if (!field_font) {
-        return;
-    }
-
-    if (focused) {
-        renderer.SetDrawColor(45, 45, 45, 220);
-    } else {
-        renderer.SetDrawColor(30, 30, 30, 220);
-    }
-    renderer.FillRect(rect);
-
-    if (focused) {
-        renderer.SetDrawColor(200, 180, 80, 255);
-    } else {
-        renderer.SetDrawColor(100, 100, 100, 255);
-    }
-    renderer.DrawRect(rect);
-
-    int clipped_w = 0;
-
-    if (!text.empty()) {
-        render_text_in_rect(rect, text, text_color, clipped_w);
-    } else if (!focused && !placeholder.empty()) {
-        render_text_in_rect(rect, placeholder, placeholder_color, clipped_w);
-    }
-
-    if (focused && (SDL_GetTicks() / ui_cfg.cursor_blink_ms) % 2U == 0U) {
-        const int cursor_x = rect.GetX() + ui_cfg.cursor_padding + clipped_w;
-        renderer.SetDrawColor(255, 255, 255, 255);
-        SDL2pp::Rect cursor_rect(cursor_x, rect.GetY() + ui_cfg.cursor_padding, ui_cfg.cursor_width,
-                                 rect.GetH() - ui_cfg.cursor_height_shrink);
-        renderer.FillRect(cursor_rect);
-    }
-}
-
-void LoginRenderer::render_text_in_rect(const SDL2pp::Rect& rect, const std::string& text,
-                                        SDL_Color color, int& clipped_w) const {
-    clipped_w = texture::render_text_clipped(renderer, field_font, text, color, rect, 4, 2, true);
+    FormWidgets(renderer, field_font, ui_cfg).render_text_field(rect, text, focused, placeholder);
 }
 
 void LoginRenderer::set_error(const std::string& text) { error_text = text; }
@@ -200,18 +163,8 @@ void LoginRenderer::set_error(const std::string& text) { error_text = text; }
 void LoginRenderer::clear_error() { error_text.clear(); }
 
 void LoginRenderer::render_error() const {
-    if (error_text.empty() || !field_font) {
-        return;
-    }
-
-    auto result = texture::render_text(renderer, field_font, error_text, error_color);
-    if (result.w == 0) {
-        return;
-    }
-
-    const int x = std::max(0, (ui_cfg.window_w - result.w) / 2);
-    const int y =
-            new_account_button.rect.GetY() + new_account_button.rect.GetH() + ui_cfg.error_spacing;
-    SDL2pp::Rect dst(x, y, result.w, result.h);
-    renderer.Copy(result.texture, SDL2pp::NullOpt, dst);
+    const int below_y = new_account_button.rect.GetY() + new_account_button.rect.GetH();
+    FormWidgets(renderer, field_font, ui_cfg)
+            .render_error_centered(error_text, error_color, ui_cfg.window_w, below_y,
+                                   ui_cfg.error_spacing);
 }

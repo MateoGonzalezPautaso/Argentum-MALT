@@ -4,6 +4,7 @@
 
 #include "../input/chat_input.h"
 
+#include "form_widgets.h"
 #include "geometry.h"
 #include "text_renderer.h"
 #include "texture_loader.h"
@@ -127,29 +128,7 @@ void CreateCharacterRenderer::render(Race selected_race, PlayerClass selected_cl
 void CreateCharacterRenderer::render_text_field(const SDL2pp::Rect& rect, const std::string& text,
                                                 bool focused,
                                                 const std::string& placeholder) const {
-    if (!field_font)
-        return;
-
-    renderer.SetDrawColor(focused ? SDL_Color{45, 45, 45, 220} : SDL_Color{30, 30, 30, 220});
-    renderer.FillRect(rect);
-    renderer.SetDrawColor(focused ? SDL_Color{200, 180, 80, 255} : SDL_Color{100, 100, 100, 255});
-    renderer.DrawRect(rect);
-
-    int clipped_w = 0;
-    if (!text.empty())
-        clipped_w = texture::render_text_clipped(renderer, field_font, text, text_color, rect, 4, 2,
-                                                 true);
-    else if (!focused && !placeholder.empty())
-        texture::render_text_clipped(renderer, field_font, placeholder, placeholder_color, rect, 4,
-                                     2, true);
-
-    if (focused && (SDL_GetTicks() / ui_cfg.cursor_blink_ms) % 2U == 0U) {
-        const int cursor_x = rect.GetX() + ui_cfg.cursor_padding + clipped_w;
-        renderer.SetDrawColor(255, 255, 255, 255);
-        SDL2pp::Rect cursor_rect(cursor_x, rect.GetY() + ui_cfg.cursor_padding, ui_cfg.cursor_width,
-                                 rect.GetH() - ui_cfg.cursor_height_shrink);
-        renderer.FillRect(cursor_rect);
-    }
+    FormWidgets(renderer, field_font, ui_cfg).render_text_field(rect, text, focused, placeholder);
 }
 
 void CreateCharacterRenderer::render_selector(const std::array<SDL2pp::Rect, 4>& rects,
@@ -171,14 +150,10 @@ void CreateCharacterRenderer::render_selector(const std::array<SDL2pp::Rect, 4>&
 }
 
 void CreateCharacterRenderer::render_error() const {
-    if (error_text.empty() || !field_font)
-        return;
-    auto result = texture::render_text(renderer, field_font, error_text, error_color);
-    if (result.w == 0)
-        return;
-    const int x = std::max(0, (ui_cfg.window_w - result.w) / 2);
-    const int y = create_button.rect.GetY() + create_button.rect.GetH() + ui_cfg.error_spacing;
-    renderer.Copy(result.texture, SDL2pp::NullOpt, SDL2pp::Rect(x, y, result.w, result.h));
+    const int below_y = create_button.rect.GetY() + create_button.rect.GetH();
+    FormWidgets(renderer, field_font, ui_cfg)
+            .render_error_centered(error_text, error_color, ui_cfg.window_w, below_y,
+                                   ui_cfg.error_spacing);
 }
 
 bool CreateCharacterRenderer::is_username_hit(int x, int y) const {
