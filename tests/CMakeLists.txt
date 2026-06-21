@@ -24,8 +24,13 @@ target_sources(taller_tests
     ${CMAKE_SOURCE_DIR}/server/game/entity.cpp
     ${CMAKE_SOURCE_DIR}/server/game/map.cpp
     ${CMAKE_SOURCE_DIR}/server/game/prop_grid.cpp
+    ${CMAKE_SOURCE_DIR}/server/game/game.cpp
+    ${CMAKE_SOURCE_DIR}/server/game/player_data_service.cpp
     ${CMAKE_SOURCE_DIR}/server/persistence/clan_persistence.cpp
     ${CMAKE_SOURCE_DIR}/server/persistence/clan_record.cpp
+    ${CMAKE_SOURCE_DIR}/server/persistence/player_persistence.cpp
+    ${CMAKE_SOURCE_DIR}/server/persistence/player_record.cpp
+    ${CMAKE_SOURCE_DIR}/server/persistence/inventory_persistence.cpp
     ${CMAKE_SOURCE_DIR}/editor/io/toml_serializer.cpp
     PUBLIC
     ${SERVER_HEADERS}
