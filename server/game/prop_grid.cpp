@@ -4,6 +4,9 @@
 #include <utility>
 
 PropGrid::PropGrid(const TilemapConfig& tilemap) {
+    if (tilemap.prop_map.empty())
+        return;
+
     entries_.reserve(tilemap.prop_map.size() * tilemap.prop_map.front().size());
 
     for (std::size_t r = 0; r < tilemap.prop_map.size(); ++r) {
