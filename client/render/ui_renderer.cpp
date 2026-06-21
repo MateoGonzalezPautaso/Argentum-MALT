@@ -444,6 +444,42 @@ void UIRenderer::render_equipped(const InventorySlot equipped[4]) {
     inventory_renderer.render_equipped(equipped);
 }
 
+std::vector<std::string> UIRenderer::wrap_chat_text(const std::string& text, int max_width) const {
+    std::vector<std::string> lines;
+    if (!chat_font || max_width <= 0) {
+        lines.push_back(text);
+        return lines;
+    }
+
+    std::string current_line;
+    std::size_t pos = 0;
+    while (pos <= text.size()) {
+        std::size_t space_pos = text.find(' ', pos);
+        std::string word = text.substr(pos, space_pos == std::string::npos
+                                                    ? std::string::npos
+                                                    : space_pos - pos);
+
+        std::string candidate = current_line.empty() ? word : current_line + " " + word;
+        int w = 0, h = 0;
+        TTF_SizeUTF8(chat_font, candidate.c_str(), &w, &h);
+
+        if (w > max_width && !current_line.empty()) {
+            lines.push_back(current_line);
+            current_line = word;
+        } else {
+            current_line = candidate;
+        }
+
+        if (space_pos == std::string::npos)
+            break;
+        pos = space_pos + 1;
+    }
+    if (!current_line.empty() || lines.empty())
+        lines.push_back(current_line);
+
+    return lines;
+}
+
 void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages, int scroll_offset) {
     const SDL2pp::Rect& hist_rect = chat_expanded_ ? expanded_chat_history_rect : chat_history_rect;
 
@@ -487,20 +523,28 @@ void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages, i
                 break;
         }
 
-        auto result = texture::render_text(renderer, chat_font, display, color);
-        if (result.w == 0) {
-            continue;
-        }
+        std::vector<std::string> wrapped_lines = wrap_chat_text(display, hist_rect.GetW());
+        bool stop = false;
+        for (auto line_it = wrapped_lines.rbegin(); line_it != wrapped_lines.rend(); ++line_it) {
+            auto result = texture::render_text(renderer, chat_font, *line_it, color);
+            if (result.w == 0) {
+                continue;
+            }
 
-        y_offset -= (result.h + line_spacing);
-        if (y_offset < hist_rect.GetY()) {
+            y_offset -= (result.h + line_spacing);
+            if (y_offset < hist_rect.GetY()) {
+                stop = true;
+                break;
+            }
+
+            int clipped_w = std::min(result.w, hist_rect.GetW());
+            SDL2pp::Rect src_rect(0, 0, clipped_w, result.h);
+            SDL2pp::Rect dst_rect(hist_rect.GetX(), y_offset, clipped_w, result.h);
+            renderer.Copy(result.texture, src_rect, dst_rect);
+        }
+        if (stop) {
             break;
         }
-
-        int clipped_w = std::min(result.w, hist_rect.GetW());
-        SDL2pp::Rect src_rect(0, 0, clipped_w, result.h);
-        SDL2pp::Rect dst_rect(hist_rect.GetX(), y_offset, clipped_w, result.h);
-        renderer.Copy(result.texture, src_rect, dst_rect);
     }
 }
 

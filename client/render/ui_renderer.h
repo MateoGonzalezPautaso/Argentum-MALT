@@ -98,6 +98,7 @@ private:
                          uint32_t max) const;
     void render_chat_cursor(int x_offset) const;
     void render_chat_text_line(int& clipped_w) const;
+    std::vector<std::string> wrap_chat_text(const std::string& text, int max_width) const;
 };
 
 #endif
