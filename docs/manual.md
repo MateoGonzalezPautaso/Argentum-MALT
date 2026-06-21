@@ -156,7 +156,7 @@ Debajo del inventario se encuentra la cantidad de oro que el personaje posee. El
 
 ### 4.5 Chat
 
-En la parte superior de la pantalla se encuentra la barra de chat, donde puedes comunicarte con otros jugadores. Puedes escribir comandos, mensajes para el chat general, mensajes privados a otros jugadores o mensajes para tu clan.
+En la parte superior de la pantalla se encuentra la barra de chat, donde puedes comunicarte con otros jugadores. Puedes escribir comandos, mensajes para el chat general, mensajes privados a otros jugadores o mensajes para tu clan. Los mensajes muy largos se parten automáticamente en varias líneas según el ancho disponible de la ventana de chat (que difiere entre el modo compacto y el expandido, y según el tamaño de la ventana del juego). El historial guarda los últimos 100 mensajes.
 
 ![Chat](images/Chat.png)
 
@@ -165,6 +165,14 @@ En la parte superior de la pantalla se encuentra la barra de chat, donde puedes 
 A la derecha del chat, se muestra el nivel actual del personaje. El nivel se incrementa al ganar experiencia derrotando monstruos o jugadores, y al subir de nivel el personaje obtiene mejoras en sus stats.
 
 ![Nivel](images/Nivel.png)
+
+### 4.7 Vestimenta
+
+El aspecto visual del personaje cambia según lo que tenga equipado:
+- **Armadura:** reemplaza la vestimenta del cuerpo del personaje. Si no hay armadura equipada, se muestra una vestimenta común por defecto.
+- **Arma o bastón, casco y escudo:** se dibujan como una capa superpuesta sobre el personaje.
+
+El cambio es inmediato al equipar o desequipar un objeto (ver [7.6](#76-cómo-equipar-y-desequipar)), y es visible tanto para el propio jugador como para el resto de los jugadores en el mismo mapa.
 
 ---
 
@@ -338,10 +346,11 @@ Para desequipar un objeto, haz click izquierdo sobre él en el slot del item equ
 | `/comprar <objeto>` | Comprar un objeto al NPC (mercader o sacerdote) |
 | `/vender <objeto>` | Vender un objeto al comerciante |
 | `/listar` | Ver el inventario de un NPC cercano |
-| `/tomar` | Recoger un ítem del suelo |
-| `/tirar <slot>` | Tirar un ítem del inventario al suelo |
-| `/equipar <slot>` | Equipar el ítem del slot indicado del inventario |
-| `/desequipar <arma\|armadura\|casco\|escudo>` | Desequipar un ítem por tipo de ranura |
+| `/tomar` | Recoger del suelo cualquier ítem en la posición actual |
+| `/tomar <objeto>` | Recoger del suelo un ítem específico por nombre (si hay varios apilados) |
+| `/tirar <objeto>` | Tirar al suelo un ítem del inventario, identificado por nombre |
+| `/equipar <slot>` | Equipar el ítem del slot indicado del inventario (número de slot) |
+| `/desequipar <weapon\|armor\|helmet\|shield>` | Desequipar un ítem por tipo de ranura |
 | `/depositar <objeto>` | Depositar un objeto en el banco |
 | `/depositar oro <cant>` | Depositar oro en el banco |
 | `/retirar <objeto>` | Retirar un objeto del banco |
