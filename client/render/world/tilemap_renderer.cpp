@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "../texture_loader.h"
+#include "viewport.h"
 
 TilemapRenderer::TilemapRenderer(SDL2pp::Renderer& renderer): renderer(renderer) {}
 
@@ -50,11 +51,7 @@ void TilemapRenderer::render(const SDL2pp::Rect& cam) {
     if (!loaded_)
         return;
 
-    constexpr int extra = 8;
-    const int first_col = std::max(0, cam.GetX() / tile_size_ - extra);
-    const int first_row = std::max(0, cam.GetY() / tile_size_ - extra);
-    const int last_col = (cam.GetX() + cam.GetW() - 1) / tile_size_ + extra;
-    const int last_row = (cam.GetY() + cam.GetH() - 1) / tile_size_ + extra;
+    auto [first_col, first_row, last_col, last_row] = compute_visible_range(cam, tile_size_, 8);
 
     for (int row = first_row; row <= last_row; ++row) {
         if (row < 0 || row >= static_cast<int>(tiles.size()))
