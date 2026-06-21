@@ -120,9 +120,10 @@ struct NpcDropConfig {
 
 struct NpcTemplate {
     std::string name;
-    uint32_t base_hp     = 0;
+    uint32_t base_hp = 0;
     uint32_t base_damage = 0;
-    uint16_t sprite_id   = 0;
+    uint16_t sprite_id = 0;
+    uint32_t speed = 2;
 };
 
 struct InventoryConfig {

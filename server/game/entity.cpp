@@ -1,9 +1,14 @@
 #include "entity.h"
 
 Entity::Entity(uint32_t hp_max, const std::string& name, Position pos, uint8_t level,
-               uint16_t sprite_id):
-        hp_current(hp_max), name(name), pos(pos), level(level), hp_max(hp_max), sprite_id(sprite_id) {
-}
+               uint16_t sprite_id, uint32_t speed):
+        hp_current(hp_max),
+        name(name),
+        pos(pos),
+        level(level),
+        hp_max(hp_max),
+        sprite_id(sprite_id),
+        speed(speed) {}
 
 bool Entity::try_attack(uint32_t current_tick, uint32_t cooldown_ticks) {
     if (current_tick < next_attack_tick)

@@ -95,7 +95,8 @@ void SpriteRenderer::set_movable_position(int x, int y) {
 }
 
 SpriteConfig SpriteRenderer::resolve_entity_skin(const SpriteConfig& config, Race race,
-                                                 PlayerClass player_class, uint16_t sprite_id) const {
+                                                 PlayerClass player_class,
+                                                 uint16_t sprite_id) const {
     SpriteConfig selected = config;
     if (sprite_id > 0) {
         if (config.anchor_to_movable) {
@@ -196,6 +197,7 @@ void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::s
         entity_frame_h_[entity_id] = skin_config.npc_frame_h(sprite_id);
         entity_base_src_x_[entity_id] = skin_config.npc_src_x(sprite_id);
         entity_base_src_y_[entity_id] = skin_config.npc_src_y(sprite_id);
+        entity_speed[entity_id] = skin_config.speed(sprite_id);
     }
     auto parts = build_entity_parts(x, y, race, player_class, sprite_id);
     if (parts.empty()) {
@@ -228,8 +230,8 @@ void SpriteRenderer::set_entity_clan_name(uint16_t entity_id, const std::string&
 }
 
 void SpriteRenderer::set_entity_clan_by_username(const std::string& username,
-                                                  const std::string& clan) {
-    for (const auto& [eid, name] : entity_usernames_) {
+                                                 const std::string& clan) {
+    for (const auto& [eid, name]: entity_usernames_) {
         if (name == username) {
             entity_clan_name_[eid] = clan;
             return;
@@ -249,6 +251,8 @@ void SpriteRenderer::despawn_entity(uint16_t entity_id) {
     entity_last_move_tick_.erase(entity_id);
     entity_clan_name_.erase(entity_id);
     entity_usernames_.erase(entity_id);
+    entity_speed.erase(entity_id);
+    entity_move_counter.erase(entity_id);
 }
 
 void SpriteRenderer::clear_all_entities() {
@@ -263,6 +267,8 @@ void SpriteRenderer::clear_all_entities() {
     entity_last_move_tick_.clear();
     entity_clan_name_.clear();
     entity_usernames_.clear();
+    entity_speed.clear();
+    entity_move_counter.clear();
 }
 
 void SpriteRenderer::set_skin_config(const SkinConfig& cfg) { skin_config = cfg; }
@@ -485,8 +491,10 @@ void SpriteRenderer::set_entity_src_y(uint16_t entity_id, int body_src_y, int he
     int dir_index = body_src_y / 48;  // 0=down, 1=up, 2=left, 3=right
     auto sid_it = entity_sprite_ids.find(entity_id);
     if (sid_it != entity_sprite_ids.end() && skin_config.npc_swap_lr(sid_it->second)) {
-        if (dir_index == 2) dir_index = 3;
-        else if (dir_index == 3) dir_index = 2;
+        if (dir_index == 2)
+            dir_index = 3;
+        else if (dir_index == 3)
+            dir_index = 2;
     }
     bool is_walking = false;
     auto tick_it = entity_last_move_tick_.find(entity_id);
@@ -501,18 +509,20 @@ void SpriteRenderer::set_entity_src_y(uint16_t entity_id, int body_src_y, int he
         }
         if (sprite.movable) {
             if (fh_it != entity_frame_h_.end() && fh_it->second > 0) {
-                int offset = is_walking ? skin_config.npc_walk_row_offset(
-                        entity_sprite_ids.at(entity_id)) : 0;
+                int offset =
+                        is_walking ?
+                                skin_config.npc_walk_row_offset(entity_sprite_ids.at(entity_id)) :
+                                0;
                 int row = dir_index + offset;
-                const auto& rp = skin_config.npc_row_positions(
-                        entity_sprite_ids.at(entity_id));
+                const auto& rp = skin_config.npc_row_positions(entity_sprite_ids.at(entity_id));
                 if (!rp.empty()) {
                     int idx = std::min(row, static_cast<int>(rp.size()) - 1);
                     idx = std::max(idx, 0);
                     sprite.src.SetY(rp[idx]);
                 } else {
                     int base_y = entity_base_src_y_.count(entity_id) ?
-                                         entity_base_src_y_.at(entity_id) : 0;
+                                         entity_base_src_y_.at(entity_id) :
+                                         0;
                     sprite.src.SetY(base_y + row * fh_it->second);
                 }
             } else {
@@ -529,6 +539,12 @@ void SpriteRenderer::step_entity_src_x(uint16_t entity_id, int step, int frame_c
     if (it == entity_sprites.end()) {
         return;
     }
+
+    entity_move_counter[entity_id]++;
+
+    if (entity_speed[entity_id] == 1 && entity_move_counter[entity_id] % 2 != 0)
+        return;
+
     auto fw_it = entity_frame_w_.find(entity_id);
     auto bx_it = entity_base_src_x_.find(entity_id);
     for (auto& sprite: it->second) {
@@ -537,8 +553,7 @@ void SpriteRenderer::step_entity_src_x(uint16_t entity_id, int step, int frame_c
         }
         if (fw_it != entity_frame_w_.end() && fw_it->second > 0 &&
             bx_it != entity_base_src_x_.end()) {
-            const auto& fp = skin_config.npc_frame_positions(
-                    entity_sprite_ids.at(entity_id));
+            const auto& fp = skin_config.npc_frame_positions(entity_sprite_ids.at(entity_id));
             if (!fp.empty()) {
                 int current_x = sprite.src.GetX();
                 int current_idx = -1;
@@ -554,8 +569,7 @@ void SpriteRenderer::step_entity_src_x(uint16_t entity_id, int step, int frame_c
                 sprite.src.SetX(fp[next_idx]);
             } else {
                 int npc_step = fw_it->second;
-                int npc_frames = skin_config.npc_frames_per_dir(
-                        entity_sprite_ids.at(entity_id));
+                int npc_frames = skin_config.npc_frames_per_dir(entity_sprite_ids.at(entity_id));
                 if (npc_frames <= 0)
                     npc_frames = frame_count;
                 if (npc_frames <= 1)
@@ -707,8 +721,7 @@ void SpriteRenderer::append_sprite_drawables(std::vector<SpriteRender>& src,
         SDL2pp::Rect dst(sprite.dst.GetX() - cam.GetX(), sprite.dst.GetY() - cam.GetY(),
                          sprite.dst.GetW(), sprite.dst.GetH());
         bool use_src = sprite.use_src || sprite.src.GetW() > 0;
-        out.push_back(Drawable{&sprite.frames[sprite.current_frame],
-                               sprite.src, dst, use_src,
+        out.push_back(Drawable{&sprite.frames[sprite.current_frame], sprite.src, dst, use_src,
                                sprite.dst.GetY() + sprite.dst.GetH(), sprite.alpha});
     }
 }
@@ -733,9 +746,9 @@ void SpriteRenderer::render_entity_names(const SDL2pp::Rect& cam) {
         const int name_y = body.dst.GetY() - name_it->second.h - 24 - cam.GetY();
 
         SDL_Color color = {255, 255, 255, 255};
-        if (entity_sprite_ids.count(eid))
+        if (entity_sprite_ids.count(eid)) {
             color = {255, 80, 80, 255};
-        else if (!local_clan_name.empty()) {
+        } else if (!local_clan_name.empty()) {
             auto clan_it = entity_clan_name_.find(eid);
             if (clan_it != entity_clan_name_.end() && clan_it->second == local_clan_name)
                 color = {80, 255, 80, 255};

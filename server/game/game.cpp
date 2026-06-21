@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -180,9 +181,7 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const ClanKickCmd& cmd) {
                         return clan_handler.handle_clan_kick(player_id, cmd.target_nick);
                     },
-                    [&](const ClanLeaveCmd&) {
-                        return clan_handler.handle_leave_clan(player_id);
-                    },
+                    [&](const ClanLeaveCmd&) { return clan_handler.handle_leave_clan(player_id); },
                     [](const auto&) { return CommandResult{}; },
             },
             cmd);
@@ -360,7 +359,8 @@ CommandResult Game::spawn_mobs() {
         for (const auto& [pid, player]: players) {
             if (player.get_current_map() != map_name || player.is_dead())
                 continue;
-            pos_opt = map.find_random_mob_spawn_pos_near(rng, player.pos_x(), player.pos_y(), mob_spawn_radius);
+            pos_opt = map.find_random_mob_spawn_pos_near(rng, player.pos_x(), player.pos_y(),
+                                                         mob_spawn_radius);
             if (pos_opt.has_value())
                 break;
         }
@@ -392,8 +392,8 @@ EnemyNpc Game::create_random_npc(Position pos, uint8_t level) {
         return EnemyNpc(pos, 100 * level, 5 * level, rng, item_catalog, level, "NPC");
     int roll = rng.get_random_int(0, static_cast<int>(npc_templates.size()) - 1);
     const NpcTemplate& t = npc_templates[roll];
-    return EnemyNpc(pos, t.base_hp * level, t.base_damage * level, rng, item_catalog, level,
-                    t.name, t.sprite_id);
+    return EnemyNpc(pos, t.base_hp * level, t.base_damage * level, rng, item_catalog, level, t.name,
+                    t.sprite_id, t.speed);
 }
 
 CommandResult Game::process_pending_resurrections() {
@@ -432,7 +432,7 @@ CommandResult Game::process_pending_resurrections() {
 
             std::vector<ServerEvent> private_events;
             private_events.push_back(MapTransitionEvent{pending.target_map, pending.target_pos.x,
-                                                          pending.target_pos.y});
+                                                        pending.target_pos.y});
             append_existing_entities(private_events, player_id, pending.target_map);
             result.targeted_events[player_id] = std::move(private_events);
 
@@ -684,8 +684,7 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
 
 CommandResult Game::handle_create_character(uint16_t player_id, const CreateCharacterCmd& cmd) {
     if (cmd.username.empty()) {
-        CharacterErrorEvent err{CharacterError::INVALID_USERNAME,
-                                "Username cannot be empty"};
+        CharacterErrorEvent err{CharacterError::INVALID_USERNAME, "Username cannot be empty"};
         return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
     }
 
@@ -805,7 +804,7 @@ CommandResult Game::handle_cheat_infinite_mana(uint16_t player_id) {
     if (active)
         player.restore_mana(player.get_mana_max());
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                      active ? "[Cheat] Mana infinito: ON" : "[Cheat] Mana infinito: OFF"};
+                     active ? "[Cheat] Mana infinito: ON" : "[Cheat] Mana infinito: OFF"};
     PlayerStatsEvent stats = make_player_stats_event(player);
     return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
@@ -857,7 +856,7 @@ CommandResult Game::handle_cheat_level_up(uint16_t player_id) {
     }
     player.level_up();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                      "[Cheat] Nivel subido a " + std::to_string(player.get_level())};
+                     "[Cheat] Nivel subido a " + std::to_string(player.get_level())};
     PlayerStatsEvent stats = make_player_stats_event(player);
     GoldUpdateEvent gold{player.get_gold()};
     return {.private_events = {msg, stats, gold}, .broadcast_events = {}, .targeted_events = {}};
@@ -874,7 +873,7 @@ CommandResult Game::handle_cheat_level_down(uint16_t player_id) {
     }
     player.level_down();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                      "[Cheat] Nivel bajado a " + std::to_string(player.get_level())};
+                     "[Cheat] Nivel bajado a " + std::to_string(player.get_level())};
     PlayerStatsEvent stats = make_player_stats_event(player);
     return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
@@ -918,8 +917,10 @@ CommandResult Game::handle_help() {
         return {};
     std::vector<ServerEvent> events;
     events.reserve(help_lines.size());
-    for (const auto& line: help_lines)
-        events.emplace_back(ChatMsgEvent{ChatMsgType::SYSTEM, "", line});
+    std::transform(help_lines.begin(), help_lines.end(), std::back_inserter(events),
+                   [](const auto& line) {
+                       ChatMsgEvent{ChatMsgType::SYSTEM, "", line};
+                   });
     return {.private_events = std::move(events)};
 }
 
@@ -1094,7 +1095,8 @@ std::vector<ServerEvent> Game::make_existing_ground_items(const std::string& map
         return events;
 
     for (const auto& [cell, vec]: map_it->second) {
-        for (const auto& item: vec) events.push_back(item);
+        events.resize(vec.size());
+        std::copy(vec.begin(), vec.end(), events.begin());
     }
     return events;
 }
@@ -1108,8 +1110,8 @@ void Game::append_existing_entities(std::vector<ServerEvent>& events, uint16_t e
     events.insert(events.end(), items.begin(), items.end());
 }
 
-void Game::commit_ground_drops(
-        CommandResult& result, const std::map<std::string, std::vector<ItemDroppedEvent>>& drops) {
+void Game::commit_ground_drops(CommandResult& result,
+                               const std::map<std::string, std::vector<ItemDroppedEvent>>& drops) {
     for (const auto& [map_name, items]: drops) {
         auto map_it = maps.find(map_name);
         if (map_it == maps.end())
@@ -1123,11 +1125,6 @@ void Game::commit_ground_drops(
             for (uint16_t pid: player_ids) result.targeted_events[pid].push_back(item);
         }
     }
-}
-
-Position Game::cell_center_pos(int tile_size, std::pair<int, int> cell) {
-    return Position{static_cast<uint16_t>(cell.first * tile_size + tile_size / 2),
-                    static_cast<uint16_t>(cell.second * tile_size + tile_size / 2)};
 }
 
 std::vector<uint16_t> Game::get_player_ids_on_map(const std::string& map_name) const {
@@ -1304,7 +1301,7 @@ CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
     InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
     player.dump_equipped(equipped_slots);
     EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1], equipped_slots[2],
-                               equipped_slots[3]};
+                              equipped_slots[3]};
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
 
     std::vector<ServerEvent> private_events{inv_ev};
@@ -1330,7 +1327,7 @@ CommandResult Game::handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd
     InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
     player.dump_equipped(equipped_slots);
     EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1], equipped_slots[2],
-                               equipped_slots[3]};
+                              equipped_slots[3]};
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
 
     return {.private_events = {inv_ev},
@@ -1408,7 +1405,7 @@ CommandResult Game::handle_npc_list(uint16_t player_id) {
     if (it == players.end())
         return {};
 
-    Player& player = it->second;
+    const Player& player = it->second;
 
     if (player.is_dead()) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden listar"};
@@ -1441,7 +1438,7 @@ CommandResult Game::handle_npc_list(uint16_t player_id) {
     const std::string vendor_name = near_comerciante ? "comerciante" : "sacerdote";
 
     std::vector<NpcItemEntry> items;
-    for (const auto& item : item_catalog.all()) {
+    for (const auto& item: item_catalog.all()) {
         if (vendor_sells(balance.vendors, vendor_name, item.type))
             items.push_back({item.name, item.type, 0, item.price});
     }

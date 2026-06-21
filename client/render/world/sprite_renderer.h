@@ -127,7 +127,7 @@ private:
     SpriteConfig resolve_entity_skin(const SpriteConfig& config, Race race,
                                      PlayerClass player_class, uint16_t sprite_id) const;
     std::vector<SpriteRender> build_entity_parts(int x, int y, Race race, PlayerClass player_class,
-                                                  uint16_t sprite_id);
+                                                 uint16_t sprite_id);
     void position_anchored_parts(std::vector<SpriteRender>& parts);
     void create_entity_name_label(uint16_t entity_id, const std::string& name);
     SpriteRender* find_movable_sprite();
@@ -172,6 +172,8 @@ private:
     std::unordered_map<uint16_t, int> entity_frame_h_;
     std::unordered_map<uint16_t, int> entity_base_src_x_;
     std::unordered_map<uint16_t, int> entity_base_src_y_;
+    std::unordered_map<uint16_t, int> entity_speed;
+    std::unordered_map<uint16_t, int> entity_move_counter;
     std::unordered_map<uint16_t, uint32_t> entity_last_move_tick_;
     std::string local_clan_name;
     std::unordered_map<uint16_t, std::string> entity_clan_name_;

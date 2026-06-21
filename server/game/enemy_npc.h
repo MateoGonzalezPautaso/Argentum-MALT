@@ -28,7 +28,7 @@ private:
 public:
     EnemyNpc(Position position, uint32_t hp_max, uint32_t damage, Rng& rng,
              const ItemCatalog& catalog, uint8_t level, const std::string& name,
-             uint16_t sprite_id = 0);
+             uint16_t sprite_id = 0, uint32_t speed = 2);
     EnemyDrop get_kill_reward(const NpcDropConfig& drop_config);
     uint32_t get_damage() const;
 };

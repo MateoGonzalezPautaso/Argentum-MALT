@@ -17,10 +17,11 @@ private:
     uint32_t hp_max;
     std::string current_map;
     uint16_t sprite_id = 0;
+    uint32_t speed;
 
 public:
     Entity(uint32_t hp_max, const std::string& name, Position pos, uint8_t level,
-           uint16_t sprite_id = 0);
+           uint16_t sprite_id = 0, uint32_t speed = 2);
     bool try_attack(uint32_t current_tick, uint32_t cooldown_ticks);
     uint32_t get_hp_current() const { return hp_current; }
     void kill() { hp_current = 0; }
@@ -39,6 +40,7 @@ public:
     uint16_t get_sprite_id() const { return sprite_id; }
     virtual ~Entity() = default;
     virtual void take_damage(uint32_t damage);
+    uint32_t get_speed() const { return speed; }
 
 protected:
     void set_hp_current(uint32_t new_hp_current) { hp_current = new_hp_current; }

@@ -236,18 +236,18 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
                    "potion_hp_button", config.ui.potion_hp);
     parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{},
                    "potion_mana_button", config.ui.potion_mana);
-    parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{},
-                   "crit_rect", config.ui.crit_rect);
-    parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{},
-                   "dodge_rect", config.ui.dodge_rect);
-    parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{},
-                   "strength_rect", config.ui.strength_rect);
-    parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{},
-                   "agility_rect", config.ui.agility_rect);
-    parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{},
-                   "damage_rect", config.ui.damage_rect);
-    parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{},
-                   "defense_rect", config.ui.defense_rect);
+    parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{}, "crit_rect",
+                   config.ui.crit_rect);
+    parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{}, "dodge_rect",
+                   config.ui.dodge_rect);
+    parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{}, "strength_rect",
+                   config.ui.strength_rect);
+    parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{}, "agility_rect",
+                   config.ui.agility_rect);
+    parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{}, "damage_rect",
+                   config.ui.damage_rect);
+    parse_stat_bar(root["ui"].as_table() ? *root["ui"].as_table() : toml::table{}, "defense_rect",
+                   config.ui.defense_rect);
 
     if (auto tbl = root["ui"].as_table()) {
         if (auto merchant_tbl = (*tbl)["merchant"].as_table()) {
@@ -256,16 +256,18 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
             m.panel_y = toml_get_int(*merchant_tbl, "panel_y", m.panel_y);
             m.panel_w = toml_get_int(*merchant_tbl, "panel_w", m.panel_w);
             m.panel_h = toml_get_int(*merchant_tbl, "panel_h", m.panel_h);
-            parse_merchant_button(*merchant_tbl, "buy",  m.buy);
+            parse_merchant_button(*merchant_tbl, "buy", m.buy);
             parse_merchant_button(*merchant_tbl, "sell", m.sell);
             m.list_offset_x = toml_get_int(*merchant_tbl, "list_offset_x", m.list_offset_x);
             m.list_offset_y = toml_get_int(*merchant_tbl, "list_offset_y", m.list_offset_y);
-            m.list_w        = toml_get_int(*merchant_tbl, "list_w",         m.list_w);
-            m.list_h        = toml_get_int(*merchant_tbl, "list_h",         m.list_h);
-            m.row_h         = toml_get_int(*merchant_tbl, "row_h",          m.row_h);
-            m.price_offset_x      = toml_get_int(*merchant_tbl,    "price_offset_x",      m.price_offset_x);
-            m.sell_price_offset_x = toml_get_int(*merchant_tbl,    "sell_price_offset_x", m.sell_price_offset_x);
-            m.sell_price_ratio    = toml_get_double(*merchant_tbl, "sell_price_ratio",    m.sell_price_ratio);
+            m.list_w = toml_get_int(*merchant_tbl, "list_w", m.list_w);
+            m.list_h = toml_get_int(*merchant_tbl, "list_h", m.list_h);
+            m.row_h = toml_get_int(*merchant_tbl, "row_h", m.row_h);
+            m.price_offset_x = toml_get_int(*merchant_tbl, "price_offset_x", m.price_offset_x);
+            m.sell_price_offset_x =
+                    toml_get_int(*merchant_tbl, "sell_price_offset_x", m.sell_price_offset_x);
+            m.sell_price_ratio =
+                    toml_get_double(*merchant_tbl, "sell_price_ratio", m.sell_price_ratio);
         }
     }
 
@@ -304,8 +306,7 @@ void parse_assets_config(const toml::table& root, ClientConfig& config) {
                 toml_get_string(*tbl, "audio_default", config.ui.asset_audio_default);
         config.ui.asset_audio_hover =
                 toml_get_string(*tbl, "audio_hover", config.ui.asset_audio_hover);
-        config.ui.asset_audio_off =
-                toml_get_string(*tbl, "audio_off", config.ui.asset_audio_off);
+        config.ui.asset_audio_off = toml_get_string(*tbl, "audio_off", config.ui.asset_audio_off);
         config.ui.asset_login_bg = toml_get_string(*tbl, "login_bg", config.ui.asset_login_bg);
         config.ui.asset_login_logo =
                 toml_get_string(*tbl, "login_logo", config.ui.asset_login_logo);
@@ -325,8 +326,7 @@ void parse_assets_config(const toml::table& root, ClientConfig& config) {
                 toml_get_string(*tbl, "merchant_bg", config.ui.asset_merchant_bg);
         config.ui.asset_buy_default =
                 toml_get_string(*tbl, "buy_default", config.ui.asset_buy_default);
-        config.ui.asset_buy_hover =
-                toml_get_string(*tbl, "buy_hover", config.ui.asset_buy_hover);
+        config.ui.asset_buy_hover = toml_get_string(*tbl, "buy_hover", config.ui.asset_buy_hover);
         config.ui.asset_sell_default =
                 toml_get_string(*tbl, "sell_default", config.ui.asset_sell_default);
         config.ui.asset_sell_hover =
@@ -376,21 +376,23 @@ void parse_skin_config(const toml::table& root, ClientConfig& config) {
                     def.walk_row_offset = toml_get_int(*tbl, "walk_row_offset", 4);
                     def.swap_lr = toml_get_bool(*tbl, "swap_left_right", false);
                     if (auto arr = (*tbl)["row_positions"].as_array()) {
-                        for (const auto& v : *arr)
-                            if (auto iv = v.value<int>()) def.row_positions.push_back(*iv);
+                        for (const auto& v: *arr)
+                            if (auto iv = v.value<int>())
+                                def.row_positions.push_back(*iv);
                     }
                     if (auto arr = (*tbl)["frame_positions"].as_array()) {
-                        for (const auto& v : *arr)
-                            if (auto iv = v.value<int>()) def.frame_positions.push_back(*iv);
+                        for (const auto& v: *arr)
+                            if (auto iv = v.value<int>())
+                                def.frame_positions.push_back(*iv);
                     }
+                    def.speed = toml_get_int(*tbl, "speed", 2);
                     config.skins.npc[id] = std::move(def);
                 } else if (auto path = value.value<std::string>()) {
                     NpcSkinDef def;
                     def.path = *path;
                     config.skins.npc[id] = std::move(def);
                 }
-            } catch (...) {
-            }
+            } catch (...) {}
         }
     }
 }

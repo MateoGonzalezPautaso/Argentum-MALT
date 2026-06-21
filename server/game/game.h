@@ -4,7 +4,9 @@
 #include <cstdint>
 #include <map>
 #include <string>
+#include <tuple>
 #include <unordered_map>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -12,7 +14,6 @@
 #include "../../common/rng.h"
 #include "../core/config.h"
 #include "../persistence/clan_persistence.h"
-#include "prop_grid.h"
 
 #include "clan_command_handler.h"
 #include "clan_manager.h"
@@ -22,6 +23,7 @@
 #include "map.h"
 #include "player.h"
 #include "player_data_service.h"
+#include "prop_grid.h"
 
 class Game {
 private:
@@ -102,7 +104,6 @@ private:
     CommandResult handle_pickup_item(uint16_t player_id, const PickupItemCmd& cmd);
     CommandResult handle_drop_item(uint16_t player_id, const DropItemCmd& cmd);
     static std::pair<int, int> tile_cell(const Map& map, int px, int py);
-    static Position cell_center_pos(int tile_size, std::pair<int, int> cell);
 
     std::tuple<uint16_t, uint16_t, uint16_t, uint16_t> compute_combat_ranges(const Player& p) const;
     PlayerStatsEvent make_player_stats_event(const Player& p) const;
