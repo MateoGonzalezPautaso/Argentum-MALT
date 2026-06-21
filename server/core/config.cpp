@@ -112,6 +112,8 @@ ServerConfig load_server_config(const std::string& path) {
         config.clan.max_members = toml_get_int(*clan, "max_members", config.clan.max_members);
         config.clan.min_level_found =
                 toml_get_int(*clan, "min_level_found", config.clan.min_level_found);
+        config.clan.max_name_length =
+                toml_get_int(*clan, "max_name_length", config.clan.max_name_length);
     }
 
     if (auto mob_spawn = root["mob_spawn"].as_table()) {

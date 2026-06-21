@@ -30,6 +30,7 @@ struct AttackConfig {
 struct ClanConfig {
     int max_members = 16;
     int min_level_found = 6;
+    int max_name_length = 30;
 };
 
 struct RaceRecoveryConfig {

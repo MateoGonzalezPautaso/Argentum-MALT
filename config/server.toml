@@ -29,6 +29,7 @@ npc_speed = 2
 [clan]
 max_members = 16
 min_level_found = 6
+max_name_length = 30
 
 [mob_spawn]
 spawn_radius = 10
