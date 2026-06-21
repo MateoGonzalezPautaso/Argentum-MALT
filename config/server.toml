@@ -32,6 +32,12 @@ min_level_found = 6
 
 [mob_spawn]
 spawn_radius = 10
+min_level = 1
+max_level = 5
+
+[mob_spawn.dungeon]
+min_level = 6
+max_level = 15
 
 [inventory]
 max_slots = 20
@@ -56,6 +62,11 @@ gold_cap_exponent = 1.1
 gold_chance = 8.0
 potion_chance = 1.0
 item_chance = 1.0
+
+[balance.npc_drop_dungeon]
+gold_chance = 20.0
+potion_chance = 3.0
+item_chance = 6.0
 
 [recovery_rates]
 human = 1.0
