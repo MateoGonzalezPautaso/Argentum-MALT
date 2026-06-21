@@ -86,10 +86,11 @@ public:
 
     bool hit_test_entity(int world_x, int world_y, uint16_t& out_entity_id) const;
 
-    void load_damage_overlay();
+    void load_damage_overlay(const DamageOverlayConfig& cfg);
     void trigger_damage_overlay_at(int world_x, int world_y);
-    void load_spell_sheets();
+    void load_spell_sheets(const std::vector<SpellSheetConfig>& sheets);
     void trigger_spell_effect(uint8_t effect_type, int world_x, int world_y);
+    void set_walk_anim_timeout(uint32_t ms) { walk_anim_timeout_ms_ = ms; }
     bool get_entity_world_position(uint16_t entity_id, int& x, int& y) const;
     void tick_overlays(const AnimationSystem& anim);
     void render_overlays(const SDL2pp::Rect& cam);
@@ -192,6 +193,8 @@ private:
     EquipOverlay equip_overlays_[EQUIP_SLOT_COUNT];
     SDL2pp::Rect static_cache_[EQUIP_SLOT_COUNT];
     std::string default_body_path_;
+    uint32_t walk_anim_timeout_ms_ = 600;
+    std::unordered_map<uint8_t, std::pair<int, int>> spell_offsets_;
     int dir_src_y_down_ = 0;
     int dir_src_y_up_ = 48;
     int dir_src_y_left_ = 96;

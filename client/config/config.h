@@ -369,6 +369,27 @@ struct PropConfig {
     bool merchant_sell_enabled = false;  
 };
 
+struct DamageOverlayConfig {
+    int first_graphic = 400;
+    int last_graphic = 404;
+    uint32_t frame_ms = 70;
+    int display_w = 32;
+    int display_h = 32;
+};
+
+struct SpellSheetConfig {
+    std::string path;
+    int frame_w = 128;
+    int frame_h = 128;
+    int cols = 4;
+    int rows = 4;
+    int display_w = 77;
+    int display_h = 77;
+    uint32_t frame_ms = 70;
+    int offset_x = 0;
+    int offset_y = 0;
+};
+
 struct ClientConfig {
     NetworkConfig network;
     WindowConfig window;
@@ -402,6 +423,9 @@ struct ClientConfig {
     SfxConfig sfx;
     AudioConfig audio;
     GroundItemConfig ground_item;
+    DamageOverlayConfig damage_overlay;
+    std::vector<SpellSheetConfig> spell_sheets;
+    uint32_t walk_anim_timeout_ms = 600;
     std::unordered_map<std::string, PropConfig> interactable_props;
 
     const std::unordered_map<std::string, PropConfig>& get_interactable_props() const {

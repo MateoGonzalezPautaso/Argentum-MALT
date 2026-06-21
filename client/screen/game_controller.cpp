@@ -103,7 +103,8 @@ void GameController::apply_server_event(const ServerEvent& ev) {
 
 void GameController::load_game_assets() {
     world_renderer.load_assets(config.tilemap, config.sprites, config.skins, config.item_sprites,
-                               config.ground_item);
+                               config.ground_item, config.damage_overlay, config.spell_sheets,
+                               config.walk_anim_timeout_ms);
 }
 
 void GameController::apply_movement_visual(Direction dir, bool advance_frame) {

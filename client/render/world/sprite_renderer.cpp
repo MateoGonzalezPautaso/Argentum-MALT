@@ -474,7 +474,7 @@ void SpriteRenderer::set_entity_src_y(uint16_t entity_id, int body_src_y, int he
     }
     bool is_walking = false;
     uint32_t elapsed = SDL_GetTicks() - e.last_move_tick;
-    if (elapsed < 600)  // walking animation visible for 600ms after last move
+    if (elapsed < walk_anim_timeout_ms_)  // walking animation visible after last move
         is_walking = true;
 
     for (auto& sprite: e.parts) {
@@ -728,50 +728,47 @@ void SpriteRenderer::sort_and_render_drawables(std::vector<Drawable>& drawables)
     }
 }
 
-void SpriteRenderer::load_damage_overlay() {
+void SpriteRenderer::load_damage_overlay(const DamageOverlayConfig& cfg) {
     overlays.resize(3);
     for (auto& ov: overlays) {
-        ov.frames.reserve(5);
-        for (int i = 400; i <= 404; ++i) {
+        ov.frames.reserve(cfg.last_graphic - cfg.first_graphic + 1);
+        for (int i = cfg.first_graphic; i <= cfg.last_graphic; ++i) {
             std::string path = "assets/Graficos/" + std::to_string(i) + ".png";
             SDL2pp::Surface surface = texture::load_surface(path);
             ov.frames.emplace_back(renderer, surface);
         }
-        ov.frame_ms = 70;
-        ov.dst.SetW(32);
-        ov.dst.SetH(32);
+        ov.frame_ms = cfg.frame_ms;
+        ov.dst.SetW(cfg.display_w);
+        ov.dst.SetH(cfg.display_h);
     }
 }
 
-void SpriteRenderer::load_spell_sheets() {
-    auto load_sheet = [&](const std::string& path, int frame_w, int frame_h, int cols, int rows,
-                          int display_w, int display_h, uint32_t frame_ms,
-                          std::vector<OverlayEffect>& pool) {
-        SDL2pp::Surface sheet = texture::load_surface(path);
+void SpriteRenderer::load_spell_sheets(const std::vector<SpellSheetConfig>& sheets) {
+    for (uint8_t idx = 0; idx < static_cast<uint8_t>(sheets.size()); ++idx) {
+        const SpellSheetConfig& s = sheets[idx];
+        spell_offsets_[idx] = {s.offset_x, s.offset_y};
+        SDL2pp::Surface sheet = texture::load_surface(s.path);
+        std::vector<OverlayEffect>& pool = spell_overlay_pools[idx];
         pool.resize(3);
-        int total = cols * rows;
+        int total = s.cols * s.rows;
         for (auto& ov: pool) {
             ov.frames.reserve(total);
-            for (int r = 0; r < rows; ++r) {
-                for (int c = 0; c < cols; ++c) {
-                    SDL_Surface* sub = SDL_CreateRGBSurfaceWithFormat(0, frame_w, frame_h, 32,
-                                                                      SDL_PIXELFORMAT_ABGR8888);
-                    SDL_Rect src{c * frame_w, r * frame_h, frame_w, frame_h};
+            for (int r = 0; r < s.rows; ++r) {
+                for (int c = 0; c < s.cols; ++c) {
+                    SDL_Surface* sub = SDL_CreateRGBSurfaceWithFormat(
+                            0, s.frame_w, s.frame_h, 32, SDL_PIXELFORMAT_ABGR8888);
+                    SDL_Rect src{c * s.frame_w, r * s.frame_h, s.frame_w, s.frame_h};
                     SDL_SetSurfaceBlendMode(sheet.Get(), SDL_BLENDMODE_NONE);
                     SDL_BlitSurface(sheet.Get(), &src, sub, nullptr);
                     auto& tex = ov.frames.emplace_back(renderer, SDL2pp::Surface(sub));
                     tex.SetBlendMode(SDL_BLENDMODE_BLEND);
                 }
             }
-            ov.frame_ms = frame_ms;
-            ov.dst.SetW(display_w);
-            ov.dst.SetH(display_h);
+            ov.frame_ms = s.frame_ms;
+            ov.dst.SetW(s.display_w);
+            ov.dst.SetH(s.display_h);
         }
-    };
-    load_sheet("assets/Graficos/3470.png", 128, 135, 5, 1, 77, 81, 100, spell_overlay_pools[0]);
-    load_sheet("assets/Graficos/3449.png", 128, 128, 4, 4, 77, 77, 70, spell_overlay_pools[1]);
-    load_sheet("assets/Graficos/3460.png", 128, 128, 4, 4, 77, 77, 70, spell_overlay_pools[2]);
-    load_sheet("assets/Graficos/3451.png", 128, 128, 4, 4, 77, 77, 70, spell_overlay_pools[3]);
+    }
 }
 
 void SpriteRenderer::trigger_damage_overlay_at(int world_x, int world_y) {
@@ -795,9 +792,10 @@ void SpriteRenderer::trigger_spell_effect(uint8_t effect_type, int world_x, int 
         if (ov.active)
             continue;
         int ox = 0, oy = 0;
-        if (effect_type == 0) {
-            ox = -7;
-            oy = -15;
+        auto off_it = spell_offsets_.find(effect_type);
+        if (off_it != spell_offsets_.end()) {
+            ox = off_it->second.first;
+            oy = off_it->second.second;
         }
         ov.dst.SetX(world_x - ov.dst.GetW() / 2 + ox);
         ov.dst.SetY(world_y - ov.dst.GetH() / 2 + oy);

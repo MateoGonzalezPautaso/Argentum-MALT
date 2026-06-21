@@ -679,3 +679,60 @@ merchant_sell_enabled = false
 display_size    = 32    # pixels en pantalla del sprite en el suelo
 float_amplitude = 4     # desplazamiento maximo vertical en pixels (+/-)
 float_period_ms = 1200  # duracion de un ciclo completo en ms
+
+walk_anim_timeout_ms = 600
+
+[damage_overlay]
+first_graphic = 400
+last_graphic  = 404
+frame_ms      = 70
+display_w     = 32
+display_h     = 32
+
+[[spell_sheets]]
+path      = "assets/Graficos/3470.png"
+frame_w   = 128
+frame_h   = 135
+cols      = 5
+rows      = 1
+display_w = 77
+display_h = 81
+frame_ms  = 100
+offset_x  = -7
+offset_y  = -15
+
+[[spell_sheets]]
+path      = "assets/Graficos/3449.png"
+frame_w   = 128
+frame_h   = 128
+cols      = 4
+rows      = 4
+display_w = 77
+display_h = 77
+frame_ms  = 70
+offset_x  = 0
+offset_y  = 0
+
+[[spell_sheets]]
+path      = "assets/Graficos/3460.png"
+frame_w   = 128
+frame_h   = 128
+cols      = 4
+rows      = 4
+display_w = 77
+display_h = 77
+frame_ms  = 70
+offset_x  = 0
+offset_y  = 0
+
+[[spell_sheets]]
+path      = "assets/Graficos/3451.png"
+frame_w   = 128
+frame_h   = 128
+cols      = 4
+rows      = 4
+display_w = 77
+display_h = 77
+frame_ms  = 70
+offset_x  = 0
+offset_y  = 0

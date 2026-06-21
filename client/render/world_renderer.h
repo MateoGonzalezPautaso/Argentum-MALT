@@ -23,7 +23,10 @@ public:
     void load_assets(const TilemapConfig& tilemap, const std::vector<SpriteConfig>& sprites_config,
                      const SkinConfig& skin_config,
                      const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites,
-                     const GroundItemConfig& ground_item_cfg = {});
+                     const GroundItemConfig& ground_item_cfg = {},
+                     const DamageOverlayConfig& damage_overlay = {},
+                     const std::vector<SpellSheetConfig>& spell_sheets = {},
+                     uint32_t walk_anim_timeout_ms = 600);
     ~WorldRenderer();
 
     void render();

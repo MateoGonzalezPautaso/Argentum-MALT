@@ -1,8 +1,6 @@
 #include "world_renderer.h"
 
-#include <algorithm>
 #include <stdexcept>
-#include <utility>
 
 #include <SDL2/SDL.h>
 
@@ -47,14 +45,18 @@ void WorldRenderer::load_assets(const TilemapConfig& tilemap,
                                 const std::vector<SpriteConfig>& sprites_config,
                                 const SkinConfig& skin_config,
                                 const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites,
-                                const GroundItemConfig& ground_item_cfg) {
+                                const GroundItemConfig& ground_item_cfg,
+                                const DamageOverlayConfig& damage_overlay,
+                                const std::vector<SpellSheetConfig>& spell_sheets,
+                                uint32_t walk_anim_timeout_ms) {
     item_sprites_ = item_sprites;
     ground_item_renderer.apply_config(ground_item_cfg);
     load_tilemap_data(tilemap);
 
     sprite_renderer.load_sprites(sprites_config);
-    sprite_renderer.load_damage_overlay();
-    sprite_renderer.load_spell_sheets();
+    sprite_renderer.load_damage_overlay(damage_overlay);
+    sprite_renderer.load_spell_sheets(spell_sheets);
+    sprite_renderer.set_walk_anim_timeout(walk_anim_timeout_ms);
     sprite_renderer.set_skin_config(skin_config);
 
     if (sprite_renderer.empty()) {

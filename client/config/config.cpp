@@ -535,6 +535,44 @@ void parse_sfx_config(const toml::table& root, ClientConfig& config) {
     }
 }
 
+void parse_damage_overlay_config(const toml::table& root, ClientConfig& config) {
+    if (auto tbl = root["damage_overlay"].as_table()) {
+        config.damage_overlay.first_graphic =
+                toml_get_int(*tbl, "first_graphic", config.damage_overlay.first_graphic);
+        config.damage_overlay.last_graphic =
+                toml_get_int(*tbl, "last_graphic", config.damage_overlay.last_graphic);
+        config.damage_overlay.frame_ms =
+                toml_get_uint32(*tbl, "frame_ms", config.damage_overlay.frame_ms);
+        config.damage_overlay.display_w =
+                toml_get_int(*tbl, "display_w", config.damage_overlay.display_w);
+        config.damage_overlay.display_h =
+                toml_get_int(*tbl, "display_h", config.damage_overlay.display_h);
+    }
+    config.walk_anim_timeout_ms =
+            toml_get_uint32(root, "walk_anim_timeout_ms", config.walk_anim_timeout_ms);
+}
+
+void parse_spell_sheets_config(const toml::table& root, ClientConfig& config) {
+    if (auto arr = root["spell_sheets"].as_array()) {
+        for (const auto& entry : *arr) {
+            if (auto tbl = entry.as_table()) {
+                SpellSheetConfig s;
+                s.path = toml_get_string(*tbl, "path", s.path);
+                s.frame_w = toml_get_int(*tbl, "frame_w", s.frame_w);
+                s.frame_h = toml_get_int(*tbl, "frame_h", s.frame_h);
+                s.cols    = toml_get_int(*tbl, "cols",    s.cols);
+                s.rows    = toml_get_int(*tbl, "rows",    s.rows);
+                s.display_w = toml_get_int(*tbl, "display_w", s.display_w);
+                s.display_h = toml_get_int(*tbl, "display_h", s.display_h);
+                s.frame_ms  = toml_get_uint32(*tbl, "frame_ms", s.frame_ms);
+                s.offset_x  = toml_get_int(*tbl, "offset_x", s.offset_x);
+                s.offset_y  = toml_get_int(*tbl, "offset_y", s.offset_y);
+                config.spell_sheets.push_back(std::move(s));
+            }
+        }
+    }
+}
+
 void parse_interactable_props_config(const toml::table& root, ClientConfig& config) {
     if (auto props_tbl = root["interactable_props"].as_table()) {
         for (const auto& [key, value]: *props_tbl) {
@@ -571,6 +609,8 @@ ClientConfig load_client_config(const std::string& path) {
     parse_sfx_config(root, config);
     parse_ground_item_config(root, config);
     parse_interactable_props_config(root, config);
+    parse_damage_overlay_config(root, config);
+    parse_spell_sheets_config(root, config);
 
     config.tilemap_configs = load_all_map_configs("config/map_list.toml");
 
