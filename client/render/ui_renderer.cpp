@@ -25,11 +25,19 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
                 SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_default)),
                 SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_hover))),
         audio_off_texture(renderer, texture::load_surface(ui_cfg.asset_audio_off)),
+        expand_button(
+                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_expand_default)),
+                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_expand_hover))),
+        expand_active_texture(renderer, texture::load_surface(ui_cfg.asset_expand_off)),
+        big_chat_texture_(renderer, texture::load_surface(ui_cfg.asset_big_chat)),
         ui_frame_rect(0, 0, ui_cfg.window_w, ui_cfg.window_h),
         chat_input_rect(ui_cfg.chat_input_x, ui_cfg.chat_input_y, ui_cfg.chat_input_w,
                         ui_cfg.chat_input_h),
         chat_history_rect(ui_cfg.chat_history_x, ui_cfg.chat_history_y, ui_cfg.chat_history_w,
                           ui_cfg.chat_history_h),
+        expanded_chat_history_rect(ui_cfg.chat_history_x, ui_cfg.chat_history_y,
+                                   ui_cfg.chat_history_w,
+                                   ui_cfg.chat_history_h + ui_cfg.chat_expand_amount),
         ui_cfg(ui_cfg),
         inventory_renderer(renderer, bar_font, ui_cfg.inventory_panel, item_sprites) {
     chat_font = TTF_OpenFont(ui_cfg.font_path.c_str(), ui_cfg.font_chat_size);
@@ -43,6 +51,9 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
     inventory_renderer.set_font(bar_font);
     audio_button.set_position(ui_cfg.game_audio_x, ui_cfg.game_audio_y,
                               ui_cfg.game_audio_w, ui_cfg.game_audio_h);
+    const int expand_x = ui_cfg.chat_input_x + ui_cfg.chat_input_w + ui_cfg.chat_expand_btn_gap;
+    expand_button.set_position(expand_x, ui_cfg.chat_input_y,
+                               ui_cfg.chat_expand_btn_w, ui_cfg.chat_expand_btn_h);
 }
 
 UIRenderer::~UIRenderer() {
@@ -99,6 +110,37 @@ void UIRenderer::render_chat_input() {
 
 bool UIRenderer::is_chat_input_hit(int x, int y) const {
     return point_in_rect(x, y, chat_input_rect);
+}
+
+void UIRenderer::render_expand_button() {
+    if (chat_expanded_) {
+        renderer.Copy(expand_active_texture, SDL2pp::NullOpt, expand_button.rect);
+        if (expand_button.hovered) {
+            renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
+            renderer.SetDrawColor(255, 255, 255, 50);
+            renderer.FillRect(expand_button.rect);
+        }
+    } else {
+        expand_button.render(renderer);
+    }
+}
+
+bool UIRenderer::is_expand_hit(int x, int y) const {
+    return expand_button.is_hit(x, y);
+}
+
+void UIRenderer::set_expand_button_hovered(int x, int y) {
+    expand_button.hovered = expand_button.is_hit(x, y);
+}
+
+void UIRenderer::set_chat_expanded(bool expanded) {
+    chat_expanded_ = expanded;
+    const int y_offset = expanded ? ui_cfg.chat_expand_amount : 0;
+    chat_input_rect = SDL2pp::Rect(ui_cfg.chat_input_x, ui_cfg.chat_input_y + y_offset,
+                                   ui_cfg.chat_input_w, ui_cfg.chat_input_h);
+    const int expand_btn_x = ui_cfg.chat_input_x + ui_cfg.chat_input_w + ui_cfg.chat_expand_btn_gap;
+    expand_button.rect = SDL2pp::Rect(expand_btn_x, ui_cfg.chat_input_y + y_offset,
+                                      ui_cfg.chat_expand_btn_w, ui_cfg.chat_expand_btn_h);
 }
 
 void UIRenderer::render_hp_bar(uint32_t current, uint32_t max) {
@@ -399,11 +441,19 @@ void UIRenderer::render_equipped(const InventorySlot equipped[4]) {
 }
 
 void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages, int scroll_offset) {
+    const SDL2pp::Rect& hist_rect = chat_expanded_ ? expanded_chat_history_rect : chat_history_rect;
+
+    if (chat_expanded_) {
+        renderer.Copy(big_chat_texture_, SDL2pp::NullOpt,
+                      SDL2pp::Rect(ui_cfg.chat_expand_x, chat_history_rect.GetY(),
+                                   big_chat_texture_.GetWidth(), big_chat_texture_.GetHeight()));
+    }
+
     if (!chat_font || messages.empty()) {
         return;
     }
 
-    int y_offset = chat_history_rect.GetY() + chat_history_rect.GetH();
+    int y_offset = hist_rect.GetY() + hist_rect.GetH();
     int line_spacing = ui_cfg.chat_line_spacing;
 
     int skipped = 0;
@@ -439,13 +489,13 @@ void UIRenderer::render_chat_history(const std::vector<ChatMessage>& messages, i
         }
 
         y_offset -= (result.h + line_spacing);
-        if (y_offset < chat_history_rect.GetY()) {
+        if (y_offset < hist_rect.GetY()) {
             break;
         }
 
-        int clipped_w = std::min(result.w, chat_history_rect.GetW());
+        int clipped_w = std::min(result.w, hist_rect.GetW());
         SDL2pp::Rect src_rect(0, 0, clipped_w, result.h);
-        SDL2pp::Rect dst_rect(chat_history_rect.GetX(), y_offset, clipped_w, result.h);
+        SDL2pp::Rect dst_rect(hist_rect.GetX(), y_offset, clipped_w, result.h);
         renderer.Copy(result.texture, src_rect, dst_rect);
     }
 }

@@ -197,6 +197,16 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
                 toml_get_int(*tbl, "cursor_height_shrink", config.ui.cursor_height_shrink);
         config.ui.chat_line_spacing =
                 toml_get_int(*tbl, "chat_line_spacing", config.ui.chat_line_spacing);
+        config.ui.chat_expand_x =
+                toml_get_int(*tbl, "chat_expand_x", config.ui.chat_expand_x);
+        config.ui.chat_expand_btn_gap =
+                toml_get_int(*tbl, "chat_expand_btn_gap", config.ui.chat_expand_btn_gap);
+        config.ui.chat_expand_btn_w =
+                toml_get_int(*tbl, "chat_expand_btn_w", config.ui.chat_expand_btn_w);
+        config.ui.chat_expand_btn_h =
+                toml_get_int(*tbl, "chat_expand_btn_h", config.ui.chat_expand_btn_h);
+        config.ui.chat_expand_amount =
+                toml_get_int(*tbl, "chat_expand_amount", config.ui.chat_expand_amount);
 
         if (auto inv = (*tbl)["inventory_panel"].as_table()) {
             config.ui.inventory_panel.x = toml_get_int(*inv, "x", config.ui.inventory_panel.x);
@@ -333,6 +343,14 @@ void parse_assets_config(const toml::table& root, ClientConfig& config) {
                 toml_get_string(*tbl, "sell_hover", config.ui.asset_sell_hover);
         config.ui.asset_sell_disabled =
                 toml_get_string(*tbl, "sell_disabled", config.ui.asset_sell_disabled);
+        config.ui.asset_expand_default =
+                toml_get_string(*tbl, "expand_default", config.ui.asset_expand_default);
+        config.ui.asset_expand_hover =
+                toml_get_string(*tbl, "expand_hover", config.ui.asset_expand_hover);
+        config.ui.asset_expand_off =
+                toml_get_string(*tbl, "expand_off", config.ui.asset_expand_off);
+        config.ui.asset_big_chat =
+                toml_get_string(*tbl, "big_chat", config.ui.asset_big_chat);
     }
 }
 

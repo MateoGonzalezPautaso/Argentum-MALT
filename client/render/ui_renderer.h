@@ -29,9 +29,14 @@ private:
     Button audio_button;
     SDL2pp::Texture audio_off_texture;
     bool audio_muted_ = false;
+    Button expand_button;
+    SDL2pp::Texture expand_active_texture;
+    SDL2pp::Texture big_chat_texture_;
+    bool chat_expanded_ = false;
     SDL2pp::Rect ui_frame_rect;
     SDL2pp::Rect chat_input_rect;
     SDL2pp::Rect chat_history_rect;
+    SDL2pp::Rect expanded_chat_history_rect;
     TTF_Font* chat_font = nullptr;
     TTF_Font* bar_font = nullptr;
     SDL_Color chat_color{255, 255, 255, 255};
@@ -55,6 +60,11 @@ public:
     void set_audio_button_hovered(int x, int y);
     void set_audio_muted(bool muted) { audio_muted_ = muted; }
     void render_chat_input();
+    void render_expand_button();
+    bool is_expand_hit(int x, int y) const;
+    void set_expand_button_hovered(int x, int y);
+    void set_chat_expanded(bool expanded);
+    bool is_chat_expanded() const { return chat_expanded_; }
     void render_chat_history(const std::vector<ChatMessage>& messages, int scroll_offset = 0);
     void render_hp_bar(uint32_t current, uint32_t max);
     void render_mp_bar(uint32_t current, uint32_t max);
