@@ -133,6 +133,7 @@ private:
                              const std::map<std::string, std::vector<ItemDroppedEvent>>& drops);
     Map& player_map(const Player& p);
     const Map& player_map(const Player& p) const;
+    bool target_in_safe_zone(uint16_t target_id) const;
     bool try_map_transition(Player& player, CommandResult& result);
     void do_transition(Player& player, CommandResult& result, const PropGrid::Entry& entry,
                        const std::string& old_map_name);

@@ -209,7 +209,7 @@ A la derecha del chat, se muestra el nivel actual del personaje. El nivel se inc
 
 En el juego existen ciertas reglas de Fair Play que los jugadores deben seguir para garantizar una experiencia de juego justa y agradable para todos. Estas reglas incluyen:
 - No se puede hacer PVP (Player vs Player) en zonas seguras.
-- No se puede atacar a jugadores que están en un nivel de experiencia significativamente menor al tuyo. (Diferencia de 10 niveles o más)
+- No se puede atacar a jugadores que están en un nivel de experiencia significativamente menor al tuyo. (Diferencia de niveles superior a 10; una diferencia de exactamente 10 está permitida)
 - No se puede atacar a jugadores "newbies" (nivel 1-12) ni ellos pueden atacarte.
 
 ### 6.5 Penalización por muerte
