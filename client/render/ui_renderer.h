@@ -55,7 +55,7 @@ public:
                const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites);
     ~UIRenderer();
 
-    void render_frame_background();
+    void render_ui_frame();
     void render_audio_button();
     bool is_audio_hit(int x, int y) const;
     void set_audio_button_hovered(int x, int y);

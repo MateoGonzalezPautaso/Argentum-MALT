@@ -13,7 +13,7 @@ public:
 
     void reconfigure(int map_px_w, int map_px_h, bool has_tilemap);
 
-    SDL2pp::Rect compute_rect(int movable_x, int movable_y, int movable_w, int movable_h) const;
+    SDL2pp::Rect compute_view_rect(int movable_x, int movable_y, int movable_w, int movable_h) const;
     int offset_x() const { return cached_ox; }
     int offset_y() const { return cached_oy; }
     bool screen_to_world(int screen_x, int screen_y, int& world_x, int& world_y) const;

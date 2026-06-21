@@ -27,8 +27,8 @@ private:
 
     const ItemSpriteDef* find_sprite(ItemType type) const;
 
-    void render_item_sprite(ItemType type, const std::string& name, const SDL2pp::Rect& dst);
-    void render_item_tooltip(int sx, int sy, const InventorySlot& slot);
+    void draw_item_sprite(ItemType type, const std::string& name, const SDL2pp::Rect& dst);
+    void draw_item_tooltip(int sx, int sy, const InventorySlot& slot);
     void draw_hover_border(int sx, int sy);
 
 public:

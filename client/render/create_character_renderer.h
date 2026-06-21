@@ -26,8 +26,8 @@ public:
     bool is_password_hit(int x, int y) const;
     bool is_create_button_hit(int x, int y) const;
     bool is_back_button_hit(int x, int y) const;
-    int race_hit(int x, int y) const;
-    int class_hit(int x, int y) const;
+    int race_at(int x, int y) const;
+    int class_at(int x, int y) const;
 
     void set_create_button_hovered(int x, int y);
     void set_back_button_hovered(int x, int y);

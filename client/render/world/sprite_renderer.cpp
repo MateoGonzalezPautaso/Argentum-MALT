@@ -8,9 +8,9 @@
 
 namespace {
 constexpr SDL_Color kNameColorDefault = {255, 255, 255, 255};
-constexpr SDL_Color kNameColorEnemy   = {255,  80,  80, 255};
-constexpr SDL_Color kNameColorAlly    = { 80, 255,  80, 255};
-}
+constexpr SDL_Color kNameColorEnemy = {255, 80, 80, 255};
+constexpr SDL_Color kNameColorAlly = {80, 255, 80, 255};
+}  // namespace
 
 #include "../../../common/messages.h"
 #include "../geometry.h"
@@ -90,7 +90,7 @@ int SpriteRenderer::clamp_y(int value, int sprite_h) const {
     return std::clamp(value, 0, max_y);
 }
 
-void SpriteRenderer::set_movable_position(int x, int y) {
+void SpriteRenderer::move_movable(int x, int y) {
     SpriteRender* sprite = find_movable_sprite();
     if (!sprite) {
         return;
@@ -116,11 +116,13 @@ SpriteConfig SpriteRenderer::resolve_entity_skin(const SpriteConfig& config, Rac
                 selected.y = 0;
                 selected.width = fw;
                 selected.height = fh;
-                selected.src_x = skin_config.npc_src_x(sprite_id);
                 selected.src_y = skin_config.npc_src_y(sprite_id);
                 selected.src_width = fw;
                 selected.src_height = fh;
                 selected.visible = true;
+
+                const auto& fp = skin_config.npc_frame_positions(sprite_id);
+                selected.src_x = fp.empty() ? skin_config.npc_src_x(sprite_id) : fp[0];
             }
         }
     } else if (config.movable && !config.anchor_to_movable) {
@@ -157,7 +159,7 @@ std::vector<SpriteRenderer::SpriteRender> SpriteRenderer::build_entity_parts(
     return parts;
 }
 
-void SpriteRenderer::position_anchored_parts(std::vector<SpriteRender>& parts) {
+void SpriteRenderer::reposition_anchored_parts(std::vector<SpriteRender>& parts) {
     auto body_it = std::find_if(parts.begin(), parts.end(),
                                 [](const SpriteRender& p) { return p.movable; });
     if (body_it == parts.end()) {
@@ -191,8 +193,8 @@ void SpriteRenderer::create_entity_name_label(uint16_t entity_id, const std::str
             EntityNameRender{SDL2pp::Texture(renderer, wrapped), text_w, text_h});
 }
 
-void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::string& name,
-                                  Race race, PlayerClass player_class, uint16_t sprite_id) {
+void SpriteRenderer::add_entity(uint16_t entity_id, int x, int y, const std::string& name,
+                                Race race, PlayerClass player_class, uint16_t sprite_id) {
     if (entity_part_configs.empty()) {
         return;
     }
@@ -202,15 +204,17 @@ void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::s
         ent.sprite_id = sprite_id;
         ent.frame_w = skin_config.npc_frame_w(sprite_id);
         ent.frame_h = skin_config.npc_frame_h(sprite_id);
-        ent.base_src_x = skin_config.npc_src_x(sprite_id);
         ent.base_src_y = skin_config.npc_src_y(sprite_id);
         ent.speed = skin_config.speed(sprite_id);
+
+        const auto& fp = skin_config.npc_frame_positions(sprite_id);
+        ent.base_src_x = fp.empty() ? skin_config.npc_src_x(sprite_id) : fp[0];
     }
     auto parts = build_entity_parts(x, y, race, player_class, sprite_id);
     if (parts.empty()) {
         return;
     }
-    position_anchored_parts(parts);
+    reposition_anchored_parts(parts);
     ent.parts = std::move(parts);
 
     auto body_it = std::find_if(
@@ -226,7 +230,7 @@ void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::s
     create_entity_name_label(entity_id, name);
 }
 
-void SpriteRenderer::note_entity_moved(uint16_t entity_id) {
+void SpriteRenderer::mark_entity_moved(uint16_t entity_id) {
     entities_[entity_id].last_move_tick = SDL_GetTicks();
 }
 
@@ -245,11 +249,11 @@ void SpriteRenderer::set_entity_clan_by_username(const std::string& username,
     }
 }
 
-void SpriteRenderer::despawn_entity(uint16_t entity_id) {
+void SpriteRenderer::remove_entity(uint16_t entity_id) {
     entities_.erase(entity_id);
 }
 
-void SpriteRenderer::clear_all_entities() {
+void SpriteRenderer::clear_entities() {
     entities_.clear();
 }
 
@@ -314,7 +318,7 @@ void SpriteRenderer::clear_entity_equipment_overlay(uint16_t entity_id, uint8_t 
     overlay.active = false;
 }
 
-void SpriteRenderer::set_local_player_info(Race race, PlayerClass player_class) {
+void SpriteRenderer::rebuild_local_player_sprites(Race race, PlayerClass player_class) {
     if (entity_part_configs.empty()) {
         return;
     }
@@ -447,7 +451,7 @@ void SpriteRenderer::advance_src_x(SpriteRender& sprite, int step, int frame_cou
     sprite.src.SetX(next_index * step);
 }
 
-void SpriteRenderer::step_movable_src_x(int step, int frame_count) {
+void SpriteRenderer::advance_movable_src_x(int step, int frame_count) {
     SpriteRender* sprite = find_movable_sprite();
     if (!sprite) {
         return;
@@ -508,7 +512,7 @@ void SpriteRenderer::set_entity_src_y(uint16_t entity_id, int body_src_y, int he
     }
 }
 
-void SpriteRenderer::step_entity_src_x(uint16_t entity_id, int step, int frame_count) {
+void SpriteRenderer::advance_entity_src_x(uint16_t entity_id, int step, int frame_count) {
     auto it = entities_.find(entity_id);
     if (it == entities_.end()) {
         return;
@@ -576,7 +580,7 @@ void SpriteRenderer::set_movable_alpha(uint8_t alpha) {
     }
 }
 
-void SpriteRenderer::update_anchor_positions() {
+void SpriteRenderer::reposition_anchored_sprites() {
     SpriteRender* movable = find_movable_sprite();
     if (!movable) {
         return;
@@ -618,17 +622,17 @@ void SpriteRenderer::append_equip_overlay_drawables(const SpriteRender& body,
             continue;
 
         SDL2pp::Rect dst(body.dst.GetX() - cam.GetX(),
-                         body.dst.GetY() - cam.GetY() + overlay.offset_y,
-                         body.dst.GetW(), body.dst.GetH());
+                         body.dst.GetY() - cam.GetY() + overlay.offset_y, body.dst.GetW(),
+                         body.dst.GetH());
         int overlay_foot_y = behind ? (body_foot_y - 1 - i) : (body_foot_y + 1 + i);
         if (overlay.static_frame) {
             static_cache[i] = body.src;
             static_cache[i].SetX(0);
-            out.push_back(Drawable{&overlay.frames[0], static_cache[i], dst, true,
-                                   overlay_foot_y, body.alpha});
+            out.push_back(Drawable{&overlay.frames[0], static_cache[i], dst, true, overlay_foot_y,
+                                   body.alpha});
         } else {
-            out.push_back(Drawable{&overlay.frames[0], body.src, dst, true,
-                                   overlay_foot_y, body.alpha});
+            out.push_back(
+                    Drawable{&overlay.frames[0], body.src, dst, true, overlay_foot_y, body.alpha});
         }
     }
 }
@@ -638,7 +642,7 @@ void SpriteRenderer::render(const SDL2pp::Rect& cam) {
 
     append_sprite_drawables(sprites, cam, drawables);
 
-    SpriteRender* movable = find_movable_sprite();
+    const SpriteRender* movable = find_movable_sprite();
     if (movable && movable->use_src && is_visible(*movable, cam)) {
         append_equip_overlay_drawables(*movable, equip_overlays_, static_cache_, cam, drawables);
     }
@@ -652,12 +656,12 @@ void SpriteRenderer::render(const SDL2pp::Rect& cam) {
                                     [](const SpriteRender& p) { return p.movable; });
         if (body_it == e.parts.end() || (!body_it->use_src && !is_npc))
             continue;
-        SpriteRender& movable_entity = *body_it;
+        const SpriteRender& movable_entity = *body_it;
         if (!is_visible(movable_entity, cam))
             continue;
 
-        append_equip_overlay_drawables(movable_entity, e.equip.overlays, e.equip.static_cache,
-                                       cam, drawables);
+        append_equip_overlay_drawables(movable_entity, e.equip.overlays, e.equip.static_cache, cam,
+                                       drawables);
     }
 
     sort_and_render_drawables(drawables);
@@ -691,15 +695,14 @@ void SpriteRenderer::render_entity_names(const SDL2pp::Rect& cam) {
             continue;
         }
         auto& body = e.parts[0];
-        const int name_x =
-                body.dst.GetX() + (body.dst.GetW() - e.name_label->w) / 2 - cam.GetX();
+        const int name_x = body.dst.GetX() + (body.dst.GetW() - e.name_label->w) / 2 - cam.GetX();
         const int name_y = body.dst.GetY() - e.name_label->h - 24 - cam.GetY();
 
         SDL_Color color = kNameColorDefault;
         if (e.sprite_id > 0) {
             color = kNameColorEnemy;
-        } else if (!local_clan_name.empty() && !e.clan_name.empty()
-                   && e.clan_name == local_clan_name) {
+        } else if (!local_clan_name.empty() && !e.clan_name.empty() &&
+                   e.clan_name == local_clan_name) {
             color = kNameColorAlly;
         }
 
@@ -761,8 +764,8 @@ void SpriteRenderer::load_spell_sheets(const std::vector<SpellSheetConfig>& shee
             ov.frames.reserve(total);
             for (int r = 0; r < s.rows; ++r) {
                 for (int c = 0; c < s.cols; ++c) {
-                    SDL_Surface* sub = SDL_CreateRGBSurfaceWithFormat(
-                            0, s.frame_w, s.frame_h, 32, SDL_PIXELFORMAT_ABGR8888);
+                    SDL_Surface* sub = SDL_CreateRGBSurfaceWithFormat(0, s.frame_w, s.frame_h, 32,
+                                                                      SDL_PIXELFORMAT_ABGR8888);
                     SDL_Rect src{c * s.frame_w, r * s.frame_h, s.frame_w, s.frame_h};
                     SDL_SetSurfaceBlendMode(sheet.Get(), SDL_BLENDMODE_NONE);
                     SDL_BlitSurface(sheet.Get(), &src, sub, nullptr);
@@ -777,7 +780,7 @@ void SpriteRenderer::load_spell_sheets(const std::vector<SpellSheetConfig>& shee
     }
 }
 
-void SpriteRenderer::trigger_damage_overlay_at(int world_x, int world_y) {
+void SpriteRenderer::trigger_damage_effect(int world_x, int world_y) {
     for (auto& ov: overlays) {
         if (ov.active)
             continue;
@@ -825,8 +828,7 @@ bool SpriteRenderer::get_entity_world_position(uint16_t entity_id, int& x, int& 
     return true;
 }
 
-void SpriteRenderer::tick_overlays(const AnimationSystem& anim) {
-    (void)anim;
+void SpriteRenderer::advance_overlays() {
     uint32_t now = SDL_GetTicks();
     auto tick_pool = [&](std::vector<OverlayEffect>& pool) {
         for (auto& ov: pool) {

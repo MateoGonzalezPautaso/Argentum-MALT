@@ -58,7 +58,7 @@ void GameController::tick() {
 void GameController::render() {
     renderer.SetDrawColor(0, 0, 0, 255);
     renderer.Clear();
-    ui_renderer.render_frame_background();
+    ui_renderer.render_ui_frame();
     world_renderer.render();
     ui_renderer.render_portrait(player_stats.race, player_stats.player_class, player_stats.level);
     ui_renderer.render_gold(player_stats.gold);
@@ -111,7 +111,7 @@ void GameController::apply_movement_visual(Direction dir, bool advance_frame) {
     world_renderer.sprites().set_movable_src_y(move_config.body_src_y_for(dir));
     world_renderer.sprites().set_anchor_src_y(move_config.head_src_y_for(dir));
     if (advance_frame) {
-        world_renderer.sprites().step_movable_src_x(move_config.walk_src_step,
+        world_renderer.sprites().advance_movable_src_x(move_config.walk_src_step,
                                                     move_config.walk_src_frames_for(dir));
     }
 }

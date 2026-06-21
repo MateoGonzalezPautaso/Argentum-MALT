@@ -106,15 +106,15 @@ void ServerEventHandler::apply(const ServerEvent& ev) {
 void ServerEventHandler::handle_entity_move(const EntityMoveEvent& e) {
     if (e.entity_id == player_stats_.player_id) {
         move_controller_.set_position(e.entity_pos.x, e.entity_pos.y);
-        world_renderer_.sprites().set_movable_position(e.entity_pos.x, e.entity_pos.y);
+        world_renderer_.sprites().move_movable(e.entity_pos.x, e.entity_pos.y);
         return;
     }
     world_renderer_.sprites().move_entity(e.entity_id, e.entity_pos.x, e.entity_pos.y);
-    world_renderer_.sprites().note_entity_moved(e.entity_id);
+    world_renderer_.sprites().mark_entity_moved(e.entity_id);
     world_renderer_.sprites().set_entity_src_y(e.entity_id,
                                                move_config_.body_src_y_for(e.entity_dir),
                                                move_config_.head_src_y_for(e.entity_dir));
-    world_renderer_.sprites().step_entity_src_x(e.entity_id, move_config_.walk_src_step,
+    world_renderer_.sprites().advance_entity_src_x(e.entity_id, move_config_.walk_src_step,
                                                 move_config_.walk_src_frames_for(e.entity_dir));
 }
 
@@ -163,12 +163,12 @@ void ServerEventHandler::apply_equipment_overlays(uint16_t entity_id, bool is_lo
 void ServerEventHandler::handle_entity_spawn(const EntitySpawnEvent& e) {
     if (e.entity_id == player_stats_.player_id) {
         move_controller_.set_position(e.entity_pos.x, e.entity_pos.y);
-        world_renderer_.sprites().set_movable_position(e.entity_pos.x, e.entity_pos.y);
+        world_renderer_.sprites().move_movable(e.entity_pos.x, e.entity_pos.y);
         return;
     }
-    world_renderer_.sprites().spawn_entity(e.entity_id, e.entity_pos.x, e.entity_pos.y,
-                                           e.entity_name, e.entity_race, e.entity_class,
-                                           e.sprite_id);
+    world_renderer_.sprites().add_entity(e.entity_id, e.entity_pos.x, e.entity_pos.y,
+                                          e.entity_name, e.entity_race, e.entity_class,
+                                          e.sprite_id);
     if (e.entity_type != EntityType::NPC && !e.clan_name.empty())
         world_renderer_.sprites().set_entity_clan_name(e.entity_id, e.clan_name);
     world_renderer_.sprites().set_entity_src_y(e.entity_id,
@@ -198,14 +198,14 @@ void ServerEventHandler::handle_login_ok(const LoginOkEvent& e) {
     player_stats_.pos = e.pos;
     player_is_ghost_ = (e.hp_current == 0);
     move_controller_.set_position(e.pos.x, e.pos.y);
-    world_renderer_.sprites().set_movable_position(e.pos.x, e.pos.y);
-    world_renderer_.sprites().set_local_player_info(e.race, e.player_class);
+    world_renderer_.sprites().move_movable(e.pos.x, e.pos.y);
+    world_renderer_.sprites().rebuild_local_player_sprites(e.race, e.player_class);
     if (player_is_ghost_)
         world_renderer_.sprites().set_movable_alpha(128);
 }
 
 void ServerEventHandler::handle_entity_despawn(const EntityDespawnEvent& e) {
-    world_renderer_.sprites().despawn_entity(e.entity_id);
+    world_renderer_.sprites().remove_entity(e.entity_id);
 }
 
 void ServerEventHandler::handle_damage_received(const DamageReceivedEvent& e) {
@@ -221,7 +221,7 @@ void ServerEventHandler::handle_damage_received(const DamageReceivedEvent& e) {
     } else if (!world_renderer_.sprites().get_entity_world_position(e.target_id, wx, wy)) {
         return;
     }
-    world_renderer_.sprites().trigger_damage_overlay_at(wx, wy);
+    world_renderer_.sprites().trigger_damage_effect(wx, wy);
 }
 
 void ServerEventHandler::handle_attack_dodged(const AttackDodgedEvent& e) {
@@ -303,7 +303,7 @@ void ServerEventHandler::handle_equip_update(const EquipUpdateEvent& e) {
 
 void ServerEventHandler::handle_entity_died(const EntityDiedEvent& e) {
     if (e.entity_id != player_stats_.player_id) {
-        world_renderer_.sprites().despawn_entity(e.entity_id);
+        world_renderer_.sprites().remove_entity(e.entity_id);
         return;
     }
     audio_manager_.play_sfx("death");
@@ -336,10 +336,10 @@ void ServerEventHandler::handle_map_transition(const MapTransitionEvent& e) {
         return;
 
     current_map_name_ = e.map_name;
-    world_renderer_.sprites().clear_all_entities();
+    world_renderer_.sprites().clear_entities();
     world_renderer_.ground_items().clear();
     world_renderer_.load_map(it->second);
-    world_renderer_.sprites().set_movable_position(e.pos_x, e.pos_y);
+    world_renderer_.sprites().move_movable(e.pos_x, e.pos_y);
     move_controller_.set_position(e.pos_x, e.pos_y);
     player_stats_.pos = {e.pos_x, e.pos_y};
 }

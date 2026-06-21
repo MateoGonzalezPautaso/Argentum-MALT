@@ -71,7 +71,7 @@ UIRenderer::~UIRenderer() {
     }
 }
 
-void UIRenderer::render_frame_background() {
+void UIRenderer::render_ui_frame() {
     renderer.Copy(ui_frame_texture, SDL2pp::NullOpt, ui_frame_rect);
 }
 
