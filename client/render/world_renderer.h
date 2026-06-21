@@ -45,7 +45,7 @@ public:
 
 private:
     void load_tilemap_data(const TilemapConfig& tilemap);
-    void render_background_fallback(const SDL2pp::Rect& cam);
+    void render_background_fallback();
 
     SDL2pp::Renderer& renderer;
     SDL2pp::Texture background_texture;

@@ -6,6 +6,12 @@
 
 #include <SDL2/SDL.h>
 
+namespace {
+constexpr SDL_Color kNameColorDefault = {255, 255, 255, 255};
+constexpr SDL_Color kNameColorEnemy   = {255,  80,  80, 255};
+constexpr SDL_Color kNameColorAlly    = { 80, 255,  80, 255};
+}
+
 #include "../../../common/messages.h"
 #include "../geometry.h"
 #include "../texture_loader.h"
@@ -689,12 +695,12 @@ void SpriteRenderer::render_entity_names(const SDL2pp::Rect& cam) {
                 body.dst.GetX() + (body.dst.GetW() - e.name_label->w) / 2 - cam.GetX();
         const int name_y = body.dst.GetY() - e.name_label->h - 24 - cam.GetY();
 
-        SDL_Color color = {255, 255, 255, 255};
+        SDL_Color color = kNameColorDefault;
         if (e.sprite_id > 0) {
-            color = {255, 80, 80, 255};
-        } else if (!local_clan_name.empty()) {
-            if (!e.clan_name.empty() && e.clan_name == local_clan_name)
-                color = {80, 255, 80, 255};
+            color = kNameColorEnemy;
+        } else if (!local_clan_name.empty() && !e.clan_name.empty()
+                   && e.clan_name == local_clan_name) {
+            color = kNameColorAlly;
         }
 
         SDL_Texture* tex = e.name_label->texture.Get();

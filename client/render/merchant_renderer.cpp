@@ -1,5 +1,6 @@
 #include "merchant_renderer.h"
 
+#include <stdexcept>
 #include <string>
 
 #include "text_renderer.h"
@@ -23,6 +24,10 @@ MerchantRenderer::MerchantRenderer(SDL2pp::Renderer& renderer, const UIConfig& c
         price_x_(cfg.merchant.panel_x + cfg.merchant.price_offset_x),
         sell_price_x_(cfg.merchant.panel_x + cfg.merchant.sell_price_offset_x),
         sell_price_ratio_(cfg.merchant.sell_price_ratio) {
+    if (!font) {
+        throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
+    }
+
     const auto& m = cfg.merchant;
     buy_button.set_position(m.panel_x + m.buy.x,   m.panel_y + m.buy.y,  m.buy.w,  m.buy.h);
     sell_button.set_position(m.panel_x + m.sell.x, m.panel_y + m.sell.y, m.sell.w, m.sell.h);

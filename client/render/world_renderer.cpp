@@ -74,8 +74,7 @@ WorldRenderer::~WorldRenderer() {
     }
 }
 
-void WorldRenderer::render_background_fallback(const SDL2pp::Rect& cam) {
-    (void)cam;
+void WorldRenderer::render_background_fallback() {
     const SDL2pp::Rect gameplay_bg(0, 0, camera.viewport().GetW(), camera.viewport().GetH());
     renderer.Copy(background_texture, SDL2pp::NullOpt, gameplay_bg);
 }
@@ -104,7 +103,7 @@ void WorldRenderer::render() {
     if (tilemap_renderer.is_loaded()) {
         tilemap_renderer.render(cam);
     } else {
-        render_background_fallback(cam);
+        render_background_fallback();
     }
 
     const int foot_y = sprite_renderer.movable_foot_y();

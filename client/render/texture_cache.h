@@ -1,5 +1,5 @@
-#ifndef CLIENT_TEXTURE_CACHE_H
-#define CLIENT_TEXTURE_CACHE_H
+#ifndef CLIENT_RENDER_TEXTURE_CACHE_H
+#define CLIENT_RENDER_TEXTURE_CACHE_H
 
 #include <string>
 #include <unordered_map>
@@ -19,4 +19,4 @@ private:
     std::unordered_map<std::string, SDL2pp::Texture> cache_;
 };
 
-#endif  // CLIENT_TEXTURE_CACHE_H
+#endif  // CLIENT_RENDER_TEXTURE_CACHE_H
