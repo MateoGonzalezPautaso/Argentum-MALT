@@ -10,12 +10,24 @@
 CombatController::CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
                                    const ItemCatalog& catalog,
                                    std::map<uint16_t, EnemyNpc>& enemy_npcs,
-                                   const NpcDropConfig& drop_config):
+                                   const NpcDropConfig& drop_config,
+                                   const NpcDropConfig& drop_config_dungeon):
         config(config),
         players(players),
         item_catalog_(catalog),
         enemy_npcs(enemy_npcs),
-        npc_drop_config(drop_config) {}
+        npc_drop_config(drop_config),
+        npc_drop_config_dungeon(drop_config_dungeon) {}
+
+const NpcDropConfig& CombatController::drop_config_for(const EnemyNpc& npc) const {
+    if (!maps)
+        return npc_drop_config;
+    auto it = maps->find(npc.get_current_map());
+    if (it == maps->end())
+        return npc_drop_config;
+    return it->second.config().map_type == MapType::DUNGEON ? npc_drop_config_dungeon
+                                                             : npc_drop_config;
+}
 
 void CombatController::set_clan_manager(ClanManager& mgr) { clan_manager = &mgr; }
 
@@ -176,7 +188,7 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
             npc_target.get_name(), "", npc_target.is_dead(), npc_target.get_level(), esquivado_npc);
 
     if (npc_target.is_dead()) {
-        EnemyDrop drop = npc_target.get_kill_reward(npc_drop_config);
+        EnemyDrop drop = npc_target.get_kill_reward(drop_config_for(npc_target));
         if (drop.gold > 0) {
             attacker.gain_gold(drop.gold);
             result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
@@ -326,7 +338,7 @@ CommandResult CombatController::spell_attack_npc(uint16_t attacker_id, uint16_t 
             npc_target.get_name(), "", npc_target.is_dead(), npc_target.get_level(), false);
 
     if (npc_target.is_dead()) {
-        EnemyDrop drop = npc_target.get_kill_reward(npc_drop_config);
+        EnemyDrop drop = npc_target.get_kill_reward(drop_config_for(npc_target));
         if (drop.gold > 0) {
             attacker.gain_gold(drop.gold);
             result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});

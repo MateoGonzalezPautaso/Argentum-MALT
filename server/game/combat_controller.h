@@ -20,7 +20,7 @@ class CombatController {
 public:
     CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
                      const ItemCatalog& catalog, std::map<uint16_t, EnemyNpc>& enemy_npcs,
-                     const NpcDropConfig& drop_config);
+                     const NpcDropConfig& drop_config, const NpcDropConfig& drop_config_dungeon);
 
     void set_clan_manager(ClanManager& mgr);
     CommandResult melee_attack(uint16_t attacker_id, uint16_t target_id, uint32_t current_tick);
@@ -56,6 +56,7 @@ private:
     uint32_t calculate_defense(const Player& target);
     uint32_t calculate_object_defense(const InventorySlot& object_slot);
     Player* get_nearest_player(const EnemyNpc& npc);
+    const NpcDropConfig& drop_config_for(const EnemyNpc& npc) const;
     void drop_inventory_on_death(Player& target,
                                  std::map<std::string, std::vector<ItemDroppedEvent>>& drops,
                                  std::vector<ServerEvent>& target_events);
@@ -71,6 +72,7 @@ private:
     Rng rng;
     std::map<uint16_t, EnemyNpc>& enemy_npcs;
     NpcDropConfig npc_drop_config;
+    NpcDropConfig npc_drop_config_dungeon;
     const std::unordered_map<std::string, Map>* maps = nullptr;
 };
 
