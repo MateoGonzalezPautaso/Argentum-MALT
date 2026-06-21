@@ -90,7 +90,7 @@ int SpriteRenderer::clamp_y(int value, int sprite_h) const {
     return std::clamp(value, 0, max_y);
 }
 
-void SpriteRenderer::set_movable_position(int x, int y) {
+void SpriteRenderer::move_movable(int x, int y) {
     SpriteRender* sprite = find_movable_sprite();
     if (!sprite) {
         return;
@@ -157,7 +157,7 @@ std::vector<SpriteRenderer::SpriteRender> SpriteRenderer::build_entity_parts(
     return parts;
 }
 
-void SpriteRenderer::position_anchored_parts(std::vector<SpriteRender>& parts) {
+void SpriteRenderer::reposition_anchored_parts(std::vector<SpriteRender>& parts) {
     auto body_it = std::find_if(parts.begin(), parts.end(),
                                 [](const SpriteRender& p) { return p.movable; });
     if (body_it == parts.end()) {
@@ -210,7 +210,7 @@ void SpriteRenderer::add_entity(uint16_t entity_id, int x, int y, const std::str
     if (parts.empty()) {
         return;
     }
-    position_anchored_parts(parts);
+    reposition_anchored_parts(parts);
     ent.parts = std::move(parts);
 
     auto body_it = std::find_if(
@@ -226,7 +226,7 @@ void SpriteRenderer::add_entity(uint16_t entity_id, int x, int y, const std::str
     create_entity_name_label(entity_id, name);
 }
 
-void SpriteRenderer::note_entity_moved(uint16_t entity_id) {
+void SpriteRenderer::mark_entity_moved(uint16_t entity_id) {
     entities_[entity_id].last_move_tick = SDL_GetTicks();
 }
 
@@ -314,7 +314,7 @@ void SpriteRenderer::clear_entity_equipment_overlay(uint16_t entity_id, uint8_t 
     overlay.active = false;
 }
 
-void SpriteRenderer::set_local_player_info(Race race, PlayerClass player_class) {
+void SpriteRenderer::rebuild_local_player_sprites(Race race, PlayerClass player_class) {
     if (entity_part_configs.empty()) {
         return;
     }
@@ -447,7 +447,7 @@ void SpriteRenderer::advance_src_x(SpriteRender& sprite, int step, int frame_cou
     sprite.src.SetX(next_index * step);
 }
 
-void SpriteRenderer::step_movable_src_x(int step, int frame_count) {
+void SpriteRenderer::advance_movable_src_x(int step, int frame_count) {
     SpriteRender* sprite = find_movable_sprite();
     if (!sprite) {
         return;
@@ -508,7 +508,7 @@ void SpriteRenderer::set_entity_src_y(uint16_t entity_id, int body_src_y, int he
     }
 }
 
-void SpriteRenderer::step_entity_src_x(uint16_t entity_id, int step, int frame_count) {
+void SpriteRenderer::advance_entity_src_x(uint16_t entity_id, int step, int frame_count) {
     auto it = entities_.find(entity_id);
     if (it == entities_.end()) {
         return;
@@ -576,7 +576,7 @@ void SpriteRenderer::set_movable_alpha(uint8_t alpha) {
     }
 }
 
-void SpriteRenderer::update_anchor_positions() {
+void SpriteRenderer::reposition_anchored_sprites() {
     SpriteRender* movable = find_movable_sprite();
     if (!movable) {
         return;
@@ -777,7 +777,7 @@ void SpriteRenderer::load_spell_sheets(const std::vector<SpellSheetConfig>& shee
     }
 }
 
-void SpriteRenderer::trigger_damage_overlay_at(int world_x, int world_y) {
+void SpriteRenderer::trigger_damage_effect(int world_x, int world_y) {
     for (auto& ov: overlays) {
         if (ov.active)
             continue;

@@ -97,7 +97,7 @@ void WorldRenderer::render() {
     SDL_RenderSetViewport(renderer.Get(), &adjusted_gv);
 
     const SDL2pp::Rect cam =
-            camera.compute_rect(sprite_renderer.movable_x(), sprite_renderer.movable_y(),
+            camera.compute_view_rect(sprite_renderer.movable_x(), sprite_renderer.movable_y(),
                                 sprite_renderer.movable_w(), sprite_renderer.movable_h());
 
     if (tilemap_renderer.is_loaded()) {
@@ -115,7 +115,7 @@ void WorldRenderer::render() {
     sprite_renderer.tick_animations(anim_system);
     sprite_renderer.advance_overlays();
     prop_renderer.tick_animations(anim_system);
-    sprite_renderer.update_anchor_positions();
+    sprite_renderer.reposition_anchored_sprites();
     sprite_renderer.render(cam);
     sprite_renderer.render_overlays(cam);
     prop_renderer.render_front(cam, foot_y);

@@ -41,7 +41,7 @@ public:
     void set_map_bounds(bool has_tilemap, int map_px_w, int map_px_h);
     void set_name_font(TTF_Font* font) { name_font = font; }
 
-    void set_movable_position(int x, int y);
+    void move_movable(int x, int y);
     void add_entity(uint16_t entity_id, int x, int y, const std::string& name,
                     Race race = static_cast<Race>(0),
                     PlayerClass player_class = static_cast<PlayerClass>(0),
@@ -53,18 +53,18 @@ public:
     int movable_foot_y() const;
 
     void set_movable_src_y(int y);
-    void step_movable_src_x(int step, int frame_count);
+    void advance_movable_src_x(int step, int frame_count);
     void set_anchor_src_y(int y);
     void set_entity_src_y(uint16_t entity_id, int body_src_y, int head_src_y);
-    void step_entity_src_x(uint16_t entity_id, int step, int frame_count);
-    void note_entity_moved(uint16_t entity_id);
+    void advance_entity_src_x(uint16_t entity_id, int step, int frame_count);
+    void mark_entity_moved(uint16_t entity_id);
     void set_local_clan_name(const std::string& name) { local_clan_name = name; }
     void set_entity_clan_name(uint16_t entity_id, const std::string& name);
     void set_entity_clan_by_username(const std::string& username, const std::string& clan);
     void set_entity_alpha(uint16_t entity_id, uint8_t alpha);
     void set_movable_alpha(uint8_t alpha);
-    void update_anchor_positions();
-    void set_local_player_info(Race race, PlayerClass player_class);
+    void reposition_anchored_sprites();
+    void rebuild_local_player_sprites(Race race, PlayerClass player_class);
     void set_skin_config(const SkinConfig& skin_config);
 
     void update_equipment_overlay(uint8_t slot, const std::string& path, int offset_y = 0,
@@ -87,7 +87,7 @@ public:
     bool hit_test_entity(int world_x, int world_y, uint16_t& out_entity_id) const;
 
     void load_damage_overlay(const DamageOverlayConfig& cfg);
-    void trigger_damage_overlay_at(int world_x, int world_y);
+    void trigger_damage_effect(int world_x, int world_y);
     void load_spell_sheets(const std::vector<SpellSheetConfig>& sheets);
     void trigger_spell_effect(uint8_t effect_type, int world_x, int world_y);
     void set_walk_anim_timeout(uint32_t ms) { walk_anim_timeout_ms_ = ms; }
@@ -130,7 +130,7 @@ private:
                                      PlayerClass player_class, uint16_t sprite_id) const;
     std::vector<SpriteRender> build_entity_parts(int x, int y, Race race, PlayerClass player_class,
                                                  uint16_t sprite_id);
-    void position_anchored_parts(std::vector<SpriteRender>& parts);
+    void reposition_anchored_parts(std::vector<SpriteRender>& parts);
     void create_entity_name_label(uint16_t entity_id, const std::string& name);
     SpriteRender* find_movable_sprite();
     const SpriteRender* find_movable_sprite() const;
