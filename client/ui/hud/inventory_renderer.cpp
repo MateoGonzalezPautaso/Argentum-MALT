@@ -1,7 +1,7 @@
 #include "inventory_renderer.h"
 
-#include "geometry.h"
-#include "text_renderer.h"
+#include "../../render/gfx/geometry.h"
+#include "../../render/gfx/text_renderer.h"
 
 InventoryRenderer::InventoryRenderer(
         SDL2pp::Renderer& renderer, TTF_Font* font, const InventoryPanelConfig& cfg,

@@ -5,7 +5,7 @@
 #include <variant>
 
 #include "../../common/visit.h"
-#include "merchant_controller.h"
+#include "../ui/controllers/merchant_controller.h"
 
 namespace {
 const std::unordered_map<ItemType, std::string> weapon_sounds = {

@@ -4,7 +4,7 @@
 
 #include <SDL2/SDL.h>
 
-#include "text_renderer.h"
+#include "../../render/gfx/text_renderer.h"
 
 FormWidgets::FormWidgets(SDL2pp::Renderer& renderer, TTF_Font* font, const UIConfig& ui_cfg):
         renderer_(renderer), font_(font), ui_cfg_(ui_cfg) {}

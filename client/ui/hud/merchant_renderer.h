@@ -6,9 +6,9 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>
 
-#include "../../common/messages.h"
-#include "../config/config.h"
-#include "button.h"
+#include "../../../common/messages.h"
+#include "../../config/config.h"
+#include "../../render/gfx/button.h"
 
 class MerchantRenderer {
 public:

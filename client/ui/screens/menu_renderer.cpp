@@ -1,6 +1,6 @@
 #include "menu_renderer.h"
 
-#include "texture_loader.h"
+#include "../../render/gfx/texture_loader.h"
 
 MenuRenderer::MenuRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg):
         renderer(renderer),

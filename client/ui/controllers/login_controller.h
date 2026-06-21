@@ -5,8 +5,8 @@
 
 #include <SDL2/SDL.h>
 
-#include "../config/config.h"
-#include "../render/login_renderer.h"
+#include "../../config/config.h"
+#include "../screens/login_renderer.h"
 #include "credential_form.h"
 
 class LoginController {

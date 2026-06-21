@@ -4,7 +4,7 @@
 
 #include <SDL2/SDL.h>
 
-#include "texture_loader.h"
+#include "gfx/texture_loader.h"
 
 WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer, const BackgroundConfig& background,
                              const ViewportConfig& viewport_cfg, const FontConfig& font_cfg):

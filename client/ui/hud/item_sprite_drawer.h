@@ -6,8 +6,8 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>
 
-#include "../config/config.h"
-#include "texture_cache.h"
+#include "../../config/config.h"
+#include "../../render/gfx/texture_cache.h"
 
 
 class ItemSpriteDrawer {

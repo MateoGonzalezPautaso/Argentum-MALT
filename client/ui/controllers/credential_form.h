@@ -5,7 +5,7 @@
 
 #include <SDL2/SDL.h>
 
-#include "../input/chat_input.h"
+#include "../../input/chat_input.h"
 
 // Encapsula el par de campos username/password con manejo de foco y TAB.
 class CredentialForm {

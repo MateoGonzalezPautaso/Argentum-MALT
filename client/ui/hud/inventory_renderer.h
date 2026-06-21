@@ -8,10 +8,10 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>
 
-#include "../../common/messages.h"
-#include "../config/config.h"
+#include "../../../common/messages.h"
+#include "../../config/config.h"
 #include "item_sprite_drawer.h"
-#include "texture_cache.h"
+#include "../../render/gfx/texture_cache.h"
 
 class InventoryRenderer {
 private:

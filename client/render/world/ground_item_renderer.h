@@ -10,8 +10,8 @@
 
 #include "../../../common/messages.h"
 #include "../../config/config.h"
-#include "../item_sprite_drawer.h"
-#include "../texture_cache.h"
+#include "../../ui/hud/item_sprite_drawer.h"
+#include "../gfx/texture_cache.h"
 
 class GroundItemRenderer {
 public:

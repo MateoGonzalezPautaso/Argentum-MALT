@@ -16,9 +16,9 @@
 #include "../config/player_stats.h"
 #include "../input/chat_input.h"
 #include "../input/move_controller.h"
-#include "../render/ui_renderer.h"
+#include "../ui/hud/ui_renderer.h"
 #include "../render/world_renderer.h"
-#include "merchant_controller.h"
+#include "../ui/controllers/merchant_controller.h"
 #include "server_event_handler.h"
 
 class GameController {

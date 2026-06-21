@@ -1,6 +1,6 @@
 #include "item_sprite_drawer.h"
 
-#include "text_renderer.h"
+#include "../../render/gfx/text_renderer.h"
 
 ItemSpriteDrawer::ItemSpriteDrawer(TextureCache& cache): cache_(cache) {}
 

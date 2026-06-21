@@ -13,8 +13,8 @@ constexpr SDL_Color kNameColorAlly = {80, 255, 80, 255};
 }  // namespace
 
 #include "../../../common/messages.h"
-#include "../geometry.h"
-#include "../texture_loader.h"
+#include "../gfx/geometry.h"
+#include "../gfx/texture_loader.h"
 
 #include "animation_system.h"
 

@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <utility>
 
-#include "../texture_loader.h"
+#include "../gfx/texture_loader.h"
 #include "viewport.h"
 
 TilemapRenderer::TilemapRenderer(SDL2pp::Renderer& renderer): renderer(renderer) {}

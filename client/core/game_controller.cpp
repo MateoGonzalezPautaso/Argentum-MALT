@@ -6,7 +6,7 @@
 #include <utility>
 #include <variant>
 
-#include "../render/geometry.h"
+#include "../render/gfx/geometry.h"
 
 GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& config,
                                Queue<ClientCommand>& command_queue, AudioManager& audio_manager):

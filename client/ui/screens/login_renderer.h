@@ -6,9 +6,9 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>
 
-#include "../config/config.h"
+#include "../../config/config.h"
 
-#include "button.h"
+#include "../../render/gfx/button.h"
 
 class ChatInput;
 

@@ -2,12 +2,12 @@
 
 #include <algorithm>
 
-#include "../input/chat_input.h"
+#include "../../input/chat_input.h"
 
 #include "form_widgets.h"
-#include "geometry.h"
-#include "text_renderer.h"
-#include "texture_loader.h"
+#include "../../render/gfx/geometry.h"
+#include "../../render/gfx/text_renderer.h"
+#include "../../render/gfx/texture_loader.h"
 
 static constexpr std::array<std::string_view, 4> RACE_LABELS = {"Human", "Elf", "Dwarf", "Gnome"};
 static constexpr std::array<std::string_view, 4> CLASS_LABELS = {"Warrior", "Mage", "Cleric",

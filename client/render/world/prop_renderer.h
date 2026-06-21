@@ -9,7 +9,7 @@
 #include <SDL2pp/SDL2pp.hh>
 
 #include "../../../common/config.h"
-#include "../texture_cache.h"
+#include "../gfx/texture_cache.h"
 
 class AnimationSystem;
 

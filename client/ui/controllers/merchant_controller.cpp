@@ -1,6 +1,6 @@
 #include "merchant_controller.h"
 
-#include "../render/geometry.h"
+#include "../../render/gfx/geometry.h"
 
 MerchantController::MerchantController(SDL2pp::Renderer& renderer, const UIConfig& cfg,
                                        Queue<ClientCommand>& command_queue,

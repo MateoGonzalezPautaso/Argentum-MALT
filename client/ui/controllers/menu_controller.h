@@ -3,8 +3,8 @@
 
 #include <SDL2pp/SDL2pp.hh>
 
-#include "../config/config.h"
-#include "../render/menu_renderer.h"
+#include "../../config/config.h"
+#include "../screens/menu_renderer.h"
 
 class MenuController {
 public:

@@ -2,11 +2,11 @@
 
 #include <algorithm>
 
-#include "../input/chat_input.h"
+#include "../../input/chat_input.h"
 
 #include "form_widgets.h"
-#include "geometry.h"
-#include "texture_loader.h"
+#include "../../render/gfx/geometry.h"
+#include "../../render/gfx/texture_loader.h"
 
 LoginRenderer::LoginRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
                              const ChatInput& username_model, const ChatInput& password_model):

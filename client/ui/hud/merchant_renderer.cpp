@@ -3,8 +3,8 @@
 #include <stdexcept>
 #include <string>
 
-#include "text_renderer.h"
-#include "texture_loader.h"
+#include "../../render/gfx/text_renderer.h"
+#include "../../render/gfx/texture_loader.h"
 
 MerchantRenderer::MerchantRenderer(SDL2pp::Renderer& renderer, const UIConfig& cfg):
         bg_texture(renderer, texture::load_surface(cfg.asset_merchant_bg)),

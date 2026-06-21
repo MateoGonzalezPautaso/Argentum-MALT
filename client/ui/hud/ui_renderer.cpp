@@ -5,11 +5,11 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../input/chat_input.h"
+#include "../../input/chat_input.h"
 
-#include "geometry.h"
-#include "text_renderer.h"
-#include "texture_loader.h"
+#include "../../render/gfx/geometry.h"
+#include "../../render/gfx/text_renderer.h"
+#include "../../render/gfx/texture_loader.h"
 
 UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
                        const SkinConfig& skin_config, const ChatInput& chat_model,

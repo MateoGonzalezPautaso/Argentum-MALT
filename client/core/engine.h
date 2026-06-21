@@ -7,11 +7,11 @@
 #include "../../common/queue.h"
 #include "../audio/audio_manager.h"
 #include "../config/config.h"
-#include "../render/render_context.h"
-#include "../screen/create_character_controller.h"
-#include "../screen/game_controller.h"
-#include "../screen/login_controller.h"
-#include "../screen/menu_controller.h"
+#include "../render/gfx/render_context.h"
+#include "../ui/controllers/create_character_controller.h"
+#include "game_controller.h"
+#include "../ui/controllers/login_controller.h"
+#include "../ui/controllers/menu_controller.h"
 
 enum class GameState { Menu, Login, CreateCharacter, Playing };
 
