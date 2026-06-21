@@ -22,6 +22,7 @@ struct AttackConfig {
     double clan_bonus_per_member = 0.05;
     double clan_bonus_max = 0.25;
     double critical_chance = 0.003;
+    double dodge_threshold = 0.001;
     uint32_t spell_attack_range_px = 200;
     uint32_t npc_vision_range_px = 0;
     uint32_t npc_speed = 4;
@@ -158,6 +159,10 @@ struct BalanceConfig {
     double level_exp_exponent = 1.8;
     int gold_cap_base = 100;
     double gold_cap_exponent = 1.1;
+    double exp_loss_on_death_ratio = 0.9;
+    double npc_gold_reward_min_pct = 0.01;
+    double npc_gold_reward_max_pct = 0.2;
+    double extra_kill_exp_max_pct = 0.1;
     RaceRecoveryConfig race_recovery;
     HpConfig hp;
     ManaConfig mana;
