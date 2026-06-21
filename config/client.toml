@@ -628,7 +628,8 @@ mp3_music_path  = "assets/Mp3/31.mp3"
 sfx_prefix      = "assets/SoundsOgg/"
 frequency       = 44100
 channels        = 2
-chunksize       = 2048
+chunksize          = 2048
+game_music_volume  = 0.3
 
 [sfx]
 death = "11.ogg"
