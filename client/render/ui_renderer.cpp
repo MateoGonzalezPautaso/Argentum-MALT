@@ -174,123 +174,52 @@ void UIRenderer::render_stat_bar(SDL2pp::Texture& tex, int x, int y, int w, int 
     renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
 }
 
-void UIRenderer::render_gold(uint32_t gold) {
-    if (!bar_font) {
+void UIRenderer::render_centered_text(const StatBarConfig& cfg, const std::string& text) const {
+    if (!bar_font)
         return;
-    }
-
-    const auto& gr = ui_cfg.gold_rect;
-    std::string text = std::to_string(gold);
     auto result = texture::render_text(renderer, bar_font, text, chat_color);
-    if (result.w == 0) {
+    if (result.w == 0)
         return;
-    }
-    const int text_x = gr.x + (gr.w - result.w) / 2;
-    const int text_y = gr.y + (gr.h - result.h) / 2;
-    SDL2pp::Rect text_dst(text_x, text_y, result.w, result.h);
-    renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
+    const int text_x = cfg.x + (cfg.w - result.w) / 2;
+    const int text_y = cfg.y + (cfg.h - result.h) / 2;
+    renderer.Copy(result.texture, SDL2pp::NullOpt, SDL2pp::Rect(text_x, text_y, result.w, result.h));
+}
+
+std::vector<const StatBarConfig*> UIRenderer::all_stat_bar_configs() const {
+    return {&ui_cfg.hp_bar,       &ui_cfg.mp_bar,       &ui_cfg.exp_bar,
+            &ui_cfg.gold_rect,    &ui_cfg.potion_hp,    &ui_cfg.potion_mana,
+            &ui_cfg.crit_rect,    &ui_cfg.dodge_rect,   &ui_cfg.strength_rect,
+            &ui_cfg.agility_rect, &ui_cfg.damage_rect,  &ui_cfg.defense_rect};
+}
+
+void UIRenderer::render_gold(uint32_t gold) {
+    render_centered_text(ui_cfg.gold_rect, std::to_string(gold));
 }
 
 void UIRenderer::render_crit_chance(uint8_t crit_pct) {
-    if (!bar_font) {
-        return;
-    }
-
-    const auto& gr = ui_cfg.crit_rect;
-    std::string text = std::to_string(crit_pct) + "%";
-    auto result = texture::render_text(renderer, bar_font, text, chat_color);
-    if (result.w == 0) {
-        return;
-    }
-    const int text_x = gr.x + (gr.w - result.w) / 2;
-    const int text_y = gr.y + (gr.h - result.h) / 2;
-    SDL2pp::Rect text_dst(text_x, text_y, result.w, result.h);
-    renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
+    render_centered_text(ui_cfg.crit_rect, std::to_string(crit_pct) + "%");
 }
 
 void UIRenderer::render_dodge_chance(uint8_t dodge_pct) {
-    if (!bar_font) {
-        return;
-    }
-
-    const auto& gr = ui_cfg.dodge_rect;
-    std::string text = std::to_string(dodge_pct) + "%";
-    auto result = texture::render_text(renderer, bar_font, text, chat_color);
-    if (result.w == 0) {
-        return;
-    }
-    const int text_x = gr.x + (gr.w - result.w) / 2;
-    const int text_y = gr.y + (gr.h - result.h) / 2;
-    SDL2pp::Rect text_dst(text_x, text_y, result.w, result.h);
-    renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
+    render_centered_text(ui_cfg.dodge_rect, std::to_string(dodge_pct) + "%");
 }
 
 void UIRenderer::render_strength(uint16_t strength) {
-    if (!bar_font) {
-        return;
-    }
-
-    const auto& gr = ui_cfg.strength_rect;
-    std::string text = std::to_string(strength);
-    auto result = texture::render_text(renderer, bar_font, text, chat_color);
-    if (result.w == 0) {
-        return;
-    }
-    const int text_x = gr.x + (gr.w - result.w) / 2;
-    const int text_y = gr.y + (gr.h - result.h) / 2;
-    SDL2pp::Rect text_dst(text_x, text_y, result.w, result.h);
-    renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
+    render_centered_text(ui_cfg.strength_rect, std::to_string(strength));
 }
 
 void UIRenderer::render_agility(uint16_t agility) {
-    if (!bar_font) {
-        return;
-    }
-
-    const auto& gr = ui_cfg.agility_rect;
-    std::string text = std::to_string(agility);
-    auto result = texture::render_text(renderer, bar_font, text, chat_color);
-    if (result.w == 0) {
-        return;
-    }
-    const int text_x = gr.x + (gr.w - result.w) / 2;
-    const int text_y = gr.y + (gr.h - result.h) / 2;
-    SDL2pp::Rect text_dst(text_x, text_y, result.w, result.h);
-    renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
+    render_centered_text(ui_cfg.agility_rect, std::to_string(agility));
 }
 
 void UIRenderer::render_damage(uint16_t dmg_min, uint16_t dmg_max) {
-    if (!bar_font) {
-        return;
-    }
-
-    const auto& gr = ui_cfg.damage_rect;
-    std::string text = std::to_string(dmg_min) + "-" + std::to_string(dmg_max);
-    auto result = texture::render_text(renderer, bar_font, text, chat_color);
-    if (result.w == 0) {
-        return;
-    }
-    const int text_x = gr.x + (gr.w - result.w) / 2;
-    const int text_y = gr.y + (gr.h - result.h) / 2;
-    SDL2pp::Rect text_dst(text_x, text_y, result.w, result.h);
-    renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
+    render_centered_text(ui_cfg.damage_rect,
+                         std::to_string(dmg_min) + "-" + std::to_string(dmg_max));
 }
 
 void UIRenderer::render_defense(uint16_t def_min, uint16_t def_max) {
-    if (!bar_font) {
-        return;
-    }
-
-    const auto& gr = ui_cfg.defense_rect;
-    std::string text = std::to_string(def_min) + "-" + std::to_string(def_max);
-    auto result = texture::render_text(renderer, bar_font, text, chat_color);
-    if (result.w == 0) {
-        return;
-    }
-    const int text_x = gr.x + (gr.w - result.w) / 2;
-    const int text_y = gr.y + (gr.h - result.h) / 2;
-    SDL2pp::Rect text_dst(text_x, text_y, result.w, result.h);
-    renderer.Copy(result.texture, SDL2pp::NullOpt, text_dst);
+    render_centered_text(ui_cfg.defense_rect,
+                         std::to_string(def_min) + "-" + std::to_string(def_max));
 }
 
 void UIRenderer::update_potion_button_hover(int mx, int my,
@@ -552,13 +481,8 @@ void UIRenderer::render_stat_tooltips(int mx, int my) const {
     if (!bar_font)
         return;
 
-    const StatBarConfig* all_stats[] = {&ui_cfg.hp_bar,   &ui_cfg.mp_bar,       &ui_cfg.exp_bar,
-                                        &ui_cfg.gold_rect, &ui_cfg.potion_hp,    &ui_cfg.potion_mana,
-                                        &ui_cfg.crit_rect, &ui_cfg.dodge_rect,   &ui_cfg.strength_rect,
-                                        &ui_cfg.agility_rect, &ui_cfg.damage_rect, &ui_cfg.defense_rect};
-
     const StatBarConfig* found = nullptr;
-    for (const auto* stat : all_stats) {
+    for (const auto* stat : all_stat_bar_configs()) {
         if (stat->label.empty())
             continue;
         if (point_in_rect(mx, my, SDL2pp::Rect(stat->x, stat->y, stat->w, stat->h))) {
