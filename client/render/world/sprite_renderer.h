@@ -2,6 +2,7 @@
 #define CLIENT_SPRITE_RENDERER_H
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -156,28 +157,35 @@ private:
         std::string default_body_path;
     };
 
+    struct RenderedEntity {
+        std::vector<SpriteRender> parts;
+        std::optional<EntityNameRender> name_label;
+        EntityEquipRenderState equip;
+        uint16_t sprite_id = 0;
+        int frame_w = 0;
+        int frame_h = 0;
+        int base_src_x = 0;
+        int base_src_y = 0;
+        int speed = 0;
+        int move_counter = 0;
+        uint32_t last_move_tick = 0;
+        std::string clan_name;
+        std::string username;
+    };
+
     void append_sprite_drawables(std::vector<SpriteRender>& src, const SDL2pp::Rect& cam,
                                  std::vector<Drawable>& out);
     void sort_and_render_drawables(std::vector<Drawable>& drawables);
+    void append_equip_overlay_drawables(const SpriteRender& body, EquipOverlay* overlays,
+                                        SDL2pp::Rect* static_cache, const SDL2pp::Rect& cam,
+                                        std::vector<Drawable>& out);
 
     SDL2pp::Renderer& renderer;
     TTF_Font* name_font;
     std::vector<SpriteRender> sprites;
     std::vector<SpriteConfig> entity_part_configs;
-    std::unordered_map<uint16_t, std::vector<SpriteRender>> entity_sprites;
-    std::unordered_map<uint16_t, EntityNameRender> entity_name_render;
-    std::unordered_map<uint16_t, EntityEquipRenderState> entity_equip_state_;
-    std::unordered_map<uint16_t, uint16_t> entity_sprite_ids;
-    std::unordered_map<uint16_t, int> entity_frame_w_;
-    std::unordered_map<uint16_t, int> entity_frame_h_;
-    std::unordered_map<uint16_t, int> entity_base_src_x_;
-    std::unordered_map<uint16_t, int> entity_base_src_y_;
-    std::unordered_map<uint16_t, int> entity_speed;
-    std::unordered_map<uint16_t, int> entity_move_counter;
-    std::unordered_map<uint16_t, uint32_t> entity_last_move_tick_;
+    std::unordered_map<uint16_t, RenderedEntity> entities_;
     std::string local_clan_name;
-    std::unordered_map<uint16_t, std::string> entity_clan_name_;
-    std::unordered_map<uint16_t, std::string> entity_usernames_;
     SkinConfig skin_config;
     std::vector<OverlayEffect> overlays;
     std::unordered_map<uint8_t, std::vector<OverlayEffect>> spell_overlay_pools;

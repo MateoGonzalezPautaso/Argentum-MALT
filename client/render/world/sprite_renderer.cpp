@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <stdexcept>
 #include <utility>
 
 #include <SDL2/SDL.h>
@@ -182,8 +181,8 @@ void SpriteRenderer::create_entity_name_label(uint16_t entity_id, const std::str
     SDL2pp::Surface wrapped(surface);
     int text_w = 0, text_h = 0;
     TTF_SizeUTF8(name_font, name.c_str(), &text_w, &text_h);
-    entity_name_render.emplace(
-            entity_id, EntityNameRender{SDL2pp::Texture(renderer, wrapped), text_w, text_h});
+    entities_[entity_id].name_label.emplace(
+            EntityNameRender{SDL2pp::Texture(renderer, wrapped), text_w, text_h});
 }
 
 void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::string& name,
@@ -191,84 +190,61 @@ void SpriteRenderer::spawn_entity(uint16_t entity_id, int x, int y, const std::s
     if (entity_part_configs.empty()) {
         return;
     }
+
+    RenderedEntity ent;
     if (sprite_id > 0) {
-        entity_sprite_ids[entity_id] = sprite_id;
-        entity_frame_w_[entity_id] = skin_config.npc_frame_w(sprite_id);
-        entity_frame_h_[entity_id] = skin_config.npc_frame_h(sprite_id);
-        entity_base_src_x_[entity_id] = skin_config.npc_src_x(sprite_id);
-        entity_base_src_y_[entity_id] = skin_config.npc_src_y(sprite_id);
-        entity_speed[entity_id] = skin_config.speed(sprite_id);
+        ent.sprite_id = sprite_id;
+        ent.frame_w = skin_config.npc_frame_w(sprite_id);
+        ent.frame_h = skin_config.npc_frame_h(sprite_id);
+        ent.base_src_x = skin_config.npc_src_x(sprite_id);
+        ent.base_src_y = skin_config.npc_src_y(sprite_id);
+        ent.speed = skin_config.speed(sprite_id);
     }
     auto parts = build_entity_parts(x, y, race, player_class, sprite_id);
     if (parts.empty()) {
         return;
     }
     position_anchored_parts(parts);
-    entity_sprites[entity_id] = std::move(parts);
+    ent.parts = std::move(parts);
 
-    EntityEquipRenderState equip_state;
     auto body_it = std::find_if(
             entity_part_configs.begin(), entity_part_configs.end(),
             [](const auto& config) { return config.movable && !config.anchor_to_movable; });
     if (body_it != entity_part_configs.end()) {
         SpriteConfig selected = resolve_entity_skin(*body_it, race, player_class, sprite_id);
-        equip_state.default_body_path = selected.paths.empty() ? "" : selected.paths[0];
+        ent.equip.default_body_path = selected.paths.empty() ? "" : selected.paths[0];
     }
-    entity_equip_state_[entity_id] = std::move(equip_state);
 
-    entity_usernames_[entity_id] = name;
+    ent.username = name;
+    entities_[entity_id] = std::move(ent);
     create_entity_name_label(entity_id, name);
 }
 
 void SpriteRenderer::note_entity_moved(uint16_t entity_id) {
-    entity_last_move_tick_[entity_id] = SDL_GetTicks();
+    entities_[entity_id].last_move_tick = SDL_GetTicks();
 }
 
 void SpriteRenderer::set_entity_clan_name(uint16_t entity_id, const std::string& name) {
     if (!name.empty())
-        entity_clan_name_[entity_id] = name;
+        entities_[entity_id].clan_name = name;
 }
 
 void SpriteRenderer::set_entity_clan_by_username(const std::string& username,
                                                  const std::string& clan) {
-    for (const auto& [eid, name]: entity_usernames_) {
-        if (name == username) {
-            entity_clan_name_[eid] = clan;
+    for (auto& [eid, ent]: entities_) {
+        if (ent.username == username) {
+            ent.clan_name = clan;
             return;
         }
     }
 }
 
 void SpriteRenderer::despawn_entity(uint16_t entity_id) {
-    entity_sprites.erase(entity_id);
-    entity_name_render.erase(entity_id);
-    entity_equip_state_.erase(entity_id);
-    entity_sprite_ids.erase(entity_id);
-    entity_frame_w_.erase(entity_id);
-    entity_frame_h_.erase(entity_id);
-    entity_base_src_x_.erase(entity_id);
-    entity_base_src_y_.erase(entity_id);
-    entity_last_move_tick_.erase(entity_id);
-    entity_clan_name_.erase(entity_id);
-    entity_usernames_.erase(entity_id);
-    entity_speed.erase(entity_id);
-    entity_move_counter.erase(entity_id);
+    entities_.erase(entity_id);
 }
 
 void SpriteRenderer::clear_all_entities() {
-    entity_sprites.clear();
-    entity_name_render.clear();
-    entity_equip_state_.clear();
-    entity_sprite_ids.clear();
-    entity_frame_w_.clear();
-    entity_frame_h_.clear();
-    entity_base_src_x_.clear();
-    entity_base_src_y_.clear();
-    entity_last_move_tick_.clear();
-    entity_clan_name_.clear();
-    entity_usernames_.clear();
-    entity_speed.clear();
-    entity_move_counter.clear();
+    entities_.clear();
 }
 
 void SpriteRenderer::set_skin_config(const SkinConfig& cfg) { skin_config = cfg; }
@@ -304,10 +280,10 @@ void SpriteRenderer::update_entity_equipment_overlay(uint16_t entity_id, uint8_t
                                                      bool static_frame) {
     if (slot >= EQUIP_SLOT_COUNT)
         return;
-    auto it = entity_equip_state_.find(entity_id);
-    if (it == entity_equip_state_.end())
+    auto it = entities_.find(entity_id);
+    if (it == entities_.end())
         return;
-    EquipOverlay& overlay = it->second.overlays[slot];
+    EquipOverlay& overlay = it->second.equip.overlays[slot];
     try {
         SDL2pp::Surface surface = texture::load_surface(path);
         overlay.frames.clear();
@@ -324,10 +300,10 @@ void SpriteRenderer::update_entity_equipment_overlay(uint16_t entity_id, uint8_t
 void SpriteRenderer::clear_entity_equipment_overlay(uint16_t entity_id, uint8_t slot) {
     if (slot >= EQUIP_SLOT_COUNT)
         return;
-    auto it = entity_equip_state_.find(entity_id);
-    if (it == entity_equip_state_.end())
+    auto it = entities_.find(entity_id);
+    if (it == entities_.end())
         return;
-    EquipOverlay& overlay = it->second.overlays[slot];
+    EquipOverlay& overlay = it->second.equip.overlays[slot];
     overlay.frames.clear();
     overlay.active = false;
 }
@@ -385,12 +361,12 @@ void SpriteRenderer::reset_body_sprite() {
 }
 
 void SpriteRenderer::reset_entity_body_sprite(uint16_t entity_id) {
-    auto it = entity_equip_state_.find(entity_id);
-    if (it == entity_equip_state_.end())
+    auto it = entities_.find(entity_id);
+    if (it == entities_.end())
         return;
-    if (it->second.default_body_path.empty())
+    if (it->second.equip.default_body_path.empty())
         return;
-    set_entity_body_sprite(entity_id, it->second.default_body_path);
+    set_entity_body_sprite(entity_id, it->second.equip.default_body_path);
 }
 
 void SpriteRenderer::set_direction_src_y(int down, int up, int left, int right) {
@@ -401,12 +377,12 @@ void SpriteRenderer::set_direction_src_y(int down, int up, int left, int right) 
 }
 
 void SpriteRenderer::move_entity(uint16_t entity_id, int x, int y) {
-    auto it = entity_sprites.find(entity_id);
-    if (it == entity_sprites.end()) {
+    auto it = entities_.find(entity_id);
+    if (it == entities_.end()) {
         return;
     }
 
-    auto& parts = it->second;
+    auto& parts = it->second.parts;
     auto body_it = std::find_if(parts.begin(), parts.end(),
                                 [](const SpriteRender& p) { return p.movable; });
     SpriteRender* body = nullptr;
@@ -483,47 +459,39 @@ void SpriteRenderer::set_anchor_src_y(int y) {
 }
 
 void SpriteRenderer::set_entity_src_y(uint16_t entity_id, int body_src_y, int head_src_y) {
-    auto it = entity_sprites.find(entity_id);
-    if (it == entity_sprites.end()) {
+    auto it = entities_.find(entity_id);
+    if (it == entities_.end()) {
         return;
     }
-    auto fh_it = entity_frame_h_.find(entity_id);
+    RenderedEntity& e = it->second;
+
     int dir_index = body_src_y / 48;  // 0=down, 1=up, 2=left, 3=right
-    auto sid_it = entity_sprite_ids.find(entity_id);
-    if (sid_it != entity_sprite_ids.end() && skin_config.npc_swap_lr(sid_it->second)) {
+    if (e.sprite_id > 0 && skin_config.npc_swap_lr(e.sprite_id)) {
         if (dir_index == 2)
             dir_index = 3;
         else if (dir_index == 3)
             dir_index = 2;
     }
     bool is_walking = false;
-    auto tick_it = entity_last_move_tick_.find(entity_id);
-    if (tick_it != entity_last_move_tick_.end()) {
-        uint32_t elapsed = SDL_GetTicks() - tick_it->second;
-        if (elapsed < 600)  // walking animation visible for 600ms after last move
-            is_walking = true;
-    }
-    for (auto& sprite: it->second) {
+    uint32_t elapsed = SDL_GetTicks() - e.last_move_tick;
+    if (elapsed < 600)  // walking animation visible for 600ms after last move
+        is_walking = true;
+
+    for (auto& sprite: e.parts) {
         if (!sprite.use_src) {
             continue;
         }
         if (sprite.movable) {
-            if (fh_it != entity_frame_h_.end() && fh_it->second > 0) {
-                int offset =
-                        is_walking ?
-                                skin_config.npc_walk_row_offset(entity_sprite_ids.at(entity_id)) :
-                                0;
+            if (e.frame_h > 0) {
+                int offset = is_walking ? skin_config.npc_walk_row_offset(e.sprite_id) : 0;
                 int row = dir_index + offset;
-                const auto& rp = skin_config.npc_row_positions(entity_sprite_ids.at(entity_id));
+                const auto& rp = skin_config.npc_row_positions(e.sprite_id);
                 if (!rp.empty()) {
                     int idx = std::min(row, static_cast<int>(rp.size()) - 1);
                     idx = std::max(idx, 0);
                     sprite.src.SetY(rp[idx]);
                 } else {
-                    int base_y = entity_base_src_y_.count(entity_id) ?
-                                         entity_base_src_y_.at(entity_id) :
-                                         0;
-                    sprite.src.SetY(base_y + row * fh_it->second);
+                    sprite.src.SetY(e.base_src_y + row * e.frame_h);
                 }
             } else {
                 sprite.src.SetY(body_src_y);
@@ -535,25 +503,23 @@ void SpriteRenderer::set_entity_src_y(uint16_t entity_id, int body_src_y, int he
 }
 
 void SpriteRenderer::step_entity_src_x(uint16_t entity_id, int step, int frame_count) {
-    auto it = entity_sprites.find(entity_id);
-    if (it == entity_sprites.end()) {
+    auto it = entities_.find(entity_id);
+    if (it == entities_.end()) {
         return;
     }
+    RenderedEntity& e = it->second;
 
-    entity_move_counter[entity_id]++;
+    e.move_counter++;
 
-    if (entity_speed[entity_id] == 1 && entity_move_counter[entity_id] % 2 != 0)
+    if (e.speed == 1 && e.move_counter % 2 != 0)
         return;
 
-    auto fw_it = entity_frame_w_.find(entity_id);
-    auto bx_it = entity_base_src_x_.find(entity_id);
-    for (auto& sprite: it->second) {
+    for (auto& sprite: e.parts) {
         if (!sprite.movable) {
             continue;
         }
-        if (fw_it != entity_frame_w_.end() && fw_it->second > 0 &&
-            bx_it != entity_base_src_x_.end()) {
-            const auto& fp = skin_config.npc_frame_positions(entity_sprite_ids.at(entity_id));
+        if (e.frame_w > 0) {
+            const auto& fp = skin_config.npc_frame_positions(e.sprite_id);
             if (!fp.empty()) {
                 int current_x = sprite.src.GetX();
                 int current_idx = -1;
@@ -568,17 +534,17 @@ void SpriteRenderer::step_entity_src_x(uint16_t entity_id, int step, int frame_c
                 int next_idx = (current_idx + 1) % static_cast<int>(fp.size());
                 sprite.src.SetX(fp[next_idx]);
             } else {
-                int npc_step = fw_it->second;
-                int npc_frames = skin_config.npc_frames_per_dir(entity_sprite_ids.at(entity_id));
+                int npc_step = e.frame_w;
+                int npc_frames = skin_config.npc_frames_per_dir(e.sprite_id);
                 if (npc_frames <= 0)
                     npc_frames = frame_count;
                 if (npc_frames <= 1)
                     continue;
-                int current = (sprite.src.GetX() - bx_it->second) / npc_step;
+                int current = (sprite.src.GetX() - e.base_src_x) / npc_step;
                 if (current < 0)
                     current = 0;
                 int next = (current + 1) % npc_frames;
-                sprite.src.SetX(bx_it->second + next * npc_step);
+                sprite.src.SetX(e.base_src_x + next * npc_step);
             }
         } else {
             advance_src_x(sprite, step, frame_count);
@@ -587,11 +553,11 @@ void SpriteRenderer::step_entity_src_x(uint16_t entity_id, int step, int frame_c
 }
 
 void SpriteRenderer::set_entity_alpha(uint16_t entity_id, uint8_t alpha) {
-    auto it = entity_sprites.find(entity_id);
-    if (it == entity_sprites.end()) {
+    auto it = entities_.find(entity_id);
+    if (it == entities_.end()) {
         return;
     }
-    for (auto& sprite: it->second) {
+    for (auto& sprite: it->second.parts) {
         sprite.alpha = alpha;
     }
 }
@@ -629,84 +595,63 @@ bool SpriteRenderer::is_visible(const SpriteRender& s, const SDL2pp::Rect& cam) 
            s.dst.GetY() + s.dst.GetH() > cam.GetY() && s.dst.GetY() < cam.GetY() + cam.GetH();
 }
 
+void SpriteRenderer::append_equip_overlay_drawables(const SpriteRender& body,
+                                                    EquipOverlay* overlays,
+                                                    SDL2pp::Rect* static_cache,
+                                                    const SDL2pp::Rect& cam,
+                                                    std::vector<Drawable>& out) {
+    int body_foot_y = body.dst.GetY() + body.dst.GetH();
+    int src_y = body.src.GetY();
+    bool behind = (src_y == dir_src_y_up_ || src_y == dir_src_y_right_);
+
+    for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
+        if (i == static_cast<uint8_t>(EquipSlot::ARMOR))
+            continue;
+        EquipOverlay& overlay = overlays[i];
+        if (!overlay.active || overlay.frames.empty())
+            continue;
+
+        SDL2pp::Rect dst(body.dst.GetX() - cam.GetX(),
+                         body.dst.GetY() - cam.GetY() + overlay.offset_y,
+                         body.dst.GetW(), body.dst.GetH());
+        int overlay_foot_y = behind ? (body_foot_y - 1 - i) : (body_foot_y + 1 + i);
+        if (overlay.static_frame) {
+            static_cache[i] = body.src;
+            static_cache[i].SetX(0);
+            out.push_back(Drawable{&overlay.frames[0], static_cache[i], dst, true,
+                                   overlay_foot_y, body.alpha});
+        } else {
+            out.push_back(Drawable{&overlay.frames[0], body.src, dst, true,
+                                   overlay_foot_y, body.alpha});
+        }
+    }
+}
+
 void SpriteRenderer::render(const SDL2pp::Rect& cam) {
     std::vector<Drawable> drawables;
 
     append_sprite_drawables(sprites, cam, drawables);
 
     SpriteRender* movable = find_movable_sprite();
-    if (movable && movable->use_src) {
-        int body_foot_y = movable->dst.GetY() + movable->dst.GetH();
-        int src_y = movable->src.GetY();
-        bool behind = (src_y == dir_src_y_up_ || src_y == dir_src_y_right_);
-        for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
-            if (i == static_cast<uint8_t>(EquipSlot::ARMOR))
-                continue;
-            EquipOverlay& overlay = equip_overlays_[i];
-            if (!overlay.active || overlay.frames.empty())
-                continue;
-            if (!is_visible(*movable, cam))
-                continue;
-            SDL2pp::Rect dst(movable->dst.GetX() - cam.GetX(),
-                             movable->dst.GetY() - cam.GetY() + overlay.offset_y,
-                             movable->dst.GetW(), movable->dst.GetH());
-            int overlay_foot_y = behind ? (body_foot_y - 1 - i) : (body_foot_y + 1 + i);
-            if (overlay.static_frame) {
-                static_cache_[i] = movable->src;
-                static_cache_[i].SetX(0);
-                drawables.push_back(Drawable{&overlay.frames[0], static_cache_[i], dst, true,
-                                             overlay_foot_y, movable->alpha});
-            } else {
-                drawables.push_back(Drawable{&overlay.frames[0], movable->src, dst, true,
-                                             overlay_foot_y, movable->alpha});
-            }
-        }
+    if (movable && movable->use_src && is_visible(*movable, cam)) {
+        append_equip_overlay_drawables(*movable, equip_overlays_, static_cache_, cam, drawables);
     }
 
-    for (auto& pair: entity_sprites) {
-        append_sprite_drawables(pair.second, cam, drawables);
+    for (auto& [entity_id, e]: entities_) {
+        append_sprite_drawables(e.parts, cam, drawables);
 
-        uint16_t entity_id = pair.first;
-        auto sid_it = entity_sprite_ids.find(entity_id);
-        bool is_npc = sid_it != entity_sprite_ids.end() && sid_it->second > 0;
+        bool is_npc = e.sprite_id > 0;
 
-        auto state_it = entity_equip_state_.find(entity_id);
-        if (state_it == entity_equip_state_.end())
-            continue;
-        auto body_it = std::find_if(pair.second.begin(), pair.second.end(),
+        auto body_it = std::find_if(e.parts.begin(), e.parts.end(),
                                     [](const SpriteRender& p) { return p.movable; });
-        if (body_it == pair.second.end() || (!body_it->use_src && !is_npc))
+        if (body_it == e.parts.end() || (!body_it->use_src && !is_npc))
             continue;
         SpriteRender& movable_entity = *body_it;
         if (!is_visible(movable_entity, cam))
             continue;
 
-        int body_foot_y = movable_entity.dst.GetY() + movable_entity.dst.GetH();
-        int src_y = movable_entity.src.GetY();
-        bool behind = (src_y == dir_src_y_up_ || src_y == dir_src_y_right_);
-
-        EntityEquipRenderState& state = state_it->second;
-        for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
-            if (i == static_cast<uint8_t>(EquipSlot::ARMOR))
-                continue;
-            EquipOverlay& overlay = state.overlays[i];
-            if (!overlay.active || overlay.frames.empty())
-                continue;
-
-            SDL2pp::Rect dst(movable_entity.dst.GetX() - cam.GetX(),
-                             movable_entity.dst.GetY() - cam.GetY() + overlay.offset_y,
-                             movable_entity.dst.GetW(), movable_entity.dst.GetH());
-            int overlay_foot_y = behind ? (body_foot_y - 1 - i) : (body_foot_y + 1 + i);
-            if (overlay.static_frame) {
-                state.static_cache[i] = movable_entity.src;
-                state.static_cache[i].SetX(0);
-                drawables.push_back(Drawable{&overlay.frames[0], state.static_cache[i], dst, true,
-                                             overlay_foot_y, movable_entity.alpha});
-            } else {
-                drawables.push_back(Drawable{&overlay.frames[0], movable_entity.src, dst, true,
-                                             overlay_foot_y, movable_entity.alpha});
-            }
-        }
+        append_equip_overlay_drawables(movable_entity, e.equip.overlays, e.equip.static_cache,
+                                       cam, drawables);
     }
 
     sort_and_render_drawables(drawables);
@@ -727,37 +672,35 @@ void SpriteRenderer::append_sprite_drawables(std::vector<SpriteRender>& src,
 }
 
 void SpriteRenderer::render_entity_names(const SDL2pp::Rect& cam) {
-    for (auto& pair: entity_sprites) {
-        const uint16_t eid = pair.first;
-        auto name_it = entity_name_render.find(eid);
-        if (name_it == entity_name_render.end()) {
+    for (auto& [eid, e]: entities_) {
+        if (!e.name_label.has_value()) {
             continue;
         }
         int body_foot_y = 0;
-        auto sit = std::find_if(pair.second.begin(), pair.second.end(),
+        auto sit = std::find_if(e.parts.begin(), e.parts.end(),
                                 [](const auto& s) { return s.movable; });
-        if (sit != pair.second.end())
+        if (sit != e.parts.end())
             body_foot_y = sit->dst.GetY() + sit->dst.GetH();
         if (body_foot_y <= 0) {
             continue;
         }
-        auto& body = pair.second[0];
-        const int name_x = body.dst.GetX() + (body.dst.GetW() - name_it->second.w) / 2 - cam.GetX();
-        const int name_y = body.dst.GetY() - name_it->second.h - 24 - cam.GetY();
+        auto& body = e.parts[0];
+        const int name_x =
+                body.dst.GetX() + (body.dst.GetW() - e.name_label->w) / 2 - cam.GetX();
+        const int name_y = body.dst.GetY() - e.name_label->h - 24 - cam.GetY();
 
         SDL_Color color = {255, 255, 255, 255};
-        if (entity_sprite_ids.count(eid)) {
+        if (e.sprite_id > 0) {
             color = {255, 80, 80, 255};
         } else if (!local_clan_name.empty()) {
-            auto clan_it = entity_clan_name_.find(eid);
-            if (clan_it != entity_clan_name_.end() && clan_it->second == local_clan_name)
+            if (!e.clan_name.empty() && e.clan_name == local_clan_name)
                 color = {80, 255, 80, 255};
         }
 
-        SDL_Texture* tex = name_it->second.texture.Get();
+        SDL_Texture* tex = e.name_label->texture.Get();
         SDL_SetTextureColorMod(tex, color.r, color.g, color.b);
-        renderer.Copy(name_it->second.texture, SDL2pp::NullOpt,
-                      SDL2pp::Rect(name_x, name_y, name_it->second.w, name_it->second.h));
+        renderer.Copy(e.name_label->texture, SDL2pp::NullOpt,
+                      SDL2pp::Rect(name_x, name_y, e.name_label->w, e.name_label->h));
         SDL_SetTextureColorMod(tex, 255, 255, 255);
     }
 }
@@ -866,12 +809,12 @@ void SpriteRenderer::trigger_spell_effect(uint8_t effect_type, int world_x, int 
 }
 
 bool SpriteRenderer::get_entity_world_position(uint16_t entity_id, int& x, int& y) const {
-    auto it = entity_sprites.find(entity_id);
-    if (it == entity_sprites.end())
+    auto it = entities_.find(entity_id);
+    if (it == entities_.end())
         return false;
-    auto pit = std::find_if(it->second.begin(), it->second.end(),
+    auto pit = std::find_if(it->second.parts.begin(), it->second.parts.end(),
                             [](const auto& p) { return p.movable; });
-    if (pit == it->second.end())
+    if (pit == it->second.parts.end())
         return false;
     x = pit->dst.GetX() + pit->dst.GetW() / 2;
     y = pit->dst.GetY() + pit->dst.GetH() / 2;
@@ -916,8 +859,8 @@ void SpriteRenderer::tick_animations(AnimationSystem& anim) {
     for (auto& sprite: sprites) {
         anim.tick(sprite);
     }
-    for (auto& pair: entity_sprites) {
-        for (auto& sprite: pair.second) {
+    for (auto& [id, e]: entities_) {
+        for (auto& sprite: e.parts) {
             anim.tick(sprite);
         }
     }
@@ -927,10 +870,10 @@ bool SpriteRenderer::hit_test_entity(int world_x, int world_y, uint16_t& out_ent
     auto hits_point = [&](const SpriteRender& part) {
         return part.movable && point_in_rect(world_x, world_y, part.dst);
     };
-    auto it = std::find_if(entity_sprites.begin(), entity_sprites.end(), [&](const auto& pair) {
-        return std::any_of(pair.second.begin(), pair.second.end(), hits_point);
+    auto it = std::find_if(entities_.begin(), entities_.end(), [&](const auto& pair) {
+        return std::any_of(pair.second.parts.begin(), pair.second.parts.end(), hits_point);
     });
-    if (it != entity_sprites.end()) {
+    if (it != entities_.end()) {
         out_entity_id = it->first;
         return true;
     }
@@ -944,12 +887,12 @@ SpriteRenderer::SpriteRender* SpriteRenderer::find_movable_sprite() {
 }
 
 SpriteRenderer::SpriteRender* SpriteRenderer::find_entity_movable_sprite(uint16_t entity_id) {
-    auto it = entity_sprites.find(entity_id);
-    if (it == entity_sprites.end())
+    auto it = entities_.find(entity_id);
+    if (it == entities_.end())
         return nullptr;
-    auto pit = std::find_if(it->second.begin(), it->second.end(),
+    auto pit = std::find_if(it->second.parts.begin(), it->second.parts.end(),
                             [](const SpriteRender& s) { return s.movable; });
-    return pit != it->second.end() ? &(*pit) : nullptr;
+    return pit != it->second.parts.end() ? &(*pit) : nullptr;
 }
 
 int SpriteRenderer::movable_x() const {
@@ -980,10 +923,10 @@ const SpriteRenderer::SpriteRender* SpriteRenderer::find_movable_sprite() const 
 
 const SpriteRenderer::SpriteRender* SpriteRenderer::find_entity_movable_sprite(
         uint16_t entity_id) const {
-    auto it = entity_sprites.find(entity_id);
-    if (it == entity_sprites.end())
+    auto it = entities_.find(entity_id);
+    if (it == entities_.end())
         return nullptr;
-    auto pit = std::find_if(it->second.begin(), it->second.end(),
+    auto pit = std::find_if(it->second.parts.begin(), it->second.parts.end(),
                             [](const SpriteRender& s) { return s.movable; });
-    return pit != it->second.end() ? &(*pit) : nullptr;
+    return pit != it->second.parts.end() ? &(*pit) : nullptr;
 }
