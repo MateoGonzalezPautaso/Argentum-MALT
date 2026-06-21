@@ -13,7 +13,7 @@ void Acceptor::run() {
             Socket client_skt = listener.accept();
             monitor.add(std::move(client_skt), input_queue);
         } catch (...) {
-            // listener.shutdown() was called from stop().
+            // listener.shutdown_from_other_thread() was called from stop().
             break;
         }
     }
