@@ -5,8 +5,6 @@
 
 #include <SDL2/SDL.h>
 
-#include "../texture_loader.h"
-
 namespace {
 constexpr int PHASE_HASH_X_PRIME = 137;
 constexpr int PHASE_HASH_Y_PRIME = 31;
@@ -19,7 +17,7 @@ GroundItemRenderer::GroundItemRenderer(
         SDL2pp::Renderer& renderer,
         const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites,
         const GroundItemConfig& cfg):
-        renderer(renderer), item_sprites(item_sprites), config_(cfg) {}
+        renderer(renderer), item_sprites(item_sprites), texture_cache_(renderer), config_(cfg) {}
 
 void GroundItemRenderer::add_item(int world_x, int world_y, ItemType type,
                                   const std::string& name) {
@@ -41,25 +39,15 @@ void GroundItemRenderer::remove_item(int world_x, int world_y, const std::string
 
 void GroundItemRenderer::clear() { items.clear(); }
 
-SDL2pp::Texture* GroundItemRenderer::get_or_load_texture(const ItemSpriteDef& def) {
-    auto it = texture_cache.find(def.path);
-    if (it == texture_cache.end()) {
-        SDL2pp::Surface surf = texture::load_surface(def.path);
-        auto tex = std::make_unique<SDL2pp::Texture>(renderer, surf);
-        it = texture_cache.emplace(def.path, std::move(tex)).first;
-    }
-    return it->second.get();
-}
-
 void GroundItemRenderer::draw_item(const GroundItem& item, int screen_x, int screen_y) {
     SDL2pp::Rect dst(screen_x, screen_y, config_.display_size, config_.display_size);
 
     auto it = item_sprites.find(static_cast<uint8_t>(item.type));
     if (it != item_sprites.end() && !it->second.path.empty()) {
         const ItemSpriteDef& def = it->second;
-        SDL2pp::Texture* tex = get_or_load_texture(def);
+        SDL2pp::Texture& tex = texture_cache_.get(def.path);
         SDL2pp::Rect src(def.src_x, def.src_y, def.src_w, def.src_h);
-        renderer.Copy(*tex, src, dst);
+        renderer.Copy(tex, src, dst);
     } else {
         uint8_t r = FALLBACK_COLOR, g = FALLBACK_COLOR, b = FALLBACK_COLOR;
         if (it != item_sprites.end()) {

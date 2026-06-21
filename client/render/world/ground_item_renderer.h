@@ -2,7 +2,6 @@
 #define CLIENT_GROUND_ITEM_RENDERER_H
 
 #include <map>
-#include <memory>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -11,6 +10,7 @@
 
 #include "../../../common/messages.h"
 #include "../../config/config.h"
+#include "../texture_cache.h"
 
 class GroundItemRenderer {
 public:
@@ -33,11 +33,10 @@ private:
 
     SDL2pp::Renderer& renderer;
     const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites;
-    std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>> texture_cache;
+    TextureCache texture_cache_;
     std::map<std::pair<int, int>, std::vector<GroundItem>> items;
     GroundItemConfig config_;
 
-    SDL2pp::Texture* get_or_load_texture(const ItemSpriteDef& def);
     void draw_item(const GroundItem& item, int screen_x, int screen_y);
 };
 

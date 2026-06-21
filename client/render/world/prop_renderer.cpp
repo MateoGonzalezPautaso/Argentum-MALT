@@ -4,24 +4,11 @@
 #include <string>
 #include <utility>
 
-#include "../texture_loader.h"
-
 #include "animation_system.h"
 #include "viewport.h"
 
-PropRenderer::PropRenderer(SDL2pp::Renderer& renderer): renderer(renderer) {}
-
-std::shared_ptr<SDL2pp::Texture> PropRenderer::load_or_get_texture(const std::string& path) {
-    auto it = frame_cache_.find(path);
-    if (it == frame_cache_.end()) {
-        it = frame_cache_
-                     .emplace(path,
-                              std::make_shared<SDL2pp::Texture>(renderer,
-                                                                texture::load_surface(path)))
-                     .first;
-    }
-    return it->second;
-}
+PropRenderer::PropRenderer(SDL2pp::Renderer& renderer):
+        renderer(renderer), texture_cache_(renderer) {}
 
 PropRenderer::PropRender PropRenderer::build_prop_render(const std::string& name, std::size_t ri,
                                                          std::size_t ci, std::size_t tsz,
@@ -43,7 +30,7 @@ PropRenderer::PropRender PropRenderer::build_prop_render(const std::string& name
     pr.hitbox_h = def.hitbox.h;
 
     for (const auto& path: def.paths)
-        pr.frames.push_back(load_or_get_texture(path));
+        pr.frames.push_back(&texture_cache_.get(path));
 
     for (const auto& part_def: def.parts) {
         PropPart pp;
@@ -52,7 +39,7 @@ PropRenderer::PropRender PropRenderer::build_prop_render(const std::string& name
         pp.offset_y = part_def.offset_y;
         pp.display_w = part_def.src_w;
         pp.display_h = part_def.src_h;
-        pp.frames.push_back(load_or_get_texture(part_def.path));
+        pp.frames.push_back(&texture_cache_.get(part_def.path));
         pr.parts.push_back(std::move(pp));
     }
     if (!pr.parts.empty() && def.width > 0 && def.height > 0) {
@@ -89,7 +76,7 @@ PropRenderer::PropRender PropRenderer::build_prop_render(const std::string& name
 
 void PropRenderer::load(const TilemapConfig& tilemap, int tile_size) {
     prop_tiles_.clear();
-    frame_cache_.clear();
+    texture_cache_.clear();
     if (tilemap.props.empty())
         return;
 

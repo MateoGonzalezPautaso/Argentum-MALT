@@ -1,38 +1,26 @@
 #include "inventory_renderer.h"
 
-#include <utility>
-
 #include "geometry.h"
 #include "text_renderer.h"
-#include "texture_loader.h"
 
 InventoryRenderer::InventoryRenderer(
         SDL2pp::Renderer& renderer, TTF_Font* font, const InventoryPanelConfig& cfg,
         const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites):
-        renderer(renderer), font(font), cfg(cfg), item_sprites(item_sprites) {}
+        renderer(renderer), font(font), cfg(cfg), item_sprites(item_sprites),
+        texture_cache_(renderer) {}
 
 const ItemSpriteDef* InventoryRenderer::find_sprite(ItemType type) const {
     auto it = item_sprites.find(static_cast<uint8_t>(type));
     return it != item_sprites.end() ? &it->second : nullptr;
 }
 
-SDL2pp::Texture* InventoryRenderer::get_or_load_texture(const ItemSpriteDef& def) {
-    auto it = texture_cache.find(def.path);
-    if (it == texture_cache.end()) {
-        SDL2pp::Surface surf = texture::load_surface(def.path);
-        auto tex = std::make_unique<SDL2pp::Texture>(renderer, surf);
-        it = texture_cache.emplace(def.path, std::move(tex)).first;
-    }
-    return it->second.get();
-}
-
 void InventoryRenderer::render_item_sprite(ItemType type, const std::string& name,
                                            const SDL2pp::Rect& dst) {
     const ItemSpriteDef* def = find_sprite(type);
     if (def && !def->path.empty()) {
-        SDL2pp::Texture* tex = get_or_load_texture(*def);
+        SDL2pp::Texture& tex = texture_cache_.get(def->path);
         SDL2pp::Rect src(def->src_x, def->src_y, def->src_w, def->src_h);
-        renderer.Copy(*tex, src, dst);
+        renderer.Copy(tex, src, dst);
     } else {
         uint8_t r = 80, g = 80, b = 80;
         if (def) {

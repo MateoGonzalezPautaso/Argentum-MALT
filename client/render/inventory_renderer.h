@@ -1,7 +1,6 @@
 #ifndef CLIENT_INVENTORY_RENDERER_H
 #define CLIENT_INVENTORY_RENDERER_H
 
-#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -11,6 +10,7 @@
 
 #include "../../common/messages.h"
 #include "../config/config.h"
+#include "texture_cache.h"
 
 class InventoryRenderer {
 private:
@@ -18,13 +18,12 @@ private:
     TTF_Font* font;
     const InventoryPanelConfig& cfg;
     const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites;
-    std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>> texture_cache;
+    TextureCache texture_cache_;
 
     int hovered_inv_slot = -1;
     int hovered_equip_slot = -1;
 
     const ItemSpriteDef* find_sprite(ItemType type) const;
-    SDL2pp::Texture* get_or_load_texture(const ItemSpriteDef& def);
 
     void render_item_sprite(ItemType type, const std::string& name, const SDL2pp::Rect& dst);
     void render_item_tooltip(int sx, int sy, const InventorySlot& slot);
