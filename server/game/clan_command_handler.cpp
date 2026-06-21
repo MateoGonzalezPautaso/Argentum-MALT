@@ -101,6 +101,9 @@ CommandResult ClanCommandHandler::handle_clan_status(uint16_t player_id) {
     if (!clan_manager.is_in_clan(sender_name))
         return system_msg("No perteneces a ningun clan");
 
+    if (!clan_manager.is_founder(sender_name))
+        return system_msg("Solo el fundador puede revisar el clan");
+
     std::string clan_name = clan_manager.get_clan_name(sender_name);
     auto members = clan_manager.get_member_list(clan_name);
     for (auto& m: members) {
