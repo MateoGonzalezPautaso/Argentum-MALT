@@ -1,4 +1,4 @@
-# Argentum Online — Protocolo de Comunicación Binario
+# Argentum MALT — Protocolo de Comunicación Binario
 
 ## Índice
 

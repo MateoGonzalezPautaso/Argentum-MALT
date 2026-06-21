@@ -1,12 +1,12 @@
-# Manual de Argentum Online
+# Manual de Argentum MALT
 
 ## 1. Introducción
 
-¿Qué es Argentum Online?
+¿Qué es Argentum MALT?
 
-Argentum Online (también conocido como AO) es un videojuego de rol multijugador masivo en línea (MMORPG) de origen argentino. Fue creado en 1999 por Pablo Márquez (conocido como "Gulfas Morgolock") junto a un grupo de amigos, y tiene la distinción de ser el primer MMORPG desarrollado en Argentina. 
+Argentum MALT es una recreación del videojuego de rol multijugador masivo en línea (MMORPG) **Argentum Online**, creado originalmente en 1999 por Pablo Márquez (conocido como "Gulfas Morgolock") junto a un grupo de amigos, siendo el primer MMORPG desarrollado en Argentina. 
 
-El juego se caracteriza por su estilo gráfico 2D top-down y su ambientación de fantasía medieval, donde los jugadores pueden crear personajes, explorar un mundo abierto, completar misiones, combatir monstruos y otros jugadores, y formar clanes.
+El juego se caracteriza por su estilo gráfico 2D top-down y su ambientación de fantasía medieval, donde los jugadores pueden crear personajes, explorar un mundo abierto, combatir monstruos y otros jugadores, y formar clanes.
 
 ---
 
@@ -51,7 +51,7 @@ Esto descargará, compilará e instalará todas las dependencias necesarias, as�
 
 ### 2.2 Iniciar el servidor
 
-El servidor de Argentum Online se llama 'taller_server' y se encuentra en el directorio 'build'. Para iniciarlo, abre una terminal y ejecuta:
+El servidor de Argentum MALT se llama 'taller_server' y se encuentra en el directorio 'build'. Para iniciarlo, abre una terminal y ejecuta:
 
 ```bash
 cd build
@@ -61,7 +61,7 @@ Esto iniciará el servidor en el puerto 1234 por defecto. Asegúrate de que el s
 
 ### 2.3 Iniciar el cliente
 
-El cliente de Argentum Online se llama 'taller_client' y también se encuentra en el directorio 'build'. Para iniciarlo, abre una terminal y ejecuta:
+El cliente de Argentum MALT se llama 'taller_client' y también se encuentra en el directorio 'build'. Para iniciarlo, abre una terminal y ejecuta:
 
 ```bash
 cd build

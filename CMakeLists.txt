@@ -18,7 +18,7 @@ set(CMAKE_CXX_EXTENSIONS ON)   # permite gnu++20 que usa la cátedra
 # ----------------------------------------------------------------
 project(taller_tp
     VERSION 1.0
-    HOMEPAGE_URL "https://github.com/URL-HERE"
+    HOMEPAGE_URL "https://github.com/MateoGonzalezPautaso/Argentum-MALT"
     LANGUAGES CXX
 )
 
@@ -112,6 +112,8 @@ if(TALLER_SERVER)
     set_project_warnings(taller_server ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
     target_link_libraries(taller_server PRIVATE taller_common)
+
+    install(TARGETS taller_server RUNTIME DESTINATION bin)
 endif()
 
 # ----------------------------------------------------------------
@@ -149,6 +151,8 @@ if(TALLER_CLIENT)
     endif()
 
     target_include_directories(taller_client PRIVATE ${libSDL2pp_SOURCE_DIR})
+
+    install(TARGETS taller_client RUNTIME DESTINATION bin)
 endif()
 
 # ----------------------------------------------------------------
@@ -187,6 +191,8 @@ if(TALLER_EDITOR)
     endif()
 
     target_include_directories(taller_editor PRIVATE ${libSDL2pp_SOURCE_DIR})
+
+    install(TARGETS taller_editor RUNTIME DESTINATION bin)
 endif()
 
 enable_testing()

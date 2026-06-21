@@ -1,4 +1,4 @@
-# Argentum Online
+# Argentum MALT
 
 Recreación del juego multijugador **Argentum Online** [1] desarrollada como Trabajo Práctico Final para la materia **Taller de Programación (TA045)** - Facultad de Ingeniería, Universidad de Buenos Aires.
 

@@ -52,7 +52,7 @@ done
 # ----------------------------------------------------------------
 echo ""
 echo -e "${BLUE}================================================${NC}"
-echo -e "${BLUE}        Argentum Online — Instalador            ${NC}"
+echo -e "${BLUE}        Argentum MALT — Instalador               ${NC}"
 echo -e "${BLUE}================================================${NC}"
 echo ""
 log "Modo de compilación: ${BUILD_TYPE}"
@@ -265,7 +265,7 @@ else
     echo ""
 
     BUILD_DIR="build"
-    APP_NAME="argentum"
+    APP_NAME="argentum-malt"
 
     if [ ! -d "$BUILD_DIR" ]; then
         fail "Directorio de build no encontrado. Corré sin --skip-build primero."
@@ -276,7 +276,7 @@ else
     cmake --install "$BUILD_DIR" --prefix "$HOME/.local"
     ok "Binarios instalados en ~/.local/bin"
 
-    # Assets → ~/.local/share/argentum/
+    # Assets → ~/.local/share/argentum-malt/
     ASSETS_DEST="$HOME/.local/share/${APP_NAME}"
     if [ -d "assets" ]; then
         log "Copiando assets a ${ASSETS_DEST}..."
@@ -287,7 +287,7 @@ else
         warn "Directorio 'assets/' no encontrado. Saltando copia de assets."
     fi
 
-    # Config → ~/.config/argentum/
+    # Config → ~/.config/argentum-malt/
     CONFIG_DEST="$HOME/.config/${APP_NAME}"
     if [ -d "config" ]; then
         log "Copiando configuración a ${CONFIG_DEST}..."
