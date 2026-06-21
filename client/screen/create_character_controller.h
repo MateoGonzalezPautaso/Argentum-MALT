@@ -7,8 +7,8 @@
 
 #include "../../common/messages.h"
 #include "../config/config.h"
-#include "../input/chat_input.h"
 #include "../render/create_character_renderer.h"
+#include "credential_form.h"
 
 class CreateCharacterController {
 public:
@@ -26,15 +26,13 @@ public:
     void set_error(const std::string& msg);
     void clear_error();
 
-    const std::string& username_text() const { return username.get_text(); }
-    const std::string& password_text() const { return password.get_text(); }
+    const std::string& username_text() const { return form_.first_value(); }
+    const std::string& password_text() const { return form_.second_value(); }
     Race selected_race() const { return race; }
     PlayerClass selected_class() const { return player_class; }
 
 private:
-    ChatInput username;
-    ChatInput password;
-    int active_field = 0;
+    CredentialForm form_;
     Race race = Race::HUMAN;
     PlayerClass player_class = PlayerClass::WARRIOR;
     bool submitted = false;

@@ -948,7 +948,7 @@ CommandResult Game::handle_help() {
     events.reserve(help_lines.size());
     std::transform(help_lines.begin(), help_lines.end(), std::back_inserter(events),
                    [](const auto& line) {
-                       ChatMsgEvent{ChatMsgType::SYSTEM, "", line};
+                       return ChatMsgEvent{ChatMsgType::SYSTEM, "", line};
                    });
     return {.private_events = std::move(events)};
 }

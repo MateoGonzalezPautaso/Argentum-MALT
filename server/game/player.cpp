@@ -10,7 +10,6 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
                uint8_t hp_potion_capacity, uint8_t mana_potion_capacity, uint8_t bank_capacity):
         Entity(0, username, pos, 1),
         id(id),
-        dir(dir),
         race(race),
         player_class(player_class),
         experience(0),
@@ -21,6 +20,7 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         inv(equip_capacity, hp_potion_capacity, mana_potion_capacity),
         bank_inv(bank_capacity),
         bank_gold(0) {
+    set_dir(dir);
     UpdateStats stats = update_stats();
     set_hp_max(stats.hp_max);
     set_hp_current(stats.hp_max);
@@ -42,7 +42,6 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
                uint32_t bank_gold):
         Entity(hp_max, username, pos, level),
         id(id),
-        dir(dir),
         race(race),
         player_class(player_class),
         experience(experience),
@@ -53,6 +52,7 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
         inv(equip_capacity, hp_potion_capacity, mana_potion_capacity),
         bank_inv(bank_capacity),
         bank_gold(bank_gold) {
+    set_dir(dir);
     set_hp_current(hp_current);
     UpdateStats stats = update_stats();
     strength = stats.strength;
@@ -64,7 +64,7 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
 }
 
 void Player::apply_move(Direction new_dir, int dx, int dy) {
-    dir = new_dir;
+    set_dir(new_dir);
     Position pos = get_pos();
     uint16_t pos_x = static_cast<uint16_t>(static_cast<int>(pos.x) + dx);
     uint16_t pos_y = static_cast<uint16_t>(static_cast<int>(pos.y) + dy);

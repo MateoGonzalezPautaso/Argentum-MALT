@@ -6,8 +6,8 @@
 #include <SDL2/SDL.h>
 
 #include "../config/config.h"
-#include "../input/chat_input.h"
 #include "../render/login_renderer.h"
+#include "credential_form.h"
 
 class LoginController {
 public:
@@ -33,9 +33,7 @@ public:
     void render();
 
 private:
-    ChatInput login_username;
-    ChatInput login_password;
-    int login_active_field = 0;
+    CredentialForm form_;
     bool login_submitted = false;
     bool create_char_requested = false;
     LoginRenderer login_renderer;
