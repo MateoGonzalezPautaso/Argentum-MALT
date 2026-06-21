@@ -35,6 +35,7 @@ CreateCharacterRenderer::CreateCharacterRenderer(SDL2pp::Renderer& renderer, con
     if (!title_font)
         throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
     init_layout();
+    form_widgets_.emplace(renderer, field_font, ui_cfg);
 }
 
 CreateCharacterRenderer::~CreateCharacterRenderer() {
@@ -128,7 +129,7 @@ void CreateCharacterRenderer::render(Race selected_race, PlayerClass selected_cl
 void CreateCharacterRenderer::render_text_field(const SDL2pp::Rect& rect, const std::string& text,
                                                 bool focused,
                                                 const std::string& placeholder) const {
-    FormWidgets(renderer, field_font, ui_cfg).render_text_field(rect, text, focused, placeholder);
+    form_widgets_->render_text_field(rect, text, focused, placeholder);
 }
 
 void CreateCharacterRenderer::render_selector(const std::array<SDL2pp::Rect, 4>& rects,
@@ -151,9 +152,8 @@ void CreateCharacterRenderer::render_selector(const std::array<SDL2pp::Rect, 4>&
 
 void CreateCharacterRenderer::render_error() const {
     const int below_y = create_button.rect.GetY() + create_button.rect.GetH();
-    FormWidgets(renderer, field_font, ui_cfg)
-            .render_error_centered(error_text, error_color, ui_cfg.window_w, below_y,
-                                   ui_cfg.error_spacing);
+    form_widgets_->render_error_centered(error_text, error_color, ui_cfg.window_w, below_y,
+                                         ui_cfg.error_spacing);
 }
 
 bool CreateCharacterRenderer::is_username_hit(int x, int y) const {

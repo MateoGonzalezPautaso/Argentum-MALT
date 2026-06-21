@@ -43,8 +43,8 @@ public:
 
     void move_movable(int x, int y);
     void add_entity(uint16_t entity_id, int x, int y, const std::string& name,
-                    Race race = static_cast<Race>(0),
-                    PlayerClass player_class = static_cast<PlayerClass>(0),
+                    Race race = Race::HUMAN,
+                    PlayerClass player_class = PlayerClass::MAGE,
                     uint16_t sprite_id = 0);
     void remove_entity(uint16_t entity_id);
     void clear_entities();

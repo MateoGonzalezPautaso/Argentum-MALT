@@ -38,6 +38,7 @@ LoginRenderer::LoginRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
         throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
     }
     init_layout();
+    form_widgets_.emplace(renderer, field_font, ui_cfg);
 }
 
 LoginRenderer::~LoginRenderer() {
@@ -155,7 +156,7 @@ void LoginRenderer::init_layout() {
 
 void LoginRenderer::render_text_field(const SDL2pp::Rect& rect, const std::string& text,
                                       bool focused, const std::string& placeholder) const {
-    FormWidgets(renderer, field_font, ui_cfg).render_text_field(rect, text, focused, placeholder);
+    form_widgets_->render_text_field(rect, text, focused, placeholder);
 }
 
 void LoginRenderer::set_error(const std::string& text) { error_text = text; }
@@ -164,7 +165,6 @@ void LoginRenderer::clear_error() { error_text.clear(); }
 
 void LoginRenderer::render_error() const {
     const int below_y = new_account_button.rect.GetY() + new_account_button.rect.GetH();
-    FormWidgets(renderer, field_font, ui_cfg)
-            .render_error_centered(error_text, error_color, ui_cfg.window_w, below_y,
-                                   ui_cfg.error_spacing);
+    form_widgets_->render_error_centered(error_text, error_color, ui_cfg.window_w, below_y,
+                                         ui_cfg.error_spacing);
 }

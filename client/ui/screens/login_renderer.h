@@ -1,6 +1,7 @@
 #ifndef CLIENT_LOGIN_RENDERER_H
 #define CLIENT_LOGIN_RENDERER_H
 
+#include <optional>
 #include <string>
 
 #include <SDL2pp/SDL2pp.hh>
@@ -9,6 +10,7 @@
 #include "../../config/config.h"
 
 #include "../../render/gfx/button.h"
+#include "form_widgets.h"
 
 class ChatInput;
 
@@ -41,6 +43,7 @@ private:
     SDL_Color placeholder_color{160, 160, 160, 255};
     SDL_Color title_color{255, 215, 0, 255};
     UIConfig ui_cfg;
+    std::optional<FormWidgets> form_widgets_;
 
 public:
     LoginRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,

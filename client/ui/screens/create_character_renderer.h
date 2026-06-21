@@ -2,6 +2,7 @@
 #define CLIENT_CREATE_CHARACTER_RENDERER_H
 
 #include <array>
+#include <optional>
 #include <string>
 
 #include <SDL2pp/SDL2pp.hh>
@@ -11,6 +12,7 @@
 #include "../../config/config.h"
 
 #include "../../render/gfx/button.h"
+#include "form_widgets.h"
 
 class ChatInput;
 
@@ -64,6 +66,7 @@ private:
     TTF_Font* field_font = nullptr;
     TTF_Font* title_font = nullptr;
     UIConfig ui_cfg;
+    std::optional<FormWidgets> form_widgets_;
 
     void init_layout();
     void render_text_field(const SDL2pp::Rect& rect, const std::string& text, bool focused,

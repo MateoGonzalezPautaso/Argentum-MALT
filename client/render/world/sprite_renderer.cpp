@@ -107,22 +107,18 @@ SpriteConfig SpriteRenderer::resolve_entity_skin(const SpriteConfig& config, Rac
         if (config.anchor_to_movable) {
             selected.paths.clear();
         } else {
-            std::string path = skin_config.npc_path_for(sprite_id);
-            int fw = skin_config.npc_frame_w(sprite_id);
-            int fh = skin_config.npc_frame_h(sprite_id);
-            if (!path.empty() && fw > 0 && fh > 0) {
-                selected.paths = {std::move(path)};
+            const auto& def = skin_config.npc_def(sprite_id);
+            if (!def.path.empty() && def.frame_w > 0 && def.frame_h > 0) {
+                selected.paths = {def.path};
                 selected.x = 0;
                 selected.y = 0;
-                selected.width = fw;
-                selected.height = fh;
-                selected.src_y = skin_config.npc_src_y(sprite_id);
-                selected.src_width = fw;
-                selected.src_height = fh;
+                selected.width = def.frame_w;
+                selected.height = def.frame_h;
+                selected.src_y = def.src_y;
+                selected.src_width = def.frame_w;
+                selected.src_height = def.frame_h;
                 selected.visible = true;
-
-                const auto& fp = skin_config.npc_frame_positions(sprite_id);
-                selected.src_x = fp.empty() ? skin_config.npc_src_x(sprite_id) : fp[0];
+                selected.src_x = def.frame_positions.empty() ? def.src_x : def.frame_positions[0];
             }
         }
     } else if (config.movable && !config.anchor_to_movable) {
@@ -202,13 +198,12 @@ void SpriteRenderer::add_entity(uint16_t entity_id, int x, int y, const std::str
     RenderedEntity ent;
     if (sprite_id > 0) {
         ent.sprite_id = sprite_id;
-        ent.frame_w = skin_config.npc_frame_w(sprite_id);
-        ent.frame_h = skin_config.npc_frame_h(sprite_id);
-        ent.base_src_y = skin_config.npc_src_y(sprite_id);
-        ent.speed = skin_config.speed(sprite_id);
-
-        const auto& fp = skin_config.npc_frame_positions(sprite_id);
-        ent.base_src_x = fp.empty() ? skin_config.npc_src_x(sprite_id) : fp[0];
+        const auto& def = skin_config.npc_def(sprite_id);
+        ent.frame_w = def.frame_w;
+        ent.frame_h = def.frame_h;
+        ent.base_src_y = def.src_y;
+        ent.speed = def.speed;
+        ent.base_src_x = def.frame_positions.empty() ? def.src_x : def.frame_positions[0];
     }
     auto parts = build_entity_parts(x, y, race, player_class, sprite_id);
     if (parts.empty()) {
@@ -475,8 +470,9 @@ void SpriteRenderer::set_entity_src_y(uint16_t entity_id, int body_src_y, int he
     }
     RenderedEntity& e = it->second;
 
+    const auto& def = skin_config.npc_def(e.sprite_id);
     int dir_index = body_src_y / 48;  // 0=down, 1=up, 2=left, 3=right
-    if (e.sprite_id > 0 && skin_config.npc_swap_lr(e.sprite_id)) {
+    if (e.sprite_id > 0 && def.swap_lr) {
         if (dir_index == 2)
             dir_index = 3;
         else if (dir_index == 3)
@@ -493,9 +489,9 @@ void SpriteRenderer::set_entity_src_y(uint16_t entity_id, int body_src_y, int he
         }
         if (sprite.movable) {
             if (e.frame_h > 0) {
-                int offset = is_walking ? skin_config.npc_walk_row_offset(e.sprite_id) : 0;
+                int offset = is_walking ? def.walk_row_offset : 0;
                 int row = dir_index + offset;
-                const auto& rp = skin_config.npc_row_positions(e.sprite_id);
+                const auto& rp = def.row_positions;
                 if (!rp.empty()) {
                     int idx = std::min(row, static_cast<int>(rp.size()) - 1);
                     idx = std::max(idx, 0);
@@ -529,7 +525,7 @@ void SpriteRenderer::advance_entity_src_x(uint16_t entity_id, int step, int fram
             continue;
         }
         if (e.frame_w > 0) {
-            const auto& fp = skin_config.npc_frame_positions(e.sprite_id);
+            const auto& fp = skin_config.npc_def(e.sprite_id).frame_positions;
             if (!fp.empty()) {
                 int current_x = sprite.src.GetX();
                 int current_idx = -1;
@@ -545,7 +541,7 @@ void SpriteRenderer::advance_entity_src_x(uint16_t entity_id, int step, int fram
                 sprite.src.SetX(fp[next_idx]);
             } else {
                 int npc_step = e.frame_w;
-                int npc_frames = skin_config.npc_frames_per_dir(e.sprite_id);
+                int npc_frames = skin_config.npc_def(e.sprite_id).frames_per_dir;
                 if (npc_frames <= 0)
                     npc_frames = frame_count;
                 if (npc_frames <= 1)

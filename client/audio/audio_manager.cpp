@@ -5,7 +5,10 @@
 #include <iostream>
 #include <string>
 
-AudioManager::AudioManager(const AudioConfig& audio_cfg): menu_music_(nullptr), game_music_(nullptr) {
+AudioManager::AudioManager(const AudioConfig& audio_cfg):
+        game_music_volume_(static_cast<int>(MIX_MAX_VOLUME * audio_cfg.game_music_volume)),
+        menu_music_(nullptr),
+        game_music_(nullptr) {
     if (Mix_OpenAudio(audio_cfg.frequency, MIX_DEFAULT_FORMAT, audio_cfg.channels,
                       audio_cfg.chunksize) < 0) {
         std::cerr << "AudioManager: Mix_OpenAudio failed - " << Mix_GetError() << std::endl;
@@ -59,7 +62,7 @@ void AudioManager::play_menu_music() {
 void AudioManager::play_game_music() {
     if (!game_music_)
         return;
-    current_music_volume_ = static_cast<int>(MIX_MAX_VOLUME * 0.3f);
+    current_music_volume_ = game_music_volume_;
     Mix_VolumeMusic(muted_ ? 0 : current_music_volume_);
     Mix_PlayMusic(game_music_, -1);
 }

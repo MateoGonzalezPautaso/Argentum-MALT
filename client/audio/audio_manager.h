@@ -31,6 +31,7 @@ private:
     int current_music_volume_ = MIX_MAX_VOLUME;
 
     static constexpr int MAX_HEAR_RANGE = 640;
+    int game_music_volume_;
 
     int distance_volume(int source_x, int source_y) const;
 

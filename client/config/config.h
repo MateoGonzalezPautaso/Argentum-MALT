@@ -259,53 +259,13 @@ struct SkinConfig {
         return it != body.end() ? it->second : "";
     }
 
-    std::string npc_path_for(uint16_t sprite_id) const {
+    const NpcSkinDef& npc_def(uint16_t sprite_id) const {
+        static const NpcSkinDef default_def;
         auto it = npc.find(sprite_id);
-        return it != npc.end() ? it->second.path : "";
-    }
-    int npc_frame_w(uint16_t sprite_id) const {
-        auto it = npc.find(sprite_id);
-        return it != npc.end() ? it->second.frame_w : 0;
-    }
-    int npc_frame_h(uint16_t sprite_id) const {
-        auto it = npc.find(sprite_id);
-        return it != npc.end() ? it->second.frame_h : 0;
-    }
-    int npc_src_x(uint16_t sprite_id) const {
-        auto it = npc.find(sprite_id);
-        return it != npc.end() ? it->second.src_x : 0;
-    }
-    int npc_src_y(uint16_t sprite_id) const {
-        auto it = npc.find(sprite_id);
-        return it != npc.end() ? it->second.src_y : 0;
-    }
-    int npc_frames_per_dir(uint16_t sprite_id) const {
-        auto it = npc.find(sprite_id);
-        return it != npc.end() ? it->second.frames_per_dir : 0;
-    }
-    int npc_walk_row_offset(uint16_t sprite_id) const {
-        auto it = npc.find(sprite_id);
-        return it != npc.end() ? it->second.walk_row_offset : 0;
-    }
-    bool npc_swap_lr(uint16_t sprite_id) const {
-        auto it = npc.find(sprite_id);
-        return it != npc.end() ? it->second.swap_lr : false;
-    }
-    const std::vector<int>& npc_row_positions(uint16_t sprite_id) const {
-        auto it = npc.find(sprite_id);
-        return it != npc.end() ? it->second.row_positions : empty_vec;
-    }
-    const std::vector<int>& npc_frame_positions(uint16_t sprite_id) const {
-        auto it = npc.find(sprite_id);
-        return it != npc.end() ? it->second.frame_positions : empty_vec;
-    }
-    int speed(uint16_t sprite_id) const {
-        auto it = npc.find(sprite_id);
-        return it != npc.end() ? it->second.speed : 0;
+        return it != npc.end() ? it->second : default_def;
     }
 
 private:
-    std::vector<int> empty_vec;
     static std::string class_to_skin_key(PlayerClass pc) {
         switch (pc) {
             case PlayerClass::MAGE:
@@ -353,6 +313,7 @@ struct AudioConfig {
     int frequency  = 44100;
     int channels   = 2;
     int chunksize  = 2048;
+    float game_music_volume = 0.3f;
     SfxConfig sfx;
 };
 

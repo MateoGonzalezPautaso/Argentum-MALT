@@ -513,6 +513,8 @@ void parse_audio_config(const toml::table& root, ClientConfig& config) {
         config.audio.frequency  = toml_get_int(*tbl, "frequency",  config.audio.frequency);
         config.audio.channels   = toml_get_int(*tbl, "channels",   config.audio.channels);
         config.audio.chunksize  = toml_get_int(*tbl, "chunksize",  config.audio.chunksize);
+        config.audio.game_music_volume = static_cast<float>(
+                toml_get_double(*tbl, "game_music_volume", config.audio.game_music_volume));
     }
 }
 
