@@ -489,6 +489,11 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
     if (player.is_dead())
         return {};
 
+    if (player.get_player_class() == PlayerClass::WARRIOR) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los guerreros no pueden usar magia"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
     const InventorySlot& weapon_slot = player.get_equipped(EquipSlot::WEAPON);
     if (weapon_slot.item_type == ItemType::NONE) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No tienes un arma equipada"};
