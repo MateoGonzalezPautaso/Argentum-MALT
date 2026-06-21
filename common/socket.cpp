@@ -199,7 +199,7 @@ Socket::Socket(Socket&& other) {
     /* Nos copiamos del otro socket... */
     this->skt = other.skt;
     this->closed = other.closed;
-    this->stream_status = other.stream_status;
+    this->stream_status = other.stream_status.load();
 
     /* ...pero luego le sacamos al otro socket
      * el ownership del recurso.
@@ -238,7 +238,7 @@ Socket& Socket::operator=(Socket&& other) {
     /* Ahora hacemos los mismos pasos que en el move constructor */
     this->skt = other.skt;
     this->closed = other.closed;
-    this->stream_status = other.stream_status;
+    this->stream_status = other.stream_status.load();
     other.skt = -1;
     other.closed = true;
     other.stream_status = STREAM_BOTH_CLOSED;
@@ -256,7 +256,7 @@ int Socket::recvsome(void* data, unsigned int sz) {
          * que la conexión se cierra" en cuyo caso el cierre del socket
          * no es un error sino algo esperado.
          * */
-        stream_status |= STREAM_RECV_CLOSED;
+        stream_status.fetch_or(STREAM_RECV_CLOSED);
         return 0;
     } else if (s == -1) {
         /*
@@ -300,7 +300,7 @@ int Socket::sendsome(const void* data, unsigned int sz) {
             /*
              * Puede o no ser un error (véase el comentario en `Socket::recvsome`)
              * */
-            stream_status |= STREAM_SEND_CLOSED;
+            stream_status.fetch_or(STREAM_SEND_CLOSED);
             return 0;
         }
 
@@ -312,7 +312,7 @@ int Socket::sendsome(const void* data, unsigned int sz) {
         /*
          * Jamas debería pasar.
          * */
-        stream_status |= STREAM_SEND_CLOSED;
+        stream_status.fetch_or(STREAM_SEND_CLOSED);
         return 0;
     } else {
         return s;
@@ -419,17 +419,26 @@ void Socket::shutdown(int how) {
 
     switch (how) {
         case 0:
-            stream_status |= STREAM_RECV_CLOSED;
+            stream_status.fetch_or(STREAM_RECV_CLOSED);
             break;
         case 1:
-            stream_status |= STREAM_SEND_CLOSED;
+            stream_status.fetch_or(STREAM_SEND_CLOSED);
             break;
         case 2:
-            stream_status |= STREAM_BOTH_CLOSED;
+            stream_status.fetch_or(STREAM_BOTH_CLOSED);
             break;
         default:
             throw std::runtime_error("Unknow shutdown value");
     }
+}
+
+void Socket::shutdown_from_other_thread(int how) {
+    chk_skt_or_fail();
+    if (::shutdown(this->skt, how) == -1) {
+        throw LibError(errno, "socket shutdown failed");
+    }
+    // No tocamos `stream_status` acá a propósito, véase el comentario
+    // en el header.
 }
 
 bool Socket::is_stream_send_closed() const { return stream_status & STREAM_SEND_CLOSED; }

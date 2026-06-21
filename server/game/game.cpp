@@ -88,6 +88,24 @@ const Map& Game::player_map(const Player& p) const {
     return it->second;
 }
 
+bool Game::target_in_safe_zone(uint16_t target_id) const {
+    auto player_it = players.find(target_id);
+    if (player_it != players.end())
+        return !player_map(player_it->second)
+                        .is_position_in_spawn_zone(player_it->second.pos_x(),
+                                                   player_it->second.pos_y());
+
+    auto npc_it = enemy_npcs.find(target_id);
+    if (npc_it != enemy_npcs.end()) {
+        auto map_it = maps.find(npc_it->second.get_current_map());
+        if (map_it != maps.end())
+            return !map_it->second.is_position_in_spawn_zone(npc_it->second.pos_x(),
+                                                              npc_it->second.pos_y());
+    }
+
+    return false;
+}
+
 CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd) {
     return std::visit(
             overloaded{
@@ -468,8 +486,9 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
         it->second.set_meditating(false);
     CommandResult result;
     const Map& map = player_map(it->second);
-    if (enemy_npcs.find(cmd.target_id) == enemy_npcs.end() &&
-        !map.is_position_in_spawn_zone(it->second.pos_x(), it->second.pos_y())) {
+    bool attacker_in_safe_zone = !map.is_position_in_spawn_zone(it->second.pos_x(), it->second.pos_y());
+
+    if (attacker_in_safe_zone || target_in_safe_zone(cmd.target_id)) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar en una zona segura"};
         return {.private_events = {msg}};
     }
@@ -488,6 +507,11 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
     Player& player = it->second;
     if (player.is_dead())
         return {};
+
+    if (player.get_player_class() == PlayerClass::WARRIOR) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los guerreros no pueden usar magia"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
 
     const InventorySlot& weapon_slot = player.get_equipped(EquipSlot::WEAPON);
     if (weapon_slot.item_type == ItemType::NONE) {
@@ -531,6 +555,11 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
 
     if (cmd.target_id == player_id) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacarte a ti mismo"};
+        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    if (target_in_safe_zone(cmd.target_id)) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes lanzar hechizos en una zona segura"};
         return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
 

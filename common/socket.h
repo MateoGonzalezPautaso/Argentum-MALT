@@ -1,6 +1,8 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
+#include <atomic>
+
 /*
  * TDA Socket.
  * Por simplificación este TDA se enfocará solamente
@@ -10,7 +12,16 @@ class Socket {
 private:
     int skt;
     bool closed;
-    int stream_status;
+
+    /*
+     * Atómico porque `recvsome`/`sendsome` (thread dueño) y `shutdown`
+     * (eventualmente otro thread, si se usa la variante que sí actualiza
+     * este campo) pueden en teoría escribirlo en paralelo: dos bits
+     * distintos del mismo `int` actualizados con `|=` no son seguros si
+     * la operación no es atómica, aunque cada bit tenga semánticamente
+     * un solo "dueño" lógico.
+     * */
+    std::atomic<int> stream_status;
 
     /*
      * Construye el socket pasándole directamente el file descriptor.
@@ -163,6 +174,19 @@ public:
      * Lease manpage de `shutdown`
      * */
     void shutdown(int how);
+
+    /*
+     * Igual que `shutdown`, pero pensado para ser llamado desde un thread
+     * distinto al que esta bloqueado en `recvall`/`sendall` (u otra llamada
+     * bloqueante) sobre este mismo `Socket`, únicamente para destrabarlo.
+     *
+     * A diferencia de `shutdown`, no actualiza `stream_status`: es el
+     * thread dueño (el que estaba bloqueado) quien al desbloquearse
+     * detecta el cierre por su cuenta vía `recvsome`/`sendsome` y
+     * actualiza el estado. Si `shutdown` actualizara `stream_status`
+     * acá, dos threads podrían escribirlo al mismo tiempo (data race).
+     * */
+    void shutdown_from_other_thread(int how);
 
     /*
      * Determina si el stream de envio (send) o de recepción (recv)

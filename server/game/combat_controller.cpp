@@ -458,28 +458,35 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
             }
         }
 
-        // Attack if in range and cooldown OK
-        if (!in_attack_range)
+        // Attack if in range, target not in a safe zone, and cooldown OK
+        if (!in_attack_range || player_in_safe_zone)
             continue;
 
         if (!npc.try_attack(current_tick, config.cooldown_ticks))
             continue;
 
-        uint32_t damage = npc.get_damage();
-        uint32_t defense = calculate_defense(*target);
-        damage = damage > defense ? (damage - defense) : 0;
-
-        target->take_damage(damage);
-
         uint16_t target_id = target->get_id();
-        DamageReceivedEvent received{target_id, npc_id, damage, target->get_hp_current(),
-                                     target->get_hp_max()};
-        targeted[target_id].push_back(received);
+        bool esquivado = pow(rng.get_random_double(0, 1), target->get_agility()) < 0.001;
 
-        ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
-                              npc.get_name() + " ataco a " + target->get_name() + " por " +
-                                      std::to_string(damage) + " de dano"};
-        targeted[target_id].push_back(chat_msg);
+        if (esquivado) {
+            AttackDodgedEvent dodged{target_id};
+            targeted[target_id].push_back(dodged);
+        } else {
+            uint32_t damage = npc.get_damage();
+            uint32_t defense = calculate_defense(*target);
+            damage = damage > defense ? (damage - defense) : 0;
+
+            target->take_damage(damage);
+
+            DamageReceivedEvent received{target_id, npc_id, damage, target->get_hp_current(),
+                                         target->get_hp_max()};
+            targeted[target_id].push_back(received);
+
+            ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
+                                  npc.get_name() + " ataco a " + target->get_name() + " por " +
+                                          std::to_string(damage) + " de dano"};
+            targeted[target_id].push_back(chat_msg);
+        }
 
         if (target->is_dead()) {
             target->lose_experience_on_death();

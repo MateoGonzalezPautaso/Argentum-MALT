@@ -70,6 +70,7 @@ void GameController::render() {
         chat_history.consume_new_message();
     ui_renderer.render_chat_history(chat_history.get_messages(), chat_scroll);
     ui_renderer.render_chat_input();
+    ui_renderer.render_expand_button();
     ui_renderer.set_hover(mouse_x, mouse_y, player_stats.inventory, player_stats.equipped);
     ui_renderer.update_potion_button_hover(mouse_x, mouse_y, player_stats.inventory);
     ui_renderer.render_inventory(player_stats.inventory);
@@ -478,6 +479,10 @@ bool GameController::handle_event(const SDL_Event& event) {
 
     if (chat_input.consume_event(event)) {
         flush_pending_chat();
+        if (chat_expanded_ && !chat_input.is_focused()) {
+            chat_expanded_ = false;
+            ui_renderer.set_chat_expanded(false);
+        }
         return true;
     }
 
@@ -517,7 +522,21 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
         return true;
     }
 
+    if (event.button.button == SDL_BUTTON_LEFT &&
+        ui_renderer.is_expand_hit(event.button.x, event.button.y)) {
+        chat_expanded_ = !chat_expanded_;
+        ui_renderer.set_chat_expanded(chat_expanded_);
+        if (chat_expanded_ && !chat_input.is_focused())
+            chat_input.set_focus(true);
+        return true;
+    }
+
+    const bool was_focused = chat_input.is_focused();
     chat_input.set_focus(ui_renderer.is_chat_input_hit(event.button.x, event.button.y));
+    if (was_focused && !chat_input.is_focused() && chat_expanded_) {
+        chat_expanded_ = false;
+        ui_renderer.set_chat_expanded(false);
+    }
 
     if (chat_input.is_focused()) {
         return true;
@@ -602,9 +621,10 @@ bool GameController::handle_mouse_motion(const SDL_Event& event) {
     }
 
     ui_renderer.set_audio_button_hovered(mouse_x, mouse_y);
+    ui_renderer.set_expand_button_hovered(mouse_x, mouse_y);
     ui_renderer.set_hover(mouse_x, mouse_y, player_stats.inventory, player_stats.equipped);
     ui_renderer.update_potion_button_hover(mouse_x, mouse_y, player_stats.inventory);
-    if (ui_renderer.is_audio_hit(mouse_x, mouse_y) ||
+    if (ui_renderer.is_audio_hit(mouse_x, mouse_y) || ui_renderer.is_expand_hit(mouse_x, mouse_y) ||
         ui_renderer.is_hovering_occupied() || ui_renderer.get_hovered_potion() > 0) {
         SDL_SetCursor(hand_cursor);
         return true;

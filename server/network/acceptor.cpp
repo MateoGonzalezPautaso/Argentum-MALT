@@ -13,7 +13,7 @@ void Acceptor::run() {
             Socket client_skt = listener.accept();
             monitor.add(std::move(client_skt), input_queue);
         } catch (...) {
-            // listener.shutdown() was called from stop().
+            // listener.shutdown_from_other_thread() was called from stop().
             break;
         }
     }
@@ -21,5 +21,7 @@ void Acceptor::run() {
 
 void Acceptor::stop() {
     Thread::stop();
-    listener.shutdown(SHUT_RDWR);  // unblocks the blocking accept() call
+    // Called from the Server thread, not from Acceptor's own thread, so it must
+    // not touch stream_status. Unblocks the blocking accept() call.
+    listener.shutdown_from_other_thread(SHUT_RDWR);
 }

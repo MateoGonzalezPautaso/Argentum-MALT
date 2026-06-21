@@ -203,6 +203,10 @@ struct UIConfig {
     std::string asset_sell_default = "assets/interface/en_boton-vender-default.bmp";
     std::string asset_sell_hover = "assets/interface/en_boton-vender-over.bmp";
     std::string asset_sell_disabled = "assets/interface/en_boton-vender-off.bmp";
+    std::string asset_expand_default = "assets/interface/en_boton-sm-mas-default.bmp";
+    std::string asset_expand_hover   = "assets/interface/en_boton-sm-mas-over.bmp";
+    std::string asset_expand_off     = "assets/interface/en_boton-sm-mas-off.bmp";
+    std::string asset_big_chat       = "assets/interface/big_chat.bmp";
 
 
     int login_title_spacing = 20;
@@ -217,6 +221,11 @@ struct UIConfig {
     int cursor_padding = 4;
     int cursor_height_shrink = 8;
     int chat_line_spacing = 2;
+    int chat_expand_x = 0;
+    int chat_expand_btn_gap = 2;
+    int chat_expand_btn_w = 21;
+    int chat_expand_btn_h = 21;
+    int chat_expand_amount = 200;
     InventoryPanelConfig inventory_panel;
     MerchantUIConfig merchant;
 };

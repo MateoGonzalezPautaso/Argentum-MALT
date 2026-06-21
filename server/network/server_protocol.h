@@ -48,7 +48,8 @@ public:
     // Recibe y deserializa el próximo comando del cliente.
     ClientCommand recv_command();
 
-    void shutdown();
+    // Para destrabar `recv_command()` desde otro thread (véase
+    void shutdown_from_other_thread();
 
     ServerProtocol(const ServerProtocol&) = delete;
     ServerProtocol& operator=(const ServerProtocol&) = delete;
