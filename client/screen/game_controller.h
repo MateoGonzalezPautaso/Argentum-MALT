@@ -9,6 +9,7 @@
 #include "../../common/messages.h"
 #include "../../common/queue.h"
 #include "../audio/audio_manager.h"
+#include "../chat/chat_command_parser.h"
 #include "../chat/chat_history.h"
 #include "../config/config.h"
 #include "../config/player_stats.h"
@@ -37,6 +38,7 @@ private:
     SDL2pp::Renderer& renderer;
     ChatInput chat_input;
     ChatHistory chat_history;
+    ChatCommandParser chat_parser_;
     PlayerStats player_stats;
     bool player_is_ghost = false;
     int chat_scroll = 0;

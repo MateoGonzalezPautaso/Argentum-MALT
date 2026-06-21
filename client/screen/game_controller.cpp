@@ -791,77 +791,9 @@ void GameController::flush_pending_chat() {
         return;
     std::string text = chat_input.pop_pending_message();
 
-    if (text == "/listar") {
-        command_queue.push(NpcListCmd{});
-    } else if (text.rfind("/comprar ", 0) == 0) {
-        command_queue.push(NpcBuyCmd{text.substr(9)});
-    } else if (text.rfind("/vender ", 0) == 0) {
-        command_queue.push(NpcSellCmd{text.substr(8)});
-    } else if (text == "/meditar") {
-        command_queue.push(MeditateCmd{});
-    } else if (text == "/resucitar") {
-        command_queue.push(ResurrectCmd{});
-    } else if (text == "/curar") {
-        command_queue.push(NpcHealCmd{});
-    } else if (text == "/tomar") {
-        command_queue.push(PickupItemCmd{""});
-    } else if (text.rfind("/tomar ", 0) == 0) {
-        command_queue.push(PickupItemCmd{text.substr(7)});
-    } else if (text.rfind("/tirar ", 0) == 0) {
-        command_queue.push(DropItemCmd{text.substr(7)});
-    } else if (text.rfind("/depositar oro ", 0) == 0) {
-        try {
-            uint32_t amount = static_cast<uint32_t>(std::stoul(text.substr(15)));
-            command_queue.push(BankDepositCmd{true, "", amount});
-        } catch (...) {
-            chat_history.add_message(ChatMsgType::SYSTEM, "", "Uso: /depositar oro <cantidad>");
-        }
-    } else if (text.rfind("/depositar ", 0) == 0) {
-        command_queue.push(BankDepositCmd{false, text.substr(11), 0});
-    } else if (text.rfind("/retirar oro ", 0) == 0) {
-        try {
-            uint32_t amount = static_cast<uint32_t>(std::stoul(text.substr(13)));
-            command_queue.push(BankWithdrawCmd{true, "", amount});
-        } catch (...) {
-            chat_history.add_message(ChatMsgType::SYSTEM, "", "Uso: /retirar oro <cantidad>");
-        }
-    } else if (text.rfind("/retirar ", 0) == 0) {
-        command_queue.push(BankWithdrawCmd{false, text.substr(9), 0});
-    } else if (text.rfind("/equipar ", 0) == 0) {
-        try {
-            int idx = std::stoi(text.substr(9));
-            command_queue.push(EquipItemCmd{static_cast<uint8_t>(idx)});
-        } catch (...) {
-            chat_history.add_message(ChatMsgType::SYSTEM, "", "Uso: /equipar <slot>");
-        }
-    } else if (text.rfind("/desequipar ", 0) == 0) {
-        std::string slot = text.substr(12);
-        if (slot == "weapon")
-            command_queue.push(UnequipItemCmd{EquipSlot::WEAPON});
-        else if (slot == "armor")
-            command_queue.push(UnequipItemCmd{EquipSlot::ARMOR});
-        else if (slot == "helmet")
-            command_queue.push(UnequipItemCmd{EquipSlot::HELMET});
-        else if (slot == "shield")
-            command_queue.push(UnequipItemCmd{EquipSlot::SHIELD});
-    } else if (text.rfind("/fundar-clan ", 0) == 0) {
-        command_queue.push(ClanFoundCmd{text.substr(13)});
-    } else if (text.rfind("/unirse ", 0) == 0) {
-        command_queue.push(ClanJoinRequestCmd{text.substr(8)});
-    } else if (text == "/revisar-clan") {
-        command_queue.push(ClanReviewCmd{});
-    } else if (text.rfind("/clan-aceptar ", 0) == 0) {
-        command_queue.push(ClanAcceptCmd{text.substr(14)});
-    } else if (text.rfind("/clan-rechazar ", 0) == 0) {
-        command_queue.push(ClanRejectCmd{text.substr(15)});
-    } else if (text.rfind("/clan-unban ", 0) == 0) {
-        command_queue.push(ClanUnbanCmd{text.substr(12)});
-    } else if (text.rfind("/clan-ban ", 0) == 0) {
-        command_queue.push(ClanBanCmd{text.substr(10)});
-    } else if (text.rfind("/clan-kick ", 0) == 0) {
-        command_queue.push(ClanKickCmd{text.substr(11)});
-    } else if (text == "/dejar-clan") {
-        command_queue.push(ClanLeaveCmd{});
+    auto cmd = chat_parser_.parse(text);
+    if (cmd) {
+        command_queue.push(std::move(*cmd));
     } else {
         command_queue.push(SendChatMsgCmd{std::move(text)});
     }
