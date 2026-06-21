@@ -88,6 +88,8 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*attack, "clan_bonus_max", config.attack.clan_bonus_max);
         config.attack.critical_chance =
                 toml_get_double(*attack, "critical_chance", config.attack.critical_chance);
+        config.attack.dodge_threshold =
+                toml_get_double(*attack, "dodge_threshold", config.attack.dodge_threshold);
         config.attack.spell_attack_range_px =
                 toml_get_int(*attack, "spell_attack_range_px", config.attack.spell_attack_range_px);
         config.attack.npc_vision_range_px = static_cast<uint32_t>(
@@ -152,6 +154,14 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_int(*balance, "gold_cap_base", config.balance.gold_cap_base);
         config.balance.gold_cap_exponent =
                 toml_get_double(*balance, "gold_cap_exponent", config.balance.gold_cap_exponent);
+        config.balance.exp_loss_on_death_ratio = toml_get_double(
+                *balance, "exp_loss_on_death_ratio", config.balance.exp_loss_on_death_ratio);
+        config.balance.npc_gold_reward_min_pct = toml_get_double(
+                *balance, "npc_gold_reward_min_pct", config.balance.npc_gold_reward_min_pct);
+        config.balance.npc_gold_reward_max_pct = toml_get_double(
+                *balance, "npc_gold_reward_max_pct", config.balance.npc_gold_reward_max_pct);
+        config.balance.extra_kill_exp_max_pct = toml_get_double(
+                *balance, "extra_kill_exp_max_pct", config.balance.extra_kill_exp_max_pct);
 
         if (auto drop = (*balance)["npc_drop"].as_table()) {
             config.balance.npc_drop.gold_chance =
