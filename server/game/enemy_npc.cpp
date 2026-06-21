@@ -1,5 +1,7 @@
 #include "enemy_npc.h"
 
+#include "game_formulas.h"
+
 EnemyNpc::EnemyNpc(Position position, uint32_t hp_max, uint32_t damage, Rng& rng,
                    const ItemCatalog& catalog, uint8_t level, const std::string& name,
                    uint16_t sprite_id, uint32_t speed):
@@ -8,12 +10,12 @@ EnemyNpc::EnemyNpc(Position position, uint32_t hp_max, uint32_t damage, Rng& rng
         rng(rng),
         catalog(catalog) {}
 
-EnemyDrop EnemyNpc::get_kill_reward(const NpcDropConfig& drop_config) {
+EnemyDrop EnemyNpc::get_kill_reward(const NpcDropConfig& drop_config, const BalanceConfig& balance) {
     double r = rng.get_random_double(0, 100);
     EnemyDrop enemy_drop{.gold = 0, .is_potion = false, .is_object = false, .item = std::nullopt};
 
     if (r < drop_config.gold_chance) {
-        enemy_drop.gold = get_gold_reward();
+        enemy_drop.gold = GameFormulas::npc_gold_reward(balance, get_hp_max(), rng);
     } else if (r < drop_config.gold_chance + drop_config.potion_chance) {
         enemy_drop.is_potion = true;
         const Item* potion = catalog.find(rng.get_random_int(1, 2) == 1 ? ItemType::MANA_POTION :
@@ -28,8 +30,3 @@ EnemyDrop EnemyNpc::get_kill_reward(const NpcDropConfig& drop_config) {
 }
 
 uint32_t EnemyNpc::get_damage() const { return damage; }
-
-uint32_t EnemyNpc::get_gold_reward() {
-    double random_number = rng.get_random_double(0.01, 0.2);
-    return random_number * get_hp_max();
-}

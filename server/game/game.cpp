@@ -1,5 +1,7 @@
 #include "game.h"
 
+#include "game_formulas.h"
+
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -62,7 +64,8 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         item_catalog(config.item_catalog),
         rng(),
         combat_controller(config.attack, players, config.item_catalog, enemy_npcs,
-                          config.balance.npc_drop, config.balance.npc_drop_dungeon),
+                          config.balance.npc_drop, config.balance.npc_drop_dungeon,
+                          config.balance),
         tick_rate_hz(config.tick_rate_hz),
         cheats_enabled(config.cheats_enabled),
         help_lines(config.help_lines) {
@@ -416,10 +419,12 @@ CommandResult Game::spawn_mobs() {
 EnemyNpc Game::create_random_npc(Position pos, uint8_t level, bool dungeon) {
     const std::vector<NpcTemplate>& pool = dungeon ? dungeon_npc_templates : world_npc_templates;
     if (pool.empty())
-        return EnemyNpc(pos, 100 * level, 5 * level, rng, item_catalog, level, "NPC");
+        return EnemyNpc(pos, GameFormulas::npc_hp(100, level),
+                        GameFormulas::npc_damage(5, level), rng, item_catalog, level, "NPC");
     int roll = rng.get_random_int(0, static_cast<int>(pool.size()) - 1);
     const NpcTemplate& t = pool[roll];
-    return EnemyNpc(pos, t.base_hp * level, t.base_damage * level, rng, item_catalog, level, t.name,
+    return EnemyNpc(pos, GameFormulas::npc_hp(t.base_hp, level),
+                    GameFormulas::npc_damage(t.base_damage, level), rng, item_catalog, level, t.name,
                     t.sprite_id, t.speed);
 }
 

@@ -20,7 +20,8 @@ class CombatController {
 public:
     CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
                      const ItemCatalog& catalog, std::map<uint16_t, EnemyNpc>& enemy_npcs,
-                     const NpcDropConfig& drop_config, const NpcDropConfig& drop_config_dungeon);
+                     const NpcDropConfig& drop_config, const NpcDropConfig& drop_config_dungeon,
+                     const BalanceConfig& balance);
 
     void set_clan_manager(ClanManager& mgr);
     CommandResult melee_attack(uint16_t attacker_id, uint16_t target_id, uint32_t current_tick);
@@ -66,6 +67,7 @@ private:
                                    uint32_t current_tick);
 
     const AttackConfig& config;
+    const BalanceConfig& balance;
     std::map<uint16_t, Player>& players;
     ClanManager* clan_manager = nullptr;
     const ItemCatalog& item_catalog_;

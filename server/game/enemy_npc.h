@@ -23,13 +23,11 @@ private:
     Rng& rng;
     const ItemCatalog& catalog;
 
-    uint32_t get_gold_reward();
-
 public:
     EnemyNpc(Position position, uint32_t hp_max, uint32_t damage, Rng& rng,
              const ItemCatalog& catalog, uint8_t level, const std::string& name,
              uint16_t sprite_id = 0, uint32_t speed = 2);
-    EnemyDrop get_kill_reward(const NpcDropConfig& drop_config);
+    EnemyDrop get_kill_reward(const NpcDropConfig& drop_config, const BalanceConfig& balance);
     uint32_t get_damage() const;
 };
 

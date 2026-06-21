@@ -5,6 +5,8 @@
 #include <cstring>
 #include <vector>
 
+#include "game_formulas.h"
+
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
                PlayerClass player_class, const BalanceConfig& balance, uint8_t equip_capacity,
                uint8_t hp_potion_capacity, uint8_t mana_potion_capacity, uint8_t bank_capacity):
@@ -71,17 +73,17 @@ void Player::apply_move(Direction new_dir, int dx, int dy) {
     set_pos(pos_x, pos_y);
 }
 
-void Player::lose_experience_on_death() { experience = experience * 0.9; }
+void Player::lose_experience_on_death() {
+    experience = GameFormulas::experience_loss_on_death(balance, experience);
+}
 
 void Player::gain_experience(uint32_t exp) {
     experience += exp;
-    uint32_t threshold = static_cast<uint32_t>(balance.level_exp_base *
-                                               std::pow(get_level(), balance.level_exp_exponent));
+    uint32_t threshold = GameFormulas::exp_threshold(balance, get_level());
     while (experience >= threshold && get_level() < balance.max_level) {
         experience -= threshold;
         level_up();
-        threshold = static_cast<uint32_t>(balance.level_exp_base *
-                                          std::pow(get_level(), balance.level_exp_exponent));
+        threshold = GameFormulas::exp_threshold(balance, get_level());
     }
 }
 
@@ -92,7 +94,7 @@ void Player::level_up() {
     mana_max = stats_updated.mana_max;
     strength = stats_updated.strength;
     agility = stats_updated.agility;
-    gain_gold(static_cast<uint32_t>(balance.gold_per_level * get_level()));
+    gain_gold(GameFormulas::level_up_gold(balance.gold_per_level, get_level()));
     set_hp_current(get_hp_max());
     mana_current = mana_max;
 }
@@ -114,8 +116,7 @@ void Player::heal(uint32_t amount) {
 }
 
 void Player::gain_gold(uint32_t amount) {
-    uint64_t max_gold = static_cast<uint64_t>(balance.gold_cap_base *
-                                              std::pow(get_level(), balance.gold_cap_exponent));
+    uint64_t max_gold = GameFormulas::gold_cap(balance, get_level());
     // Players can hold up to 150% of OroMax; the excess 50% is "at risk" on death
     uint64_t hard_cap = max_gold + max_gold / 2;
     uint64_t total = static_cast<uint64_t>(gold) + amount;
@@ -158,8 +159,7 @@ void Player::spend_gold(uint32_t amount) {
 }
 
 uint32_t Player::take_excess_gold() {
-    uint32_t oro_max = static_cast<uint32_t>(balance.gold_cap_base *
-                                             std::pow(get_level(), balance.gold_cap_exponent));
+    uint32_t oro_max = GameFormulas::gold_cap(balance, get_level());
     if (gold <= oro_max)
         return 0;
     uint32_t excess = gold - oro_max;
@@ -181,92 +181,16 @@ void Player::level_down() {
 }
 
 UpdateStats Player::update_stats() const {
-    int constitution = 0;
-    double f_hp_race = 0.0;
-    int intelligence = 0;
-    double f_mana_race = 0.0;
-    double f_strength_race = 0.0;
-    double f_agility_race = 0.0;
-    switch (race) {
-        case Race::HUMAN:
-            constitution = balance.hp.constitution_human;
-            f_hp_race = balance.hp.race_hp_factor_human;
-            intelligence = balance.mana.intelligence_human;
-            f_mana_race = balance.mana.race_mana_factor_human;
-            f_strength_race = balance.strength.race_strength_factor_human;
-            f_agility_race = balance.agility.race_agility_factor_human;
-            break;
-        case Race::ELF:
-            constitution = balance.hp.constitution_elf;
-            f_hp_race = balance.hp.race_hp_factor_elf;
-            intelligence = balance.mana.intelligence_elf;
-            f_mana_race = balance.mana.race_mana_factor_elf;
-            f_strength_race = balance.strength.race_strength_factor_elf;
-            f_agility_race = balance.agility.race_agility_factor_elf;
-            break;
-        case Race::DWARF:
-            constitution = balance.hp.constitution_dwarf;
-            f_hp_race = balance.hp.race_hp_factor_dwarf;
-            intelligence = balance.mana.intelligence_dwarf;
-            f_mana_race = balance.mana.race_mana_factor_dwarf;
-            f_strength_race = balance.strength.race_strength_factor_dwarf;
-            f_agility_race = balance.agility.race_agility_factor_dwarf;
-            break;
-        case Race::GNOME:
-            constitution = balance.hp.constitution_gnome;
-            f_hp_race = balance.hp.race_hp_factor_gnome;
-            intelligence = balance.mana.intelligence_gnome;
-            f_mana_race = balance.mana.race_mana_factor_gnome;
-            f_strength_race = balance.strength.race_strength_factor_gnome;
-            f_agility_race = balance.agility.race_agility_factor_gnome;
-            break;
-    }
-
-    double f_hp_class = 0.0;
-    double f_mana_class = 0.0;
-    double f_strength_class = 0.0;
-    double f_agility_class = 0.0;
-    switch (player_class) {
-        case PlayerClass::WARRIOR:
-            f_hp_class = balance.hp.class_hp_factor_warrior;
-            f_mana_class = balance.mana.class_mana_factor_warrior;
-            f_strength_class = balance.strength.class_strength_factor_warrior;
-            f_agility_class = balance.agility.class_agility_factor_warrior;
-            break;
-        case PlayerClass::PALADIN:
-            f_hp_class = balance.hp.class_hp_factor_paladin;
-            f_mana_class = balance.mana.class_mana_factor_paladin;
-            f_strength_class = balance.strength.class_strength_factor_paladin;
-            f_agility_class = balance.agility.class_agility_factor_paladin;
-            break;
-        case PlayerClass::CLERIC:
-            f_hp_class = balance.hp.class_hp_factor_cleric;
-            f_mana_class = balance.mana.class_mana_factor_cleric;
-            f_strength_class = balance.strength.class_strength_factor_cleric;
-            f_agility_class = balance.agility.class_agility_factor_cleric;
-            break;
-        case PlayerClass::MAGE:
-            f_hp_class = balance.hp.class_hp_factor_mage;
-            f_mana_class = balance.mana.class_mana_factor_mage;
-            f_strength_class = balance.strength.class_strength_factor_mage;
-            f_agility_class = balance.agility.class_agility_factor_mage;
-            break;
-    }
-
     UpdateStats stats_updated;
-    stats_updated.hp_max =
-            static_cast<uint32_t>(constitution * f_hp_race * f_hp_class * get_level());
-    stats_updated.mana_max =
-            static_cast<uint32_t>(intelligence * f_mana_race * f_mana_class * get_level());
-    stats_updated.strength =
-            static_cast<uint32_t>(std::ceil(f_strength_race * f_strength_class * get_level()));
-    stats_updated.agility = static_cast<uint32_t>(std::ceil(f_agility_race * f_agility_class * get_level()));
+    stats_updated.hp_max = GameFormulas::max_hp(balance, race, player_class, get_level());
+    stats_updated.mana_max = GameFormulas::max_mana(balance, race, player_class, get_level());
+    stats_updated.strength = GameFormulas::strength(balance, race, player_class, get_level());
+    stats_updated.agility = GameFormulas::agility(balance, race, player_class, get_level());
     return stats_updated;
 }
 
 uint32_t Player::exp_to_next_level() const {
-    return static_cast<uint32_t>(balance.level_exp_base *
-                                 std::pow(get_level(), balance.level_exp_exponent));
+    return GameFormulas::exp_threshold(balance, get_level());
 }
 
 bool Player::equip(uint8_t inv_slot_index, const ItemCatalog& catalog) {

@@ -6,13 +6,16 @@
 #include <vector>
 
 #include "clan_manager.h"
+#include "game_formulas.h"
 
 CombatController::CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
-                                   const ItemCatalog& catalog,
-                                   std::map<uint16_t, EnemyNpc>& enemy_npcs,
-                                   const NpcDropConfig& drop_config,
-                                   const NpcDropConfig& drop_config_dungeon):
+                                    const ItemCatalog& catalog,
+                                    std::map<uint16_t, EnemyNpc>& enemy_npcs,
+                                    const NpcDropConfig& drop_config,
+                                    const NpcDropConfig& drop_config_dungeon,
+                                    const BalanceConfig& balance):
         config(config),
+        balance(balance),
         players(players),
         item_catalog_(catalog),
         enemy_npcs(enemy_npcs),
@@ -91,7 +94,7 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
     if (is_critical_attack(attacker)) {
         damage *= 2;
     } else {
-        esquivado = pow(rng.get_random_double(0, 1), target.get_agility()) < 0.001;
+        esquivado = GameFormulas::is_dodged(config, target.get_agility(), rng);
         if (esquivado)
             damage = 0;
     }
@@ -100,9 +103,8 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
     damage = damage > defense ? (damage - defense) : 0;
 
     target.take_damage(damage);
-    attacker.gain_experience(damage * std::max(static_cast<int>(target.get_level()) -
-                                                       static_cast<int>(attacker.get_level()) + 10,
-                                               0));
+    attacker.gain_experience(GameFormulas::attack_experience(damage, attacker.get_level(),
+                                                             target.get_level()));
 
     CommandResult result =
             notify_entity_attacked(attacker, target_id, damage, target.get_hp_current(),
@@ -178,9 +180,8 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
     }
 
     npc_target.take_damage(damage);
-    attacker.gain_experience(damage * std::max(static_cast<int>(npc_target.get_level()) -
-                                                       static_cast<int>(attacker.get_level()) + 10,
-                                               0));
+    attacker.gain_experience(GameFormulas::attack_experience(damage, attacker.get_level(),
+                                                             npc_target.get_level()));
 
     bool esquivado_npc = false;
     CommandResult result = notify_entity_attacked(
@@ -188,7 +189,7 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
             npc_target.get_name(), "", npc_target.is_dead(), npc_target.get_level(), esquivado_npc);
 
     if (npc_target.is_dead()) {
-        EnemyDrop drop = npc_target.get_kill_reward(drop_config_for(npc_target));
+        EnemyDrop drop = npc_target.get_kill_reward(drop_config_for(npc_target), balance);
         if (drop.gold > 0) {
             attacker.gain_gold(drop.gold);
             result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
@@ -196,7 +197,8 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
         if (drop.item.has_value()) {
             const Item& item = drop.item.value();
             if (attacker.add_item(item.type, item.name)) {
-                result.private_events.push_back(InventoryUpdateEvent{attacker.dump_inventory()});
+                result.private_events.push_back(
+                        InventoryUpdateEvent{attacker.dump_inventory()});
             } else {
                 result.private_events.push_back(
                         ChatMsgEvent{ChatMsgType::SYSTEM, "",
@@ -260,7 +262,7 @@ CommandResult CombatController::spell_attack_player(uint16_t attacker_id, uint16
     if (is_critical_attack(attacker)) {
         damage *= 2;
     } else {
-        esquivado = pow(rng.get_random_double(0, 1), target.get_agility()) < 0.001;
+        esquivado = GameFormulas::is_dodged(config, target.get_agility(), rng);
         if (esquivado)
             damage = 0;
     }
@@ -269,9 +271,8 @@ CommandResult CombatController::spell_attack_player(uint16_t attacker_id, uint16
     damage = damage > defense ? (damage - defense) : 0;
 
     target.take_damage(damage);
-    attacker.gain_experience(damage * std::max(static_cast<int>(target.get_level()) -
-                                                       static_cast<int>(attacker.get_level()) + 10,
-                                               0));
+    attacker.gain_experience(GameFormulas::attack_experience(damage, attacker.get_level(),
+                                                             target.get_level()));
 
     CommandResult result =
             notify_entity_attacked(attacker, target_id, damage, target.get_hp_current(),
@@ -329,16 +330,15 @@ CommandResult CombatController::spell_attack_npc(uint16_t attacker_id, uint16_t 
     }
 
     npc_target.take_damage(damage);
-    attacker.gain_experience(damage * std::max(static_cast<int>(npc_target.get_level()) -
-                                                       static_cast<int>(attacker.get_level()) + 10,
-                                               0));
+    attacker.gain_experience(GameFormulas::attack_experience(damage, attacker.get_level(),
+                                                             npc_target.get_level()));
 
     CommandResult result = notify_entity_attacked(
             attacker, npc_target_id, damage, npc_target.get_hp_current(), npc_target.get_hp_max(),
             npc_target.get_name(), "", npc_target.is_dead(), npc_target.get_level(), false);
 
     if (npc_target.is_dead()) {
-        EnemyDrop drop = npc_target.get_kill_reward(drop_config_for(npc_target));
+        EnemyDrop drop = npc_target.get_kill_reward(drop_config_for(npc_target), balance);
         if (drop.gold > 0) {
             attacker.gain_gold(drop.gold);
             result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
@@ -478,7 +478,7 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
             continue;
 
         uint16_t target_id = target->get_id();
-        bool esquivado = pow(rng.get_random_double(0, 1), target->get_agility()) < 0.001;
+        bool esquivado = GameFormulas::is_dodged(config, target->get_agility(), rng);
 
         if (esquivado) {
             AttackDodgedEvent dodged{target_id};
@@ -532,20 +532,11 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
 }
 
 bool CombatController::is_critical_attack(const Player& attacker) {
-    double critic_probability = attacker.get_strength() * config.critical_chance * 100;
-    double random_number = rng.get_random_double(0, 99);
-
-    if (random_number < critic_probability)
-        return true;
-    return false;
+    return GameFormulas::is_critical(config, attacker.get_strength(), rng);
 }
 
 uint8_t CombatController::crit_chance_for(const Player& p) const {
-    double threshold = p.get_strength() * config.critical_chance * 100.0;
-    double actual_pct = (threshold / 99.0) * 100.0;
-    if (actual_pct > 100.0)
-        return 100;
-    return static_cast<uint8_t>(std::round(actual_pct));
+    return GameFormulas::crit_chance_percent(config, p.get_strength());
 }
 
 std::pair<uint16_t, uint16_t> CombatController::unarmed_damage_range() const {
@@ -554,11 +545,7 @@ std::pair<uint16_t, uint16_t> CombatController::unarmed_damage_range() const {
 }
 
 uint8_t CombatController::dodge_chance_for(const Player& p) const {
-    uint32_t agility = p.get_agility();
-    if (agility == 0)
-        return 0;
-    double pct = std::pow(0.001, 1.0 / static_cast<double>(agility)) * 100.0;
-    return static_cast<uint8_t>(std::round(pct));
+    return GameFormulas::dodge_chance_percent(config, p.get_agility());
 }
 
 void CombatController::fill_player_stats_event(PlayerStatsEvent& ev, const Player& p) const {
@@ -624,15 +611,12 @@ uint32_t CombatController::calculate_damage(const Player& attacker) {
         weapon = item_catalog_.find(weapon_slot.item_type);
     uint32_t base;
     if (weapon && weapon->max_damage > 0) {
-        int roll = rng.get_random_int(weapon->min_damage, weapon->max_damage);
-        base = attacker.get_strength() * static_cast<uint32_t>(roll);
+        base = GameFormulas::weapon_damage(attacker.get_strength(), weapon->min_damage,
+                                           weapon->max_damage, rng);
     } else {
-        int variance =
-                config.damage_variance > 0 ? rng.get_random_int(0, config.damage_variance) : 0;
-        base = static_cast<uint32_t>(config.base_damage + variance);
+        base = GameFormulas::unarmed_damage(config, rng);
     }
-    double bonus = get_clan_bonus(attacker);
-    return static_cast<uint32_t>(std::round(base * (1.0 + bonus)));
+    return GameFormulas::apply_clan_bonus(base, get_clan_bonus(attacker));
 }
 
 uint32_t CombatController::calculate_defense(const Player& target) {
@@ -642,18 +626,14 @@ uint32_t CombatController::calculate_defense(const Player& target) {
 
     uint32_t base = calculate_object_defense(armor_slot) + calculate_object_defense(shield_slot) +
                     calculate_object_defense(helmet_slot);
-    double bonus = get_clan_bonus(target);
-    return static_cast<uint32_t>(std::round(base * (1.0 + bonus)));
+    return GameFormulas::apply_clan_bonus(base, get_clan_bonus(target));
 }
 
 uint32_t CombatController::calculate_object_defense(const InventorySlot& object_slot) {
-    uint32_t object_defense = 0;
-    if (object_slot.item_type != ItemType::NONE) {
-        const Item* object = item_catalog_.find(object_slot.item_type);
-        int defense = rng.get_random_int(object->min_defense, object->max_defense);
-        object_defense = static_cast<uint32_t>(defense);
-    }
-    return object_defense;
+    if (object_slot.item_type == ItemType::NONE)
+        return 0;
+    const Item* object = item_catalog_.find(object_slot.item_type);
+    return GameFormulas::object_defense(object->min_defense, object->max_defense, rng);
 }
 
 int CombatController::count_nearby_clan_members(const Player& player) const {
@@ -681,7 +661,7 @@ double CombatController::get_clan_bonus(const Player& player) const {
     if (!clan_manager || player.get_clan_name().empty())
         return 0;
     int nearby_allies = count_nearby_clan_members(player);
-    return std::min(config.clan_bonus_per_member * nearby_allies, config.clan_bonus_max);
+    return GameFormulas::clan_bonus(config, nearby_allies);
 }
 
 CommandResult CombatController::notify_entity_attacked(
@@ -712,11 +692,9 @@ CommandResult CombatController::notify_entity_attacked(
             broadcast.push_back(ChatMsgEvent{ChatMsgType::SYSTEM, "",
                                              attacker.get_name() + " mato a " + target_name});
 
-            double random_double = rng.get_random_double(0, 0.1);
-            attacker.gain_experience(random_double * target_hp_max *
-                                     std::max(static_cast<int>(target_level) -
-                                                      static_cast<int>(attacker.get_level()) + 10,
-                                              0));
+            attacker.gain_experience(
+                    GameFormulas::bonus_kill_experience(balance, target_hp_max,
+                                                        attacker.get_level(), target_level, rng));
         }
     }
 
