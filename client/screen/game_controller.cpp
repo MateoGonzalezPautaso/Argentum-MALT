@@ -185,6 +185,48 @@ void GameController::handle_entity_move(const EntityMoveEvent& e) {
                                      move_config.walk_src_frames_for(e.entity_dir));
 }
 
+void GameController::apply_equipment_overlays(uint16_t entity_id, bool is_local,
+                                              const ItemType equipped_types[EQUIP_SLOT_COUNT]) {
+    static constexpr uint8_t overlay_slots[] = {
+            static_cast<uint8_t>(EquipSlot::WEAPON),
+            static_cast<uint8_t>(EquipSlot::HELMET),
+            static_cast<uint8_t>(EquipSlot::SHIELD),
+    };
+
+    for (uint8_t slot : overlay_slots) {
+        ItemType type = equipped_types[slot];
+        auto it = config.equip_overlays.find(static_cast<uint8_t>(type));
+        if (type == ItemType::NONE || it == config.equip_overlays.end()) {
+            if (is_local)
+                world_renderer.clear_equipment_overlay(slot);
+            else
+                world_renderer.clear_entity_equipment_overlay(entity_id, slot);
+        } else {
+            if (is_local)
+                world_renderer.update_equipment_overlay(slot, it->second.path, it->second.offset_y,
+                                                        it->second.static_frame);
+            else
+                world_renderer.update_entity_equipment_overlay(entity_id, slot, it->second.path,
+                                                               it->second.offset_y,
+                                                               it->second.static_frame);
+        }
+    }
+
+    ItemType armor_type = equipped_types[static_cast<uint8_t>(EquipSlot::ARMOR)];
+    auto armor_it = config.equip_overlays.find(static_cast<uint8_t>(armor_type));
+    if (armor_type == ItemType::NONE || armor_it == config.equip_overlays.end()) {
+        if (is_local)
+            world_renderer.reset_body_sprite();
+        else
+            world_renderer.reset_entity_body_sprite(entity_id);
+    } else {
+        if (is_local)
+            world_renderer.set_body_sprite(armor_it->second.path);
+        else
+            world_renderer.set_entity_body_sprite(entity_id, armor_it->second.path);
+    }
+}
+
 void GameController::handle_entity_spawn(const EntitySpawnEvent& e) {
     if (e.entity_id == player_stats.player_id) {
         move_controller.set_position(e.entity_pos.x, e.entity_pos.y);
@@ -199,40 +241,9 @@ void GameController::handle_entity_spawn(const EntitySpawnEvent& e) {
                                     move_config.head_src_y_for(e.entity_dir));
 
     if (e.entity_type != EntityType::NPC) {
-        static constexpr uint8_t overlay_slots[] = {
-                static_cast<uint8_t>(EquipSlot::WEAPON),
-                static_cast<uint8_t>(EquipSlot::HELMET),
-                static_cast<uint8_t>(EquipSlot::SHIELD),
-        };
-        const ItemType equipped_types[EQUIP_SLOT_COUNT] = {e.weapon_type, e.armor_type, e.helmet_type,
-                                                           e.shield_type};
-        for (uint8_t slot: overlay_slots) {
-            ItemType type = equipped_types[slot];
-            if (type == ItemType::NONE) {
-                world_renderer.clear_entity_equipment_overlay(e.entity_id, slot);
-                continue;
-            }
-            auto it = config.equip_overlays.find(static_cast<uint8_t>(type));
-            if (it != config.equip_overlays.end()) {
-                world_renderer.update_entity_equipment_overlay(e.entity_id, slot, it->second.path,
-                                                               it->second.offset_y,
-                                                               it->second.static_frame);
-            } else {
-                world_renderer.clear_entity_equipment_overlay(e.entity_id, slot);
-            }
-        }
-
-        ItemType armor_type = e.armor_type;
-        if (armor_type == ItemType::NONE) {
-            world_renderer.reset_entity_body_sprite(e.entity_id);
-        } else {
-            auto it = config.equip_overlays.find(static_cast<uint8_t>(armor_type));
-            if (it != config.equip_overlays.end()) {
-                world_renderer.set_entity_body_sprite(e.entity_id, it->second.path);
-            } else {
-                world_renderer.reset_entity_body_sprite(e.entity_id);
-            }
-        }
+        const ItemType equipped_types[EQUIP_SLOT_COUNT] = {e.weapon_type, e.armor_type,
+                                                           e.helmet_type, e.shield_type};
+        apply_equipment_overlays(e.entity_id, false, equipped_types);
     }
 }
 
@@ -377,13 +388,6 @@ void GameController::handle_inventory_update(const InventoryUpdateEvent& e) {
 }
 
 void GameController::handle_equip_update(const EquipUpdateEvent& e) {
-    static constexpr uint8_t overlay_slots[] = {
-            static_cast<uint8_t>(EquipSlot::WEAPON),
-            static_cast<uint8_t>(EquipSlot::HELMET),
-            static_cast<uint8_t>(EquipSlot::SHIELD),
-    };
-
-    InventorySlot equipped[EQUIP_SLOT_COUNT] = {e.weapon, e.armor, e.helmet, e.shield};
     const bool is_local = (e.entity_id == player_stats.player_id);
 
     if (is_local) {
@@ -393,53 +397,9 @@ void GameController::handle_equip_update(const EquipUpdateEvent& e) {
         player_stats.equipped[3] = e.shield;
     }
 
-    for (uint8_t slot: overlay_slots) {
-        ItemType type = equipped[slot].item_type;
-        if (type == ItemType::NONE) {
-            if (is_local)
-                world_renderer.clear_equipment_overlay(slot);
-            else
-                world_renderer.clear_entity_equipment_overlay(e.entity_id, slot);
-        } else {
-            auto it = config.equip_overlays.find(static_cast<uint8_t>(type));
-            if (it != config.equip_overlays.end()) {
-                if (is_local) {
-                    world_renderer.update_equipment_overlay(
-                            slot, it->second.path, it->second.offset_y, it->second.static_frame);
-                } else {
-                    world_renderer.update_entity_equipment_overlay(
-                            e.entity_id, slot, it->second.path, it->second.offset_y,
-                            it->second.static_frame);
-                }
-            } else {
-                if (is_local)
-                    world_renderer.clear_equipment_overlay(slot);
-                else
-                    world_renderer.clear_entity_equipment_overlay(e.entity_id, slot);
-            }
-        }
-    }
-
-    ItemType armor_type = equipped[static_cast<uint8_t>(EquipSlot::ARMOR)].item_type;
-    if (armor_type == ItemType::NONE) {
-        if (is_local)
-            world_renderer.reset_body_sprite();
-        else
-            world_renderer.reset_entity_body_sprite(e.entity_id);
-    } else {
-        auto it = config.equip_overlays.find(static_cast<uint8_t>(armor_type));
-        if (it != config.equip_overlays.end()) {
-            if (is_local)
-                world_renderer.set_body_sprite(it->second.path);
-            else
-                world_renderer.set_entity_body_sprite(e.entity_id, it->second.path);
-        } else {
-            if (is_local)
-                world_renderer.reset_body_sprite();
-            else
-                world_renderer.reset_entity_body_sprite(e.entity_id);
-        }
-    }
+    const ItemType equipped_types[EQUIP_SLOT_COUNT] = {e.weapon.item_type, e.armor.item_type,
+                                                       e.helmet.item_type, e.shield.item_type};
+    apply_equipment_overlays(e.entity_id, is_local, equipped_types);
 }
 
 void GameController::handle_entity_died(const EntityDiedEvent& e) {

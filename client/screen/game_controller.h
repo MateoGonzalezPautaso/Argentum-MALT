@@ -84,6 +84,8 @@ private:
     void handle_player_stats(const PlayerStatsEvent& e);
     void handle_bank_update(const BankUpdateEvent& e);
     void play_spatial_sfx(const std::string& name, uint16_t entity_id);
+    void apply_equipment_overlays(uint16_t entity_id, bool is_local,
+                                  const ItemType equipped_types[EQUIP_SLOT_COUNT]);
 };
 
 #endif
