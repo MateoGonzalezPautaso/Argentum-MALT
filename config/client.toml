@@ -1,6 +1,5 @@
 [network]
 host = "127.0.0.1"
-port = "1234"
 
 [window]
 width = 1024
@@ -31,8 +30,6 @@ field_size = 18
 title_size = 28
 
 [ui]
-window_w = 1024
-window_h = 768
 placeholder_username = "Username"
 placeholder_password = "Password"
 title_text = "Sign in"
@@ -201,7 +198,6 @@ list_h = 263
 row_h  = 20
 price_offset_x = 335
 sell_price_offset_x = 460
-sell_price_ratio = 0.5
 
 [ui.merchant.buy]
 x = 55
@@ -304,7 +300,6 @@ visible = true
   4582 = { path = "assets/Graficos/4582.png", frame_w = 127, frame_h = 152, walk_row_offset = 0, row_positions = [16, 167, 333, 493], frame_positions = [29, 176, 338, 507, 677, 835], speed = 1 }
 
 [movement]
-move_step = 8
 walk_src_step = 27
 walk_src_frames = 6
 walk_src_frames_down = 6

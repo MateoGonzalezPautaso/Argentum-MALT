@@ -6,6 +6,22 @@
 
 #include <toml++/toml.h>
 
+SharedConfig load_shared_config(const std::string& path) {
+    toml::table root = toml::parse_file(path);
+    SharedConfig config;
+    if (auto net = root["network"].as_table()) {
+        config.port = static_cast<uint16_t>(toml_get_int(*net, "port", config.port));
+    }
+    if (auto movement = root["movement"].as_table()) {
+        config.move_step = toml_get_int(*movement, "move_step", config.move_step);
+    }
+    if (auto merchant = root["merchant"].as_table()) {
+        config.merchant_sell_price_ratio =
+                toml_get_double(*merchant, "sell_price_ratio", config.merchant_sell_price_ratio);
+    }
+    return config;
+}
+
 int toml_get_int(const toml::table& tbl, const char* key, int fallback) {
     if (auto node = tbl.get(key)) {
         if (auto value = node->value<int>()) {

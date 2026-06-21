@@ -37,13 +37,14 @@ ServerConfig load_server_config(const std::string& path) {
     config.npc_templates = load_npc_templates("config/npcs.toml");
 
     if (auto server = root["server"].as_table()) {
-        config.port =
-                static_cast<uint16_t>(toml_get_int(*server, "port", static_cast<int>(config.port)));
         config.tick_rate_hz = toml_get_int(*server, "tick_rate_hz", config.tick_rate_hz);
         config.save_interval_seconds =
                 toml_get_int(*server, "save_interval_seconds", config.save_interval_seconds);
         config.cheats_enabled = toml_get_bool(*server, "cheats_enabled", config.cheats_enabled);
     }
+
+    SharedConfig shared = load_shared_config("config/common.toml");
+    config.port = shared.port;
 
     config.tilemap_configs = load_all_map_configs("config/map_list.toml");
 
@@ -58,9 +59,7 @@ ServerConfig load_server_config(const std::string& path) {
         config.tilemap = config.tilemap_configs.begin()->second;
     }
 
-    if (auto movement = root["movement"].as_table()) {
-        config.move_step = toml_get_int(*movement, "move_step", config.move_step);
-    }
+    config.move_step = shared.move_step;
 
     if (auto sprite = root["sprite"].as_table()) {
         config.sprite_width = toml_get_int(*sprite, "width", config.sprite_width);
@@ -89,6 +88,8 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*attack, "clan_bonus_max", config.attack.clan_bonus_max);
         config.attack.critical_chance =
                 toml_get_double(*attack, "critical_chance", config.attack.critical_chance);
+        config.attack.dodge_threshold =
+                toml_get_double(*attack, "dodge_threshold", config.attack.dodge_threshold);
         config.attack.spell_attack_range_px =
                 toml_get_int(*attack, "spell_attack_range_px", config.attack.spell_attack_range_px);
         config.attack.npc_vision_range_px = static_cast<uint32_t>(
@@ -153,6 +154,14 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_int(*balance, "gold_cap_base", config.balance.gold_cap_base);
         config.balance.gold_cap_exponent =
                 toml_get_double(*balance, "gold_cap_exponent", config.balance.gold_cap_exponent);
+        config.balance.exp_loss_on_death_ratio = toml_get_double(
+                *balance, "exp_loss_on_death_ratio", config.balance.exp_loss_on_death_ratio);
+        config.balance.npc_gold_reward_min_pct = toml_get_double(
+                *balance, "npc_gold_reward_min_pct", config.balance.npc_gold_reward_min_pct);
+        config.balance.npc_gold_reward_max_pct = toml_get_double(
+                *balance, "npc_gold_reward_max_pct", config.balance.npc_gold_reward_max_pct);
+        config.balance.extra_kill_exp_max_pct = toml_get_double(
+                *balance, "extra_kill_exp_max_pct", config.balance.extra_kill_exp_max_pct);
 
         if (auto drop = (*balance)["npc_drop"].as_table()) {
             config.balance.npc_drop.gold_chance =
@@ -332,9 +341,8 @@ ServerConfig load_server_config(const std::string& path) {
         config.balance.merchant.interaction_range_tiles =
                 toml_get_int(*merchant, "interaction_range_tiles",
                              config.balance.merchant.interaction_range_tiles);
-        config.balance.merchant.sell_price_ratio = toml_get_double(
-                *merchant, "sell_price_ratio", config.balance.merchant.sell_price_ratio);
     }
+    config.balance.merchant.sell_price_ratio = shared.merchant_sell_price_ratio;
 
     if (auto vendors = root["vendors"].as_table()) {
         for (const auto& [vendor_name, value]: *vendors) {

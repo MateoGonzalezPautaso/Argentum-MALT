@@ -1,10 +1,6 @@
 [server]
-port = 1234
 tick_rate_hz = 20
 cheats_enabled = true
-
-[movement]
-move_step = 8
 
 [sprite]
 width = 27
@@ -23,6 +19,7 @@ clan_bonus_range_px = 200
 clan_bonus_per_member = 0.05
 clan_bonus_max = 0.25
 critical_chance = 0.003
+dodge_threshold = 0.001
 npc_vision_range_px = 250
 npc_speed = 2
 
@@ -58,6 +55,10 @@ level_exp_base = 1000
 level_exp_exponent = 1.8
 gold_cap_base = 100
 gold_cap_exponent = 1.1
+exp_loss_on_death_ratio = 0.9
+npc_gold_reward_min_pct = 0.01
+npc_gold_reward_max_pct = 0.2
+extra_kill_exp_max_pct = 0.1
 
 [balance.npc_drop]
 gold_chance = 8.0
@@ -149,7 +150,6 @@ cleric = ["KNOTTED_STAFF"]
 
 [merchant]
 interaction_range_tiles = 3
-sell_price_ratio = 0.5
 
 [vendors]
 sacerdote = ["ASH_STAFF", "ELVEN_FLUTE", "KNOTTED_STAFF", "STUDDED_STAFF",

@@ -70,6 +70,14 @@ struct TilemapConfig {
     std::vector<std::vector<PropTransitionOverride>> prop_transition_overrides;
 };
 
+struct SharedConfig {
+    uint16_t port = 1234;
+    int move_step = 8;
+    double merchant_sell_price_ratio = 0.5;
+};
+
+SharedConfig load_shared_config(const std::string& path);
+
 int toml_get_int(const toml::table& tbl, const char* key, int fallback);
 uint32_t toml_get_uint32(const toml::table& tbl, const char* key, uint32_t fallback);
 bool toml_get_bool(const toml::table& tbl, const char* key, bool fallback);

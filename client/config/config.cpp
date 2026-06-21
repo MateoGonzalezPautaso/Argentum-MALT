@@ -30,7 +30,6 @@ std::vector<std::string> parse_paths(const toml::table& tbl) {
 void parse_network_config(const toml::table& root, ClientConfig& config) {
     if (auto tbl = root["network"].as_table()) {
         config.network.host = toml_get_string(*tbl, "host", config.network.host);
-        config.network.port = toml_get_string(*tbl, "port", config.network.port);
     }
 }
 
@@ -148,8 +147,6 @@ void parse_stat_bar(const toml::table& tbl, const char* key, StatBarConfig& bar)
 
 void parse_ui_config(const toml::table& root, ClientConfig& config) {
     if (auto tbl = root["ui"].as_table()) {
-        config.ui.window_w = toml_get_int(*tbl, "window_w", config.ui.window_w);
-        config.ui.window_h = toml_get_int(*tbl, "window_h", config.ui.window_h);
         config.ui.placeholder_username =
                 toml_get_string(*tbl, "placeholder_username", config.ui.placeholder_username);
         config.ui.placeholder_password =
@@ -276,8 +273,6 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
             m.price_offset_x = toml_get_int(*merchant_tbl, "price_offset_x", m.price_offset_x);
             m.sell_price_offset_x =
                     toml_get_int(*merchant_tbl, "sell_price_offset_x", m.sell_price_offset_x);
-            m.sell_price_ratio =
-                    toml_get_double(*merchant_tbl, "sell_price_ratio", m.sell_price_ratio);
         }
     }
 
@@ -417,7 +412,6 @@ void parse_skin_config(const toml::table& root, ClientConfig& config) {
 
 void parse_movement_config(const toml::table& root, ClientConfig& config) {
     if (auto movement = root["movement"].as_table()) {
-        config.move_step = toml_get_int(*movement, "move_step", config.move_step);
         config.walk_src_step = toml_get_int(*movement, "walk_src_step", config.walk_src_step);
         config.walk_src_frames = toml_get_int(*movement, "walk_src_frames", config.walk_src_frames);
         config.walk_src_frames_down =
@@ -620,6 +614,14 @@ ClientConfig load_client_config(const std::string& path) {
     } else if (!config.tilemap_configs.empty()) {
         config.tilemap = config.tilemap_configs.begin()->second;
     }
+
+    SharedConfig shared = load_shared_config("config/common.toml");
+    config.network.port = std::to_string(shared.port);
+    config.move_step = shared.move_step;
+    config.ui.merchant.sell_price_ratio = shared.merchant_sell_price_ratio;
+
+    config.ui.window_w = config.viewport.logical_w;
+    config.ui.window_h = config.viewport.logical_h;
 
     return config;
 }
