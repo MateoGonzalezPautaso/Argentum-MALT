@@ -479,6 +479,10 @@ bool GameController::handle_event(const SDL_Event& event) {
 
     if (chat_input.consume_event(event)) {
         flush_pending_chat();
+        if (chat_expanded_ && !chat_input.is_focused()) {
+            chat_expanded_ = false;
+            ui_renderer.set_chat_expanded(false);
+        }
         return true;
     }
 
@@ -527,7 +531,12 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
         return true;
     }
 
+    const bool was_focused = chat_input.is_focused();
     chat_input.set_focus(ui_renderer.is_chat_input_hit(event.button.x, event.button.y));
+    if (was_focused && !chat_input.is_focused() && chat_expanded_) {
+        chat_expanded_ = false;
+        ui_renderer.set_chat_expanded(false);
+    }
 
     if (chat_input.is_focused()) {
         return true;
