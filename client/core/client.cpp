@@ -122,7 +122,9 @@ void Client::shutdown() {
     sender.join();
 
     try {
-        protocol.shutdown();
+        // Called from the main thread to unblock Receiver's recv_event(),
+        // not from Receiver's own thread, so it must not touch stream_status
+        protocol.shutdown_from_other_thread();
     } catch (...) {}
     receiver.join();
 }

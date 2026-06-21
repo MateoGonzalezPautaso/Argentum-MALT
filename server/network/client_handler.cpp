@@ -20,7 +20,9 @@ void ClientHandler::stop() {
     output_queue.close();
     try {
         // Shutdown the socket, unblocks Receiver if it's waiting on recv_command().
-        protocol.shutdown();
+        // Called from the GameLoop thread, not from Receiver/Sender's own thread,
+        // so it must not touch stream_status.
+        protocol.shutdown_from_other_thread();
     } catch (const std::exception&) {
         // Socket may already be closed if the client disconnected first.
     }
