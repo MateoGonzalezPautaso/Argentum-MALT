@@ -39,7 +39,12 @@ public:
     // Recompensas
     static uint32_t npc_gold_reward(const BalanceConfig& balance, uint32_t hp_max, Rng& rng);
     static uint32_t bonus_kill_experience(const BalanceConfig& balance, uint32_t target_hp_max,
-                                          int level_factor, Rng& rng);
+                                          uint8_t attacker_level, uint8_t target_level, Rng& rng);
+    static uint32_t level_up_gold(uint32_t gold_per_level, uint8_t level);
+
+    // NPC stat scaling: HP = HP_base * Nivel, Daño = Daño_base * Nivel
+    static uint32_t npc_hp(uint32_t base_hp, uint8_t level);
+    static uint32_t npc_damage(uint32_t base_damage, uint8_t level);
 
     // Experiencia de ataque: Daño * max(NivelDelOtro - Nivel + 10, 0)
     static uint32_t attack_experience(uint32_t damage, uint8_t attacker_level,

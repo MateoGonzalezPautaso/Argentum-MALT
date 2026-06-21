@@ -13,6 +13,7 @@ protected:
     std::map<uint16_t, EnemyNpc> enemy_npcs;
     AttackConfig config;
     ItemCatalog item_catalog;
+    BalanceConfig balance_config;
     std::optional<CombatController> controller;
 
     void SetUp() override {
@@ -22,7 +23,7 @@ protected:
         config.cooldown_ticks = 10;
         config.critical_chance = 0;
         controller.emplace(config, players, item_catalog, enemy_npcs, NpcDropConfig{},
-                           NpcDropConfig{});
+                           NpcDropConfig{}, balance_config);
     }
 
     Player& add_player(uint16_t id, const std::string& username, Position pos = {100, 100}) {
@@ -278,7 +279,8 @@ TEST_F(CombatControllerTest, WeaponEquipped_DamageUsesStrength) {
     sword.min_damage = 5;
     sword.max_damage = 5;
     item_catalog.add(sword);
-    controller.emplace(config, players, item_catalog, enemy_npcs, NpcDropConfig{}, NpcDropConfig{});
+    controller.emplace(config, players, item_catalog, enemy_npcs, NpcDropConfig{}, NpcDropConfig{},
+                       balance_config);
 
     auto& attacker = add_player(1, "alice");
     auto& target = add_player(2, "bob");

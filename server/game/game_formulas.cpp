@@ -168,9 +168,23 @@ uint32_t GameFormulas::npc_gold_reward(const BalanceConfig& balance, uint32_t hp
 }
 
 uint32_t GameFormulas::bonus_kill_experience(const BalanceConfig& balance,
-                                             uint32_t target_hp_max, int level_factor, Rng& rng) {
+                                             uint32_t target_hp_max, uint8_t attacker_level,
+                                             uint8_t target_level, Rng& rng) {
+    int level_factor = static_cast<int>(target_level) - static_cast<int>(attacker_level) + 10;
     double pct = rng.get_random_double(0, balance.extra_kill_exp_max_pct);
-    return static_cast<uint32_t>(pct * target_hp_max * level_factor);
+    return static_cast<uint32_t>(pct * target_hp_max * std::max(level_factor, 0));
+}
+
+uint32_t GameFormulas::level_up_gold(uint32_t gold_per_level, uint8_t level) {
+    return gold_per_level * level;
+}
+
+uint32_t GameFormulas::npc_hp(uint32_t base_hp, uint8_t level) {
+    return base_hp * level;
+}
+
+uint32_t GameFormulas::npc_damage(uint32_t base_damage, uint8_t level) {
+    return base_damage * level;
 }
 
 uint32_t GameFormulas::attack_experience(uint32_t damage, uint8_t attacker_level,
