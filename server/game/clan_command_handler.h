@@ -41,6 +41,11 @@ private:
     const std::unordered_map<std::string, uint16_t>& player_name_index_;
 
     std::optional<uint16_t> find_player_id_by_name(const std::string& name) const;
+    Player* require_player(uint16_t player_id);
+    CommandResult apply_removal(uint16_t player_id, const std::string& args,
+                                const std::string& usage_msg,
+                                ClanResult (ClanManager::*action)(const std::string&,
+                                                                   const std::string&));
 
     CommandResult handle_clan_chat(uint16_t player_id, const std::string& args);
     void send_clan_update(const std::string& clan_name,

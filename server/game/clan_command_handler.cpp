@@ -19,6 +19,42 @@ std::optional<uint16_t> ClanCommandHandler::find_player_id_by_name(const std::st
     return it->second;
 }
 
+Player* ClanCommandHandler::require_player(uint16_t player_id) {
+    auto it = players.find(player_id);
+    return it != players.end() ? &it->second : nullptr;
+}
+
+CommandResult ClanCommandHandler::apply_removal(
+        uint16_t player_id, const std::string& args, const std::string& usage_msg,
+        ClanResult (ClanManager::*action)(const std::string&, const std::string&)) {
+    if (args.empty())
+        return CommandResult::with_msg(usage_msg);
+
+    Player* player = require_player(player_id);
+    if (!player) return {};
+
+    const std::string& sender_name = player->get_name();
+    ClanResult result = (clan_manager.*action)(sender_name, args);
+
+    std::map<uint16_t, std::vector<ServerEvent>> targeted;
+    if (result.ok) {
+        std::string clan_name = clan_manager.get_clan_name(sender_name);
+        auto target_id_opt = find_player_id_by_name(args);
+        if (target_id_opt) {
+            uint16_t target_id = *target_id_opt;
+            auto pit = players.find(target_id);
+            if (pit != players.end())
+                pit->second.set_clan_name("");
+            targeted[target_id].push_back(
+                    ClanNotificationEvent{ClanNotifType::KICKED, args, clan_name});
+            send_empty_clan_update(target_id, targeted);
+        }
+        send_clan_update(clan_name, targeted);
+    }
+    ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
+    return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = std::move(targeted)};
+}
+
 std::optional<CommandResult> ClanCommandHandler::handle(uint16_t player_id,
                                                         const std::string& cmd_name,
                                                         const std::string& args) {
@@ -44,20 +80,20 @@ CommandResult ClanCommandHandler::handle_found_clan(uint16_t player_id, const st
     if (args.empty())
         return CommandResult::with_msg("Uso: /fundar-clan <nombre>");
 
-    auto it = players.find(player_id);
-    if (it == players.end())
-        return {};
+    Player* player = require_player(player_id);
+    if (!player) return {};
 
-    if (it->second.get_level() < clan_manager.min_level_found()) {
-        return CommandResult::with_msg("Necesitas nivel " + std::to_string(clan_manager.min_level_found()) +
-                          " para fundar un clan");
+    if (player->get_level() < clan_manager.min_level_found()) {
+        return CommandResult::with_msg("Necesitas nivel " +
+                                       std::to_string(clan_manager.min_level_found()) +
+                                       " para fundar un clan");
     }
 
-    const std::string& sender_name = it->second.get_name();
+    const std::string& sender_name = player->get_name();
     ClanResult result = clan_manager.create_clan(sender_name, args);
     CommandResult cmd_result = CommandResult::with_msg(result.error_msg);
     if (result.ok) {
-        it->second.set_clan_name(args);
+        player->set_clan_name(args);
         send_clan_update(args, cmd_result.targeted_events);
     }
     return cmd_result;
@@ -67,11 +103,10 @@ CommandResult ClanCommandHandler::handle_join_clan(uint16_t player_id, const std
     if (args.empty())
         return CommandResult::with_msg("Uso: /unirse <nombre del clan>");
 
-    auto it = players.find(player_id);
-    if (it == players.end())
-        return {};
+    Player* player = require_player(player_id);
+    if (!player) return {};
 
-    const std::string& sender_name = it->second.get_name();
+    const std::string& sender_name = player->get_name();
     ClanResult result = clan_manager.request_join(sender_name, args);
 
     std::map<uint16_t, std::vector<ServerEvent>> targeted;
@@ -91,11 +126,10 @@ CommandResult ClanCommandHandler::handle_join_clan(uint16_t player_id, const std
 }
 
 CommandResult ClanCommandHandler::handle_clan_status(uint16_t player_id) {
-    auto it = players.find(player_id);
-    if (it == players.end())
-        return {};
+    Player* player = require_player(player_id);
+    if (!player) return {};
 
-    const std::string& sender_name = it->second.get_name();
+    const std::string& sender_name = player->get_name();
     if (!clan_manager.is_in_clan(sender_name))
         return CommandResult::with_msg("No perteneces a ningun clan");
 
@@ -130,11 +164,10 @@ CommandResult ClanCommandHandler::handle_clan_accept(uint16_t player_id, const s
     if (args.empty())
         return CommandResult::with_msg("Uso: /clan-aceptar <nick>");
 
-    auto it = players.find(player_id);
-    if (it == players.end())
-        return {};
+    Player* player = require_player(player_id);
+    if (!player) return {};
 
-    const std::string& sender_name = it->second.get_name();
+    const std::string& sender_name = player->get_name();
     ClanResult result = clan_manager.accept_member(sender_name, args);
 
     CommandResult aresult;
@@ -156,11 +189,10 @@ CommandResult ClanCommandHandler::handle_clan_reject(uint16_t player_id, const s
     if (args.empty())
         return CommandResult::with_msg("Uso: /clan-rechazar <nick>");
 
-    auto it = players.find(player_id);
-    if (it == players.end())
-        return {};
+    Player* player = require_player(player_id);
+    if (!player) return {};
 
-    const std::string& sender_name = it->second.get_name();
+    const std::string& sender_name = player->get_name();
     ClanResult result = clan_manager.reject_member(sender_name, args);
 
     std::map<uint16_t, std::vector<ServerEvent>> targeted;
@@ -176,89 +208,35 @@ CommandResult ClanCommandHandler::handle_clan_reject(uint16_t player_id, const s
 }
 
 CommandResult ClanCommandHandler::handle_clan_ban(uint16_t player_id, const std::string& args) {
-    if (args.empty())
-        return CommandResult::with_msg("Uso: /clan-ban <nick>");
-
-    auto it = players.find(player_id);
-    if (it == players.end())
-        return {};
-
-    const std::string& sender_name = it->second.get_name();
-    ClanResult result = clan_manager.ban_member(sender_name, args);
-
-    std::map<uint16_t, std::vector<ServerEvent>> targeted;
-    if (result.ok) {
-        std::string clan_name = clan_manager.get_clan_name(sender_name);
-        auto target_id_opt = find_player_id_by_name(args);
-        if (target_id_opt) {
-            uint16_t target_id = *target_id_opt;
-            auto pit = players.find(target_id);
-            if (pit != players.end())
-                pit->second.set_clan_name("");
-            targeted[target_id].push_back(
-                    ClanNotificationEvent{ClanNotifType::KICKED, args, clan_name});
-            send_empty_clan_update(target_id, targeted);
-        }
-        send_clan_update(clan_name, targeted);
-    }
-    ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
-    return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = std::move(targeted)};
+    return apply_removal(player_id, args, "Uso: /clan-ban <nick>", &ClanManager::ban_member);
 }
 
 CommandResult ClanCommandHandler::handle_clan_unban(uint16_t player_id, const std::string& args) {
     if (args.empty())
         return CommandResult::with_msg("Uso: /clan-unban <nick>");
 
-    auto it = players.find(player_id);
-    if (it == players.end())
-        return {};
+    Player* player = require_player(player_id);
+    if (!player) return {};
 
-    const std::string& sender_name = it->second.get_name();
+    const std::string& sender_name = player->get_name();
     ClanResult result = clan_manager.unban_member(sender_name, args);
 
     return CommandResult::with_msg(result.error_msg);
 }
 
 CommandResult ClanCommandHandler::handle_clan_kick(uint16_t player_id, const std::string& args) {
-    if (args.empty())
-        return CommandResult::with_msg("Uso: /clan-kick <nick>");
-
-    auto it = players.find(player_id);
-    if (it == players.end())
-        return {};
-
-    const std::string& sender_name = it->second.get_name();
-    ClanResult result = clan_manager.kick_member(sender_name, args);
-
-    std::map<uint16_t, std::vector<ServerEvent>> targeted;
-    if (result.ok) {
-        std::string clan_name = clan_manager.get_clan_name(sender_name);
-        auto target_id_opt = find_player_id_by_name(args);
-        if (target_id_opt) {
-            uint16_t target_id = *target_id_opt;
-            auto pit = players.find(target_id);
-            if (pit != players.end())
-                pit->second.set_clan_name("");
-            targeted[target_id].push_back(
-                    ClanNotificationEvent{ClanNotifType::KICKED, args, clan_name});
-            send_empty_clan_update(target_id, targeted);
-        }
-        send_clan_update(clan_name, targeted);
-    }
-    ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
-    return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = std::move(targeted)};
+    return apply_removal(player_id, args, "Uso: /clan-kick <nick>", &ClanManager::kick_member);
 }
 
 CommandResult ClanCommandHandler::handle_leave_clan(uint16_t player_id) {
-    auto it = players.find(player_id);
-    if (it == players.end())
-        return {};
+    Player* player = require_player(player_id);
+    if (!player) return {};
 
-    std::string clan_name = it->second.get_clan_name();
-    ClanResult result = clan_manager.leave_clan(it->second.get_name());
+    std::string clan_name = player->get_clan_name();
+    ClanResult result = clan_manager.leave_clan(player->get_name());
     CommandResult cmd_result;
     if (result.ok) {
-        it->second.set_clan_name("");
+        player->set_clan_name("");
         cmd_result.private_events = {ChatMsgEvent{ChatMsgType::SYSTEM, "", result.error_msg}};
         send_empty_clan_update(player_id, cmd_result.targeted_events);
         send_clan_update(clan_name, cmd_result.targeted_events);
@@ -272,15 +250,14 @@ CommandResult ClanCommandHandler::handle_clan_chat(uint16_t player_id, const std
     if (args.empty())
         return CommandResult::with_msg("Uso: /c <mensaje>");
 
-    auto it = players.find(player_id);
-    if (it == players.end())
-        return {};
+    Player* player = require_player(player_id);
+    if (!player) return {};
 
-    const std::string& clan_name = it->second.get_clan_name();
+    const std::string& clan_name = player->get_clan_name();
     if (clan_name.empty())
         return CommandResult::with_msg("No perteneces a ningun clan");
 
-    ChatMsgEvent clan_msg{ChatMsgType::CLAN, it->second.get_name(), args};
+    ChatMsgEvent clan_msg{ChatMsgType::CLAN, player->get_name(), args};
     std::map<uint16_t, std::vector<ServerEvent>> targeted;
     for (const auto& [pid, p]: players) {
         if (p.get_clan_name() == clan_name)
