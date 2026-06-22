@@ -25,6 +25,7 @@ target_sources(taller_tests
     ${CMAKE_SOURCE_DIR}/server/game/map.cpp
     ${CMAKE_SOURCE_DIR}/server/game/prop_grid.cpp
     ${CMAKE_SOURCE_DIR}/server/game/game_formulas.cpp
+    ${CMAKE_SOURCE_DIR}/server/game/entity_event_factory.cpp
     ${CMAKE_SOURCE_DIR}/server/game/game.cpp
     ${CMAKE_SOURCE_DIR}/server/game/services/bank_service.cpp
     ${CMAKE_SOURCE_DIR}/server/game/services/cheat_service.cpp

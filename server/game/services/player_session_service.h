@@ -39,8 +39,6 @@ public:
 
 private:
     LoginOkEvent make_login_ok(const Player& p) const;
-    EntitySpawnEvent make_entity_spawn(const Player& p) const;
-    EntitySpawnEvent make_npc_spawn(const EnemyNpc& npc, uint16_t npc_id) const;
     PlayerStatsEvent make_player_stats_event(const Player& p) const;
     void append_existing_entities(std::vector<ServerEvent>& events, uint16_t exclude_id,
                                   const std::string& map_name) const;

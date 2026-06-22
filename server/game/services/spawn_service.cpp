@@ -5,6 +5,7 @@
 #include <utility>
 #include <vector>
 
+#include "../entity_event_factory.h"
 #include "../game_formulas.h"
 
 SpawnService::SpawnService(std::map<uint16_t, EnemyNpc>& enemy_npcs,
@@ -24,20 +25,6 @@ SpawnService::SpawnService(std::map<uint16_t, EnemyNpc>& enemy_npcs,
         mob_spawn_(mob_spawn),
         world_npc_templates_(world_npc_templates),
         dungeon_npc_templates_(dungeon_npc_templates) {}
-
-EntitySpawnEvent SpawnService::make_npc_spawn(const EnemyNpc& npc, uint16_t npc_id) const {
-    return EntitySpawnEvent{
-            .entity_id = npc_id,
-            .entity_type = EntityType::NPC,
-            .entity_pos = npc.get_pos(),
-            .entity_dir = Direction::SOUTH,
-            .entity_name = npc.get_name(),
-            .entity_race = Race::HUMAN,
-            .entity_class = PlayerClass::WARRIOR,
-            .sprite_id = npc.get_sprite_id(),
-            .clan_name = "",
-    };
-}
 
 std::vector<uint16_t> SpawnService::get_player_ids_on_map(const std::string& map_name) const {
     std::vector<uint16_t> ids;
@@ -107,7 +94,7 @@ CommandResult SpawnService::spawn_mobs() {
         uint16_t npc_id = next_npc_id_++;
         npc.set_current_map(map_name);
 
-        EntitySpawnEvent spawn_ev = make_npc_spawn(npc, npc_id);
+        EntitySpawnEvent spawn_ev = EntityEventFactory::make_npc_spawn(npc, npc_id);
         enemy_npcs_.emplace(npc_id, std::move(npc));
 
         for (uint16_t pid: get_player_ids_on_map(map_name))

@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "../entity_event_factory.h"
+
 MapTransitionService::MapTransitionService(std::map<uint16_t, Player>& players,
                                            std::unordered_map<std::string, Map>& maps,
                                            const std::map<uint16_t, EnemyNpc>& enemy_npcs,
@@ -30,41 +32,6 @@ std::vector<uint16_t> MapTransitionService::get_player_ids_on_map(
     return ids;
 }
 
-EntitySpawnEvent MapTransitionService::make_entity_spawn(const Player& p) const {
-    const ItemType weapon_type = p.get_equipped(EquipSlot::WEAPON).item_type;
-    const ItemType armor_type = p.get_equipped(EquipSlot::ARMOR).item_type;
-    const ItemType helmet_type = p.get_equipped(EquipSlot::HELMET).item_type;
-    const ItemType shield_type = p.get_equipped(EquipSlot::SHIELD).item_type;
-    return EntitySpawnEvent{
-            .entity_id = p.get_id(),
-            .entity_type = EntityType::PLAYER,
-            .entity_pos = p.get_pos(),
-            .entity_dir = p.get_dir(),
-            .entity_name = p.get_name(),
-            .entity_race = p.get_race(),
-            .entity_class = p.get_player_class(),
-            .weapon_type = weapon_type,
-            .armor_type = armor_type,
-            .helmet_type = helmet_type,
-            .shield_type = shield_type,
-            .clan_name = p.get_clan_name(),
-    };
-}
-
-EntitySpawnEvent MapTransitionService::make_npc_spawn(const EnemyNpc& npc, uint16_t npc_id) const {
-    return EntitySpawnEvent{
-            .entity_id = npc_id,
-            .entity_type = EntityType::NPC,
-            .entity_pos = npc.get_pos(),
-            .entity_dir = Direction::SOUTH,
-            .entity_name = npc.get_name(),
-            .entity_race = Race::HUMAN,
-            .entity_class = PlayerClass::WARRIOR,
-            .sprite_id = npc.get_sprite_id(),
-            .clan_name = "",
-    };
-}
-
 void MapTransitionService::append_existing_entities(std::vector<ServerEvent>& events,
                                                     uint16_t exclude_id,
                                                     const std::string& map_name) const {
@@ -73,14 +40,14 @@ void MapTransitionService::append_existing_entities(std::vector<ServerEvent>& ev
             continue;
         if (player.get_current_map() != map_name)
             continue;
-        events.push_back(make_entity_spawn(player));
+        events.push_back(EntityEventFactory::make_entity_spawn(player));
     }
     for (const auto& [id, npc]: enemy_npcs_) {
         if (npc.is_dead())
             continue;
         if (npc.get_current_map() != map_name)
             continue;
-        events.push_back(make_npc_spawn(npc, id));
+        events.push_back(EntityEventFactory::make_npc_spawn(npc, id));
     }
     std::vector<ServerEvent> items = ground_item_service_.make_existing_ground_items(map_name);
     events.insert(events.end(), items.begin(), items.end());
@@ -164,7 +131,7 @@ void MapTransitionService::notify_player_transition(CommandResult& result, const
 
 void MapTransitionService::notify_others_spawn(CommandResult& result, const Player& player,
                                                const std::string& map_name) const {
-    EntitySpawnEvent spawn = make_entity_spawn(player);
+    EntitySpawnEvent spawn = EntityEventFactory::make_entity_spawn(player);
     for (uint16_t pid: get_player_ids_on_map(map_name)) {
         if (pid == player.get_id())
             continue;

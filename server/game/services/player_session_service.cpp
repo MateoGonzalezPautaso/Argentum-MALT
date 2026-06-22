@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "../entity_event_factory.h"
+
 PlayerSessionService::PlayerSessionService(
         std::map<uint16_t, Player>& players,
         std::unordered_map<std::string, uint16_t>& player_name_index,
@@ -46,41 +48,6 @@ LoginOkEvent PlayerSessionService::make_login_ok(const Player& p) const {
     };
 }
 
-EntitySpawnEvent PlayerSessionService::make_entity_spawn(const Player& p) const {
-    const ItemType weapon_type = p.get_equipped(EquipSlot::WEAPON).item_type;
-    const ItemType armor_type = p.get_equipped(EquipSlot::ARMOR).item_type;
-    const ItemType helmet_type = p.get_equipped(EquipSlot::HELMET).item_type;
-    const ItemType shield_type = p.get_equipped(EquipSlot::SHIELD).item_type;
-    return EntitySpawnEvent{
-            .entity_id = p.get_id(),
-            .entity_type = EntityType::PLAYER,
-            .entity_pos = p.get_pos(),
-            .entity_dir = p.get_dir(),
-            .entity_name = p.get_name(),
-            .entity_race = p.get_race(),
-            .entity_class = p.get_player_class(),
-            .weapon_type = weapon_type,
-            .armor_type = armor_type,
-            .helmet_type = helmet_type,
-            .shield_type = shield_type,
-            .clan_name = p.get_clan_name(),
-    };
-}
-
-EntitySpawnEvent PlayerSessionService::make_npc_spawn(const EnemyNpc& npc, uint16_t npc_id) const {
-    return EntitySpawnEvent{
-            .entity_id = npc_id,
-            .entity_type = EntityType::NPC,
-            .entity_pos = npc.get_pos(),
-            .entity_dir = Direction::SOUTH,
-            .entity_name = npc.get_name(),
-            .entity_race = Race::HUMAN,
-            .entity_class = PlayerClass::WARRIOR,
-            .sprite_id = npc.get_sprite_id(),
-            .clan_name = "",
-    };
-}
-
 PlayerStatsEvent PlayerSessionService::make_player_stats_event(const Player& p) const {
     PlayerStatsEvent ev{};
     combat_controller_.fill_player_stats_event(ev, p);
@@ -95,14 +62,14 @@ void PlayerSessionService::append_existing_entities(std::vector<ServerEvent>& ev
             continue;
         if (player.get_current_map() != map_name)
             continue;
-        events.push_back(make_entity_spawn(player));
+        events.push_back(EntityEventFactory::make_entity_spawn(player));
     }
     for (const auto& [id, npc]: enemy_npcs_) {
         if (npc.is_dead())
             continue;
         if (npc.get_current_map() != map_name)
             continue;
-        events.push_back(make_npc_spawn(npc, id));
+        events.push_back(EntityEventFactory::make_npc_spawn(npc, id));
     }
     std::vector<ServerEvent> items = ground_item_service_.make_existing_ground_items(map_name);
     events.insert(events.end(), items.begin(), items.end());
@@ -138,7 +105,7 @@ CommandResult PlayerSessionService::handle_login(uint16_t player_id, const Login
         player_name_index_[it->second.get_name()] = player_id;
         const Player& p = it->second;
 
-        EntitySpawnEvent spawn = make_entity_spawn(p);
+        EntitySpawnEvent spawn = EntityEventFactory::make_entity_spawn(p);
         std::vector<ServerEvent> private_events = {make_login_ok(p)};
 
         // Send inventory after login
@@ -242,7 +209,7 @@ CommandResult PlayerSessionService::handle_create_character(uint16_t player_id,
     const Player& p = it->second;
 
     CharacterCreatedEvent created{make_login_ok(p)};
-    EntitySpawnEvent spawn = make_entity_spawn(p);
+    EntitySpawnEvent spawn = EntityEventFactory::make_entity_spawn(p);
     std::vector<ServerEvent> private_events = {created};
 
     InventoryUpdateEvent inv_event{p.dump_inventory()};

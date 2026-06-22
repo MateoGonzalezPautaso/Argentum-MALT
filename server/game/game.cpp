@@ -10,6 +10,7 @@
 
 #include "../../common/visit.h"
 
+#include "entity_event_factory.h"
 #include "game_formulas.h"
 
 namespace {
@@ -330,7 +331,7 @@ CommandResult Game::process_pending_resurrections() {
             append_existing_entities(private_events, player_id, pending.target_map);
             result.targeted_events[player_id] = std::move(private_events);
 
-            EntitySpawnEvent spawn = make_entity_spawn(player);
+            EntitySpawnEvent spawn = EntityEventFactory::make_entity_spawn(player);
             PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
             for (uint16_t pid: get_player_ids_on_map(pending.target_map)) {
                 if (pid != player_id)
@@ -341,7 +342,7 @@ CommandResult Game::process_pending_resurrections() {
             player.set_pos(pending.target_pos.x, pending.target_pos.y);
             player.resurrect();
 
-            EntitySpawnEvent spawn = make_entity_spawn(player);
+            EntitySpawnEvent spawn = EntityEventFactory::make_entity_spawn(player);
             EntityMoveEvent move_ev{player_id, player.get_pos(), player.get_dir()};
             PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
             for (uint16_t pid: get_player_ids_on_map(pending.target_map)) {
@@ -561,52 +562,17 @@ LoginOkEvent Game::make_login_ok(const Player& p) const {
     };
 }
 
-EntitySpawnEvent Game::make_entity_spawn(const Player& p) const {
-    const ItemType weapon_type = p.get_equipped(EquipSlot::WEAPON).item_type;
-    const ItemType armor_type = p.get_equipped(EquipSlot::ARMOR).item_type;
-    const ItemType helmet_type = p.get_equipped(EquipSlot::HELMET).item_type;
-    const ItemType shield_type = p.get_equipped(EquipSlot::SHIELD).item_type;
-    return EntitySpawnEvent{
-            .entity_id = p.get_id(),
-            .entity_type = EntityType::PLAYER,
-            .entity_pos = p.get_pos(),
-            .entity_dir = p.get_dir(),
-            .entity_name = p.get_name(),
-            .entity_race = p.get_race(),
-            .entity_class = p.get_player_class(),
-            .weapon_type = weapon_type,
-            .armor_type = armor_type,
-            .helmet_type = helmet_type,
-            .shield_type = shield_type,
-            .clan_name = p.get_clan_name(),
-    };
-}
-
-EntitySpawnEvent Game::make_npc_spawn(const EnemyNpc& npc, uint16_t npc_id) const {
-    return EntitySpawnEvent{
-            .entity_id = npc_id,
-            .entity_type = EntityType::NPC,
-            .entity_pos = npc.get_pos(),
-            .entity_dir = Direction::SOUTH,
-            .entity_name = npc.get_name(),
-            .entity_race = Race::HUMAN,
-            .entity_class = PlayerClass::WARRIOR,
-            .sprite_id = npc.get_sprite_id(),
-            .clan_name = "",
-    };
-}
-
 std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id) const {
     std::vector<ServerEvent> spawns;
     for (const auto& [id, player]: players) {
         if (id == exclude_id)
             continue;
-        spawns.push_back(make_entity_spawn(player));
+        spawns.push_back(EntityEventFactory::make_entity_spawn(player));
     }
     for (const auto& [id, npc]: enemy_npcs) {
         if (npc.is_dead())
             continue;
-        spawns.push_back(make_npc_spawn(npc, id));
+        spawns.push_back(EntityEventFactory::make_npc_spawn(npc, id));
     }
     return spawns;
 }
@@ -619,14 +585,14 @@ std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id,
             continue;
         if (player.get_current_map() != map_name)
             continue;
-        spawns.push_back(make_entity_spawn(player));
+        spawns.push_back(EntityEventFactory::make_entity_spawn(player));
     }
     for (const auto& [id, npc]: enemy_npcs) {
         if (npc.is_dead())
             continue;
         if (npc.get_current_map() != map_name)
             continue;
-        spawns.push_back(make_npc_spawn(npc, id));
+        spawns.push_back(EntityEventFactory::make_npc_spawn(npc, id));
     }
     return spawns;
 }

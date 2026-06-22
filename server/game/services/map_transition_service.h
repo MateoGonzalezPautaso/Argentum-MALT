@@ -52,8 +52,6 @@ private:
     std::vector<uint16_t> get_player_ids_on_map(const std::string& map_name) const;
     void append_existing_entities(std::vector<ServerEvent>& events, uint16_t exclude_id,
                                   const std::string& map_name) const;
-    EntitySpawnEvent make_entity_spawn(const Player& p) const;
-    EntitySpawnEvent make_npc_spawn(const EnemyNpc& npc, uint16_t npc_id) const;
 
     std::map<uint16_t, Player>& players_;
     std::unordered_map<std::string, Map>& maps_;
