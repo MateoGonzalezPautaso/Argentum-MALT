@@ -20,7 +20,7 @@ Video promocional del juego.
 
 Guía completa del juego: instalación, controles, combate, ítems, clanes, comandos y más.
 
-**[Documentación técnica](documentacion)**
+**[Documentación técnica](documentacion-tecnica)**
 
 Arquitectura, protocolo, configuración y detalles de implementación. *(En construcción)*
 

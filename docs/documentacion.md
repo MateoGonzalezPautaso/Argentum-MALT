@@ -1,3 +1,0 @@
-# Documentación técnica
-
-**En construcción.** 

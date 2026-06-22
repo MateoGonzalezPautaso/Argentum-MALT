@@ -73,4 +73,4 @@
 - Repositorio: [GitHub](https://github.com/MateoGonzalezPautaso/Argentum-MALT)
 - Video promocional: [YouTube](https://youtu.be/Bh75WYytc_c)
 - Manual de usuario: [manual-de-usuario](manual-de-usuario)
-- Documentación técnica: [documentacion](documentacion)
+- Documentación técnica: [documentacion-tecnica](documentacion-tecnica)
