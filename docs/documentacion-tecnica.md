@@ -21,7 +21,7 @@ Las tres comparten una biblioteca estática `taller_common` (`common/`) con la i
 
 ### 1.1 Diagrama de clases
 
-[server-classes.puml](uml/server-classes.puml) — Diagrama de clases completo de las 7 clases solicitadas más sus relaciones, incluyendo atributos clave y métodos públicos.
+[server-classes.puml](uml/server-classes.puml) — Diagrama de clases centrado en la infraestructura de red y la lógica de juego (`Socket`, `Protocol`, `ServerProtocol`, `GameLoop`, `Game`, `ClientListMonitor`, `Server`), con atributos clave y métodos públicos. El detalle de threading (`Acceptor`, `Sender`, `Receiver` y los límites de cada hilo) está en [server_threads_architecture.puml](uml/server_threads_architecture.puml) para no duplicarlo.
 
 ### 1.2 Jerarquía de entidades, jugador e inventario
 
