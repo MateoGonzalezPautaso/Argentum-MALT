@@ -7,11 +7,12 @@
 
 #include "../../config/config.h"
 #include "../../render/gfx/button.h"
+
 #include "credential_screen_renderer.h"
 
 class ChatInput;
 
-class LoginRenderer : public CredentialScreenRenderer {
+class LoginRenderer: public CredentialScreenRenderer {
 public:
     LoginRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
                   const ChatInput& username_model, const ChatInput& password_model);

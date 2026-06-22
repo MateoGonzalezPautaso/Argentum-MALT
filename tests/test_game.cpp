@@ -44,8 +44,7 @@ protected:
         std::filesystem::create_directories(data_dir);
 
         data_service = new PlayerDataService(data_dir, config);
-        clan_persistence =
-                new ClanPersistence(data_dir + "/clans.dat", data_dir + "/clans.idx");
+        clan_persistence = new ClanPersistence(data_dir + "/clans.dat", data_dir + "/clans.idx");
         game = new Game(config, *data_service, *clan_persistence);
     }
 

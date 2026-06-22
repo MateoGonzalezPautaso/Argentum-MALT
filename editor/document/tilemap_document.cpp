@@ -76,8 +76,7 @@ void TilemapDocument::set_transition_override(int row, int col,
     if (r >= config_.prop_transition_overrides.size())
         config_.prop_transition_overrides.resize(r + 1);
     if (c >= config_.prop_transition_overrides[r].size())
-        config_.prop_transition_overrides[r].resize(
-                c + 1, PropTransitionOverride{});
+        config_.prop_transition_overrides[r].resize(c + 1, PropTransitionOverride{});
     config_.prop_transition_overrides[r][c] = override;
 }
 
@@ -107,6 +106,4 @@ void TilemapDocument::create_new(int rows, int cols, const TilemapConfig& tile_c
     path_.clear();
 }
 
-void TilemapDocument::save(const std::string& path) const {
-    TomlSerializer::save(path, config_);
-}
+void TilemapDocument::save(const std::string& path) const { TomlSerializer::save(path, config_); }

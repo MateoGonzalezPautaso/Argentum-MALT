@@ -6,6 +6,7 @@
 
 #include "../gfx/geometry.h"
 #include "../gfx/texture_loader.h"
+
 #include "animation_system.h"
 
 namespace {
@@ -128,10 +129,8 @@ int EntitySpriteRegistry::clamp_y(int value, int sprite_h) const {
 }
 
 bool EntitySpriteRegistry::is_visible(const SpriteRender& s, const SDL2pp::Rect& cam) {
-    return s.dst.GetX() + s.dst.GetW() > cam.GetX() &&
-           s.dst.GetX() < cam.GetX() + cam.GetW() &&
-           s.dst.GetY() + s.dst.GetH() > cam.GetY() &&
-           s.dst.GetY() < cam.GetY() + cam.GetH();
+    return s.dst.GetX() + s.dst.GetW() > cam.GetX() && s.dst.GetX() < cam.GetX() + cam.GetW() &&
+           s.dst.GetY() + s.dst.GetH() > cam.GetY() && s.dst.GetY() < cam.GetY() + cam.GetH();
 }
 
 void EntitySpriteRegistry::advance_src_x(SpriteRender& sprite, int step, int frame_count) {
@@ -170,8 +169,7 @@ void EntitySpriteRegistry::append_equip_overlay_drawables(const SpriteRender& bo
         EquipOverlay& ov = overlays[i];
         if (!ov.active || ov.frames.empty())
             continue;
-        SDL2pp::Rect dst(body.dst.GetX() - cam.GetX(),
-                         body.dst.GetY() - cam.GetY() + ov.offset_y,
+        SDL2pp::Rect dst(body.dst.GetX() - cam.GetX(), body.dst.GetY() - cam.GetY() + ov.offset_y,
                          body.dst.GetW(), body.dst.GetH());
         const int ov_foot_y = behind ? (body_foot_y - 1 - i) : (body_foot_y + 1 + i);
         if (ov.static_frame) {
@@ -185,8 +183,8 @@ void EntitySpriteRegistry::append_equip_overlay_drawables(const SpriteRender& bo
 }
 
 std::vector<SpriteRender> EntitySpriteRegistry::build_entity_parts(int x, int y, Race race,
-                                                                    PlayerClass pc,
-                                                                    uint16_t sprite_id) {
+                                                                   PlayerClass pc,
+                                                                   uint16_t sprite_id) {
     std::vector<SpriteRender> parts;
     parts.reserve(entity_part_configs.size());
     for (const auto& cfg: entity_part_configs) {
@@ -204,7 +202,8 @@ std::vector<SpriteRender> EntitySpriteRegistry::build_entity_parts(int x, int y,
 }
 
 void EntitySpriteRegistry::reposition_anchored_parts(std::vector<SpriteRender>& parts) {
-    auto it = std::find_if(parts.begin(), parts.end(), [](const SpriteRender& p) { return p.movable; });
+    auto it = std::find_if(parts.begin(), parts.end(),
+                           [](const SpriteRender& p) { return p.movable; });
     if (it == parts.end())
         return;
     SpriteRender& body = *it;
@@ -250,8 +249,8 @@ const SpriteRender* EntitySpriteRegistry::find_movable(uint16_t id) const {
 
 // ── Entity lifecycle ──────────────────────────────────────────────────────────
 
-void EntitySpriteRegistry::add_entity(uint16_t id, int x, int y, const std::string& name,
-                                      Race race, PlayerClass pc, uint16_t sprite_id) {
+void EntitySpriteRegistry::add_entity(uint16_t id, int x, int y, const std::string& name, Race race,
+                                      PlayerClass pc, uint16_t sprite_id) {
     if (entity_part_configs.empty())
         return;
 
@@ -320,8 +319,10 @@ void EntitySpriteRegistry::set_entity_src_y(uint16_t id, int body_src_y, int hea
     const auto& def = skin_config.npc_def(e.sprite_id);
     int dir_index = body_src_y / 48;
     if (e.sprite_id > 0 && def.swap_lr) {
-        if (dir_index == 2) dir_index = 3;
-        else if (dir_index == 3) dir_index = 2;
+        if (dir_index == 2)
+            dir_index = 3;
+        else if (dir_index == 3)
+            dir_index = 2;
     }
     const bool is_walking = (SDL_GetTicks() - e.last_move_tick) < walk_anim_timeout_ms;
 
@@ -365,12 +366,17 @@ void EntitySpriteRegistry::advance_entity_src_x(uint16_t id, int step, int frame
                 int current_x = sprite.src.GetX();
                 int current_idx = 0;
                 for (size_t i = 0; i < fp.size(); ++i)
-                    if (fp[i] == current_x) { current_idx = static_cast<int>(i); break; }
+                    if (fp[i] == current_x) {
+                        current_idx = static_cast<int>(i);
+                        break;
+                    }
                 sprite.src.SetX(fp[(current_idx + 1) % static_cast<int>(fp.size())]);
             } else {
                 int npc_frames = skin_config.npc_def(e.sprite_id).frames_per_dir;
-                if (npc_frames <= 0) npc_frames = frame_count;
-                if (npc_frames <= 1) continue;
+                if (npc_frames <= 0)
+                    npc_frames = frame_count;
+                if (npc_frames <= 1)
+                    continue;
                 const int current = std::max(0, (sprite.src.GetX() - e.base_src_x) / e.frame_w);
                 sprite.src.SetX(e.base_src_x + (current + 1) % npc_frames * e.frame_w);
             }
@@ -382,8 +388,7 @@ void EntitySpriteRegistry::advance_entity_src_x(uint16_t id, int step, int frame
 
 void EntitySpriteRegistry::tick_animations(AnimationSystem& anim) {
     for (auto& [id, e]: entities)
-        for (auto& sprite: e.parts)
-            anim.tick(sprite);
+        for (auto& sprite: e.parts) anim.tick(sprite);
 }
 
 // ── Entity state ──────────────────────────────────────────────────────────────
@@ -396,14 +401,17 @@ void EntitySpriteRegistry::set_entity_clan_name(uint16_t id, const std::string& 
 void EntitySpriteRegistry::set_entity_clan_by_username(const std::string& username,
                                                        const std::string& clan) {
     for (auto& [eid, ent]: entities)
-        if (ent.username == username) { ent.clan_name = clan; return; }
+        if (ent.username == username) {
+            ent.clan_name = clan;
+            return;
+        }
 }
 
 void EntitySpriteRegistry::set_entity_alpha(uint16_t id, uint8_t alpha) {
     auto it = entities.find(id);
-    if (it == entities.end()) return;
-    for (auto& sprite: it->second.parts)
-        sprite.alpha = alpha;
+    if (it == entities.end())
+        return;
+    for (auto& sprite: it->second.parts) sprite.alpha = alpha;
 }
 
 // ── Entity equipment ──────────────────────────────────────────────────────────
@@ -411,9 +419,11 @@ void EntitySpriteRegistry::set_entity_alpha(uint16_t id, uint8_t alpha) {
 void EntitySpriteRegistry::update_entity_equipment_overlay(uint16_t id, uint8_t slot,
                                                            const std::string& path, int offset_y,
                                                            bool static_frame) {
-    if (slot >= EQUIP_SLOT_COUNT) return;
+    if (slot >= EQUIP_SLOT_COUNT)
+        return;
     auto it = entities.find(id);
-    if (it == entities.end()) return;
+    if (it == entities.end())
+        return;
     EquipOverlay& ov = it->second.equip.overlays[slot];
     try {
         ov.frames.clear();
@@ -428,9 +438,11 @@ void EntitySpriteRegistry::update_entity_equipment_overlay(uint16_t id, uint8_t 
 }
 
 void EntitySpriteRegistry::clear_entity_equipment_overlay(uint16_t id, uint8_t slot) {
-    if (slot >= EQUIP_SLOT_COUNT) return;
+    if (slot >= EQUIP_SLOT_COUNT)
+        return;
     auto it = entities.find(id);
-    if (it == entities.end()) return;
+    if (it == entities.end())
+        return;
     EquipOverlay& ov = it->second.equip.overlays[slot];
     ov.frames.clear();
     ov.active = false;
@@ -438,7 +450,8 @@ void EntitySpriteRegistry::clear_entity_equipment_overlay(uint16_t id, uint8_t s
 
 void EntitySpriteRegistry::set_entity_body_sprite(uint16_t id, const std::string& path) {
     SpriteRender* movable = find_movable(id);
-    if (!movable || path.empty()) return;
+    if (!movable || path.empty())
+        return;
     try {
         movable->frames.clear();
         movable->frames.emplace_back(renderer, texture::load_surface(path));
@@ -450,7 +463,8 @@ void EntitySpriteRegistry::set_entity_body_sprite(uint16_t id, const std::string
 
 void EntitySpriteRegistry::reset_entity_body_sprite(uint16_t id) {
     auto it = entities.find(id);
-    if (it == entities.end() || it->second.equip.default_body_path.empty()) return;
+    if (it == entities.end() || it->second.equip.default_body_path.empty())
+        return;
     set_entity_body_sprite(id, it->second.equip.default_body_path);
 }
 
@@ -463,17 +477,20 @@ bool EntitySpriteRegistry::hit_test_entity(int world_x, int world_y, uint16_t& o
     auto it = std::find_if(entities.begin(), entities.end(), [&](const auto& pair) {
         return std::any_of(pair.second.parts.begin(), pair.second.parts.end(), hits);
     });
-    if (it == entities.end()) return false;
+    if (it == entities.end())
+        return false;
     out_id = it->first;
     return true;
 }
 
 bool EntitySpriteRegistry::get_entity_world_position(uint16_t id, int& x, int& y) const {
     auto it = entities.find(id);
-    if (it == entities.end()) return false;
+    if (it == entities.end())
+        return false;
     auto pit = std::find_if(it->second.parts.begin(), it->second.parts.end(),
                             [](const auto& p) { return p.movable; });
-    if (pit == it->second.parts.end()) return false;
+    if (pit == it->second.parts.end())
+        return false;
     x = pit->dst.GetX() + pit->dst.GetW() / 2;
     y = pit->dst.GetY() + pit->dst.GetH() / 2;
     return true;
@@ -481,7 +498,8 @@ bool EntitySpriteRegistry::get_entity_world_position(uint16_t id, int& x, int& y
 
 bool EntitySpriteRegistry::is_npc(uint16_t id) const {
     auto it = entities.find(id);
-    if (it == entities.end()) return false;
+    if (it == entities.end())
+        return false;
     return it->second.sprite_id > 0;
 }
 
@@ -512,15 +530,13 @@ void EntitySpriteRegistry::render_entity_names(const SDL2pp::Rect& cam) {
             continue;
 
         auto& body = e.parts[0];
-        const int name_x =
-                body.dst.GetX() + (body.dst.GetW() - e.name_label->w) / 2 - cam.GetX();
+        const int name_x = body.dst.GetX() + (body.dst.GetW() - e.name_label->w) / 2 - cam.GetX();
         const int name_y = body.dst.GetY() - e.name_label->h - 24 - cam.GetY();
 
         SDL_Color color = kNameColorDefault;
         if (e.sprite_id > 0)
             color = kNameColorEnemy;
-        else if (!local_clan_name.empty() && !e.clan_name.empty() &&
-                 e.clan_name == local_clan_name)
+        else if (!local_clan_name.empty() && !e.clan_name.empty() && e.clan_name == local_clan_name)
             color = kNameColorAlly;
 
         SDL_Texture* tex = e.name_label->texture.Get();

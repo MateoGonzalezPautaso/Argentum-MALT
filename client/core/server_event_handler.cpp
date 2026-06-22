@@ -19,8 +19,8 @@ const std::unordered_map<ItemType, std::string> weapon_sounds = {
 
 ServerEventHandler::ServerEventHandler(PlayerStats& player_stats, WorldRenderer& world_renderer,
                                        AudioManager& audio_manager, ChatHistory& chat_history,
-                                       MoveController& move_controller,
-                                       const ClientConfig& config, const MoveConfig& move_config,
+                                       MoveController& move_controller, const ClientConfig& config,
+                                       const MoveConfig& move_config,
                                        MerchantController& merchant_controller,
                                        bool& player_is_ghost, std::string& current_map_name):
         player_stats_(player_stats),
@@ -42,9 +42,8 @@ void ServerEventHandler::apply(const ServerEvent& ev) {
                     [this](const LoginOkEvent& e) { handle_login_ok(e); },
                     [this](const EntityDespawnEvent& e) { handle_entity_despawn(e); },
                     [this](const DamageReceivedEvent& e) {
-                        uint16_t src = (e.target_id == player_stats_.player_id)
-                                               ? e.attacker_id
-                                               : e.target_id;
+                        uint16_t src = (e.target_id == player_stats_.player_id) ? e.attacker_id :
+                                                                                  e.target_id;
                         play_spatial_sfx("hit", src);
                         handle_damage_received(e);
                     },
@@ -58,9 +57,7 @@ void ServerEventHandler::apply(const ServerEvent& ev) {
                     [this](const AttackDodgedEvent& e) { handle_attack_dodged(e); },
                     [this](const ChatMsgEvent& e) { handle_chat_msg(e); },
                     [this](const EntityDiedEvent& e) { handle_entity_died(e); },
-                    [this](const MeditationStartEvent&) {
-                        audio_manager_.play_sfx("meditate");
-                    },
+                    [this](const MeditationStartEvent&) { audio_manager_.play_sfx("meditate"); },
                     [this](const PlayerRespawnedEvent& e) { handle_player_respawned(e); },
                     [this](const ClanNotificationEvent& e) { handle_clan_notification(e); },
                     [this](const ClanUpdateEvent& e) { handle_clan_update(e); },
@@ -78,11 +75,10 @@ void ServerEventHandler::apply(const ServerEvent& ev) {
                     [this](const GoldUpdateEvent& e) { player_stats_.gold = e.gold; },
                     [this](const NpcItemListEvent& e) {
                         merchant_controller_.on_item_list(e);
-                        for (const auto& item : e.items)
-                            chat_history_.add_message(ChatMsgType::SYSTEM, "",
-                                                      item.item_name + ": " +
-                                                              std::to_string(item.price) +
-                                                              " de oro");
+                        for (const auto& item: e.items)
+                            chat_history_.add_message(
+                                    ChatMsgType::SYSTEM, "",
+                                    item.item_name + ": " + std::to_string(item.price) + " de oro");
                     },
                     [this](const BankUpdateEvent& e) { handle_bank_update(e); },
                     [this](const ItemDroppedEvent& e) {
@@ -109,18 +105,18 @@ void ServerEventHandler::handle_entity_move(const EntityMoveEvent& e) {
                                                move_config_.body_src_y_for(e.entity_dir),
                                                move_config_.head_src_y_for(e.entity_dir));
     world_renderer_.sprites().advance_entity_src_x(e.entity_id, move_config_.walk_src_step,
-                                                move_config_.walk_src_frames_for(e.entity_dir));
+                                                   move_config_.walk_src_frames_for(e.entity_dir));
 }
 
 void ServerEventHandler::apply_equipment_overlays(uint16_t entity_id, bool is_local,
-                                                   const ItemType equipped_types[EQUIP_SLOT_COUNT]) {
+                                                  const ItemType equipped_types[EQUIP_SLOT_COUNT]) {
     static constexpr uint8_t overlay_slots[] = {
             static_cast<uint8_t>(EquipSlot::WEAPON),
             static_cast<uint8_t>(EquipSlot::HELMET),
             static_cast<uint8_t>(EquipSlot::SHIELD),
     };
 
-    for (uint8_t slot : overlay_slots) {
+    for (uint8_t slot: overlay_slots) {
         ItemType type = equipped_types[slot];
         auto it = config_.equip_overlays.find(static_cast<uint8_t>(type));
         if (type == ItemType::NONE || it == config_.equip_overlays.end()) {
@@ -160,9 +156,8 @@ void ServerEventHandler::handle_entity_spawn(const EntitySpawnEvent& e) {
         world_renderer_.sprites().move_movable(e.entity_pos.x, e.entity_pos.y);
         return;
     }
-    world_renderer_.sprites().add_entity(e.entity_id, e.entity_pos.x, e.entity_pos.y,
-                                          e.entity_name, e.entity_race, e.entity_class,
-                                          e.sprite_id);
+    world_renderer_.sprites().add_entity(e.entity_id, e.entity_pos.x, e.entity_pos.y, e.entity_name,
+                                         e.entity_race, e.entity_class, e.sprite_id);
     if (e.entity_type != EntityType::NPC && !e.clan_name.empty())
         world_renderer_.sprites().set_entity_clan_name(e.entity_id, e.clan_name);
     world_renderer_.sprites().set_entity_src_y(e.entity_id,
@@ -259,10 +254,10 @@ void ServerEventHandler::handle_clan_notification(const ClanNotificationEvent& e
 
 void ServerEventHandler::handle_clan_update(const ClanUpdateEvent& e) {
     world_renderer_.sprites().set_local_clan_name(e.clan_name);
-    for (const auto& m : e.members)
+    for (const auto& m: e.members)
         world_renderer_.sprites().set_entity_clan_by_username(m.username, e.clan_name);
     std::string msg = "--- Clan: " + e.clan_name + " ---";
-    for (const auto& m : e.members) {
+    for (const auto& m: e.members) {
         msg += "\n  " + m.username;
         if (m.is_founder)
             msg += " (fundador)";
@@ -339,7 +334,7 @@ void ServerEventHandler::handle_map_transition(const MapTransitionEvent& e) {
 
 void ServerEventHandler::handle_bank_update(const BankUpdateEvent& e) {
     chat_history_.add_message(ChatMsgType::SYSTEM, "", "Banco - Oro: " + std::to_string(e.gold));
-    for (const auto& slot : e.slots) {
+    for (const auto& slot: e.slots) {
         if (slot.item_type != ItemType::NONE)
             chat_history_.add_message(ChatMsgType::SYSTEM, "", "Banco - " + slot.item_name);
     }

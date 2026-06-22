@@ -16,7 +16,7 @@ public:
     std::optional<ClientCommand> parse(const std::string& text) const;
 
 private:
-    using SimpleFn = ClientCommand(*)(std::string);
+    using SimpleFn = ClientCommand (*)(std::string);
 
     std::unordered_map<std::string, ClientCommand> exact_commands_;
     std::vector<std::pair<std::string_view, SimpleFn>> prefix_commands_;

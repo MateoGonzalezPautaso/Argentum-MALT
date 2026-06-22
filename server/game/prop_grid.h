@@ -47,9 +47,8 @@ public:
 
     bool is_in_range_of(const std::string& prop_name, int px, int py, int range) const;
 
-    bool find_first_transition(const std::string& target_map, int& out_cx,
-                               int& out_cy, int& out_hb_left,
-                               int& out_hb_bottom) const;
+    bool find_first_transition(const std::string& target_map, int& out_cx, int& out_cy,
+                               int& out_hb_left, int& out_hb_bottom) const;
 
 private:
     std::vector<Entry> entries_;

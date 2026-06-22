@@ -129,9 +129,7 @@ void MapSceneRenderer::apply_prop_pos(QGraphicsPixmapItem* item, int col, int ro
     item->setZValue(0.5);
 }
 
-void MapSceneRenderer::clear_spawn_overlay() {
-    clear_grid(spawn_overlay_);
-}
+void MapSceneRenderer::clear_spawn_overlay() { clear_grid(spawn_overlay_); }
 
 void MapSceneRenderer::rebuild_spawn_overlay(const TilemapDocument& doc) {
     clear_spawn_overlay();
@@ -152,8 +150,7 @@ void MapSceneRenderer::rebuild_spawn_overlay(const TilemapDocument& doc) {
 
         for (int c = 0; c < static_cast<int>(zones[r].size()); ++c) {
             if (zones[r][c]) {
-                auto* rect = scene_->addRect(c * tsz, r * tsz, tsz, tsz,
-                                             QPen(Qt::NoPen),
+                auto* rect = scene_->addRect(c * tsz, r * tsz, tsz, tsz, QPen(Qt::NoPen),
                                              QBrush(QColor(0, 200, 0, 80)));
                 rect->setZValue(0.8);
                 row_items.push_back(rect);
@@ -183,16 +180,13 @@ void MapSceneRenderer::update_spawn_overlay_tile(int row, int col, bool is_zone,
     }
 
     if (is_zone && show_spawn_overlay_) {
-        item = scene_->addRect(col * tsz, row * tsz, tsz, tsz,
-                               QPen(Qt::NoPen),
+        item = scene_->addRect(col * tsz, row * tsz, tsz, tsz, QPen(Qt::NoPen),
                                QBrush(QColor(0, 200, 0, 80)));
         item->setZValue(0.8);
     }
 }
 
-void MapSceneRenderer::set_show_spawn_overlay(bool show) {
-    show_spawn_overlay_ = show;
-}
+void MapSceneRenderer::set_show_spawn_overlay(bool show) { show_spawn_overlay_ = show; }
 
 void MapSceneRenderer::render_all(const TilemapDocument& doc, bool show_walkable_overlay) {
     clear_tiles_and_props();

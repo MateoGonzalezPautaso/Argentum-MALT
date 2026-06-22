@@ -16,8 +16,7 @@ std::pair<int, int> GroundItemService::tile_cell(const Map& map, int px, int py)
     return {px / tile_size, py / tile_size};
 }
 
-std::vector<uint16_t> GroundItemService::get_player_ids_on_map(
-        const std::string& map_name) const {
+std::vector<uint16_t> GroundItemService::get_player_ids_on_map(const std::string& map_name) const {
     std::vector<uint16_t> ids;
     for (const auto& [id, player]: players_) {
         if (player.get_current_map() == map_name)
@@ -41,8 +40,7 @@ std::vector<ServerEvent> GroundItemService::make_existing_ground_items(
 }
 
 void GroundItemService::commit_ground_drops(
-        CommandResult& result,
-        const std::map<std::string, std::vector<ItemDroppedEvent>>& drops) {
+        CommandResult& result, const std::map<std::string, std::vector<ItemDroppedEvent>>& drops) {
     for (const auto& [map_name, items]: drops) {
         auto map_it = maps_.find(map_name);
         if (map_it == maps_.end())
@@ -58,8 +56,7 @@ void GroundItemService::commit_ground_drops(
     }
 }
 
-CommandResult GroundItemService::handle_pickup_item(uint16_t player_id,
-                                                    const PickupItemCmd& cmd) {
+CommandResult GroundItemService::handle_pickup_item(uint16_t player_id, const PickupItemCmd& cmd) {
     auto it = players_.find(player_id);
     if (it == players_.end())
         return {};

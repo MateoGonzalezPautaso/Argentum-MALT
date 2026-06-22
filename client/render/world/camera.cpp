@@ -19,7 +19,7 @@ void Camera::reconfigure(int map_px_w, int map_px_h, bool has_tilemap) {
 }
 
 SDL2pp::Rect Camera::compute_view_rect(int movable_x, int movable_y, int movable_w,
-                                  int movable_h) const {
+                                       int movable_h) const {
     int cam_x = movable_x + movable_w / 2 - game_viewport.GetW() / 2;
     int cam_y = movable_y + movable_h / 2 - game_viewport.GetH() / 2;
 

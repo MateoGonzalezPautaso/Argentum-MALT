@@ -231,14 +231,28 @@ struct BankWithdrawCmd {
 struct NpcListCmd {};
 
 // 0x13 – 0x1A  Clanes
-struct ClanFoundCmd { std::string clan_name; };
-struct ClanJoinRequestCmd { std::string clan_name; };
+struct ClanFoundCmd {
+    std::string clan_name;
+};
+struct ClanJoinRequestCmd {
+    std::string clan_name;
+};
 struct ClanReviewCmd {};
-struct ClanAcceptCmd { std::string target_nick; };
-struct ClanRejectCmd { std::string target_nick; };
-struct ClanBanCmd { std::string target_nick; };
-struct ClanUnbanCmd { std::string target_nick; };
-struct ClanKickCmd { std::string target_nick; };
+struct ClanAcceptCmd {
+    std::string target_nick;
+};
+struct ClanRejectCmd {
+    std::string target_nick;
+};
+struct ClanBanCmd {
+    std::string target_nick;
+};
+struct ClanUnbanCmd {
+    std::string target_nick;
+};
+struct ClanKickCmd {
+    std::string target_nick;
+};
 struct ClanLeaveCmd {};
 
 // 0x1E
@@ -268,14 +282,16 @@ struct ChangeMapCmd {
  * ClientCommand es la variante que engloba todos los comandos.
  * El GameLoop hace std::visit sobre esta variante para despacharlos.
  */
-using ClientCommand = std::variant<
-        LoginCmd, CreateCharacterCmd, MoveCmd, AttackCmd, CastSpellCmd, PickupItemCmd, DropItemCmd,
-        EquipItemCmd, UnequipItemCmd, MeditateCmd, ResurrectCmd, NpcBuyCmd, NpcSellCmd, NpcHealCmd,
-        BankDepositCmd, BankWithdrawCmd, NpcListCmd, SendChatMsgCmd, ClanFoundCmd,
-        ClanJoinRequestCmd, ClanReviewCmd, ClanAcceptCmd, ClanRejectCmd, ClanBanCmd, ClanUnbanCmd,
-        ClanKickCmd, ClanLeaveCmd, CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd, CheatLevelUpCmd,
-        CheatLevelDownCmd, CheatAddGoldCmd, CheatResetGoldCmd, CheatVelocityCmd, CheatReviveCmd,
-        CheatFillInventoryCmd, CheatClearInventoryCmd, CheatResetManaCmd, ChangeMapCmd>;
+using ClientCommand =
+        std::variant<LoginCmd, CreateCharacterCmd, MoveCmd, AttackCmd, CastSpellCmd, PickupItemCmd,
+                     DropItemCmd, EquipItemCmd, UnequipItemCmd, MeditateCmd, ResurrectCmd,
+                     NpcBuyCmd, NpcSellCmd, NpcHealCmd, BankDepositCmd, BankWithdrawCmd, NpcListCmd,
+                     SendChatMsgCmd, ClanFoundCmd, ClanJoinRequestCmd, ClanReviewCmd, ClanAcceptCmd,
+                     ClanRejectCmd, ClanBanCmd, ClanUnbanCmd, ClanKickCmd, ClanLeaveCmd,
+                     CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd, CheatLevelUpCmd,
+                     CheatLevelDownCmd, CheatAddGoldCmd, CheatResetGoldCmd, CheatVelocityCmd,
+                     CheatReviveCmd, CheatFillInventoryCmd, CheatClearInventoryCmd,
+                     CheatResetManaCmd, ChangeMapCmd>;
 
 // ---------------------------------------------------------------------------
 // Eventos: Servidor -> Cliente (sección 3.2 y 5 de protocol.md)
@@ -490,13 +506,12 @@ struct BankUpdateEvent {
  */
 using ServerEvent =
         std::variant<LoginOkEvent, LoginErrorEvent, CharacterCreatedEvent, CharacterErrorEvent,
-                     PlayerStatsEvent, EntitySpawnEvent, EntityDespawnEvent,
-                     EntityMoveEvent, DamageDealtEvent, DamageReceivedEvent, AttackDodgedEvent,
-                     EntityDiedEvent, PlayerRespawnedEvent, MeditationStartEvent,
-                     MeditationStopEvent, InventoryUpdateEvent, EquipUpdateEvent, GoldUpdateEvent,
-                     ItemDroppedEvent, ItemPickedEvent, NpcItemListEvent,
-                     ChatMsgEvent, ClanNotificationEvent, ClanUpdateEvent,
-                     MapTransitionEvent, HealReceivedEvent, SpellEffectEvent,
+                     PlayerStatsEvent, EntitySpawnEvent, EntityDespawnEvent, EntityMoveEvent,
+                     DamageDealtEvent, DamageReceivedEvent, AttackDodgedEvent, EntityDiedEvent,
+                     PlayerRespawnedEvent, MeditationStartEvent, MeditationStopEvent,
+                     InventoryUpdateEvent, EquipUpdateEvent, GoldUpdateEvent, ItemDroppedEvent,
+                     ItemPickedEvent, NpcItemListEvent, ChatMsgEvent, ClanNotificationEvent,
+                     ClanUpdateEvent, MapTransitionEvent, HealReceivedEvent, SpellEffectEvent,
                      BankUpdateEvent>;
 
 #endif  // MESSAGES_H_

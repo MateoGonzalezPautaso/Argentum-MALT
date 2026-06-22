@@ -15,6 +15,7 @@
 #include "../player.h"
 #include "../player_data_service.h"
 #include "../prop_grid.h"
+
 #include "ground_item_service.h"
 
 class MapTransitionService {

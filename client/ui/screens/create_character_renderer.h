@@ -9,11 +9,12 @@
 #include "../../../common/messages.h"
 #include "../../config/config.h"
 #include "../../render/gfx/button.h"
+
 #include "credential_screen_renderer.h"
 
 class ChatInput;
 
-class CreateCharacterRenderer : public CredentialScreenRenderer {
+class CreateCharacterRenderer: public CredentialScreenRenderer {
 public:
     CreateCharacterRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
                             const ChatInput& username_model, const ChatInput& password_model);

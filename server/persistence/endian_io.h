@@ -26,8 +26,7 @@ inline bool read_u16_le(std::istream& is, uint16_t& out) {
     is.read(reinterpret_cast<char*>(b), sizeof(b));
     if (!is)
         return false;
-    out = static_cast<uint16_t>(static_cast<uint16_t>(b[0]) |
-                                static_cast<uint16_t>(b[1]) << 8);
+    out = static_cast<uint16_t>(static_cast<uint16_t>(b[0]) | static_cast<uint16_t>(b[1]) << 8);
     return true;
 }
 

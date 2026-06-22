@@ -39,7 +39,7 @@ protected:
         bal.strength.race_strength_factor_human = 0.0;
         bal.strength.class_strength_factor_warrior = 0.0;
         players.emplace(id, Player(id, username, pos, Direction::SOUTH, Race::HUMAN,
-                                    PlayerClass::WARRIOR, bal, 20, 10, 10, 40));
+                                   PlayerClass::WARRIOR, bal, 20, 10, 10, 40));
         return players.at(id);
     }
 

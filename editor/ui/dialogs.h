@@ -26,8 +26,7 @@ struct TransitionResult {
     bool accepted = false;
 };
 
-TransitionResult show_transition_dialog(QWidget* parent,
-                                        const std::string& current_map,
+TransitionResult show_transition_dialog(QWidget* parent, const std::string& current_map,
                                         int current_x, int current_y);
 
 #endif

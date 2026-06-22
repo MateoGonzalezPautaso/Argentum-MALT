@@ -8,6 +8,7 @@
 #include "../../../common/messages.h"
 #include "../gfx/geometry.h"
 #include "../gfx/texture_loader.h"
+
 #include "animation_system.h"
 
 SpriteRenderer::SpriteRenderer(SDL2pp::Renderer& renderer, TTF_Font* name_font, int window_w,
@@ -64,10 +65,8 @@ int SpriteRenderer::clamp_y(int value, int sprite_h) const {
 }
 
 bool SpriteRenderer::is_visible(const SpriteRender& s, const SDL2pp::Rect& cam) {
-    return s.dst.GetX() + s.dst.GetW() > cam.GetX() &&
-           s.dst.GetX() < cam.GetX() + cam.GetW() &&
-           s.dst.GetY() + s.dst.GetH() > cam.GetY() &&
-           s.dst.GetY() < cam.GetY() + cam.GetH();
+    return s.dst.GetX() + s.dst.GetW() > cam.GetX() && s.dst.GetX() < cam.GetX() + cam.GetW() &&
+           s.dst.GetY() + s.dst.GetH() > cam.GetY() && s.dst.GetY() < cam.GetY() + cam.GetH();
 }
 
 void SpriteRenderer::advance_src_x(SpriteRender& sprite, int step, int frame_count) {
@@ -263,9 +262,7 @@ void SpriteRenderer::set_entity_clan_by_username(const std::string& username,
 void SpriteRenderer::set_entity_alpha(uint16_t id, uint8_t alpha) {
     entity_registry_.set_entity_alpha(id, alpha);
 }
-bool SpriteRenderer::is_npc(uint16_t id) const {
-    return entity_registry_.is_npc(id);
-}
+bool SpriteRenderer::is_npc(uint16_t id) const { return entity_registry_.is_npc(id); }
 void SpriteRenderer::update_entity_equipment_overlay(uint16_t id, uint8_t slot,
                                                      const std::string& path, int offset_y,
                                                      bool static_frame) {
@@ -313,8 +310,7 @@ void SpriteRenderer::render_overlays(const SDL2pp::Rect& cam) { effects_.render(
 // ── Animations ────────────────────────────────────────────────────────────────
 
 void SpriteRenderer::tick_animations(AnimationSystem& anim) {
-    for (auto& sprite: sprites)
-        anim.tick(sprite);
+    for (auto& sprite: sprites) anim.tick(sprite);
     entity_registry_.tick_animations(anim);
 }
 
@@ -348,14 +344,14 @@ void SpriteRenderer::append_equip_overlay_drawables(const SpriteRender& body,
         if (!overlay.active || overlay.frames.empty())
             continue;
         SDL2pp::Rect dst(body.dst.GetX() - cam.GetX(),
-                         body.dst.GetY() - cam.GetY() + overlay.offset_y,
-                         body.dst.GetW(), body.dst.GetH());
+                         body.dst.GetY() - cam.GetY() + overlay.offset_y, body.dst.GetW(),
+                         body.dst.GetH());
         const int overlay_foot_y = behind ? (body_foot_y - 1 - i) : (body_foot_y + 1 + i);
         if (overlay.static_frame) {
             static_cache[i] = body.src;
             static_cache[i].SetX(0);
-            out.push_back(
-                    Drawable{&overlay.frames[0], static_cache[i], dst, true, overlay_foot_y, body.alpha});
+            out.push_back(Drawable{&overlay.frames[0], static_cache[i], dst, true, overlay_foot_y,
+                                   body.alpha});
         } else {
             out.push_back(
                     Drawable{&overlay.frames[0], body.src, dst, true, overlay_foot_y, body.alpha});

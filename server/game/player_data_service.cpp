@@ -6,10 +6,10 @@
 
 PlayerDataService::PlayerDataService(const std::string& data_dir, const ServerConfig& config):
         player_persistence(data_dir + "/players.dat", data_dir + "/players.idx"),
-        inventory_persistence(data_dir + "/inventory.dat", data_dir + "/inventory.idx",
-                              static_cast<uint8_t>(config.inventory.max_slots +
-                                                   config.inventory.max_hp_potions +
-                                                   config.inventory.max_mana_potions)),
+        inventory_persistence(
+                data_dir + "/inventory.dat", data_dir + "/inventory.idx",
+                static_cast<uint8_t>(config.inventory.max_slots + config.inventory.max_hp_potions +
+                                     config.inventory.max_mana_potions)),
         bank_persistence(data_dir + "/bank.dat", data_dir + "/bank.idx",
                          static_cast<uint8_t>(config.inventory.max_bank_slots)),
         balance(config.balance),
@@ -104,8 +104,7 @@ void PlayerDataService::save_player(const Player& player) {
     }
 
     if (!bank_persistence.save(player.get_name(), player.dump_bank_records())) {
-        std::cerr << "[PlayerDataService] failed to save bank for '" << player.get_name()
-                  << "'\n";
+        std::cerr << "[PlayerDataService] failed to save bank for '" << player.get_name() << "'\n";
     }
 }
 

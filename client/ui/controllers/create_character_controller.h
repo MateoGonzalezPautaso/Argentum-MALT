@@ -8,6 +8,7 @@
 #include "../../../common/messages.h"
 #include "../../config/config.h"
 #include "../screens/create_character_renderer.h"
+
 #include "credential_form.h"
 
 class CreateCharacterController {

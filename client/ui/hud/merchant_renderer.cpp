@@ -29,7 +29,7 @@ MerchantRenderer::MerchantRenderer(SDL2pp::Renderer& renderer, const UIConfig& c
     }
 
     const auto& m = cfg.merchant;
-    buy_button.set_position(m.panel_x + m.buy.x,   m.panel_y + m.buy.y,  m.buy.w,  m.buy.h);
+    buy_button.set_position(m.panel_x + m.buy.x, m.panel_y + m.buy.y, m.buy.w, m.buy.h);
     sell_button.set_position(m.panel_x + m.sell.x, m.panel_y + m.sell.y, m.sell.w, m.sell.h);
 }
 
@@ -66,28 +66,23 @@ void MerchantRenderer::render(SDL2pp::Renderer& renderer) {
         }
 
         texture::render_text_clipped(renderer, font, items_[i].item_name, name_color,
-                                     SDL2pp::Rect(list_x_ + 4, ry, list_w_ - 90, row_h_),
-                                     0, 0, true);
-        texture::render_text_clipped(renderer, font,
-                                     std::to_string(items_[i].price) + "g", price_color,
-                                     SDL2pp::Rect(price_x_, ry, sell_price_x_ - price_x_, row_h_),
-                                     0, 0, true);
+                                     SDL2pp::Rect(list_x_ + 4, ry, list_w_ - 90, row_h_), 0, 0,
+                                     true);
+        texture::render_text_clipped(
+                renderer, font, std::to_string(items_[i].price) + "g", price_color,
+                SDL2pp::Rect(price_x_, ry, sell_price_x_ - price_x_, row_h_), 0, 0, true);
 
         uint32_t sell_price = static_cast<uint32_t>(items_[i].price * sell_price_ratio_);
-        texture::render_text_clipped(renderer, font,
-                                     std::to_string(sell_price) + "g", price_color,
-                                     SDL2pp::Rect(sell_price_x_, ry, list_x_ + list_w_ - sell_price_x_, row_h_),
-                                     0, 0, true);
+        texture::render_text_clipped(
+                renderer, font, std::to_string(sell_price) + "g", price_color,
+                SDL2pp::Rect(sell_price_x_, ry, list_x_ + list_w_ - sell_price_x_, row_h_), 0, 0,
+                true);
     }
 }
 
-void MerchantRenderer::set_items(const std::vector<NpcItemEntry>& items) {
-    items_ = items;
-}
+void MerchantRenderer::set_items(const std::vector<NpcItemEntry>& items) { items_ = items; }
 
-void MerchantRenderer::set_selected(int idx) {
-    selected_idx_ = idx;
-}
+void MerchantRenderer::set_selected(int idx) { selected_idx_ = idx; }
 
 int MerchantRenderer::item_at(int x, int y) const {
     if (items_.empty() || x < list_x_ || x >= list_x_ + list_w_ || y < list_y_)
@@ -109,17 +104,13 @@ int MerchantRenderer::max_scroll() const {
     return std::max(0, static_cast<int>(items_.size()) - visible_rows);
 }
 
-bool MerchantRenderer::is_buy_hit(int x, int y) const {
-    return buy_button.is_hit(x, y);
-}
+bool MerchantRenderer::is_buy_hit(int x, int y) const { return buy_button.is_hit(x, y); }
 
 bool MerchantRenderer::is_sell_hit(int x, int y) const {
     return sell_enabled_ && sell_button.is_hit(x, y);
 }
 
-void MerchantRenderer::set_sell_enabled(bool enabled) {
-    sell_enabled_ = enabled;
-}
+void MerchantRenderer::set_sell_enabled(bool enabled) { sell_enabled_ = enabled; }
 
 void MerchantRenderer::set_buy_hovered(int x, int y) {
     buy_button.hovered = buy_button.is_hit(x, y);

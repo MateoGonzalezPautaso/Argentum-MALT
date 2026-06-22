@@ -34,8 +34,8 @@ GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& c
                 {SDLK_f, ClientCommand{CheatVelocityCmd{}}},
                 {SDLK_r, ClientCommand{CheatReviveCmd{}}},
         },
-        merchant_controller(std::make_unique<MerchantController>(renderer, config.ui,
-                                                                  command_queue, player_stats)),
+        merchant_controller(std::make_unique<MerchantController>(renderer, config.ui, command_queue,
+                                                                 player_stats)),
         event_handler_(player_stats, world_renderer, audio_manager, chat_history, move_controller,
                        config, move_config, *merchant_controller, player_is_ghost,
                        current_map_name) {
@@ -97,9 +97,7 @@ void GameController::render() {
     renderer.Present();
 }
 
-void GameController::apply_server_event(const ServerEvent& ev) {
-    event_handler_.apply(ev);
-}
+void GameController::apply_server_event(const ServerEvent& ev) { event_handler_.apply(ev); }
 
 void GameController::load_game_assets() {
     world_renderer.load_assets(config.tilemap, config.sprites, config.skins, config.item_sprites,
@@ -112,7 +110,7 @@ void GameController::apply_movement_visual(Direction dir, bool advance_frame) {
     world_renderer.sprites().set_anchor_src_y(move_config.head_src_y_for(dir));
     if (advance_frame) {
         world_renderer.sprites().advance_movable_src_x(move_config.walk_src_step,
-                                                    move_config.walk_src_frames_for(dir));
+                                                       move_config.walk_src_frames_for(dir));
     }
 }
 
@@ -201,8 +199,8 @@ bool GameController::try_handle_inventory_click(const SDL_Event& event) {
 
     const int potion = ui_renderer.get_hovered_potion();
     if (potion > 0) {
-        const int slot = (potion == 1) ? ui_renderer.get_first_hp_potion_slot()
-                                       : ui_renderer.get_first_mana_potion_slot();
+        const int slot = (potion == 1) ? ui_renderer.get_first_hp_potion_slot() :
+                                         ui_renderer.get_first_mana_potion_slot();
         if (slot >= 0)
             command_queue.push(EquipItemCmd{static_cast<uint8_t>(slot)});
         return true;

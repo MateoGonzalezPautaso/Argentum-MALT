@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "../../input/chat_input.h"
-
 #include "../../render/gfx/geometry.h"
 #include "../../render/gfx/text_renderer.h"
 #include "../../render/gfx/texture_loader.h"
@@ -21,13 +20,11 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
         hp_bar_texture(renderer, texture::load_surface(ui_cfg.asset_hp_bar)),
         mp_bar_texture(renderer, texture::load_surface(ui_cfg.asset_mp_bar)),
         exp_bar_texture(renderer, texture::load_surface(ui_cfg.asset_exp_bar)),
-        audio_button(
-                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_default)),
-                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_hover))),
+        audio_button(SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_default)),
+                     SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_hover))),
         audio_off_texture(renderer, texture::load_surface(ui_cfg.asset_audio_off)),
-        expand_button(
-                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_expand_default)),
-                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_expand_hover))),
+        expand_button(SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_expand_default)),
+                      SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_expand_hover))),
         expand_active_texture(renderer, texture::load_surface(ui_cfg.asset_expand_off)),
         big_chat_texture_(renderer, texture::load_surface(ui_cfg.asset_big_chat)),
         ui_frame_rect(0, 0, ui_cfg.window_w, ui_cfg.window_h),
@@ -46,18 +43,18 @@ UIRenderer::UIRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
         throw std::runtime_error(std::string("TTF_OpenFont failed: ") + TTF_GetError());
     }
     inventory_renderer.set_font(bar_font);
-    audio_button.set_position(ui_cfg.game_audio_x, ui_cfg.game_audio_y,
-                              ui_cfg.game_audio_w, ui_cfg.game_audio_h);
+    audio_button.set_position(ui_cfg.game_audio_x, ui_cfg.game_audio_y, ui_cfg.game_audio_w,
+                              ui_cfg.game_audio_h);
     const int expand_x = ui_cfg.chat_input_x + ui_cfg.chat_input_w + ui_cfg.chat_expand_btn_gap;
-    expand_button.set_position(expand_x, ui_cfg.chat_input_y,
-                               ui_cfg.chat_expand_btn_w, ui_cfg.chat_expand_btn_h);
+    expand_button.set_position(expand_x, ui_cfg.chat_input_y, ui_cfg.chat_expand_btn_w,
+                               ui_cfg.chat_expand_btn_h);
 
     const int orig_gap = ui_cfg.chat_input_y - (ui_cfg.chat_history_y + ui_cfg.chat_history_h);
     const int img_bottom = ui_cfg.chat_history_y + big_chat_texture_.GetHeight();
     expanded_input_y_ = img_bottom - ui_cfg.chat_input_h - orig_gap;
-    expanded_chat_history_rect = SDL2pp::Rect(
-            ui_cfg.chat_history_x, ui_cfg.chat_history_y, ui_cfg.chat_history_w,
-            expanded_input_y_ - orig_gap - ui_cfg.chat_history_y);
+    expanded_chat_history_rect =
+            SDL2pp::Rect(ui_cfg.chat_history_x, ui_cfg.chat_history_y, ui_cfg.chat_history_w,
+                         expanded_input_y_ - orig_gap - ui_cfg.chat_history_y);
 }
 
 UIRenderer::~UIRenderer() {
@@ -111,9 +108,7 @@ void UIRenderer::render_expand_button() {
     expand_button.render_togglable(renderer, expand_active_texture, chat_expanded_);
 }
 
-bool UIRenderer::is_expand_hit(int x, int y) const {
-    return expand_button.is_hit(x, y);
-}
+bool UIRenderer::is_expand_hit(int x, int y) const { return expand_button.is_hit(x, y); }
 
 void UIRenderer::set_expand_button_hovered(int x, int y) {
     expand_button.hovered = expand_button.is_hit(x, y);
@@ -122,11 +117,11 @@ void UIRenderer::set_expand_button_hovered(int x, int y) {
 void UIRenderer::set_chat_expanded(bool expanded) {
     chat_expanded_ = expanded;
     const int input_y = expanded ? expanded_input_y_ : ui_cfg.chat_input_y;
-    chat_input_rect = SDL2pp::Rect(ui_cfg.chat_input_x, input_y,
-                                   ui_cfg.chat_input_w, ui_cfg.chat_input_h);
+    chat_input_rect =
+            SDL2pp::Rect(ui_cfg.chat_input_x, input_y, ui_cfg.chat_input_w, ui_cfg.chat_input_h);
     const int expand_btn_x = ui_cfg.chat_input_x + ui_cfg.chat_input_w + ui_cfg.chat_expand_btn_gap;
-    expand_button.rect = SDL2pp::Rect(expand_btn_x, input_y,
-                                      ui_cfg.chat_expand_btn_w, ui_cfg.chat_expand_btn_h);
+    expand_button.rect =
+            SDL2pp::Rect(expand_btn_x, input_y, ui_cfg.chat_expand_btn_w, ui_cfg.chat_expand_btn_h);
 }
 
 void UIRenderer::render_hp_bar(uint32_t current, uint32_t max) {
@@ -182,14 +177,14 @@ void UIRenderer::render_centered_text(const StatBarConfig& cfg, const std::strin
         return;
     const int text_x = cfg.x + (cfg.w - result.w) / 2;
     const int text_y = cfg.y + (cfg.h - result.h) / 2;
-    renderer.Copy(result.texture, SDL2pp::NullOpt, SDL2pp::Rect(text_x, text_y, result.w, result.h));
+    renderer.Copy(result.texture, SDL2pp::NullOpt,
+                  SDL2pp::Rect(text_x, text_y, result.w, result.h));
 }
 
 std::vector<const StatBarConfig*> UIRenderer::all_stat_bar_configs() const {
-    return {&ui_cfg.hp_bar,       &ui_cfg.mp_bar,       &ui_cfg.exp_bar,
-            &ui_cfg.gold_rect,    &ui_cfg.potion_hp,    &ui_cfg.potion_mana,
-            &ui_cfg.crit_rect,    &ui_cfg.dodge_rect,   &ui_cfg.strength_rect,
-            &ui_cfg.agility_rect, &ui_cfg.damage_rect,  &ui_cfg.defense_rect};
+    return {&ui_cfg.hp_bar,        &ui_cfg.mp_bar,       &ui_cfg.exp_bar,     &ui_cfg.gold_rect,
+            &ui_cfg.potion_hp,     &ui_cfg.potion_mana,  &ui_cfg.crit_rect,   &ui_cfg.dodge_rect,
+            &ui_cfg.strength_rect, &ui_cfg.agility_rect, &ui_cfg.damage_rect, &ui_cfg.defense_rect};
 }
 
 void UIRenderer::render_gold(uint32_t gold) {
@@ -366,9 +361,8 @@ std::vector<std::string> UIRenderer::wrap_chat_text(const std::string& text, int
     std::size_t pos = 0;
     while (pos <= text.size()) {
         std::size_t space_pos = text.find(' ', pos);
-        std::string word = text.substr(pos, space_pos == std::string::npos
-                                                    ? std::string::npos
-                                                    : space_pos - pos);
+        std::string word = text.substr(
+                pos, space_pos == std::string::npos ? std::string::npos : space_pos - pos);
 
         std::string candidate = current_line.empty() ? word : current_line + " " + word;
         int w = 0, h = 0;
@@ -482,7 +476,7 @@ void UIRenderer::render_stat_tooltips(int mx, int my) const {
         return;
 
     const StatBarConfig* found = nullptr;
-    for (const auto* stat : all_stat_bar_configs()) {
+    for (const auto* stat: all_stat_bar_configs()) {
         if (stat->label.empty())
             continue;
         if (point_in_rect(mx, my, SDL2pp::Rect(stat->x, stat->y, stat->w, stat->h))) {

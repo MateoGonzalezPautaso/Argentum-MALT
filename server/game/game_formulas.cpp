@@ -17,23 +17,31 @@ struct RaceStatInputs {
 RaceStatInputs race_inputs(const BalanceConfig& balance, Race race) {
     switch (race) {
         case Race::HUMAN:
-            return {balance.hp.constitution_human, balance.hp.race_hp_factor_human,
-                    balance.mana.intelligence_human, balance.mana.race_mana_factor_human,
+            return {balance.hp.constitution_human,
+                    balance.hp.race_hp_factor_human,
+                    balance.mana.intelligence_human,
+                    balance.mana.race_mana_factor_human,
                     balance.strength.race_strength_factor_human,
                     balance.agility.race_agility_factor_human};
         case Race::ELF:
-            return {balance.hp.constitution_elf, balance.hp.race_hp_factor_elf,
-                    balance.mana.intelligence_elf, balance.mana.race_mana_factor_elf,
+            return {balance.hp.constitution_elf,
+                    balance.hp.race_hp_factor_elf,
+                    balance.mana.intelligence_elf,
+                    balance.mana.race_mana_factor_elf,
                     balance.strength.race_strength_factor_elf,
                     balance.agility.race_agility_factor_elf};
         case Race::DWARF:
-            return {balance.hp.constitution_dwarf, balance.hp.race_hp_factor_dwarf,
-                    balance.mana.intelligence_dwarf, balance.mana.race_mana_factor_dwarf,
+            return {balance.hp.constitution_dwarf,
+                    balance.hp.race_hp_factor_dwarf,
+                    balance.mana.intelligence_dwarf,
+                    balance.mana.race_mana_factor_dwarf,
                     balance.strength.race_strength_factor_dwarf,
                     balance.agility.race_agility_factor_dwarf};
         case Race::GNOME:
-            return {balance.hp.constitution_gnome, balance.hp.race_hp_factor_gnome,
-                    balance.mana.intelligence_gnome, balance.mana.race_mana_factor_gnome,
+            return {balance.hp.constitution_gnome,
+                    balance.hp.race_hp_factor_gnome,
+                    balance.mana.intelligence_gnome,
+                    balance.mana.race_mana_factor_gnome,
                     balance.strength.race_strength_factor_gnome,
                     balance.agility.race_agility_factor_gnome};
     }
@@ -124,8 +132,7 @@ uint32_t GameFormulas::exp_threshold(const BalanceConfig& balance, uint8_t level
                                  std::pow(level, balance.level_exp_exponent));
 }
 
-uint32_t GameFormulas::experience_loss_on_death(const BalanceConfig& balance,
-                                                uint32_t experience) {
+uint32_t GameFormulas::experience_loss_on_death(const BalanceConfig& balance, uint32_t experience) {
     return static_cast<uint32_t>(experience * balance.exp_loss_on_death_ratio);
 }
 
@@ -182,14 +189,14 @@ double GameFormulas::clan_bonus(const AttackConfig& config, int nearby_allies) {
 }
 
 uint32_t GameFormulas::npc_gold_reward(const BalanceConfig& balance, uint32_t hp_max, Rng& rng) {
-    double pct = rng.get_random_double(balance.npc_gold_reward_min_pct,
-                                       balance.npc_gold_reward_max_pct);
+    double pct =
+            rng.get_random_double(balance.npc_gold_reward_min_pct, balance.npc_gold_reward_max_pct);
     return static_cast<uint32_t>(pct * hp_max);
 }
 
-uint32_t GameFormulas::bonus_kill_experience(const BalanceConfig& balance,
-                                             uint32_t target_hp_max, uint8_t attacker_level,
-                                             uint8_t target_level, Rng& rng) {
+uint32_t GameFormulas::bonus_kill_experience(const BalanceConfig& balance, uint32_t target_hp_max,
+                                             uint8_t attacker_level, uint8_t target_level,
+                                             Rng& rng) {
     int level_factor = static_cast<int>(target_level) - static_cast<int>(attacker_level) +
                        balance.experience_level_offset;
     double pct = rng.get_random_double(0, balance.extra_kill_exp_max_pct);
@@ -200,9 +207,7 @@ uint32_t GameFormulas::level_up_gold(uint32_t gold_per_level, uint8_t level) {
     return gold_per_level * level;
 }
 
-uint32_t GameFormulas::npc_hp(uint32_t base_hp, uint8_t level) {
-    return base_hp * level;
-}
+uint32_t GameFormulas::npc_hp(uint32_t base_hp, uint8_t level) { return base_hp * level; }
 
 uint32_t GameFormulas::npc_damage(uint32_t base_damage, uint8_t level) {
     return base_damage * level;
@@ -210,14 +215,12 @@ uint32_t GameFormulas::npc_damage(uint32_t base_damage, uint8_t level) {
 
 uint32_t GameFormulas::attack_experience(uint32_t damage, uint8_t attacker_level,
                                          uint8_t target_level, int level_diff_offset) {
-    int level_factor = static_cast<int>(target_level) - static_cast<int>(attacker_level) +
-                       level_diff_offset;
+    int level_factor =
+            static_cast<int>(target_level) - static_cast<int>(attacker_level) + level_diff_offset;
     return damage * static_cast<uint32_t>(std::max(level_factor, 0));
 }
 
-uint32_t GameFormulas::spell_self_heal(uint32_t hp_max) {
-    return hp_max / 2;
-}
+uint32_t GameFormulas::spell_self_heal(uint32_t hp_max) { return hp_max / 2; }
 
 uint64_t GameFormulas::gold_hard_cap(uint64_t max_gold, double gold_excess_ratio) {
     return max_gold + static_cast<uint64_t>(max_gold * gold_excess_ratio);
@@ -233,8 +236,8 @@ std::pair<uint16_t, uint16_t> GameFormulas::unarmed_damage_range(const AttackCon
 }
 
 std::pair<uint16_t, uint16_t> GameFormulas::display_damage_range(const Player& player,
-                                                                   const ItemCatalog& catalog,
-                                                                   const AttackConfig& config) {
+                                                                 const ItemCatalog& catalog,
+                                                                 const AttackConfig& config) {
     uint16_t dmg_min = 0, dmg_max = 0;
     const InventorySlot& weapon = player.get_equipped(EquipSlot::WEAPON);
     if (weapon.item_type != ItemType::NONE) {
@@ -252,9 +255,9 @@ std::pair<uint16_t, uint16_t> GameFormulas::display_damage_range(const Player& p
 }
 
 std::pair<uint16_t, uint16_t> GameFormulas::display_defense_range(const Player& player,
-                                                                    const ItemCatalog& catalog) {
+                                                                  const ItemCatalog& catalog) {
     uint16_t def_min = 0, def_max = 0;
-    for (EquipSlot slot : {EquipSlot::ARMOR, EquipSlot::HELMET, EquipSlot::SHIELD}) {
+    for (EquipSlot slot: {EquipSlot::ARMOR, EquipSlot::HELMET, EquipSlot::SHIELD}) {
         const InventorySlot& s = player.get_equipped(slot);
         if (s.item_type != ItemType::NONE) {
             const Item* item = catalog.find(s.item_type);

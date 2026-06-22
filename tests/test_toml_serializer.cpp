@@ -32,7 +32,7 @@ void roundtrip(const TilemapConfig& input) {
     EXPECT_EQ(input.map_type, output.map_type);
 
     ASSERT_EQ(input.tiles.size(), output.tiles.size());
-    for (const auto& [name, def] : input.tiles) {
+    for (const auto& [name, def]: input.tiles) {
         auto it = output.tiles.find(name);
         ASSERT_NE(it, output.tiles.end()) << "Missing tile: " << name;
         EXPECT_EQ(def.x, it->second.x);
@@ -45,13 +45,12 @@ void roundtrip(const TilemapConfig& input) {
     for (std::size_t r = 0; r < input.mapa.size(); ++r) {
         ASSERT_EQ(input.mapa[r].size(), output.mapa[r].size());
         for (std::size_t c = 0; c < input.mapa[r].size(); ++c) {
-            EXPECT_EQ(input.mapa[r][c], output.mapa[r][c])
-                << " at (" << r << "," << c << ")";
+            EXPECT_EQ(input.mapa[r][c], output.mapa[r][c]) << " at (" << r << "," << c << ")";
         }
     }
 
     ASSERT_EQ(input.props.size(), output.props.size());
-    for (const auto& [name, def] : input.props) {
+    for (const auto& [name, def]: input.props) {
         auto it = output.props.find(name);
         ASSERT_NE(it, output.props.end()) << "Missing prop: " << name;
         EXPECT_EQ(def.paths, it->second.paths);
@@ -86,7 +85,7 @@ void roundtrip(const TilemapConfig& input) {
         ASSERT_EQ(input.prop_map[r].size(), output.prop_map[r].size());
         for (std::size_t c = 0; c < input.prop_map[r].size(); ++c) {
             EXPECT_EQ(input.prop_map[r][c], output.prop_map[r][c])
-                << " at prop_map (" << r << "," << c << ")";
+                    << " at prop_map (" << r << "," << c << ")";
         }
     }
 
@@ -95,7 +94,7 @@ void roundtrip(const TilemapConfig& input) {
         ASSERT_EQ(input.mob_spawn_zones[r].size(), output.mob_spawn_zones[r].size());
         for (std::size_t c = 0; c < input.mob_spawn_zones[r].size(); ++c) {
             EXPECT_EQ(input.mob_spawn_zones[r][c], output.mob_spawn_zones[r][c])
-                << " at mob_spawn_zones (" << r << "," << c << ")";
+                    << " at mob_spawn_zones (" << r << "," << c << ")";
         }
     }
 
@@ -113,8 +112,8 @@ TilemapConfig make_full_config() {
     cfg.tiles["water"] = {.x = 128, .y = 256, .walkable = false, .path = "custom_atlas.png"};
 
     cfg.mapa = {
-        {"grass", "wall", "grass"},
-        {"water", "grass", "wall"},
+            {"grass", "wall", "grass"},
+            {"water", "grass", "wall"},
     };
 
     {
@@ -172,13 +171,13 @@ TilemapConfig make_full_config() {
     }
 
     cfg.prop_map = {
-        {"merchant", "", "portal"},
-        {"", "multi_part", ""},
+            {"merchant", "", "portal"},
+            {"", "multi_part", ""},
     };
 
     cfg.mob_spawn_zones = {
-        {true, true, false},
-        {false, false, true},
+            {true, true, false},
+            {false, false, true},
     };
 
     return cfg;
@@ -186,9 +185,7 @@ TilemapConfig make_full_config() {
 
 }  // namespace
 
-TEST(TomlSerializerTest, RoundTripFull) {
-    roundtrip(make_full_config());
-}
+TEST(TomlSerializerTest, RoundTripFull) { roundtrip(make_full_config()); }
 
 TEST(TomlSerializerTest, RoundTripEmpty) {
     TilemapConfig cfg;

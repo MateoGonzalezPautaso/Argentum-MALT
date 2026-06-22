@@ -7,13 +7,11 @@
 #include <QGraphicsView>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QLabel>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPen>
-#include <QWheelEvent>
 #include <QPushButton>
 #include <QShowEvent>
 #include <QSpinBox>
@@ -21,6 +19,7 @@
 #include <QStatusBar>
 #include <QToolBar>
 #include <QVBoxLayout>
+#include <QWheelEvent>
 #include <QWidget>
 
 #include "../input/map_interaction.h"
@@ -75,10 +74,12 @@ void MainWindow::setup_ui() {
     splitter_->addWidget(canvas_container);
 
     const auto& doc = controller_->document();
-    palette_ = new TilePalette(doc.config(), controller_->atlas_loader().all(),
-                               [this](const std::string& name, bool walkable) {
-                                   controller_->set_tile_walkable(name, walkable);
-                               }, this);
+    palette_ = new TilePalette(
+            doc.config(), controller_->atlas_loader().all(),
+            [this](const std::string& name, bool walkable) {
+                controller_->set_tile_walkable(name, walkable);
+            },
+            this);
     splitter_->addWidget(palette_);
 
     connect_palette_signals();
@@ -123,9 +124,10 @@ void MainWindow::setup_ui() {
     spawn_zone_mode_action_->setCheckable(true);
     connect(spawn_zone_mode_action_, &QAction::toggled, this, [this](bool checked) {
         spawn_zone_mode_ = checked;
-        statusBar()->showMessage(checked ? QString("Spawn Zone Mode: click tiles to mark spawn zones")
-                                         : QString("Spawn Zone Mode: off"),
-                                 3000);
+        statusBar()->showMessage(
+                checked ? QString("Spawn Zone Mode: click tiles to mark spawn zones") :
+                          QString("Spawn Zone Mode: off"),
+                3000);
     });
 
     auto* file_menu = menuBar()->addMenu("&File");
@@ -168,16 +170,14 @@ void MainWindow::setup_ui() {
     auto* walkable_action = view_menu->addAction("Show &Walkable Overlay");
     walkable_action->setCheckable(true);
     walkable_action->setChecked(controller_->show_walkable_overlay());
-    connect(walkable_action, &QAction::triggered, this, [this]() {
-        controller_->toggle_walkable_overlay();
-    });
+    connect(walkable_action, &QAction::triggered, this,
+            [this]() { controller_->toggle_walkable_overlay(); });
 
     auto* spawn_overlay_action = view_menu->addAction("Show Spawn &Zone Overlay");
     spawn_overlay_action->setCheckable(true);
     spawn_overlay_action->setChecked(true);
-    connect(spawn_overlay_action, &QAction::triggered, this, [this]() {
-        controller_->toggle_spawn_overlay();
-    });
+    connect(spawn_overlay_action, &QAction::triggered, this,
+            [this]() { controller_->toggle_spawn_overlay(); });
 }
 
 void MainWindow::connect_palette_signals() {
@@ -204,31 +204,34 @@ void MainWindow::connect_palette_signals() {
             return;
 
         const auto& def = it->second;
-        auto result = show_transition_dialog(this, def.transition_map,
-                                             def.transition_x, def.transition_y);
+        auto result = show_transition_dialog(this, def.transition_map, def.transition_x,
+                                             def.transition_y);
         if (!result.accepted)
             return;
 
-        controller_->set_prop_transition(prop_name, result.transition_map,
-                                         result.transition_x, result.transition_y);
+        controller_->set_prop_transition(prop_name, result.transition_map, result.transition_x,
+                                         result.transition_y);
         palette_->update_prop_visual(prop_name);
-        statusBar()->showMessage(
-            QString("Portal %1 -> %2 (spawn: %3, %4)")
-                .arg(QString::fromStdString(prop_name),
-                     QString::fromStdString(result.transition_map.empty()
-                        ? "(none)" : result.transition_map))
-                .arg(result.transition_x)
-                .arg(result.transition_y), 5000);
+        statusBar()->showMessage(QString("Portal %1 -> %2 (spawn: %3, %4)")
+                                         .arg(QString::fromStdString(prop_name),
+                                              QString::fromStdString(result.transition_map.empty() ?
+                                                                             "(none)" :
+                                                                             result.transition_map))
+                                         .arg(result.transition_x)
+                                         .arg(result.transition_y),
+                                 5000);
     });
 }
 
 void MainWindow::rebuild_palette() {
     delete palette_;
     const auto& doc = controller_->document();
-    palette_ = new TilePalette(doc.config(), controller_->atlas_loader().all(),
-                               [this](const std::string& name, bool walkable) {
-                                   controller_->set_tile_walkable(name, walkable);
-                               }, this);
+    palette_ = new TilePalette(
+            doc.config(), controller_->atlas_loader().all(),
+            [this](const std::string& name, bool walkable) {
+                controller_->set_tile_walkable(name, walkable);
+            },
+            this);
     splitter_->addWidget(palette_);
     connect_palette_signals();
 }
@@ -366,7 +369,7 @@ void MainWindow::open_map() {
 
     update_title();
     const auto& doc = controller_->document();
-    for (auto* action : map_type_group_->actions()) {
+    for (auto* action: map_type_group_->actions()) {
         action->setChecked(static_cast<MapType>(action->data().toInt()) == doc.config().map_type);
     }
     statusBar()->showMessage(QString("Opened %1").arg(QString::fromStdString(doc.path())), 3000);
@@ -389,7 +392,7 @@ void MainWindow::new_map() {
     view_->fitInView(scene_->sceneRect(), Qt::KeepAspectRatio);
 
     update_title();
-    for (auto* action : map_type_group_->actions()) {
+    for (auto* action: map_type_group_->actions()) {
         action->setChecked(static_cast<MapType>(action->data().toInt()) == doc.config().map_type);
     }
     statusBar()->showMessage(
@@ -419,9 +422,14 @@ void MainWindow::update_title() {
         title += " - Untitled";
     }
     switch (doc.config().map_type) {
-        case MapType::CITY:    title += " [City]";    break;
-        case MapType::DUNGEON: title += " [Dungeon]"; break;
-        default: break;
+        case MapType::CITY:
+            title += " [City]";
+            break;
+        case MapType::DUNGEON:
+            title += " [Dungeon]";
+            break;
+        default:
+            break;
     }
     setWindowTitle(title);
 }
@@ -445,28 +453,26 @@ void MainWindow::handle_prop_context_menu(int row, int col, const QPoint& screen
 
         const auto& base = it->second;
         PropTransitionOverride current = controller_->document().transition_override(row, col);
-        std::string cur_map = current.transition_map.empty() ?
-                base.transition_map : current.transition_map;
-        int cur_x = current.transition_map.empty() ?
-                base.transition_x : current.transition_x;
-        int cur_y = current.transition_map.empty() ?
-                base.transition_y : current.transition_y;
+        std::string cur_map =
+                current.transition_map.empty() ? base.transition_map : current.transition_map;
+        int cur_x = current.transition_map.empty() ? base.transition_x : current.transition_x;
+        int cur_y = current.transition_map.empty() ? base.transition_y : current.transition_y;
 
         auto result = show_transition_dialog(this, cur_map, cur_x, cur_y);
         if (!result.accepted)
             return;
 
-        controller_->set_prop_transition_override(
-                row, col,
-                result.transition_map, result.transition_x, result.transition_y);
+        controller_->set_prop_transition_override(row, col, result.transition_map,
+                                                  result.transition_x, result.transition_y);
         controller_->full_rebuild();
-        statusBar()->showMessage(
-            QString("Portal instance %1 -> %2 (spawn: %3, %4)")
-                .arg(QString::fromStdString(prop),
-                     QString::fromStdString(result.transition_map.empty()
-                        ? "(none)" : result.transition_map))
-                .arg(result.transition_x)
-                .arg(result.transition_y), 5000);
+        statusBar()->showMessage(QString("Portal instance %1 -> %2 (spawn: %3, %4)")
+                                         .arg(QString::fromStdString(prop),
+                                              QString::fromStdString(result.transition_map.empty() ?
+                                                                             "(none)" :
+                                                                             result.transition_map))
+                                         .arg(result.transition_x)
+                                         .arg(result.transition_y),
+                                 5000);
     }
 }
 
@@ -474,8 +480,7 @@ void MainWindow::change_map_type(QAction* action) {
     auto type = static_cast<MapType>(action->data().toInt());
     controller_->set_map_type(type);
     update_title();
-    statusBar()->showMessage(QString("Map type changed to %1")
-                                     .arg(action->text().toLower()), 3000);
+    statusBar()->showMessage(QString("Map type changed to %1").arg(action->text().toLower()), 3000);
 }
 
 void MainWindow::update_drag_preview(int r1, int c1, int r2, int c2) {

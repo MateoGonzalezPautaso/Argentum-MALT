@@ -41,8 +41,8 @@ ServerConfig load_server_config(const std::string& path) {
         config.save_interval_seconds =
                 toml_get_int(*server, "save_interval_seconds", config.save_interval_seconds);
         config.cheats_enabled = toml_get_bool(*server, "cheats_enabled", config.cheats_enabled);
-        config.npc_id_base = static_cast<uint16_t>(
-                toml_get_int(*server, "npc_id_base", config.npc_id_base));
+        config.npc_id_base =
+                static_cast<uint16_t>(toml_get_int(*server, "npc_id_base", config.npc_id_base));
     }
 
     SharedConfig shared = load_shared_config("config/common.toml");
@@ -160,11 +160,10 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*balance, "gold_cap_exponent", config.balance.gold_cap_exponent);
         config.balance.exp_loss_on_death_ratio = toml_get_double(
                 *balance, "exp_loss_on_death_ratio", config.balance.exp_loss_on_death_ratio);
-        config.balance.gold_excess_ratio = toml_get_double(
-                *balance, "gold_excess_ratio", config.balance.gold_excess_ratio);
-        config.balance.experience_level_offset =
-                toml_get_int(*balance, "experience_level_offset",
-                             config.balance.experience_level_offset);
+        config.balance.gold_excess_ratio =
+                toml_get_double(*balance, "gold_excess_ratio", config.balance.gold_excess_ratio);
+        config.balance.experience_level_offset = toml_get_int(
+                *balance, "experience_level_offset", config.balance.experience_level_offset);
         config.balance.npc_gold_reward_min_pct = toml_get_double(
                 *balance, "npc_gold_reward_min_pct", config.balance.npc_gold_reward_min_pct);
         config.balance.npc_gold_reward_max_pct = toml_get_double(
@@ -179,8 +178,8 @@ ServerConfig load_server_config(const std::string& path) {
                              config.balance.default_resurrect_wait_seconds);
         config.balance.cheat_gold_amount =
                 toml_get_int(*balance, "cheat_gold_amount", config.balance.cheat_gold_amount);
-        config.balance.npc_fallback_base_hp = static_cast<uint32_t>(
-                toml_get_int(*balance, "npc_fallback_base_hp", config.balance.npc_fallback_base_hp));
+        config.balance.npc_fallback_base_hp = static_cast<uint32_t>(toml_get_int(
+                *balance, "npc_fallback_base_hp", config.balance.npc_fallback_base_hp));
         config.balance.npc_fallback_base_damage = static_cast<uint32_t>(toml_get_int(
                 *balance, "npc_fallback_base_damage", config.balance.npc_fallback_base_damage));
         config.balance.default_spell_effect_id = static_cast<uint8_t>(toml_get_int(
@@ -356,8 +355,7 @@ ServerConfig load_server_config(const std::string& path) {
         };
         config.balance.starting_items.by_class[PlayerClass::WARRIOR] =
                 parse_item_list(*si, "warrior");
-        config.balance.starting_items.by_class[PlayerClass::MAGE] =
-                parse_item_list(*si, "mage");
+        config.balance.starting_items.by_class[PlayerClass::MAGE] = parse_item_list(*si, "mage");
         config.balance.starting_items.by_class[PlayerClass::PALADIN] =
                 parse_item_list(*si, "paladin");
         config.balance.starting_items.by_class[PlayerClass::CLERIC] =

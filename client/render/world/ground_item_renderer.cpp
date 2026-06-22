@@ -13,11 +13,13 @@ constexpr uint8_t FALLBACK_ALPHA = 200;
 }  // namespace
 
 GroundItemRenderer::GroundItemRenderer(
-        SDL2pp::Renderer& renderer,
-        const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites,
+        SDL2pp::Renderer& renderer, const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites,
         const GroundItemConfig& cfg):
-        renderer(renderer), item_sprites(item_sprites), texture_cache_(renderer),
-        item_drawer_(texture_cache_), config_(cfg) {}
+        renderer(renderer),
+        item_sprites(item_sprites),
+        texture_cache_(renderer),
+        item_drawer_(texture_cache_),
+        config_(cfg) {}
 
 void GroundItemRenderer::add_item(int world_x, int world_y, ItemType type,
                                   const std::string& name) {

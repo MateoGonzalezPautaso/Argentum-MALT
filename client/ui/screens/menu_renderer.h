@@ -4,7 +4,6 @@
 #include <SDL2pp/SDL2pp.hh>
 
 #include "../../config/config.h"
-
 #include "../../render/gfx/button.h"
 
 class MenuRenderer {

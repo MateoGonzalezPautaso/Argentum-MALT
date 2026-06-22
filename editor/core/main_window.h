@@ -7,6 +7,7 @@
 
 #include "../input/map_interaction.h"
 #include "../ui/tile_palette.h"
+
 #include "editor_controller.h"
 
 class QAction;

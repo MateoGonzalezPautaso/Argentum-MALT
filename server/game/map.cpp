@@ -80,7 +80,7 @@ bool Map::is_position_in_spawn_zone(int x, int y) const {
 bool Map::is_safe_zone(int x, int y) const { return !is_position_in_spawn_zone(x, y); }
 
 std::optional<std::pair<int, int>> Map::find_random_mob_spawn_pos_near(Rng& rng, int px, int py,
-                                                                         int tile_radius) const {
+                                                                       int tile_radius) const {
     if (tilemap_->mob_spawn_zones.empty())
         return std::nullopt;
 
@@ -89,11 +89,16 @@ std::optional<std::pair<int, int>> Map::find_random_mob_spawn_pos_near(Rng& rng,
     int center_row = py / tsz;
 
     int min_r = std::max(0, center_row - tile_radius);
-    int max_r = std::min(static_cast<int>(tilemap_->mob_spawn_zones.size()) - 1, center_row + tile_radius);
+    int max_r = std::min(static_cast<int>(tilemap_->mob_spawn_zones.size()) - 1,
+                         center_row + tile_radius);
     int min_c = std::max(0, center_col - tile_radius);
-    int max_c = std::min(static_cast<int>(tilemap_->mob_spawn_zones[0].size()) - 1, center_col + tile_radius);
+    int max_c = std::min(static_cast<int>(tilemap_->mob_spawn_zones[0].size()) - 1,
+                         center_col + tile_radius);
 
-    struct Candidate { int px; int py; };
+    struct Candidate {
+        int px;
+        int py;
+    };
     std::vector<Candidate> candidates;
 
     for (int r = min_r; r <= max_r; ++r) {

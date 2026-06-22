@@ -17,7 +17,9 @@ TilePalette::TilePalette(const TilemapConfig& config,
                          const std::unordered_map<std::string, QPixmap>& atlases,
                          std::function<void(const std::string&, bool)> on_toggle_walkable,
                          QWidget* parent):
-        QWidget(parent), config_(config), atlases_(atlases),
+        QWidget(parent),
+        config_(config),
+        atlases_(atlases),
         on_toggle_walkable_(std::move(on_toggle_walkable)) {
     auto* layout = new QVBoxLayout(this);
     layout->setContentsMargins(4, 4, 4, 4);
@@ -161,8 +163,8 @@ TilePalette::SectionWidgets TilePalette::make_section(
 
         if (enable_walkable_menu) {
             const auto& tile_def = config_.tiles.at(name);
-            btn->setToolTip(
-                    QString::fromStdString(name + (tile_def.walkable ? " (walkable)" : " (blocked)")));
+            btn->setToolTip(QString::fromStdString(
+                    name + (tile_def.walkable ? " (walkable)" : " (blocked)")));
             if (!tile_def.walkable) {
                 btn->setStyleSheet("QToolButton { border: 2px solid red; }");
             }
@@ -173,9 +175,9 @@ TilePalette::SectionWidgets TilePalette::make_section(
             auto prop_it = config_.props.find(name);
             if (prop_it != config_.props.end() && !prop_it->second.transition_map.empty()) {
                 btn->setStyleSheet(
-                    "QToolButton { border: 2px solid #4488ff; background: #4488ff20; }");
-                btn->setToolTip(QString::fromStdString(
-                    name + " (portal -> " + prop_it->second.transition_map + ")"));
+                        "QToolButton { border: 2px solid #4488ff; background: #4488ff20; }");
+                btn->setToolTip(QString::fromStdString(name + " (portal -> " +
+                                                       prop_it->second.transition_map + ")"));
             }
             btn->setContextMenuPolicy(Qt::CustomContextMenu);
             connect(btn, &QToolButton::customContextMenuRequested, this,
@@ -242,10 +244,9 @@ void TilePalette::update_prop_visual(const std::string& name) {
 
     auto* btn = btn_it->second;
     if (!prop_it->second.transition_map.empty()) {
-        btn->setStyleSheet(
-            "QToolButton { border: 2px solid #4488ff; background: #4488ff20; }");
-        btn->setToolTip(QString::fromStdString(
-            name + " (portal -> " + prop_it->second.transition_map + ")"));
+        btn->setStyleSheet("QToolButton { border: 2px solid #4488ff; background: #4488ff20; }");
+        btn->setToolTip(QString::fromStdString(name + " (portal -> " +
+                                               prop_it->second.transition_map + ")"));
     } else {
         btn->setStyleSheet("");
         btn->setToolTip(QString::fromStdString(name));

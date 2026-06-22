@@ -52,20 +52,18 @@ public:
 
     void full_rebuild();
 
-    static inline const std::vector<std::string> kCityRequiredNpcs = {
-        "comerciante", "banquero", "sacerdote"
-    };
+    static inline const std::vector<std::string> kCityRequiredNpcs = {"comerciante", "banquero",
+                                                                      "sacerdote"};
 
 private:
-    template<typename F>
+    template <typename F>
     static void for_each_cell(int r1, int c1, int r2, int c2, F&& fn) {
         int r_min = std::min(r1, r2);
         int r_max = std::max(r1, r2);
         int c_min = std::min(c1, c2);
         int c_max = std::max(c1, c2);
         for (int r = r_min; r <= r_max; ++r)
-            for (int c = c_min; c <= c_max; ++c)
-                fn(r, c);
+            for (int c = c_min; c <= c_max; ++c) fn(r, c);
     }
 
     TilemapConfig default_tile_config_;

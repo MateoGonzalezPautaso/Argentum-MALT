@@ -67,8 +67,7 @@ EntitySpawnEvent PlayerSessionService::make_entity_spawn(const Player& p) const 
     };
 }
 
-EntitySpawnEvent PlayerSessionService::make_npc_spawn(const EnemyNpc& npc,
-                                                       uint16_t npc_id) const {
+EntitySpawnEvent PlayerSessionService::make_npc_spawn(const EnemyNpc& npc, uint16_t npc_id) const {
     return EntitySpawnEvent{
             .entity_id = npc_id,
             .entity_type = EntityType::NPC,
@@ -89,8 +88,8 @@ PlayerStatsEvent PlayerSessionService::make_player_stats_event(const Player& p) 
 }
 
 void PlayerSessionService::append_existing_entities(std::vector<ServerEvent>& events,
-                                                     uint16_t exclude_id,
-                                                     const std::string& map_name) const {
+                                                    uint16_t exclude_id,
+                                                    const std::string& map_name) const {
     for (const auto& [id, player]: players_) {
         if (id == exclude_id)
             continue;
@@ -184,7 +183,7 @@ CommandResult PlayerSessionService::handle_login(uint16_t player_id, const Login
 }
 
 CommandResult PlayerSessionService::handle_create_character(uint16_t player_id,
-                                                             const CreateCharacterCmd& cmd) {
+                                                            const CreateCharacterCmd& cmd) {
     if (cmd.username.empty()) {
         CharacterErrorEvent err{CharacterError::INVALID_USERNAME, "Username cannot be empty"};
         return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};

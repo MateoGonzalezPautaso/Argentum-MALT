@@ -7,9 +7,8 @@ MenuRenderer::MenuRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg):
         menu_background_texture(renderer, texture::load_surface(ui_cfg.asset_menu_bg)),
         start_button(SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_start_default)),
                      SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_start_hover))),
-        audio_button(
-                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_default)),
-                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_hover))),
+        audio_button(SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_default)),
+                     SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_hover))),
         audio_off_texture(renderer, texture::load_surface(ui_cfg.asset_audio_off)),
         menu_background_rect(0, 0, ui_cfg.window_w, ui_cfg.window_h),
         ui_cfg(ui_cfg) {

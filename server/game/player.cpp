@@ -40,9 +40,8 @@ Player::Player(uint16_t id, const std::string& username, Position pos, Direction
 Player::Player(uint16_t id, const std::string& username, Position pos, Direction dir, Race race,
                PlayerClass player_class, const BalanceConfig& balance, uint8_t level,
                uint32_t experience, uint32_t hp_current, uint32_t hp_max, uint32_t mana_current,
-               uint32_t mana_max, uint32_t gold, uint8_t equip_capacity,
-               uint8_t hp_potion_capacity, uint8_t mana_potion_capacity, uint8_t bank_capacity,
-               uint32_t bank_gold):
+               uint32_t mana_max, uint32_t gold, uint8_t equip_capacity, uint8_t hp_potion_capacity,
+               uint8_t mana_potion_capacity, uint8_t bank_capacity, uint32_t bank_gold):
         Entity(hp_max, username, pos, level),
         id(id),
         race(race),
@@ -294,15 +293,11 @@ void Player::load_inventory(const std::vector<InventorySlotRecord>& records) {
     inv.from_records(records);
 }
 
-bool Player::add_item(ItemType type, const std::string& name) {
-    return inv.place(type, name);
-}
+bool Player::add_item(ItemType type, const std::string& name) { return inv.place(type, name); }
 
 void Player::remove_inventory_item(uint8_t slot_index) { inv.clear(slot_index); }
 
-std::vector<InventorySlotRecord> Player::dump_inventory_records() const {
-    return inv.to_records();
-}
+std::vector<InventorySlotRecord> Player::dump_inventory_records() const { return inv.to_records(); }
 
 bool Player::take_bank_gold(uint32_t amount) {
     if (amount > bank_gold)

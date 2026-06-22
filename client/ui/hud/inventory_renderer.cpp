@@ -6,8 +6,12 @@
 InventoryRenderer::InventoryRenderer(
         SDL2pp::Renderer& renderer, TTF_Font* font, const InventoryPanelConfig& cfg,
         const std::unordered_map<uint8_t, ItemSpriteDef>& item_sprites):
-        renderer(renderer), font(font), cfg(cfg), item_sprites(item_sprites),
-        texture_cache_(renderer), item_drawer_(texture_cache_) {}
+        renderer(renderer),
+        font(font),
+        cfg(cfg),
+        item_sprites(item_sprites),
+        texture_cache_(renderer),
+        item_drawer_(texture_cache_) {}
 
 const ItemSpriteDef* InventoryRenderer::find_sprite(ItemType type) const {
     auto it = item_sprites.find(static_cast<uint8_t>(type));

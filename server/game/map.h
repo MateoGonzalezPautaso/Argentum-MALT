@@ -26,7 +26,8 @@ public:
     bool is_walkable(int foot_x, int foot_y) const;
     bool is_mob_spawn_tile(int row, int col) const;
     std::optional<std::pair<int, int>> find_random_mob_spawn_pos(Rng& rng) const;
-    std::optional<std::pair<int, int>> find_random_mob_spawn_pos_near(Rng& rng, int px, int py, int tile_radius) const;
+    std::optional<std::pair<int, int>> find_random_mob_spawn_pos_near(Rng& rng, int px, int py,
+                                                                      int tile_radius) const;
 
     bool is_position_in_spawn_zone(int x, int y) const;
     bool is_safe_zone(int x, int y) const;

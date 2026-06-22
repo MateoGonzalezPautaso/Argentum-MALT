@@ -9,9 +9,10 @@
 #include "../config/config.h"
 #include "../render/gfx/render_context.h"
 #include "../ui/controllers/create_character_controller.h"
-#include "game_controller.h"
 #include "../ui/controllers/login_controller.h"
 #include "../ui/controllers/menu_controller.h"
+
+#include "game_controller.h"
 
 enum class GameState { Menu, Login, CreateCharacter, Playing };
 

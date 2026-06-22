@@ -116,8 +116,7 @@ bool InventoryPersistence::save(const std::string& username,
         return true;
     }
 
-    std::ofstream data(data_path,
-                       std::ios::binary | std::ios::app | std::ios::in | std::ios::out);
+    std::ofstream data(data_path, std::ios::binary | std::ios::app | std::ios::in | std::ios::out);
     if (!data.is_open()) {
         log_error("could not open data file to append '" + username + "': " + data_path);
         return false;

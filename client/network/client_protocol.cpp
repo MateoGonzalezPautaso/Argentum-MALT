@@ -57,9 +57,7 @@ void ClientProtocol::send_resurrect() { protocol.send_opcode(OpCode::RESURRECT);
 
 void ClientProtocol::send_npc_heal(const NpcHealCmd&) { protocol.send_opcode(OpCode::NPC_HEAL); }
 
-void ClientProtocol::send_npc_list(const NpcListCmd&) {
-    protocol.send_opcode(OpCode::NPC_LIST);
-}
+void ClientProtocol::send_npc_list(const NpcListCmd&) { protocol.send_opcode(OpCode::NPC_LIST); }
 
 void ClientProtocol::send_npc_buy(const NpcBuyCmd& cmd) {
     protocol.send_opcode(OpCode::NPC_BUY);

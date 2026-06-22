@@ -16,9 +16,7 @@ void MerchantController::open(bool sell_enabled) {
     command_queue_.push(NpcListCmd{});
 }
 
-bool MerchantController::is_open() const {
-    return open_;
-}
+bool MerchantController::is_open() const { return open_; }
 
 bool MerchantController::is_any_button_hovered() const {
     return merchant_renderer_.is_any_button_hovered();
@@ -51,9 +49,7 @@ void MerchantController::handle_scroll(int delta) {
     scroll_offset_ = std::max(0, std::min(scroll_offset_, merchant_renderer_.max_scroll()));
 }
 
-void MerchantController::render() {
-    merchant_renderer_.render(renderer_);
-}
+void MerchantController::render() { merchant_renderer_.render(renderer_); }
 
 bool MerchantController::handle_mouse_button(const SDL_Event& event) {
     if (!open_)

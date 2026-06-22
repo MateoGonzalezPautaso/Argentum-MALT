@@ -5,8 +5,8 @@
 ItemSpriteDrawer::ItemSpriteDrawer(TextureCache& cache): cache_(cache) {}
 
 void ItemSpriteDrawer::draw(SDL2pp::Renderer& renderer, const ItemSpriteDef* def,
-                             const SDL2pp::Rect& dst, uint8_t fallback_alpha, TTF_Font* font,
-                             const std::string& name) const {
+                            const SDL2pp::Rect& dst, uint8_t fallback_alpha, TTF_Font* font,
+                            const std::string& name) const {
     if (def && !def->path.empty()) {
         SDL2pp::Texture& tex = cache_.get(def->path);
         renderer.Copy(tex, SDL2pp::Rect(def->src_x, def->src_y, def->src_w, def->src_h), dst);

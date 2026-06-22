@@ -392,7 +392,7 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
 void ServerProtocol::send_npc_item_list(const NpcItemListEvent& ev) {
     protocol.send_opcode(OpCode::NPC_ITEM_LIST);
     protocol.send_uint16(static_cast<uint16_t>(ev.items.size()));
-    for (const auto& item : ev.items) {
+    for (const auto& item: ev.items) {
         protocol.send_str(item.item_name);
         protocol.send_uint8(static_cast<uint8_t>(item.item_type));
         protocol.send_uint8(item.sprite_id);
@@ -428,13 +428,9 @@ void ServerProtocol::send_bank_update(const BankUpdateEvent& ev) {
     protocol.send_uint32(ev.gold);
 }
 
-ClientCommand ServerProtocol::recv_npc_buy() {
-    return NpcBuyCmd{protocol.recv_str()};
-}
+ClientCommand ServerProtocol::recv_npc_buy() { return NpcBuyCmd{protocol.recv_str()}; }
 
-ClientCommand ServerProtocol::recv_npc_sell() {
-    return NpcSellCmd{protocol.recv_str()};
-}
+ClientCommand ServerProtocol::recv_npc_sell() { return NpcSellCmd{protocol.recv_str()}; }
 
 ClientCommand ServerProtocol::recv_bank_deposit() {
     BankDepositCmd cmd;
@@ -464,6 +460,4 @@ ClientCommand ServerProtocol::recv_drop_item() {
     return cmd;
 }
 
-ClientCommand ServerProtocol::recv_pickup_item() {
-    return PickupItemCmd{protocol.recv_str()};
-}
+ClientCommand ServerProtocol::recv_pickup_item() { return PickupItemCmd{protocol.recv_str()}; }

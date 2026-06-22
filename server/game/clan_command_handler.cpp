@@ -14,9 +14,9 @@ CommandResult system_msg(const std::string& msg) {
 
 }  // namespace
 
-ClanCommandHandler::ClanCommandHandler(ClanManager& clan_manager,
-                                       std::map<uint16_t, Player>& players,
-                                       const std::unordered_map<std::string, uint16_t>& player_name_index):
+ClanCommandHandler::ClanCommandHandler(
+        ClanManager& clan_manager, std::map<uint16_t, Player>& players,
+        const std::unordered_map<std::string, uint16_t>& player_name_index):
         clan_manager(clan_manager), players(players), player_name_index_(player_name_index) {}
 
 std::optional<uint16_t> ClanCommandHandler::find_player_id_by_name(const std::string& name) const {
@@ -203,7 +203,8 @@ CommandResult ClanCommandHandler::handle_clan_ban(uint16_t player_id, const std:
             auto pit = players.find(target_id);
             if (pit != players.end())
                 pit->second.set_clan_name("");
-            targeted[target_id].push_back(ClanNotificationEvent{ClanNotifType::KICKED, args, clan_name});
+            targeted[target_id].push_back(
+                    ClanNotificationEvent{ClanNotifType::KICKED, args, clan_name});
             send_empty_clan_update(target_id, targeted);
         }
         send_clan_update(clan_name, targeted);
@@ -246,7 +247,8 @@ CommandResult ClanCommandHandler::handle_clan_kick(uint16_t player_id, const std
             auto pit = players.find(target_id);
             if (pit != players.end())
                 pit->second.set_clan_name("");
-            targeted[target_id].push_back(ClanNotificationEvent{ClanNotifType::KICKED, args, clan_name});
+            targeted[target_id].push_back(
+                    ClanNotificationEvent{ClanNotifType::KICKED, args, clan_name});
             send_empty_clan_update(target_id, targeted);
         }
         send_clan_update(clan_name, targeted);
@@ -265,8 +267,7 @@ CommandResult ClanCommandHandler::handle_leave_clan(uint16_t player_id) {
     CommandResult cmd_result;
     if (result.ok) {
         it->second.set_clan_name("");
-        cmd_result.private_events = {ChatMsgEvent{ChatMsgType::SYSTEM, "",
-                                                   result.error_msg}};
+        cmd_result.private_events = {ChatMsgEvent{ChatMsgType::SYSTEM, "", result.error_msg}};
         send_empty_clan_update(player_id, cmd_result.targeted_events);
         send_clan_update(clan_name, cmd_result.targeted_events);
     } else {
@@ -296,15 +297,13 @@ CommandResult ClanCommandHandler::handle_clan_chat(uint16_t player_id, const std
     return {.private_events = {}, .broadcast_events = {}, .targeted_events = std::move(targeted)};
 }
 
-void ClanCommandHandler::send_clan_update(
-        const std::string& clan_name,
-        std::map<uint16_t, std::vector<ServerEvent>>& targeted) {
+void ClanCommandHandler::send_clan_update(const std::string& clan_name,
+                                          std::map<uint16_t, std::vector<ServerEvent>>& targeted) {
     auto members = clan_manager.get_member_list(clan_name);
     std::vector<ClanMember> online_members;
     for (auto& m: members) {
         auto id_opt = find_player_id_by_name(m.username);
-        m.is_online = id_opt.has_value() &&
-                      players.count(*id_opt) > 0 &&
+        m.is_online = id_opt.has_value() && players.count(*id_opt) > 0 &&
                       players.at(*id_opt).get_clan_name() == clan_name;
         online_members.push_back(m);
     }
@@ -316,8 +315,7 @@ void ClanCommandHandler::send_clan_update(
 }
 
 void ClanCommandHandler::send_empty_clan_update(
-        uint16_t player_id,
-        std::map<uint16_t, std::vector<ServerEvent>>& targeted) {
+        uint16_t player_id, std::map<uint16_t, std::vector<ServerEvent>>& targeted) {
     ClanUpdateEvent ev{"", {}};
     targeted[player_id].push_back(ev);
 }

@@ -29,8 +29,7 @@ PropRenderer::PropRender PropRenderer::build_prop_render(const std::string& name
     pr.hitbox_w = def.hitbox.w;
     pr.hitbox_h = def.hitbox.h;
 
-    for (const auto& path: def.paths)
-        pr.frames.push_back(&texture_cache_.get(path));
+    for (const auto& path: def.paths) pr.frames.push_back(&texture_cache_.get(path));
 
     for (const auto& part_def: def.parts) {
         PropPart pp;
@@ -106,8 +105,7 @@ void PropRenderer::load(const TilemapConfig& tilemap, int tile_size) {
                 continue;
             }
             const PropDef& def = it->second;
-            prop_row.push_back(
-                    build_prop_render(name, ri, ci, tsz, def));
+            prop_row.push_back(build_prop_render(name, ri, ci, tsz, def));
         }
         prop_tiles_.push_back(std::move(prop_row));
     }

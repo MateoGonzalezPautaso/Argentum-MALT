@@ -39,12 +39,11 @@ public:
     void set_path(const std::string& path) { path_ = path; }
 
 private:
-    template<typename T>
+    template <typename T>
     void resize_grid(std::vector<std::vector<T>>& grid, int new_rows, int new_cols,
                      const T& default_value) {
         grid.resize(static_cast<std::size_t>(new_rows));
-        for (auto& row : grid)
-            row.resize(static_cast<std::size_t>(new_cols), default_value);
+        for (auto& row: grid) row.resize(static_cast<std::size_t>(new_cols), default_value);
     }
 
     TilemapConfig config_;

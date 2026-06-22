@@ -8,11 +8,11 @@
 #include "game_formulas.h"
 
 CombatController::CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
-                                    const ItemCatalog& catalog,
-                                    std::map<uint16_t, EnemyNpc>& enemy_npcs,
-                                    const NpcDropConfig& drop_config,
-                                    const NpcDropConfig& drop_config_dungeon,
-                                    const BalanceConfig& balance):
+                                   const ItemCatalog& catalog,
+                                   std::map<uint16_t, EnemyNpc>& enemy_npcs,
+                                   const NpcDropConfig& drop_config,
+                                   const NpcDropConfig& drop_config_dungeon,
+                                   const BalanceConfig& balance):
         config(config),
         balance(balance),
         players(players),
@@ -27,14 +27,14 @@ const NpcDropConfig& CombatController::drop_config_for(const EnemyNpc& npc) cons
     auto it = maps->find(npc.get_current_map());
     if (it == maps->end())
         return npc_drop_config;
-    return it->second.config().map_type == MapType::DUNGEON ? npc_drop_config_dungeon
-                                                             : npc_drop_config;
+    return it->second.config().map_type == MapType::DUNGEON ? npc_drop_config_dungeon :
+                                                              npc_drop_config;
 }
 
 void CombatController::set_clan_manager(ClanManager& mgr) { clan_manager = &mgr; }
 
 std::optional<CommandResult> CombatController::validate_pvp(const Player& attacker,
-                                                             const Player& target) const {
+                                                            const Player& target) const {
     if (attacker.get_level() <= config.newbie_level) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar siendo newbie"};
         return CommandResult{.private_events = {msg}};
@@ -62,7 +62,7 @@ std::optional<CommandResult> CombatController::validate_pvp(const Player& attack
 }
 
 CommandResult CombatController::resolve_player_attack(Player& attacker, Player& target,
-                                                       uint16_t target_id, uint32_t range_px) {
+                                                      uint16_t target_id, uint32_t range_px) {
     if (!in_range(attacker.pos_x(), attacker.pos_y(), target.pos_x(), target.pos_y(), range_px))
         return {};
 
@@ -114,8 +114,8 @@ CommandResult CombatController::resolve_player_attack(Player& attacker, Player& 
 }
 
 CommandResult CombatController::resolve_npc_attack(Player& attacker, EnemyNpc& npc_target,
-                                                    uint16_t npc_target_id, uint32_t range_px,
-                                                    bool include_item_drop) {
+                                                   uint16_t npc_target_id, uint32_t range_px,
+                                                   bool include_item_drop) {
     if (!in_range(attacker.pos_x(), attacker.pos_y(), npc_target.pos_x(), npc_target.pos_y(),
                   range_px))
         return {};
@@ -587,9 +587,8 @@ CommandResult CombatController::notify_entity_attacked(
             broadcast.push_back(ChatMsgEvent{ChatMsgType::SYSTEM, "",
                                              attacker.get_name() + " mato a " + target_name});
 
-            attacker.gain_experience(
-                    GameFormulas::bonus_kill_experience(balance, target_hp_max,
-                                                        attacker.get_level(), target_level, rng));
+            attacker.gain_experience(GameFormulas::bonus_kill_experience(
+                    balance, target_hp_max, attacker.get_level(), target_level, rng));
         }
     }
 

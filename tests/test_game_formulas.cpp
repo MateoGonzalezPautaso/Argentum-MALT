@@ -266,8 +266,8 @@ TEST(GameFormulasTest, BonusKillExperienceZeroOffsetSameLevel) {
     b.experience_level_offset = 0;
     for (int i = 0; i < 50; ++i) {
         // level_factor = target(1) - attacker(1) + offset(0) = 0 -> siempre 0.
-        uint32_t exp = GameFormulas::bonus_kill_experience(b, 1000, /*attacker=*/1, /*target=*/1,
-                                                           rng);
+        uint32_t exp =
+                GameFormulas::bonus_kill_experience(b, 1000, /*attacker=*/1, /*target=*/1, rng);
         EXPECT_EQ(exp, 0u);
     }
 }
@@ -279,8 +279,8 @@ TEST(GameFormulasTest, BonusKillExperienceRespectsRange) {
     b.experience_level_offset = 10;
     for (int i = 0; i < 50; ++i) {
         // level_factor = target(1) - attacker(1) + offset(10) = 10
-        uint32_t exp = GameFormulas::bonus_kill_experience(b, 1000, /*attacker=*/1, /*target=*/1,
-                                                           rng);
+        uint32_t exp =
+                GameFormulas::bonus_kill_experience(b, 1000, /*attacker=*/1, /*target=*/1, rng);
         EXPECT_GE(exp, 0u);
         EXPECT_LE(exp, 1000u);  // 0.1 * 1000 * 10
     }
@@ -344,6 +344,6 @@ TEST(GameFormulasTest, MeditationManaPerSecondFormula) {
 
 TEST(GameFormulasTest, MeditationManaPerSecondWarriorIsZero) {
     BalanceConfig b = make_balance();
-    EXPECT_DOUBLE_EQ(
-            GameFormulas::meditation_mana_per_second(b, Race::HUMAN, PlayerClass::WARRIOR), 0.0);
+    EXPECT_DOUBLE_EQ(GameFormulas::meditation_mana_per_second(b, Race::HUMAN, PlayerClass::WARRIOR),
+                     0.0);
 }

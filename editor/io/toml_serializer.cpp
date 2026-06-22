@@ -147,8 +147,7 @@ toml::table TomlSerializer::save_props(const TilemapConfig& config) {
     prop_tbl.emplace("tiles", std::move(prop_tiles_tbl));
 
     auto row_has_prop = [](const auto& row) {
-        return std::any_of(row.begin(), row.end(),
-                           [](const auto& cell) { return !cell.empty(); });
+        return std::any_of(row.begin(), row.end(), [](const auto& cell) { return !cell.empty(); });
     };
     bool has_props = std::any_of(config.prop_map.begin(), config.prop_map.end(), row_has_prop);
 
@@ -194,13 +193,16 @@ void TomlSerializer::save(const std::string& path, const TilemapConfig& config) 
     root.emplace("tilemap", save_tilemap_table(config));
 
     auto metadata = save_metadata(config);
-    if (!metadata.empty()) root.emplace("metadata", std::move(metadata));
+    if (!metadata.empty())
+        root.emplace("metadata", std::move(metadata));
 
     auto zones = save_mob_spawn_zones(config);
-    if (!zones.empty()) root.emplace("mob_spawn_zones", std::move(zones));
+    if (!zones.empty())
+        root.emplace("mob_spawn_zones", std::move(zones));
 
     auto props = save_props(config);
-    if (!props.empty()) root.emplace("prop", std::move(props));
+    if (!props.empty())
+        root.emplace("prop", std::move(props));
 
     std::ofstream file(path);
     file << root << std::endl;

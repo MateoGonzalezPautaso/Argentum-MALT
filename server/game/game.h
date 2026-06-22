@@ -13,6 +13,13 @@
 #include "../../common/rng.h"
 #include "../core/config.h"
 #include "../persistence/clan_persistence.h"
+#include "services/bank_service.h"
+#include "services/cheat_service.h"
+#include "services/ground_item_service.h"
+#include "services/map_transition_service.h"
+#include "services/merchant_service.h"
+#include "services/player_session_service.h"
+#include "services/spawn_service.h"
 
 #include "clan_command_handler.h"
 #include "clan_manager.h"
@@ -22,13 +29,6 @@
 #include "map.h"
 #include "player.h"
 #include "player_data_service.h"
-#include "services/bank_service.h"
-#include "services/cheat_service.h"
-#include "services/ground_item_service.h"
-#include "services/map_transition_service.h"
-#include "services/merchant_service.h"
-#include "services/player_session_service.h"
-#include "services/spawn_service.h"
 
 class Game {
 private:

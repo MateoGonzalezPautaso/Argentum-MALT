@@ -83,8 +83,7 @@ const PropGrid::Entry* PropGrid::find_closest(const std::string& prop_name, int 
     return closest;
 }
 
-const PropGrid::Entry* PropGrid::find_closest(const std::string& prop_name, int px,
-                                              int py) const {
+const PropGrid::Entry* PropGrid::find_closest(const std::string& prop_name, int px, int py) const {
     const Entry* closest = nullptr;
     int best = INT_MAX;
     for (const auto& e: entries_) {
@@ -109,9 +108,8 @@ bool PropGrid::is_in_range_of(const std::string& prop_name, int px, int py, int 
                        });
 }
 
-bool PropGrid::find_first_transition(const std::string& target_map, int& out_cx,
-                                     int& out_cy, int& out_hb_left,
-                                     int& out_hb_bottom) const {
+bool PropGrid::find_first_transition(const std::string& target_map, int& out_cx, int& out_cy,
+                                     int& out_hb_left, int& out_hb_bottom) const {
     for (const auto& e: entries_) {
         if (e.transition_map() == target_map) {
             out_cx = e.center_x;
@@ -123,5 +121,3 @@ bool PropGrid::find_first_transition(const std::string& target_map, int& out_cx,
     }
     return false;
 }
-
-

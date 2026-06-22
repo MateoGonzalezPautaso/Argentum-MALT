@@ -194,8 +194,7 @@ void parse_ui_config(const toml::table& root, ClientConfig& config) {
                 toml_get_int(*tbl, "cursor_height_shrink", config.ui.cursor_height_shrink);
         config.ui.chat_line_spacing =
                 toml_get_int(*tbl, "chat_line_spacing", config.ui.chat_line_spacing);
-        config.ui.chat_expand_x =
-                toml_get_int(*tbl, "chat_expand_x", config.ui.chat_expand_x);
+        config.ui.chat_expand_x = toml_get_int(*tbl, "chat_expand_x", config.ui.chat_expand_x);
         config.ui.chat_expand_btn_gap =
                 toml_get_int(*tbl, "chat_expand_btn_gap", config.ui.chat_expand_btn_gap);
         config.ui.chat_expand_btn_w =
@@ -344,8 +343,7 @@ void parse_assets_config(const toml::table& root, ClientConfig& config) {
                 toml_get_string(*tbl, "expand_hover", config.ui.asset_expand_hover);
         config.ui.asset_expand_off =
                 toml_get_string(*tbl, "expand_off", config.ui.asset_expand_off);
-        config.ui.asset_big_chat =
-                toml_get_string(*tbl, "big_chat", config.ui.asset_big_chat);
+        config.ui.asset_big_chat = toml_get_string(*tbl, "big_chat", config.ui.asset_big_chat);
         config.ui.asset_new_account_default =
                 toml_get_string(*tbl, "new_account_default", config.ui.asset_new_account_default);
         config.ui.asset_new_account_hover =
@@ -512,11 +510,10 @@ void parse_audio_config(const toml::table& root, ClientConfig& config) {
                 toml_get_string(*tbl, "midi_music_path", config.audio.midi_music_path);
         config.audio.mp3_music_path =
                 toml_get_string(*tbl, "mp3_music_path", config.audio.mp3_music_path);
-        config.audio.sfx_prefix =
-                toml_get_string(*tbl, "sfx_prefix", config.audio.sfx_prefix);
-        config.audio.frequency  = toml_get_int(*tbl, "frequency",  config.audio.frequency);
-        config.audio.channels   = toml_get_int(*tbl, "channels",   config.audio.channels);
-        config.audio.chunksize  = toml_get_int(*tbl, "chunksize",  config.audio.chunksize);
+        config.audio.sfx_prefix = toml_get_string(*tbl, "sfx_prefix", config.audio.sfx_prefix);
+        config.audio.frequency = toml_get_int(*tbl, "frequency", config.audio.frequency);
+        config.audio.channels = toml_get_int(*tbl, "channels", config.audio.channels);
+        config.audio.chunksize = toml_get_int(*tbl, "chunksize", config.audio.chunksize);
         config.audio.game_music_volume = static_cast<float>(
                 toml_get_double(*tbl, "game_music_volume", config.audio.game_music_volume));
     }
@@ -554,19 +551,19 @@ void parse_damage_overlay_config(const toml::table& root, ClientConfig& config) 
 
 void parse_spell_sheets_config(const toml::table& root, ClientConfig& config) {
     if (auto arr = root["spell_sheets"].as_array()) {
-        for (const auto& entry : *arr) {
+        for (const auto& entry: *arr) {
             if (auto tbl = entry.as_table()) {
                 SpellSheetConfig s;
                 s.path = toml_get_string(*tbl, "path", s.path);
                 s.frame_w = toml_get_int(*tbl, "frame_w", s.frame_w);
                 s.frame_h = toml_get_int(*tbl, "frame_h", s.frame_h);
-                s.cols    = toml_get_int(*tbl, "cols",    s.cols);
-                s.rows    = toml_get_int(*tbl, "rows",    s.rows);
+                s.cols = toml_get_int(*tbl, "cols", s.cols);
+                s.rows = toml_get_int(*tbl, "rows", s.rows);
                 s.display_w = toml_get_int(*tbl, "display_w", s.display_w);
                 s.display_h = toml_get_int(*tbl, "display_h", s.display_h);
-                s.frame_ms  = toml_get_uint32(*tbl, "frame_ms", s.frame_ms);
-                s.offset_x  = toml_get_int(*tbl, "offset_x", s.offset_x);
-                s.offset_y  = toml_get_int(*tbl, "offset_y", s.offset_y);
+                s.frame_ms = toml_get_uint32(*tbl, "frame_ms", s.frame_ms);
+                s.offset_x = toml_get_int(*tbl, "offset_x", s.offset_x);
+                s.offset_y = toml_get_int(*tbl, "offset_y", s.offset_y);
                 config.spell_sheets.push_back(std::move(s));
             }
         }

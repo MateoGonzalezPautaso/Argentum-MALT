@@ -11,8 +11,8 @@
 #include "../../../common/messages.h"
 #include "../../chat/chat_history.h"
 #include "../../config/config.h"
-
 #include "../../render/gfx/button.h"
+
 #include "inventory_renderer.h"
 
 class ChatInput;

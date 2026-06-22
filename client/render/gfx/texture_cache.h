@@ -14,6 +14,7 @@ public:
     SDL2pp::Texture& get(const std::string& path);
 
     void clear();
+
 private:
     SDL2pp::Renderer& renderer_;
     std::unordered_map<std::string, SDL2pp::Texture> cache_;

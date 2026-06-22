@@ -63,8 +63,8 @@ public:
     void set_walk_anim_timeout(uint32_t ms);
     void set_local_clan_name(const std::string& name);
 
-    void add_entity(uint16_t id, int x, int y, const std::string& name, Race race,
-                    PlayerClass pc, uint16_t sprite_id);
+    void add_entity(uint16_t id, int x, int y, const std::string& name, Race race, PlayerClass pc,
+                    uint16_t sprite_id);
     void remove_entity(uint16_t id);
     void clear_entities();
     void move_entity(uint16_t id, int x, int y);
@@ -127,7 +127,7 @@ private:
     };
 
     std::vector<SpriteRender> build_entity_parts(int x, int y, Race race, PlayerClass pc,
-                                                  uint16_t sprite_id);
+                                                 uint16_t sprite_id);
     void reposition_anchored_parts(std::vector<SpriteRender>& parts);
     void create_entity_name_label(uint16_t id, const std::string& name);
     SpriteRender* find_movable(uint16_t id);

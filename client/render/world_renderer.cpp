@@ -64,9 +64,7 @@ void WorldRenderer::load_assets(const TilemapConfig& tilemap,
     }
 }
 
-void WorldRenderer::load_map(const TilemapConfig& tilemap) {
-    load_tilemap_data(tilemap);
-}
+void WorldRenderer::load_map(const TilemapConfig& tilemap) { load_tilemap_data(tilemap); }
 
 WorldRenderer::~WorldRenderer() {
     if (name_font) {
@@ -89,16 +87,16 @@ void WorldRenderer::render() {
     SDL_RenderGetViewport(renderer.Get(), &base_vp);
     const SDL2pp::Rect& gv = camera.viewport();
     SDL_Rect adjusted_gv = {
-        base_vp.x + gv.GetX(),
-        base_vp.y + gv.GetY(),
-        gv.GetW(),
-        gv.GetH(),
+            base_vp.x + gv.GetX(),
+            base_vp.y + gv.GetY(),
+            gv.GetW(),
+            gv.GetH(),
     };
     SDL_RenderSetViewport(renderer.Get(), &adjusted_gv);
 
     const SDL2pp::Rect cam =
             camera.compute_view_rect(sprite_renderer.movable_x(), sprite_renderer.movable_y(),
-                                sprite_renderer.movable_w(), sprite_renderer.movable_h());
+                                     sprite_renderer.movable_w(), sprite_renderer.movable_h());
 
     if (tilemap_renderer.is_loaded()) {
         tilemap_renderer.render(cam);
@@ -140,4 +138,3 @@ bool WorldRenderer::screen_to_world(int screen_x, int screen_y, int& world_x, in
 bool WorldRenderer::hit_test_prop(int world_x, int world_y, std::string& out_prop_name) const {
     return prop_renderer.hit_test_prop(world_x, world_y, out_prop_name);
 }
-

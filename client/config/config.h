@@ -204,9 +204,9 @@ struct UIConfig {
     std::string asset_sell_hover = "assets/interface/en_boton-vender-over.bmp";
     std::string asset_sell_disabled = "assets/interface/en_boton-vender-off.bmp";
     std::string asset_expand_default = "assets/interface/en_boton-sm-mas-default.bmp";
-    std::string asset_expand_hover   = "assets/interface/en_boton-sm-mas-over.bmp";
-    std::string asset_expand_off     = "assets/interface/en_boton-sm-mas-off.bmp";
-    std::string asset_big_chat       = "assets/interface/big_chat.bmp";
+    std::string asset_expand_hover = "assets/interface/en_boton-sm-mas-over.bmp";
+    std::string asset_expand_off = "assets/interface/en_boton-sm-mas-off.bmp";
+    std::string asset_big_chat = "assets/interface/big_chat.bmp";
 
 
     int login_title_spacing = 20;
@@ -310,9 +310,9 @@ struct AudioConfig {
     std::string midi_music_path;
     std::string mp3_music_path;
     std::string sfx_prefix;
-    int frequency  = 44100;
-    int channels   = 2;
-    int chunksize  = 2048;
+    int frequency = 44100;
+    int channels = 2;
+    int chunksize = 2048;
     float game_music_volume = 0.3f;
     SfxConfig sfx;
 };
@@ -324,10 +324,10 @@ struct GroundItemConfig {
 };
 
 struct PropConfig {
-    std::string dialog;           // texto que muestra al interactuar
-    std::string sfx;              
+    std::string dialog;  // texto que muestra al interactuar
+    std::string sfx;
     bool opens_merchant = false;  // true si abre la pantalla de comerciante
-    bool merchant_sell_enabled = false;  
+    bool merchant_sell_enabled = false;
 };
 
 struct DamageOverlayConfig {

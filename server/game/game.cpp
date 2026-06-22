@@ -1,7 +1,5 @@
 #include "game.h"
 
-#include "game_formulas.h"
-
 #include <cmath>
 #include <cstdlib>
 #include <string>
@@ -11,6 +9,8 @@
 #include <vector>
 
 #include "../../common/visit.h"
+
+#include "game_formulas.h"
 
 namespace {
 
@@ -59,8 +59,7 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         rng(),
         next_npc_id(config.npc_id_base),
         combat_controller(config.attack, players, config.item_catalog, enemy_npcs,
-                          config.balance.npc_drop, config.balance.npc_drop_dungeon,
-                          config.balance),
+                          config.balance.npc_drop, config.balance.npc_drop_dungeon, config.balance),
         bank_service(players, maps, config.item_catalog, config.balance),
         merchant_service(players, maps, config.item_catalog, config.balance, bank_service),
         spawn_service(enemy_npcs, maps, next_npc_id, rng, players, config.balance,
@@ -108,7 +107,7 @@ bool Game::target_in_safe_zone(uint16_t target_id) const {
     auto player_it = players.find(target_id);
     if (player_it != players.end())
         return player_map(player_it->second)
-                        .is_safe_zone(player_it->second.pos_x(), player_it->second.pos_y());
+                .is_safe_zone(player_it->second.pos_x(), player_it->second.pos_y());
 
     auto npc_it = enemy_npcs.find(target_id);
     if (npc_it != enemy_npcs.end()) {
@@ -140,9 +139,7 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const CheatInfiniteManaCmd&) {
                         return cheat_service.dispatch_cheat_infinite_mana(player_id);
                     },
-                    [&](const CheatDieCmd&) {
-                        return cheat_service.dispatch_cheat_die(player_id);
-                    },
+                    [&](const CheatDieCmd&) { return cheat_service.dispatch_cheat_die(player_id); },
                     [&](const CheatLevelUpCmd&) {
                         return cheat_service.dispatch_cheat_level_up(player_id);
                     },
@@ -368,7 +365,8 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
     CommandResult result;
     const Map& map = player_map(it->second);
 
-    if (map.is_safe_zone(it->second.pos_x(), it->second.pos_y()) || target_in_safe_zone(cmd.target_id)) {
+    if (map.is_safe_zone(it->second.pos_x(), it->second.pos_y()) ||
+        target_in_safe_zone(cmd.target_id)) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar en una zona segura"};
         return {.private_events = {msg}};
     }
@@ -875,7 +873,6 @@ CommandResult Game::handle_npc_heal(uint16_t player_id) {
 }
 
 
-
 CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
     auto it = players.find(player_id);
     if (it == players.end())
@@ -952,4 +949,3 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
     result.map_events = {move};
     return result;
 }
-

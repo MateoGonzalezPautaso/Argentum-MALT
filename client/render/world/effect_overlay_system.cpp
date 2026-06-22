@@ -95,8 +95,7 @@ void EffectOverlaySystem::advance() {
         }
     };
     tick_pool(overlays);
-    for (auto& [key, pool]: spell_pools)
-        tick_pool(pool);
+    for (auto& [key, pool]: spell_pools) tick_pool(pool);
 }
 
 void EffectOverlaySystem::render(const SDL2pp::Rect& cam) {
@@ -104,12 +103,11 @@ void EffectOverlaySystem::render(const SDL2pp::Rect& cam) {
         for (auto& ov: pool) {
             if (!ov.active)
                 continue;
-            SDL2pp::Rect dst(ov.dst.GetX() - cam.GetX(), ov.dst.GetY() - cam.GetY(),
-                             ov.dst.GetW(), ov.dst.GetH());
+            SDL2pp::Rect dst(ov.dst.GetX() - cam.GetX(), ov.dst.GetY() - cam.GetY(), ov.dst.GetW(),
+                             ov.dst.GetH());
             renderer.Copy(ov.frames[ov.current_frame], SDL2pp::NullOpt, dst);
         }
     };
     render_pool(overlays);
-    for (auto& [key, pool]: spell_pools)
-        render_pool(pool);
+    for (auto& [key, pool]: spell_pools) render_pool(pool);
 }

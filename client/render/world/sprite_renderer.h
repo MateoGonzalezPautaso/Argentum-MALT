@@ -10,6 +10,7 @@
 
 #include "../../../common/messages.h"
 #include "../../config/config.h"
+
 #include "effect_overlay_system.h"
 #include "entity_sprite_registry.h"
 

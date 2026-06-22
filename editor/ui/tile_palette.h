@@ -44,7 +44,7 @@ private:
     void toggle_walkable(const std::string& name);
     void update_button_visual(QToolButton* btn, const std::string& name, bool walkable) const;
 
-    template<typename Map>
+    template <typename Map>
     static std::vector<std::string> sorted_keys(const Map& map) {
         std::vector<std::string> names;
         names.reserve(map.size());

@@ -4,11 +4,13 @@
 #include <string>
 #include <vector>
 
-MapTransitionService::MapTransitionService(
-        std::map<uint16_t, Player>& players, std::unordered_map<std::string, Map>& maps,
-        const std::map<uint16_t, EnemyNpc>& enemy_npcs, PlayerDataService& player_data_service,
-        const BalanceConfig& balance, int sprite_width, int sprite_height,
-        GroundItemService& ground_item_service):
+MapTransitionService::MapTransitionService(std::map<uint16_t, Player>& players,
+                                           std::unordered_map<std::string, Map>& maps,
+                                           const std::map<uint16_t, EnemyNpc>& enemy_npcs,
+                                           PlayerDataService& player_data_service,
+                                           const BalanceConfig& balance, int sprite_width,
+                                           int sprite_height,
+                                           GroundItemService& ground_item_service):
         players_(players),
         maps_(maps),
         enemy_npcs_(enemy_npcs),
@@ -49,8 +51,7 @@ EntitySpawnEvent MapTransitionService::make_entity_spawn(const Player& p) const 
     };
 }
 
-EntitySpawnEvent MapTransitionService::make_npc_spawn(const EnemyNpc& npc,
-                                                      uint16_t npc_id) const {
+EntitySpawnEvent MapTransitionService::make_npc_spawn(const EnemyNpc& npc, uint16_t npc_id) const {
     return EntitySpawnEvent{
             .entity_id = npc_id,
             .entity_type = EntityType::NPC,
@@ -123,8 +124,8 @@ void MapTransitionService::do_transition(Player& player, CommandResult& result,
 }
 
 Position MapTransitionService::compute_spawn_position(const Map& dest_map,
-                                                       const std::string& old_map_name,
-                                                       const PropGrid::Entry& source_entry) const {
+                                                      const std::string& old_map_name,
+                                                      const PropGrid::Entry& source_entry) const {
     int cx, cy, hb_left, hb_bottom;
     if (dest_map.prop_grid().find_first_transition(old_map_name, cx, cy, hb_left, hb_bottom)) {
         int spawn_x = hb_left - dest_map.tile_size();
@@ -141,7 +142,7 @@ Position MapTransitionService::compute_spawn_position(const Map& dest_map,
 }
 
 void MapTransitionService::despawn_player(CommandResult& result, uint16_t player_id,
-                                           const std::string& old_map_name) const {
+                                          const std::string& old_map_name) const {
     EntityDespawnEvent despawn{.entity_id = player_id};
     for (uint16_t pid: get_player_ids_on_map(old_map_name)) {
         if (pid == player_id)
@@ -151,8 +152,8 @@ void MapTransitionService::despawn_player(CommandResult& result, uint16_t player
 }
 
 void MapTransitionService::notify_player_transition(CommandResult& result, const Player& player,
-                                                     const std::string& map_name,
-                                                     Position spawn) const {
+                                                    const std::string& map_name,
+                                                    Position spawn) const {
     result.private_events.push_back(MapTransitionEvent{
             .map_name = map_name,
             .pos_x = spawn.x,
@@ -162,7 +163,7 @@ void MapTransitionService::notify_player_transition(CommandResult& result, const
 }
 
 void MapTransitionService::notify_others_spawn(CommandResult& result, const Player& player,
-                                                const std::string& map_name) const {
+                                               const std::string& map_name) const {
     EntitySpawnEvent spawn = make_entity_spawn(player);
     for (uint16_t pid: get_player_ids_on_map(map_name)) {
         if (pid == player.get_id())
@@ -171,8 +172,7 @@ void MapTransitionService::notify_others_spawn(CommandResult& result, const Play
     }
 }
 
-CommandResult MapTransitionService::handle_change_map(uint16_t player_id,
-                                                       const ChangeMapCmd& cmd) {
+CommandResult MapTransitionService::handle_change_map(uint16_t player_id, const ChangeMapCmd& cmd) {
     auto it = players_.find(player_id);
     if (it == players_.end())
         return {};

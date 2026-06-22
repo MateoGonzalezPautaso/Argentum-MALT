@@ -12,14 +12,12 @@ LoginRenderer::LoginRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
         connect_button(
                 SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_connect_default)),
                 SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_connect_hover))),
-        audio_button(
-                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_default)),
-                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_hover))),
+        audio_button(SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_default)),
+                     SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_audio_hover))),
         audio_off_texture(renderer, texture::load_surface(ui_cfg.asset_audio_off)),
         new_account_button(
                 SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_new_account_default)),
-                SDL2pp::Texture(renderer,
-                                texture::load_surface(ui_cfg.asset_new_account_hover))) {
+                SDL2pp::Texture(renderer, texture::load_surface(ui_cfg.asset_new_account_hover))) {
     init_layout();
 }
 

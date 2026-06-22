@@ -24,8 +24,8 @@ void FormWidgets::render_text_field(const SDL2pp::Rect& rect, const std::string&
 
     int clipped_w = 0;
     if (!text.empty())
-        clipped_w = texture::render_text_clipped(renderer_, font_, text, kTextColor, rect, 4, 2,
-                                                 true);
+        clipped_w =
+                texture::render_text_clipped(renderer_, font_, text, kTextColor, rect, 4, 2, true);
     else if (!focused && !placeholder.empty())
         texture::render_text_clipped(renderer_, font_, placeholder, kPlaceholderColor, rect, 4, 2,
                                      true);

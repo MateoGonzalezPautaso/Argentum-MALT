@@ -8,6 +8,7 @@
 #include <SDL_ttf.h>
 
 #include "../../config/config.h"
+
 #include "form_widgets.h"
 
 class ChatInput;

@@ -10,7 +10,8 @@ EnemyNpc::EnemyNpc(Position position, uint32_t hp_max, uint32_t damage, Rng& rng
         rng(rng),
         catalog(catalog) {}
 
-EnemyDrop EnemyNpc::get_kill_reward(const NpcDropConfig& drop_config, const BalanceConfig& balance) {
+EnemyDrop EnemyNpc::get_kill_reward(const NpcDropConfig& drop_config,
+                                    const BalanceConfig& balance) {
     double r = rng.get_random_double(0, 100);
     EnemyDrop enemy_drop{.gold = 0, .is_potion = false, .is_object = false, .item = std::nullopt};
 

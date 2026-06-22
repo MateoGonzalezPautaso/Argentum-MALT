@@ -7,8 +7,8 @@
 #include <QLabel>
 #include <QSpinBox>
 #include <QWidget>
-
 #include <string>
+
 #include <toml++/toml.hpp>
 
 namespace {
@@ -71,7 +71,7 @@ TransitionResult show_transition_dialog(QWidget* parent, const std::string& curr
     try {
         toml::table map_list = toml::parse_file("config/map_list.toml");
         if (auto maps_arr = map_list["maps"].as_array()) {
-            for (const auto& entry : *maps_arr) {
+            for (const auto& entry: *maps_arr) {
                 if (auto tbl = entry.as_table()) {
                     if (auto name = (*tbl)["name"].value<std::string>()) {
                         if (auto path = (*tbl)["path"].value<std::string>()) {
@@ -101,8 +101,7 @@ TransitionResult show_transition_dialog(QWidget* parent, const std::string& curr
     y_spin->setRange(0, 9999);
     y_spin->setValue(current_y);
 
-    auto* clear_label = new QLabel(
-        "Leave \"Destination Map\" empty to remove the portal.");
+    auto* clear_label = new QLabel("Leave \"Destination Map\" empty to remove the portal.");
     clear_label->setWordWrap(true);
     clear_label->setStyleSheet("color: #888; font-size: 11px;");
 

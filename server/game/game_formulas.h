@@ -8,13 +8,13 @@
 #include "../../common/messages.h"
 #include "../../common/rng.h"
 #include "../core/config.h"
+
 #include "player.h"
 
 class GameFormulas {
 public:
     // Stats del personaje (Vida/Mana/Fuerza/Agilidad maximos)
-    static uint32_t max_hp(const BalanceConfig& balance, Race race, PlayerClass cls,
-                           uint8_t level);
+    static uint32_t max_hp(const BalanceConfig& balance, Race race, PlayerClass cls, uint8_t level);
     static uint32_t max_mana(const BalanceConfig& balance, Race race, PlayerClass cls,
                              uint8_t level);
     static uint32_t strength(const BalanceConfig& balance, Race race, PlayerClass cls,
@@ -50,8 +50,8 @@ public:
     static uint32_t npc_damage(uint32_t base_damage, uint8_t level);
 
     // Experiencia de ataque: Daño * max(NivelDelOtro - Nivel + level_diff_offset, 0)
-    static uint32_t attack_experience(uint32_t damage, uint8_t attacker_level,
-                                       uint8_t target_level, int level_diff_offset);
+    static uint32_t attack_experience(uint32_t damage, uint8_t attacker_level, uint8_t target_level,
+                                      int level_diff_offset);
 
     // Hechizo de auto-curación: cura hp_max / 2
     static uint32_t spell_self_heal(uint32_t hp_max);
@@ -67,12 +67,12 @@ public:
 
     // Rango de daño mostrado al jugador: fuerza * [arma_min, arma_max] o desarmado
     static std::pair<uint16_t, uint16_t> display_damage_range(const Player& player,
-                                                               const ItemCatalog& catalog,
-                                                               const AttackConfig& config);
+                                                              const ItemCatalog& catalog,
+                                                              const AttackConfig& config);
 
     // Rango de defensa mostrado al jugador: suma de [min,max] de armadura, casco y escudo
     static std::pair<uint16_t, uint16_t> display_defense_range(const Player& player,
-                                                                const ItemCatalog& catalog);
+                                                               const ItemCatalog& catalog);
 
     // Recuperación pasiva por segundo: Vida/Mana = FRazaRecuperacion * segundos
     static double hp_regen_per_second(const BalanceConfig& balance, Race race);

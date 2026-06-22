@@ -117,8 +117,8 @@ void parse_tile_definitions(const toml::table& tiles, TilemapConfig& config) {
 
 void parse_mob_spawn_zones_data(const toml::table& zones, TilemapConfig& config) {
     config.mob_spawn_limit = toml_get_int(zones, "limit", config.mob_spawn_limit);
-    config.mob_spawn_interval_ticks = toml_get_int(zones, "interval_ticks",
-                                                   config.mob_spawn_interval_ticks);
+    config.mob_spawn_interval_ticks =
+            toml_get_int(zones, "interval_ticks", config.mob_spawn_interval_ticks);
     auto arr = zones["data"].as_array();
     if (!arr)
         return;
@@ -234,11 +234,13 @@ void parse_prop_grid_data(const toml::table& pm, TilemapConfig& config) {
         return;
     for (const auto& [key, value]: *overrides) {
         const auto* tbl = value.as_table();
-        if (!tbl) continue;
+        if (!tbl)
+            continue;
 
         std::string key_str{key.str()};
         auto comma = key_str.find(',');
-        if (comma == std::string::npos) continue;
+        if (comma == std::string::npos)
+            continue;
 
         int r = std::stoi(key_str.substr(0, comma));
         int c = std::stoi(key_str.substr(comma + 1));

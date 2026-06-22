@@ -33,7 +33,7 @@ public:
     CommandResult spell_attack_player(uint16_t attacker_id, uint16_t target_id,
                                       uint32_t current_tick);
     CommandResult spell_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,
-                                    uint32_t current_tick);
+                                   uint32_t current_tick);
 
     uint8_t crit_chance_for(const Player& p) const;
     uint8_t dodge_chance_for(const Player& p) const;

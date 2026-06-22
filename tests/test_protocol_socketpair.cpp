@@ -827,9 +827,9 @@ TEST_P(ProtocolUnequipItemTest, RoundtripAllSlots) {
 }
 
 INSTANTIATE_TEST_SUITE_P(AllEquipSlots, ProtocolUnequipItemTest,
-                         ::testing::Values(EquipSlot::WEAPON, EquipSlot::ARMOR,
-                                           EquipSlot::HELMET, EquipSlot::SHIELD,
-                                           EquipSlot::CONSUMABLE, EquipSlot::NONE));
+                         ::testing::Values(EquipSlot::WEAPON, EquipSlot::ARMOR, EquipSlot::HELMET,
+                                           EquipSlot::SHIELD, EquipSlot::CONSUMABLE,
+                                           EquipSlot::NONE));
 
 // ─────────────────────────────────────────────────────────────
 // NPC_BUY command
@@ -949,14 +949,13 @@ TEST_P(ProtocolClanStringCmdTest, Roundtrip) {
 
 INSTANTIATE_TEST_SUITE_P(
         ClanStringCommands, ProtocolClanStringCmdTest,
-        ::testing::Values(
-                ClanStringCmdParam{ClanFoundCmd{"MyClan"}, "MyClan"},
-                ClanStringCmdParam{ClanJoinRequestCmd{"MyClan"}, "MyClan"},
-                ClanStringCmdParam{ClanAcceptCmd{"player1"}, "player1"},
-                ClanStringCmdParam{ClanRejectCmd{"player1"}, "player1"},
-                ClanStringCmdParam{ClanBanCmd{"badplayer"}, "badplayer"},
-                ClanStringCmdParam{ClanUnbanCmd{"badplayer"}, "badplayer"},
-                ClanStringCmdParam{ClanKickCmd{"member1"}, "member1"}));
+        ::testing::Values(ClanStringCmdParam{ClanFoundCmd{"MyClan"}, "MyClan"},
+                          ClanStringCmdParam{ClanJoinRequestCmd{"MyClan"}, "MyClan"},
+                          ClanStringCmdParam{ClanAcceptCmd{"player1"}, "player1"},
+                          ClanStringCmdParam{ClanRejectCmd{"player1"}, "player1"},
+                          ClanStringCmdParam{ClanBanCmd{"badplayer"}, "badplayer"},
+                          ClanStringCmdParam{ClanUnbanCmd{"badplayer"}, "badplayer"},
+                          ClanStringCmdParam{ClanKickCmd{"member1"}, "member1"}));
 
 // ─────────────────────────────────────────────────────────────
 // CHANGE_MAP command

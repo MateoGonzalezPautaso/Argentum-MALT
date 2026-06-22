@@ -49,8 +49,7 @@ std::vector<uint16_t> SpawnService::get_player_ids_on_map(const std::string& map
 }
 
 EnemyNpc SpawnService::create_random_npc(Position pos, uint8_t level, bool dungeon) {
-    const std::vector<NpcTemplate>& pool =
-            dungeon ? dungeon_npc_templates_ : world_npc_templates_;
+    const std::vector<NpcTemplate>& pool = dungeon ? dungeon_npc_templates_ : world_npc_templates_;
     if (pool.empty())
         return EnemyNpc(pos, GameFormulas::npc_hp(balance_.npc_fallback_base_hp, level),
                         GameFormulas::npc_damage(balance_.npc_fallback_base_damage, level), rng_,

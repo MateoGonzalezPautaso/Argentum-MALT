@@ -37,7 +37,7 @@ private:
                               const TilemapDocument& doc) const;
     void clear_spawn_overlay();
 
-    template<typename T>
+    template <typename T>
     void clear_grid(std::vector<std::vector<T*>>& grid) {
         for (const auto& row: grid) {
             for (auto* item: row) {

@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <fstream>
 #include <stdexcept>
+
 #include <toml++/toml.hpp>
 
 #include "../io/file_manager.h"
@@ -15,9 +16,7 @@ EditorController::EditorController(QGraphicsScene* scene):
         renderer_(std::make_unique<MapSceneRenderer>(scene, atlas_loader_)),
         file_manager_(std::make_unique<FileManager>(nullptr)) {}
 
-void EditorController::load_document(const std::string& config_path) {
-    doc_.load(config_path);
-}
+void EditorController::load_document(const std::string& config_path) { doc_.load(config_path); }
 
 void EditorController::load_default_tile_config(const std::string& path) {
     try {
@@ -54,30 +53,31 @@ bool EditorController::validate_city_map() const {
     }
 
     QStringList missing;
-    for (const auto& npc : kCityRequiredNpcs) {
+    for (const auto& npc: kCityRequiredNpcs) {
         bool found = false;
-        for (const auto& row : doc_.config().prop_map) {
-            for (const auto& cell : row) {
+        for (const auto& row: doc_.config().prop_map) {
+            for (const auto& cell: row) {
                 if (cell == npc) {
                     found = true;
                     break;
                 }
             }
-            if (found) break;
+            if (found)
+                break;
         }
-        if (!found) missing << QString::fromStdString(npc);
+        if (!found)
+            missing << QString::fromStdString(npc);
     }
 
     if (missing.isEmpty()) {
         return true;
     }
 
-    QMessageBox::critical(
-            nullptr, "Cannot save City map",
-            QString("A City map must contain the following NPCs:\n\n"
-                    "  - %1\n\n"
-                    "Please place them on the map before saving.")
-                    .arg(missing.join("\n  - ")));
+    QMessageBox::critical(nullptr, "Cannot save City map",
+                          QString("A City map must contain the following NPCs:\n\n"
+                                  "  - %1\n\n"
+                                  "Please place them on the map before saving.")
+                                  .arg(missing.join("\n  - ")));
     return false;
 }
 
@@ -117,8 +117,7 @@ void EditorController::place_tile_or_prop(int row, int col, const std::string& n
 }
 
 void EditorController::fill_rect(int r1, int c1, int r2, int c2, const std::string& name) {
-    for_each_cell(r1, c1, r2, c2,
-                  [this, &name](int r, int c) { place_tile_or_prop(r, c, name); });
+    for_each_cell(r1, c1, r2, c2, [this, &name](int r, int c) { place_tile_or_prop(r, c, name); });
 }
 
 void EditorController::fill_spawn_zone_rect(int r1, int c1, int r2, int c2) {
@@ -128,9 +127,7 @@ void EditorController::fill_spawn_zone_rect(int r1, int c1, int r2, int c2) {
     });
 }
 
-void EditorController::set_map_type(MapType type) {
-    doc_.set_map_type(type);
-}
+void EditorController::set_map_type(MapType type) { doc_.set_map_type(type); }
 
 void EditorController::resize_map(int cols, int rows) {
     renderer_->clear_all();
@@ -164,9 +161,10 @@ void EditorController::register_current_map_in_list() {
         if (!maps_arr)
             return;
 
-        for (const auto& entry : *maps_arr) {
+        for (const auto& entry: *maps_arr) {
             const auto* tbl = entry.as_table();
-            if (!tbl) continue;
+            if (!tbl)
+                continue;
             auto path_val = (*tbl)["path"].value<std::string>();
             if (path_val && *path_val == rel_path)
                 return;
@@ -184,8 +182,9 @@ void EditorController::register_current_map_in_list() {
     }
 }
 
-void EditorController::set_prop_transition(const std::string& name, const std::string& transition_map,
-                                           int transition_x, int transition_y) {
+void EditorController::set_prop_transition(const std::string& name,
+                                           const std::string& transition_map, int transition_x,
+                                           int transition_y) {
     auto it = doc_.config().props.find(name);
     if (it == doc_.config().props.end())
         return;
@@ -195,8 +194,8 @@ void EditorController::set_prop_transition(const std::string& name, const std::s
 }
 
 void EditorController::set_prop_transition_override(int row, int col,
-                                                     const std::string& transition_map,
-                                                     int transition_x, int transition_y) {
+                                                    const std::string& transition_map,
+                                                    int transition_x, int transition_y) {
     PropTransitionOverride ov;
     ov.transition_map = transition_map;
     ov.transition_x = transition_x;

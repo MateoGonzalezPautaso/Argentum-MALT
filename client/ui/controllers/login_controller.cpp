@@ -40,9 +40,7 @@ void LoginController::handle_mouse_motion(int x, int y) {
     login_renderer.set_new_account_button_hovered(x, y);
 }
 
-bool LoginController::is_audio_hit(int x, int y) const {
-    return login_renderer.is_audio_hit(x, y);
-}
+bool LoginController::is_audio_hit(int x, int y) const { return login_renderer.is_audio_hit(x, y); }
 
 void LoginController::set_audio_muted(bool muted) { login_renderer.set_audio_muted(muted); }
 

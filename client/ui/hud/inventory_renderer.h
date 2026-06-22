@@ -10,8 +10,9 @@
 
 #include "../../../common/messages.h"
 #include "../../config/config.h"
-#include "item_sprite_drawer.h"
 #include "../../render/gfx/texture_cache.h"
+
+#include "item_sprite_drawer.h"
 
 class InventoryRenderer {
 private:
