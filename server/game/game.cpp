@@ -18,25 +18,6 @@
 
 namespace {
 
-struct Delta {
-    int dx;
-    int dy;
-};
-
-Delta direction_to_delta(Direction dir, int step) {
-    switch (dir) {
-        case Direction::NORTH:
-            return {0, -step};
-        case Direction::SOUTH:
-            return {0, step};
-        case Direction::WEST:
-            return {-step, 0};
-        case Direction::EAST:
-            return {step, 0};
-    }
-    return {0, 0};
-}
-
 std::string trim(const std::string& s) {
     size_t start = s.find_first_not_of(' ');
     if (start == std::string::npos)
@@ -78,6 +59,9 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
                                clan_handler, combat_controller, ground_item_service),
         cheat_service(players, config.balance, config.item_catalog, player_data_service,
                       combat_controller, config.help_lines, config.cheats_enabled, msgs_),
+        movement_service_(players, maps, enemy_npcs, pending_resurrections_, config.balance,
+                          config.move_step, config.sprite_width, config.sprite_height,
+                          map_transition_service),
         tick_rate_hz(config.tick_rate_hz),
         cheats_enabled(config.cheats_enabled),
         help_lines(config.help_lines) {
@@ -140,7 +124,7 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const CreateCharacterCmd& cmd) {
                         return player_session_service.handle_create_character(player_id, cmd);
                     },
-                    [&](const MoveCmd& cmd) { return handle_move(player_id, cmd); },
+                    [&](const MoveCmd& cmd) { return movement_service_.handle_move(player_id, cmd); },
                     [&](const AttackCmd& cmd) { return handle_attack(player_id, cmd); },
                     [&](const SendChatMsgCmd& cmd) { return handle_send_chat_msg(player_id, cmd); },
                     [&](const MeditateCmd&) { return handle_meditate(player_id); },
@@ -790,89 +774,3 @@ CommandResult Game::handle_npc_heal(uint16_t player_id) {
 }
 
 
-bool Game::collides_with_entities(uint16_t moving_player_id, const std::string& map_name,
-                                  int current_x, int current_y, int new_x, int new_y) const {
-    const int hw = sprite_width / 2;
-    const int hh = sprite_height / 2;
-
-    for (const auto& [other_id, other]: players) {
-        if (other_id == moving_player_id)
-            continue;
-        if (other.get_current_map() != map_name)
-            continue;
-        const int ox = static_cast<int>(other.pos_x());
-        const int oy = static_cast<int>(other.pos_y());
-        bool already_overlapping = (std::abs(current_x - ox) < hw && std::abs(current_y - oy) < hh);
-        if (already_overlapping)
-            continue;
-        if (std::abs(new_x - ox) < hw && std::abs(new_y - oy) < hh)
-            return true;
-    }
-
-    for (const auto& [npc_id, npc]: enemy_npcs) {
-        if (npc.is_dead())
-            continue;
-        if (npc.get_current_map() != map_name)
-            continue;
-        const int nx = static_cast<int>(npc.pos_x());
-        const int ny = static_cast<int>(npc.pos_y());
-        bool already_overlapping = (std::abs(current_x - nx) < hw && std::abs(current_y - ny) < hh);
-        if (already_overlapping)
-            continue;
-        if (std::abs(new_x - nx) < hw && std::abs(new_y - ny) < hh)
-            return true;
-    }
-
-    return false;
-}
-
-CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
-    auto it = players.find(player_id);
-    if (it == players.end())
-        return {};
-
-    Player& player = it->second;
-    player.set_meditating(false);
-
-    if (pending_resurrections_.contains(player_id))
-        return {};
-
-    Map& cur_map = player_map(player);
-
-    int effective_step = player.has_cheat_fast_velocity()
-                                 ? move_step * balance.cheat_velocity_multiplier
-                                 : move_step;
-    auto [dx, dy] = direction_to_delta(cmd.direction, effective_step);
-
-    const int current_x = static_cast<int>(player.pos_x());
-    const int current_y = static_cast<int>(player.pos_y());
-    const int new_x = cur_map.clamp_x(current_x + dx, sprite_width);
-    const int new_y = cur_map.clamp_y(current_y + dy, sprite_height);
-
-    if (!cur_map.is_walkable(new_x + sprite_width / 2, new_y + sprite_height))
-        return {};
-
-    if (collides_with_entities(player_id, player.get_current_map(), current_x, current_y, new_x,
-                               new_y))
-        return {};
-
-    const int final_dx = new_x - current_x;
-    const int final_dy = new_y - current_y;
-    if (final_dx == 0 && final_dy == 0)
-        return {};
-
-    player.apply_move(cmd.direction, final_dx, final_dy);
-
-    CommandResult result;
-
-    if (map_transition_service.try_map_transition(player, result))
-        return result;
-
-    EntityMoveEvent move{
-            .entity_id = player.get_id(),
-            .entity_pos = player.get_pos(),
-            .entity_dir = player.get_dir(),
-    };
-    result.map_events = {move};
-    return result;
-}
