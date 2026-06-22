@@ -24,7 +24,7 @@ public:
     CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
                      const ItemCatalog& catalog, std::map<uint16_t, EnemyNpc>& enemy_npcs,
                      const NpcDropConfig& drop_config, const NpcDropConfig& drop_config_dungeon,
-                     const BalanceConfig& balance);
+                     const BalanceConfig& balance, const NpcConfig& npc_config);
 
     void set_clan_manager(ClanManager& mgr);
     CommandResult melee_attack(uint16_t attacker_id, uint16_t target_id, uint32_t current_tick);
@@ -75,9 +75,12 @@ private:
                                         uint32_t range_px);
     CommandResult resolve_npc_attack(Player& attacker, EnemyNpc& npc_target, uint16_t npc_target_id,
                                      uint32_t range_px, bool include_item_drop = true);
+    void move_random(EnemyNpc& npc, const Map* map,
+                     std::map<uint16_t, std::vector<ServerEvent>>& targeted);
 
     const AttackConfig& config;
     const BalanceConfig& balance;
+    const NpcConfig& npc_config;
     std::map<uint16_t, Player>& players;
     ClanManager* clan_manager = nullptr;
     const ItemCatalog& item_catalog_;

@@ -22,8 +22,6 @@ clan_bonus_max = 0.25
 critical_chance = 0.003
 critical_multiplier = 2
 dodge_threshold = 0.001
-npc_vision_range_px = 250
-npc_speed = 2
 
 [clan]
 max_members = 16
@@ -191,3 +189,8 @@ lines = [
     "/c <mensaje> - Habla por el chat del clan",
     "@<nick> <mensaje> - Envia un mensaje privado",
 ]
+
+[npc]
+vision_range_px = 250
+idle_move_min_ticks = 30
+idle_move_max_ticks = 90

@@ -14,9 +14,10 @@ CombatController::CombatController(const AttackConfig& config, std::map<uint16_t
                                    std::map<uint16_t, EnemyNpc>& enemy_npcs,
                                    const NpcDropConfig& drop_config,
                                    const NpcDropConfig& drop_config_dungeon,
-                                   const BalanceConfig& balance):
+                                   const BalanceConfig& balance, const NpcConfig& npc_config):
         config(config),
         balance(balance),
+        npc_config(npc_config),
         players(players),
         item_catalog_(catalog),
         enemy_npcs(enemy_npcs),
@@ -324,23 +325,27 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
         if (npc.is_dead())
             continue;
 
-        Player* target = get_nearest_player(npc);
-        if (!target)
-            continue;
-
-        bool in_attack_range = in_range(npc.pos_x(), npc.pos_y(), target->pos_x(), target->pos_y(),
-                                        config.attack_range_px);
-        bool in_vision_range = in_range(npc.pos_x(), npc.pos_y(), target->pos_x(), target->pos_y(),
-                                        config.npc_vision_range_px);
-
-        if (!in_vision_range)
-            continue;
-
         const Map* map = nullptr;
         if (maps) {
             auto it = maps->find(npc.get_current_map());
             if (it != maps->end())
                 map = &it->second;
+        }
+
+        Player* target = get_nearest_player(npc);
+        if (!target) {
+            move_random(npc, map, targeted);
+            continue;
+        }
+
+        bool in_attack_range = in_range(npc.pos_x(), npc.pos_y(), target->pos_x(), target->pos_y(),
+                                        config.attack_range_px);
+        bool in_vision_range = in_range(npc.pos_x(), npc.pos_y(), target->pos_x(), target->pos_y(),
+                                        npc_config.vision_range_px);
+
+        if (!in_vision_range) {
+            move_random(npc, map, targeted);
+            continue;
         }
 
         bool player_in_safe_zone = map && map->is_safe_zone(target->pos_x(), target->pos_y());
@@ -444,6 +449,29 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
             .targeted_events = std::move(targeted),
             .map_events = {},
             .ground_drops = std::move(ground_drops)};
+}
+
+void CombatController::move_random(EnemyNpc& npc, const Map* map,
+                                   std::map<uint16_t, std::vector<ServerEvent>>& targeted) {
+    npc.set_idle_move_timer(npc.get_idle_move_timer() - 1);
+
+    if (npc.get_idle_move_timer() == 0) {
+        int dir_x = rng.get_random_int(0, 3);
+        switch (dir_x) {
+            case 0:
+                npc.set_idle_move_dir(Direction::NORTH);
+                break;
+            case 1:
+                npc.set_idle_move_dir(Direction::EAST);
+                break;
+            case 2:
+                npc.set_idle_move_dir(Direction::SOUTH);
+                break;
+            case 3:
+                npc.set_idle_move_dir(Direction::WEST);
+                break;
+        }
+    }
 }
 
 bool CombatController::is_critical_attack(const Player& attacker) {

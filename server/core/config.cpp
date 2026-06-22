@@ -96,10 +96,6 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_double(*attack, "dodge_threshold", config.attack.dodge_threshold);
         config.attack.spell_attack_range_px =
                 toml_get_int(*attack, "spell_attack_range_px", config.attack.spell_attack_range_px);
-        config.attack.npc_vision_range_px = static_cast<uint32_t>(
-                toml_get_int(*attack, "npc_vision_range_px", config.attack.npc_vision_range_px));
-        config.attack.npc_speed =
-                static_cast<uint32_t>(toml_get_int(*attack, "npc_speed", config.attack.npc_speed));
     }
 
     if (auto inventory = root["inventory"].as_table()) {
@@ -394,6 +390,15 @@ ServerConfig load_server_config(const std::string& path) {
                     config.help_lines.push_back(*val);
             }
         }
+    }
+
+    if (auto npc = root["npc"].as_table()) {
+        config.npc.idle_move_min_ticks = static_cast<uint32_t>(
+                toml_get_int(*npc, "idle_move_min_ticks", config.npc.idle_move_min_ticks));
+        config.npc.idle_move_max_ticks = static_cast<uint32_t>(
+                toml_get_int(*npc, "idle_move_max_ticks", config.npc.idle_move_max_ticks));
+        config.npc.vision_range_px = static_cast<uint32_t>(
+                toml_get_int(*npc, "vision_range_px", config.npc.vision_range_px));
     }
 
     return config;

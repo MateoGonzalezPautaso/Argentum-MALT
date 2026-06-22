@@ -25,8 +25,6 @@ struct AttackConfig {
     int critical_multiplier = 2;
     double dodge_threshold = 0.001;
     uint32_t spell_attack_range_px = 200;
-    uint32_t npc_vision_range_px = 0;
-    uint32_t npc_speed = 4;
 };
 
 struct ClanConfig {
@@ -181,6 +179,12 @@ struct BalanceConfig {
     NpcDropConfig npc_drop_dungeon;
 };
 
+struct NpcConfig {
+    uint32_t vision_range_px = 250;
+    uint32_t idle_move_min_ticks = 30;
+    uint32_t idle_move_max_ticks = 90;
+};
+
 struct ServerConfig {
     uint16_t port = 1234;
     int tick_rate_hz = 20;
@@ -200,6 +204,7 @@ struct ServerConfig {
     ItemCatalog item_catalog;
     std::vector<NpcTemplate> npc_templates;
     std::vector<std::string> help_lines;
+    NpcConfig npc;
 };
 
 std::vector<NpcTemplate> load_npc_templates(const std::string& path);
