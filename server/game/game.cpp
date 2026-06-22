@@ -336,9 +336,8 @@ CommandResult Game::process_pending_resurrections() {
             EntitySpawnEvent spawn = make_entity_spawn(player);
             PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
             for (uint16_t pid: get_player_ids_on_map(pending.target_map)) {
-                if (pid == player_id)
-                    continue;
-                result.targeted_events[pid].push_back(spawn);
+                if (pid != player_id)
+                    result.targeted_events[pid].push_back(spawn);
                 result.targeted_events[pid].push_back(respawn);
             }
         } else {
