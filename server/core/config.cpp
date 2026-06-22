@@ -354,10 +354,14 @@ ServerConfig load_server_config(const std::string& path) {
             }
             return result;
         };
-        config.balance.starting_items.warrior = parse_item_list(*si, "warrior");
-        config.balance.starting_items.mage = parse_item_list(*si, "mage");
-        config.balance.starting_items.paladin = parse_item_list(*si, "paladin");
-        config.balance.starting_items.cleric = parse_item_list(*si, "cleric");
+        config.balance.starting_items.by_class[PlayerClass::WARRIOR] =
+                parse_item_list(*si, "warrior");
+        config.balance.starting_items.by_class[PlayerClass::MAGE] =
+                parse_item_list(*si, "mage");
+        config.balance.starting_items.by_class[PlayerClass::PALADIN] =
+                parse_item_list(*si, "paladin");
+        config.balance.starting_items.by_class[PlayerClass::CLERIC] =
+                parse_item_list(*si, "cleric");
     }
 
     if (auto merchant = root["merchant"].as_table()) {

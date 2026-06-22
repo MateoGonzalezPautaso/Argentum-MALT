@@ -99,10 +99,7 @@ struct HpConfig {
 };
 
 struct StartingItemsConfig {
-    std::vector<ItemType> warrior;
-    std::vector<ItemType> mage;
-    std::vector<ItemType> paladin;
-    std::vector<ItemType> cleric;
+    std::unordered_map<PlayerClass, std::vector<ItemType>> by_class;
 };
 
 struct VendorsConfig {

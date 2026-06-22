@@ -723,24 +723,10 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     rec.mana_current = player.get_mana_current();
     rec.mana_max = player.get_mana_max();
 
-    const StartingItemsConfig& starting = balance.starting_items;
-    const std::vector<ItemType>* items = nullptr;
-    switch (cmd.player_class) {
-        case PlayerClass::WARRIOR:
-            items = &starting.warrior;
-            break;
-        case PlayerClass::MAGE:
-            items = &starting.mage;
-            break;
-        case PlayerClass::CLERIC:
-            items = &starting.cleric;
-            break;
-        case PlayerClass::PALADIN:
-            items = &starting.paladin;
-            break;
-    }
-    if (items) {
-        for (ItemType type: *items) {
+    const auto& items_by_class = balance.starting_items.by_class;
+    auto class_it = items_by_class.find(cmd.player_class);
+    if (class_it != items_by_class.end()) {
+        for (ItemType type: class_it->second) {
             const Item* def = item_catalog.find(type);
             if (def) {
                 player.add_item(type, def->name);
