@@ -1,8 +1,11 @@
 #ifndef GAME_LOOP_H
 #define GAME_LOOP_H
 
+#include <optional>
+
 #include "../../common/queue.h"
 #include "../../common/thread.h"
+#include "../game/command_result.h"
 #include "../game/game.h"
 #include "../game/player_command.h"
 #include "../game/player_data_service.h"
@@ -17,6 +20,9 @@ class GameLoop: public Thread {
     Game game;
     Queue<PlayerCommand>& input_queue;
     ClientListMonitor& monitor;
+
+    // Rutea los 4 canales de un CommandResult al monitor
+    void dispatch(const CommandResult& result, std::optional<uint16_t> origin);
 
 public:
     GameLoop(const ServerConfig& config, Queue<PlayerCommand>& input_queue,
