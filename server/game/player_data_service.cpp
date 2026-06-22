@@ -83,8 +83,6 @@ void PlayerDataService::save_player(const Player& player) {
     rec.mana_current = player.get_mana_current();
     rec.mana_max = player.get_mana_max();
     rec.gold = player.get_gold();
-    rec.strength = player.get_strength();
-    rec.agility = player.get_agility();
     rec.bank_gold = player.get_bank_gold();
 
     InventorySlot equipped[EQUIP_SLOT_COUNT];
