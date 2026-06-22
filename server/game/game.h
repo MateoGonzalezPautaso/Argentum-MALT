@@ -5,7 +5,6 @@
 #include <map>
 #include <optional>
 #include <string>
-#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -37,7 +36,6 @@ private:
     PlayerDataService& player_data_service;
     ClanManager clan_manager;
     ClanCommandHandler clan_handler;
-    std::unordered_map<std::string, TilemapConfig> tilemap_configs;
     std::unordered_map<std::string, Map> maps;
     int move_step;
     int sprite_width;
@@ -87,7 +85,6 @@ private:
     CommandResult handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd);
     CommandResult handle_npc_heal(uint16_t player_id);
 
-    std::tuple<uint16_t, uint16_t, uint16_t, uint16_t> compute_combat_ranges(const Player& p) const;
     PlayerStatsEvent make_player_stats_event(const Player& p) const;
     std::optional<uint16_t> find_player_id_by_name(const std::string& name) const;
     std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id) const;
@@ -98,6 +95,10 @@ private:
     Map& player_map(const Player& p);
     const Map& player_map(const Player& p) const;
     bool target_in_safe_zone(uint16_t target_id) const;
+    bool collides_with_entities(uint16_t moving_player_id, const std::string& map_name,
+                                int current_x, int current_y, int new_x, int new_y) const;
+    std::optional<CommandResult> validate_cast(const Player& player,
+                                               const CastSpellCmd& cmd) const;
 
 public:
     std::string get_player_map_name(uint16_t player_id) const;

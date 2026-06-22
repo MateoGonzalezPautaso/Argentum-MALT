@@ -3,16 +3,17 @@
 #include <cmath>
 #include <cstdlib>
 #include <string>
-#include <tuple>
 #include <utility>
 #include <variant>
 #include <vector>
 
+#include "../../common/error_logger.h"
 #include "../../common/visit.h"
 
 #include "entity_event_factory.h"
 #include "game_formulas.h"
 #include "player_registry.h"
+#include "prop_names.h"
 
 namespace {
 
@@ -50,7 +51,6 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         player_data_service(player_data_service),
         clan_manager(clan_persistence, config.clan),
         clan_handler(clan_manager, players, player_name_index_),
-        tilemap_configs(config.tilemap_configs),
         move_step(config.move_step),
         sprite_width(config.sprite_width),
         sprite_height(config.sprite_height),
@@ -84,7 +84,7 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         else
             world_npc_templates.push_back(tmpl);
     }
-    for (const auto& [name, tc]: tilemap_configs) {
+    for (const auto& [name, tc]: config.tilemap_configs) {
         maps.emplace(name, Map(tc));
     }
     combat_controller.set_clan_manager(clan_manager);
@@ -93,15 +93,23 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
 
 Map& Game::player_map(const Player& p) {
     auto it = maps.find(p.get_current_map());
-    if (it == maps.end())
+    if (it == maps.end()) {
+        ErrorLogger::log("[Game] player_map: map '" + p.get_current_map() + "' not found for player '" +
+                         p.get_name() + "' (id=" + std::to_string(p.get_id()) +
+                         "), falling back to an arbitrary map");
         return maps.begin()->second;
+    }
     return it->second;
 }
 
 const Map& Game::player_map(const Player& p) const {
     auto it = maps.find(p.get_current_map());
-    if (it == maps.end())
+    if (it == maps.end()) {
+        ErrorLogger::log("[Game] player_map: map '" + p.get_current_map() + "' not found for player '" +
+                         p.get_name() + "' (id=" + std::to_string(p.get_id()) +
+                         "), falling back to an arbitrary map");
         return maps.begin()->second;
+    }
     return it->second;
 }
 
@@ -380,6 +388,39 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
     return result;
 }
 
+std::optional<CommandResult> Game::validate_cast(const Player& player,
+                                                  const CastSpellCmd&) const {
+    if (player.get_player_class() == PlayerClass::WARRIOR) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los guerreros no pueden usar magia"};
+        return CommandResult{.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    const InventorySlot& weapon_slot = player.get_equipped(EquipSlot::WEAPON);
+    if (weapon_slot.item_type == ItemType::NONE) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No tienes un arma equipada"};
+        return CommandResult{.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    const Item* item = item_catalog.find(weapon_slot.item_type);
+    if (!item || item->mana_consumed == 0) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El arma equipada no es magica"};
+        return CommandResult{.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    if (player.get_mana_current() < item->mana_consumed) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Mana insuficiente"};
+        return CommandResult{.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    }
+
+    const Map& map = player_map(player);
+    if (map.is_safe_zone(player.pos_x(), player.pos_y())) {
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes lanzar hechizos en una zona segura"};
+        return CommandResult{.private_events = {msg}};
+    }
+
+    return std::nullopt;
+}
+
 CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cmd) {
     auto it = players.find(player_id);
     if (it == players.end())
@@ -388,33 +429,11 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
     if (player.is_dead())
         return {};
 
-    if (player.get_player_class() == PlayerClass::WARRIOR) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los guerreros no pueden usar magia"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
-    }
+    if (auto rejection = validate_cast(player, cmd))
+        return *rejection;
 
     const InventorySlot& weapon_slot = player.get_equipped(EquipSlot::WEAPON);
-    if (weapon_slot.item_type == ItemType::NONE) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No tienes un arma equipada"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
-    }
-
     const Item* item = item_catalog.find(weapon_slot.item_type);
-    if (!item || item->mana_consumed == 0) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El arma equipada no es magica"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
-    }
-
-    if (player.get_mana_current() < item->mana_consumed) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Mana insuficiente"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
-    }
-
-    const Map& map = player_map(player);
-    if (map.is_safe_zone(player.pos_x(), player.pos_y())) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes lanzar hechizos en una zona segura"};
-        return {.private_events = {msg}};
-    }
 
     player.use_mana(item->mana_consumed);
     player.set_meditating(false);
@@ -614,31 +633,10 @@ std::optional<uint16_t> Game::find_player_id_by_name(const std::string& name) co
     return it->second;
 }
 
-std::tuple<uint16_t, uint16_t, uint16_t, uint16_t> Game::compute_combat_ranges(
-        const Player& p) const {
-    auto [dmg_min, dmg_max] = GameFormulas::display_damage_range(
-            p, item_catalog, combat_controller.get_attack_config());
-    auto [def_min, def_max] = GameFormulas::display_defense_range(p, item_catalog);
-    return {dmg_min, dmg_max, def_min, def_max};
-}
-
 PlayerStatsEvent Game::make_player_stats_event(const Player& p) const {
-    auto [dmg_min, dmg_max, def_min, def_max] = compute_combat_ranges(p);
-    return {.level = p.get_level(),
-            .experience = p.get_experience(),
-            .exp_to_next = p.exp_to_next_level(),
-            .hp_current = p.get_hp_current(),
-            .hp_max = p.get_hp_max(),
-            .mana_current = p.get_mana_current(),
-            .mana_max = p.get_mana_max(),
-            .crit_chance = combat_controller.crit_chance_for(p),
-            .damage_min = dmg_min,
-            .damage_max = dmg_max,
-            .defense_min = def_min,
-            .defense_max = def_max,
-            .dodge_chance = combat_controller.dodge_chance_for(p),
-            .strength = static_cast<uint16_t>(p.get_strength()),
-            .agility = static_cast<uint16_t>(p.get_agility())};
+    PlayerStatsEvent ev{};
+    combat_controller.fill_player_stats_event(ev, p);
+    return ev;
 }
 
 CommandResult Game::handle_resurrect(uint16_t player_id) {
@@ -668,7 +666,8 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     const int range = tile_size * balance.npc_interaction_range_tiles;
 
     // If the ghost is near a sacerdote, resurrect immediately
-    if (map_it->second.prop_grid().is_in_range_of("sacerdote", px, py, range)) {
+    if (map_it->second.prop_grid().is_in_range_of(std::string(PropNames::PRIEST), px, py,
+                                                   range)) {
         player.resurrect();
         PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Sacerdote: ¡Que la luz te devuelva a la vida!"};
@@ -683,7 +682,8 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     uint32_t wait_ticks;
     int san_cx, san_cy;
 
-    const PropGrid::Entry* san_entry = map_it->second.prop_grid().find_closest("sanadora", px, py);
+    const PropGrid::Entry* san_entry =
+            map_it->second.prop_grid().find_closest(std::string(PropNames::HEALER), px, py);
     if (san_entry) {
         target_map = current_map;
         san_cx = san_entry->center_x;
@@ -697,7 +697,7 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
         auto main_it = maps.find(balance.starting_map);
         if (main_it == maps.end())
             return {};
-        san_entry = main_it->second.prop_grid().find_closest("sanadora", 0, 0);
+        san_entry = main_it->second.prop_grid().find_closest(std::string(PropNames::HEALER), 0, 0);
         if (!san_entry)
             return {};
         target_map = balance.starting_map;
@@ -799,7 +799,8 @@ CommandResult Game::handle_npc_heal(uint16_t player_id) {
     const int px = static_cast<int>(player.pos_x());
     const int py = static_cast<int>(player.pos_y());
 
-    if (!map_it->second.prop_grid().is_in_range_of("sacerdote", px, py, range)) {
+    if (!map_it->second.prop_grid().is_in_range_of(std::string(PropNames::PRIEST), px, py,
+                                                    range)) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un sacerdote cerca"};
         return {.private_events = {msg}};
     }
@@ -812,6 +813,42 @@ CommandResult Game::handle_npc_heal(uint16_t player_id) {
     return {.private_events = {heal_ev, msg}};
 }
 
+
+bool Game::collides_with_entities(uint16_t moving_player_id, const std::string& map_name,
+                                  int current_x, int current_y, int new_x, int new_y) const {
+    const int hw = sprite_width / 2;
+    const int hh = sprite_height / 2;
+
+    for (const auto& [other_id, other]: players) {
+        if (other_id == moving_player_id)
+            continue;
+        if (other.get_current_map() != map_name)
+            continue;
+        const int ox = static_cast<int>(other.pos_x());
+        const int oy = static_cast<int>(other.pos_y());
+        bool already_overlapping = (std::abs(current_x - ox) < hw && std::abs(current_y - oy) < hh);
+        if (already_overlapping)
+            continue;
+        if (std::abs(new_x - ox) < hw && std::abs(new_y - oy) < hh)
+            return true;
+    }
+
+    for (const auto& [npc_id, npc]: enemy_npcs) {
+        if (npc.is_dead())
+            continue;
+        if (npc.get_current_map() != map_name)
+            continue;
+        const int nx = static_cast<int>(npc.pos_x());
+        const int ny = static_cast<int>(npc.pos_y());
+        bool already_overlapping = (std::abs(current_x - nx) < hw && std::abs(current_y - ny) < hh);
+        if (already_overlapping)
+            continue;
+        if (std::abs(new_x - nx) < hw && std::abs(new_y - ny) < hh)
+            return true;
+    }
+
+    return false;
+}
 
 CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
     auto it = players.find(player_id);
@@ -837,37 +874,9 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
     if (!cur_map.is_walkable(new_x + sprite_width / 2, new_y + sprite_height))
         return {};
 
-    for (const auto& [other_id, other]: players) {
-        if (other_id == player_id)
-            continue;
-        if (other.get_current_map() != player.get_current_map())
-            continue;
-        const int ox = static_cast<int>(other.pos_x());
-        const int oy = static_cast<int>(other.pos_y());
-        const int hw = sprite_width / 2;
-        const int hh = sprite_height / 2;
-        bool already_overlapping = (std::abs(current_x - ox) < hw && std::abs(current_y - oy) < hh);
-        if (already_overlapping)
-            continue;
-        if (std::abs(new_x - ox) < hw && std::abs(new_y - oy) < hh)
-            return {};
-    }
-
-    for (const auto& [npc_id, npc]: enemy_npcs) {
-        if (npc.is_dead())
-            continue;
-        if (npc.get_current_map() != player.get_current_map())
-            continue;
-        const int nx = static_cast<int>(npc.pos_x());
-        const int ny = static_cast<int>(npc.pos_y());
-        const int hw = sprite_width / 2;
-        const int hh = sprite_height / 2;
-        bool already_overlapping = (std::abs(current_x - nx) < hw && std::abs(current_y - ny) < hh);
-        if (already_overlapping)
-            continue;
-        if (std::abs(new_x - nx) < hw && std::abs(new_y - ny) < hh)
-            return {};
-    }
+    if (collides_with_entities(player_id, player.get_current_map(), current_x, current_y, new_x,
+                               new_y))
+        return {};
 
     const int final_dx = new_x - current_x;
     const int final_dy = new_y - current_y;
