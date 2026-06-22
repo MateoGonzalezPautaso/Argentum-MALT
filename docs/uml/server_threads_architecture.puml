@@ -2,41 +2,76 @@
 title Arquitectura de Threads — Servidor
 
 class Server {
+  - listener: Socket
+  - input_queue: Queue<PlayerCommand>
+  - monitor: ClientListMonitor
+  - acceptor: Acceptor
+  - game_loop: GameLoop
   + run()
+  - stop()
 }
 
 class Acceptor extends Thread {
+  - listener: Socket&
+  - input_queue: Queue<PlayerCommand>&
+  - monitor: ClientListMonitor&
   + run()
+  + stop()
 }
 
 class GameLoop extends Thread {
   - game: Game
-  - input_queue: Queue<PlayerCommand>
+  - input_queue: Queue<PlayerCommand>&
+  - monitor: ClientListMonitor&
   + run()
+  - dispatch(result: CommandResult, origin: optional<uint16_t>)
 }
 
+class ClientListMonitor {
+  - mtx: mutex
+  - clients: map<uint16_t, unique_ptr<ClientHandler>>
+  - next_id: uint16_t
+  + add(skt: Socket&&, input_queue: Queue<PlayerCommand>&): uint16_t
+  + push_event(player_id: uint16_t, event: ServerEvent)
+  + broadcast(event: ServerEvent)
+  + clean_dead(): vector<uint16_t>
+  + stop_all()
+}
+note right of ClientListMonitor
+  Único punto de sincronización
+  (mutex) entre Acceptor y GameLoop:
+  todos los ClientHandler viven acá.
+end note
+
 class ClientHandler {
+  - player_id: uint16_t
+  - protocol: ServerProtocol
+  - output_queue: Queue<ServerEvent>
   - sender: Sender
   - receiver: Receiver
-  - input_queue: Queue<PlayerCommand>&
-  - output_queue: Queue<ServerEvent>
+  + start()
+  + push_event(ev: ServerEvent)
+  + stop()
+  + join()
+  + is_alive(): bool
 }
 
 class Sender extends Thread {
-  - output_queue: Queue<ServerEvent>
-  - protocol: ServerProtocol
+  - output_queue: Queue<ServerEvent>&
+  - protocol: ServerProtocol&
   + run()
 }
 
 class Receiver extends Thread {
-  - input_queue: Queue<PlayerCommand>
-  - protocol: ServerProtocol
+  - input_queue: Queue<PlayerCommand>&
+  - protocol: ServerProtocol&
   + run()
 }
 
 class ServerProtocol {
   + send_event(ev: ServerEvent)
   + recv_command(): ClientCommand
+  + shutdown_from_other_thread()
 }
 
 class Queue<T> {
@@ -44,18 +79,21 @@ class Queue<T> {
   + pop(): T
   + try_pop(item: T&): bool
   + try_push(item: T): bool
+  + close()
 }
 
-Server --> Acceptor: crea
-Server --> GameLoop: crea
-Acceptor --> ClientHandler: crea por conexión
+Server *-- Acceptor : <<dueño>>
+Server *-- GameLoop : <<dueño>>
+Server *-- ClientListMonitor : <<dueño>>
+Acceptor --> ClientListMonitor : monitor.add()\n<<crea ClientHandler>>
+GameLoop --> ClientListMonitor : push_event() / broadcast()\n<<dispatch de CommandResult>>
+GameLoop --> ClientListMonitor : clean_dead()\n<<destraba sockets muertos>>
+ClientListMonitor o-- ClientHandler : <<contiene, protegido por mtx>>
 ClientHandler *-- Sender
 ClientHandler *-- Receiver
-GameLoop --> Queue: pop() comandos
-Receiver --> Queue: push() comandos
-GameLoop --> ClientHandler: push() eventos
-ClientHandler --> "out" Queue: eventos privados
-Sender --> Queue: pop() eventos
+GameLoop --> Queue: try_pop() comandos en loop\n<<no bloqueante, tick fijo>>\n(input_queue global)
+Receiver --> Queue: push() comandos (input_queue global)
+ClientHandler *-- "out" Queue: eventos privados\n(una Queue<ServerEvent> por cliente)
 Sender --> ServerProtocol
 Receiver --> ServerProtocol
 note right of Queue
