@@ -69,6 +69,14 @@ private:
                          std::vector<ServerEvent>& victim_events,
                          std::map<std::string, std::vector<ItemDroppedEvent>>& drops,
                          std::vector<ServerEvent>* killer_events = nullptr);
+    // Returns true if the NPC was blocked and the attack phase should be skipped.
+    bool chase_target(uint16_t npc_id, EnemyNpc& npc, Player& target, bool in_attack_range,
+                      bool player_in_safe_zone, const Map* map,
+                      std::map<uint16_t, std::vector<ServerEvent>>& targeted);
+    void npc_attack_target(uint16_t npc_id, EnemyNpc& npc, Player& target, uint32_t current_tick,
+                           std::vector<ServerEvent>& broadcast,
+                           std::map<uint16_t, std::vector<ServerEvent>>& targeted,
+                           std::map<std::string, std::vector<ItemDroppedEvent>>& ground_drops);
     CommandResult melee_attack_player(uint16_t attacker_id, uint16_t target_id,
                                       uint32_t current_tick);
     CommandResult melee_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,

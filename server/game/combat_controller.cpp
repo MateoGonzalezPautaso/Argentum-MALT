@@ -341,6 +341,78 @@ void CombatController::on_player_death(
     drop_inventory_on_death(victim, drops, victim_events);
 }
 
+bool CombatController::chase_target(uint16_t npc_id, EnemyNpc& npc, Player& target,
+                                    bool in_attack_range, bool player_in_safe_zone, const Map* map,
+                                    std::map<uint16_t, std::vector<ServerEvent>>& targeted) {
+    if (in_attack_range || player_in_safe_zone)
+        return false;
+
+    int dx = static_cast<int>(target.pos_x()) - static_cast<int>(npc.pos_x());
+    int dy = static_cast<int>(target.pos_y()) - static_cast<int>(npc.pos_y());
+
+    Direction move_dir;
+    int step_x = 0, step_y = 0;
+    int speed = static_cast<int>(npc.get_speed());
+
+    if (std::abs(dx) > std::abs(dy)) {
+        step_x = (dx > 0) ? speed : -speed;
+        move_dir = (dx > 0) ? Direction::EAST : Direction::WEST;
+    } else {
+        step_y = (dy > 0) ? speed : -speed;
+        move_dir = (dy > 0) ? Direction::SOUTH : Direction::NORTH;
+    }
+
+    int new_x = std::max(0, static_cast<int>(npc.pos_x()) + step_x);
+    int new_y = std::max(0, static_cast<int>(npc.pos_y()) + step_y);
+
+    if (map && (map->is_safe_zone(new_x, new_y) || !map->is_walkable(new_x, new_y)))
+        return true;
+
+    npc.set_pos(static_cast<uint16_t>(new_x), static_cast<uint16_t>(new_y));
+    npc.set_dir(move_dir);
+
+    EntityMoveEvent move_ev{npc_id, npc.get_pos(), move_dir};
+    for (uint16_t pid: PlayerRegistry(players).ids_on_map(npc.get_current_map()))
+        targeted[pid].push_back(move_ev);
+
+    return false;
+}
+
+void CombatController::npc_attack_target(
+        uint16_t npc_id, EnemyNpc& npc, Player& target, uint32_t current_tick,
+        std::vector<ServerEvent>& broadcast,
+        std::map<uint16_t, std::vector<ServerEvent>>& targeted,
+        std::map<std::string, std::vector<ItemDroppedEvent>>& ground_drops) {
+    if (!npc.try_attack(current_tick, config.cooldown_ticks))
+        return;
+
+    uint16_t target_id = target.get_id();
+    bool esquivado = GameFormulas::is_dodged(config, target.get_agility(), rng);
+
+    if (esquivado) {
+        targeted[target_id].push_back(AttackDodgedEvent{target_id});
+    } else {
+        uint32_t damage = npc.get_damage();
+        uint32_t defense = calculate_defense(target);
+        damage = damage > defense ? (damage - defense) : 0;
+
+        target.take_damage(damage);
+
+        targeted[target_id].push_back(DamageReceivedEvent{target_id, npc_id, damage,
+                                                           target.get_hp_current(),
+                                                           target.get_hp_max()});
+        targeted[target_id].push_back(
+                ChatMsgEvent{ChatMsgType::SYSTEM, "",
+                             npc.get_name() + " ataco a " + target.get_name() + " por " +
+                                     std::to_string(damage) + " de dano"});
+    }
+
+    if (target.is_dead()) {
+        on_player_death(target, target_id, nullptr, targeted[target_id], ground_drops);
+        broadcast.push_back(EntityDiedEvent{target_id});
+    }
+}
+
 CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
     std::vector<ServerEvent> broadcast;
     std::map<uint16_t, std::vector<ServerEvent>> targeted;
@@ -371,80 +443,13 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
 
         bool player_in_safe_zone = map && map->is_safe_zone(target->pos_x(), target->pos_y());
 
-        // Chase: move toward player if not in attack range or cooldown active, and player not in
-        // safe zone
-        bool should_chase = in_vision_range && !player_in_safe_zone;
-        if (should_chase && !in_attack_range) {
-            int dx = static_cast<int>(target->pos_x()) - static_cast<int>(npc.pos_x());
-            int dy = static_cast<int>(target->pos_y()) - static_cast<int>(npc.pos_y());
+        if (chase_target(npc_id, npc, *target, in_attack_range, player_in_safe_zone, map, targeted))
+            continue;
 
-            Direction move_dir;
-            int step_x = 0, step_y = 0;
-            int speed = static_cast<int>(npc.get_speed());
-
-            if (std::abs(dx) > std::abs(dy)) {
-                step_x = (dx > 0) ? speed : -speed;
-                move_dir = (dx > 0) ? Direction::EAST : Direction::WEST;
-            } else {
-                step_y = (dy > 0) ? speed : -speed;
-                move_dir = (dy > 0) ? Direction::SOUTH : Direction::NORTH;
-            }
-
-            int new_x = static_cast<int>(npc.pos_x()) + step_x;
-            int new_y = static_cast<int>(npc.pos_y()) + step_y;
-
-            if (new_x < 0)
-                new_x = 0;
-            if (new_y < 0)
-                new_y = 0;
-
-            // Don't enter safe zones or non-walkable tiles
-            if (map && (map->is_safe_zone(new_x, new_y) || !map->is_walkable(new_x, new_y)))
-                continue;
-
-            npc.set_pos(static_cast<uint16_t>(new_x), static_cast<uint16_t>(new_y));
-            npc.set_dir(move_dir);
-
-            EntityMoveEvent move_ev{npc_id, npc.get_pos(), move_dir};
-            for (uint16_t pid: PlayerRegistry(players).ids_on_map(npc.get_current_map())) {
-                targeted[pid].push_back(move_ev);
-            }
-        }
-
-        // Attack if in range, target not in a safe zone, and cooldown OK
         if (!in_attack_range || player_in_safe_zone)
             continue;
 
-        if (!npc.try_attack(current_tick, config.cooldown_ticks))
-            continue;
-
-        uint16_t target_id = target->get_id();
-        bool esquivado = GameFormulas::is_dodged(config, target->get_agility(), rng);
-
-        if (esquivado) {
-            AttackDodgedEvent dodged{target_id};
-            targeted[target_id].push_back(dodged);
-        } else {
-            uint32_t damage = npc.get_damage();
-            uint32_t defense = calculate_defense(*target);
-            damage = damage > defense ? (damage - defense) : 0;
-
-            target->take_damage(damage);
-
-            DamageReceivedEvent received{target_id, npc_id, damage, target->get_hp_current(),
-                                         target->get_hp_max()};
-            targeted[target_id].push_back(received);
-
-            ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
-                                  npc.get_name() + " ataco a " + target->get_name() + " por " +
-                                          std::to_string(damage) + " de dano"};
-            targeted[target_id].push_back(chat_msg);
-        }
-
-        if (target->is_dead()) {
-            on_player_death(*target, target_id, nullptr, targeted[target_id], ground_drops);
-            broadcast.push_back(EntityDiedEvent{target_id});
-        }
+        npc_attack_target(npc_id, npc, *target, current_tick, broadcast, targeted, ground_drops);
     }
 
     return {.private_events = {},
