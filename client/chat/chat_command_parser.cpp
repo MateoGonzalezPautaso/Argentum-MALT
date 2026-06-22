@@ -9,23 +9,29 @@ ClientCommand wrap(std::string arg) {
 }
 }  // namespace
 
-ChatCommandParser::ChatCommandParser() {
-    exact_commands_ = {
-            {"/listar", NpcListCmd{}},       {"/meditar", MeditateCmd{}},
-            {"/resucitar", ResurrectCmd{}},  {"/curar", NpcHealCmd{}},
-            {"/tomar", PickupItemCmd{""}},   {"/revisar-clan", ClanReviewCmd{}},
-            {"/dejar-clan", ClanLeaveCmd{}},
-    };
-
-    prefix_commands_ = {
-            {"/clan-rechazar ", wrap<ClanRejectCmd>}, {"/clan-aceptar ", wrap<ClanAcceptCmd>},
-            {"/clan-unban ", wrap<ClanUnbanCmd>},     {"/clan-kick ", wrap<ClanKickCmd>},
-            {"/clan-ban ", wrap<ClanBanCmd>},         {"/fundar-clan ", wrap<ClanFoundCmd>},
-            {"/comprar ", wrap<NpcBuyCmd>},           {"/vender ", wrap<NpcSellCmd>},
-            {"/unirse ", wrap<ClanJoinRequestCmd>},   {"/tomar ", wrap<PickupItemCmd>},
-            {"/tirar ", wrap<DropItemCmd>},
-    };
-}
+ChatCommandParser::ChatCommandParser():
+        exact_commands_({
+                {"/listar", NpcListCmd{}},
+                {"/meditar", MeditateCmd{}},
+                {"/resucitar", ResurrectCmd{}},
+                {"/curar", NpcHealCmd{}},
+                {"/tomar", PickupItemCmd{""}},
+                {"/revisar-clan", ClanReviewCmd{}},
+                {"/dejar-clan", ClanLeaveCmd{}},
+        }),
+        prefix_commands_({
+                {"/clan-rechazar ", wrap<ClanRejectCmd>},
+                {"/clan-aceptar ", wrap<ClanAcceptCmd>},
+                {"/clan-unban ", wrap<ClanUnbanCmd>},
+                {"/clan-kick ", wrap<ClanKickCmd>},
+                {"/clan-ban ", wrap<ClanBanCmd>},
+                {"/fundar-clan ", wrap<ClanFoundCmd>},
+                {"/comprar ", wrap<NpcBuyCmd>},
+                {"/vender ", wrap<NpcSellCmd>},
+                {"/unirse ", wrap<ClanJoinRequestCmd>},
+                {"/tomar ", wrap<PickupItemCmd>},
+                {"/tirar ", wrap<DropItemCmd>},
+        }) {}
 
 std::optional<ClientCommand> ChatCommandParser::parse(const std::string& text) const {
     auto arg = [&](std::string_view prefix) -> std::string { return text.substr(prefix.size()); };

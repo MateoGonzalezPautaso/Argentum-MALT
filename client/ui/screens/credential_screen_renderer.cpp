@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <utility>
 
 #include "../../input/chat_input.h"
 #include "../../render/gfx/geometry.h"

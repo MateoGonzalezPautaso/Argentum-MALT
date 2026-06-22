@@ -89,9 +89,7 @@ private:
 
     std::tuple<uint16_t, uint16_t, uint16_t, uint16_t> compute_combat_ranges(const Player& p) const;
     PlayerStatsEvent make_player_stats_event(const Player& p) const;
-    bool is_username_logged_in(const std::string& username) const;
     std::optional<uint16_t> find_player_id_by_name(const std::string& name) const;
-    LoginOkEvent make_login_ok(const Player& p) const;
     EntitySpawnEvent make_entity_spawn(const Player& p) const;
     EntitySpawnEvent make_npc_spawn(const EnemyNpc& npc, uint16_t npc_id) const;
     std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id) const;

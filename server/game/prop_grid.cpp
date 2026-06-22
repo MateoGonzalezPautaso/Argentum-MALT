@@ -110,14 +110,14 @@ bool PropGrid::is_in_range_of(const std::string& prop_name, int px, int py, int 
 
 bool PropGrid::find_first_transition(const std::string& target_map, int& out_cx, int& out_cy,
                                      int& out_hb_left, int& out_hb_bottom) const {
-    for (const auto& e: entries_) {
-        if (e.transition_map() == target_map) {
-            out_cx = e.center_x;
-            out_cy = e.center_y;
-            out_hb_left = e.hb_left;
-            out_hb_bottom = e.hb_bottom;
-            return true;
-        }
-    }
-    return false;
+    auto it = std::find_if(entries_.begin(), entries_.end(), [&target_map](const Entry& e) {
+        return e.transition_map() == target_map;
+    });
+    if (it == entries_.end())
+        return false;
+    out_cx = it->center_x;
+    out_cy = it->center_y;
+    out_hb_left = it->hb_left;
+    out_hb_bottom = it->hb_bottom;
+    return true;
 }

@@ -1,5 +1,7 @@
 #include "effect_overlay_system.h"
 
+#include <string>
+
 #include <SDL2/SDL.h>
 
 #include "../gfx/texture_loader.h"

@@ -1,6 +1,7 @@
 #include "entity_sprite_registry.h"
 
 #include <algorithm>
+#include <utility>
 
 #include <SDL2/SDL.h>
 
@@ -509,10 +510,10 @@ void EntitySpriteRegistry::collect_drawables(const SDL2pp::Rect& cam, std::vecto
     for (auto& [entity_id, e]: entities) {
         append_sprite_drawables(e.parts, cam, out);
 
-        const bool is_npc = e.sprite_id > 0;
+        const bool entity_is_npc = e.sprite_id > 0;
         auto body_it = std::find_if(e.parts.begin(), e.parts.end(),
                                     [](const SpriteRender& p) { return p.movable; });
-        if (body_it == e.parts.end() || (!body_it->use_src && !is_npc))
+        if (body_it == e.parts.end() || (!body_it->use_src && !entity_is_npc))
             continue;
         if (!is_visible(*body_it, cam))
             continue;

@@ -1,6 +1,7 @@
 #include "bank_service.h"
 
 #include <string>
+#include <unordered_map>
 
 BankService::BankService(std::map<uint16_t, Player>& players,
                          const std::unordered_map<std::string, Map>& maps,

@@ -543,24 +543,6 @@ CommandResult Game::handle_meditate(uint16_t player_id) {
     }
 }
 
-LoginOkEvent Game::make_login_ok(const Player& p) const {
-    return LoginOkEvent{
-            .player_id = p.get_id(),
-            .username = p.get_name(),
-            .race = p.get_race(),
-            .player_class = p.get_player_class(),
-            .level = p.get_level(),
-            .experience = p.get_experience(),
-            .exp_to_next = p.exp_to_next_level(),
-            .hp_current = p.get_hp_current(),
-            .hp_max = p.get_hp_max(),
-            .mana_current = p.get_mana_current(),
-            .mana_max = p.get_mana_max(),
-            .gold = p.get_gold(),
-            .pos = p.get_pos(),
-    };
-}
-
 EntitySpawnEvent Game::make_entity_spawn(const Player& p) const {
     const ItemType weapon_type = p.get_equipped(EquipSlot::WEAPON).item_type;
     const ItemType armor_type = p.get_equipped(EquipSlot::ARMOR).item_type;
@@ -661,10 +643,6 @@ void Game::save_all_players() {
     for (const auto& [id, player]: players) {
         player_data_service.save_player(player);
     }
-}
-
-bool Game::is_username_logged_in(const std::string& username) const {
-    return player_name_index_.count(username) > 0;
 }
 
 std::optional<uint16_t> Game::find_player_id_by_name(const std::string& name) const {

@@ -20,6 +20,8 @@ PlayerRecord::PlayerRecord() {
     mana_current = 0;
     mana_max = 0;
     gold = 0;
+    strength = 0;
+    agility = 0;
     bank_gold = 0;
     std::memset(current_map, 0, sizeof(current_map));
     std::memset(equipped_type, 0, sizeof(equipped_type));

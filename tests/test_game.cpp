@@ -1,7 +1,10 @@
+#include <algorithm>
 #include <cstdio>
 #include <filesystem>
+#include <stdexcept>
 #include <string>
 #include <variant>
+#include <vector>
 
 #include "gtest/gtest.h"
 #include "server/core/config.h"
@@ -13,19 +16,16 @@ namespace {
 
 template <typename Event>
 bool has_event(const std::vector<ServerEvent>& events) {
-    for (const auto& ev: events) {
-        if (std::holds_alternative<Event>(ev))
-            return true;
-    }
-    return false;
+    return std::any_of(events.begin(), events.end(),
+                       [](const ServerEvent& ev) { return std::holds_alternative<Event>(ev); });
 }
 
 template <typename Event>
 const Event& get_event(const std::vector<ServerEvent>& events) {
-    for (const auto& ev: events) {
-        if (std::holds_alternative<Event>(ev))
-            return std::get<Event>(ev);
-    }
+    auto it = std::find_if(events.begin(), events.end(),
+                           [](const ServerEvent& ev) { return std::holds_alternative<Event>(ev); });
+    if (it != events.end())
+        return std::get<Event>(*it);
     throw std::runtime_error("event not found");
 }
 

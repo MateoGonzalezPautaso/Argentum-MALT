@@ -1,5 +1,7 @@
 #include "merchant_controller.h"
 
+#include <algorithm>
+
 #include "../../render/gfx/geometry.h"
 
 MerchantController::MerchantController(SDL2pp::Renderer& renderer, const UIConfig& cfg,

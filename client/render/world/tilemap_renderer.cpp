@@ -37,7 +37,7 @@ void TilemapRenderer::load(const TilemapConfig& tilemap) {
             std::string atlas_path = def.path.empty() ? tilemap.path : def.path;
             tile_row.push_back({{def.x, def.y, tile_size_, tile_size_}, atlas_path});
 
-            if (textures.find(atlas_path) == textures.end()) {
+            if (!textures.contains(atlas_path)) {
                 textures.emplace(atlas_path,
                                  SDL2pp::Texture(renderer, texture::load_surface(atlas_path)));
             }

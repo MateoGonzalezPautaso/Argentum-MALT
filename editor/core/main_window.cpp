@@ -21,6 +21,7 @@
 #include <QVBoxLayout>
 #include <QWheelEvent>
 #include <QWidget>
+#include <algorithm>
 
 #include "../input/map_interaction.h"
 #include "../ui/dialogs.h"
@@ -240,7 +241,7 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
     if (obj != view_->viewport())
         return QMainWindow::eventFilter(obj, event);
 
-    auto& doc = controller_->document();
+    const auto& doc = controller_->document();
 
     if (event->type() == QEvent::MouseButtonPress) {
         auto* me = static_cast<QMouseEvent*>(event);

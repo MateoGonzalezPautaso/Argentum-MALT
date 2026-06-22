@@ -2,6 +2,7 @@
 #define EDITOR_TILEMAP_DOCUMENT_H
 
 #include <string>
+#include <vector>
 
 #include "common/config.h"
 

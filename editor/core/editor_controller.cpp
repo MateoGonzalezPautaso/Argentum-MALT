@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <fstream>
 #include <stdexcept>
+#include <utility>
 
 #include <toml++/toml.hpp>
 
@@ -54,17 +55,12 @@ bool EditorController::validate_city_map() const {
 
     QStringList missing;
     for (const auto& npc: kCityRequiredNpcs) {
-        bool found = false;
-        for (const auto& row: doc_.config().prop_map) {
-            for (const auto& cell: row) {
-                if (cell == npc) {
-                    found = true;
-                    break;
-                }
-            }
-            if (found)
-                break;
-        }
+        bool found = std::any_of(doc_.config().prop_map.begin(), doc_.config().prop_map.end(),
+                                 [&npc](const auto& row) {
+                                     return std::any_of(
+                                             row.begin(), row.end(),
+                                             [&npc](const auto& cell) { return cell == npc; });
+                                 });
         if (!found)
             missing << QString::fromStdString(npc);
     }
@@ -153,7 +149,7 @@ void EditorController::register_current_map_in_list() {
         name = name.substr(slash + 1);
     auto dot = name.rfind(".toml");
     if (dot != std::string::npos)
-        name = name.substr(0, dot);
+        name.resize(dot);
 
     try {
         toml::table root = toml::parse_file("config/map_list.toml");

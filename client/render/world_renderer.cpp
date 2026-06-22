@@ -1,6 +1,7 @@
 #include "world_renderer.h"
 
 #include <stdexcept>
+#include <unordered_map>
 
 #include <SDL2/SDL.h>
 

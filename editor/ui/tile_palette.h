@@ -4,6 +4,7 @@
 #include <QPixmap>
 #include <QToolButton>
 #include <QWidget>
+#include <algorithm>
 #include <functional>
 #include <string>
 #include <unordered_map>

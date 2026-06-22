@@ -1,5 +1,6 @@
 #include "clan_command_handler.h"
 
+#include <algorithm>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -84,14 +85,13 @@ CommandResult ClanCommandHandler::handle_join_clan(uint16_t player_id, const std
     std::map<uint16_t, std::vector<ServerEvent>> targeted;
     if (result.ok) {
         auto members = clan_manager.get_member_list(args);
-        for (const auto& m: members) {
-            if (m.is_founder) {
-                ClanNotificationEvent notif{ClanNotifType::JOIN_REQUEST, sender_name, args};
-                auto founder_id_opt = find_player_id_by_name(m.username);
-                if (founder_id_opt)
-                    targeted[*founder_id_opt].push_back(notif);
-                break;
-            }
+        auto founder_it = std::find_if(members.begin(), members.end(),
+                                       [](const auto& m) { return m.is_founder; });
+        if (founder_it != members.end()) {
+            ClanNotificationEvent notif{ClanNotifType::JOIN_REQUEST, sender_name, args};
+            auto founder_id_opt = find_player_id_by_name(founder_it->username);
+            if (founder_id_opt)
+                targeted[*founder_id_opt].push_back(notif);
         }
     }
     ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
