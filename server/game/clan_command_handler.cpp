@@ -1,6 +1,7 @@
 #include "clan_command_handler.h"
 
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -14,8 +15,16 @@ CommandResult system_msg(const std::string& msg) {
 }  // namespace
 
 ClanCommandHandler::ClanCommandHandler(ClanManager& clan_manager,
-                                       std::map<uint16_t, Player>& players):
-        clan_manager(clan_manager), players(players) {}
+                                       std::map<uint16_t, Player>& players,
+                                       const std::unordered_map<std::string, uint16_t>& player_name_index):
+        clan_manager(clan_manager), players(players), player_name_index_(player_name_index) {}
+
+std::optional<uint16_t> ClanCommandHandler::find_player_id_by_name(const std::string& name) const {
+    auto it = player_name_index_.find(name);
+    if (it == player_name_index_.end())
+        return std::nullopt;
+    return it->second;
+}
 
 std::optional<CommandResult> ClanCommandHandler::handle(uint16_t player_id,
                                                         const std::string& cmd_name,
@@ -78,12 +87,9 @@ CommandResult ClanCommandHandler::handle_join_clan(uint16_t player_id, const std
         for (const auto& m: members) {
             if (m.is_founder) {
                 ClanNotificationEvent notif{ClanNotifType::JOIN_REQUEST, sender_name, args};
-                for (const auto& [target_id, p]: players) {
-                    if (p.get_name() == m.username) {
-                        targeted[target_id].push_back(notif);
-                        break;
-                    }
-                }
+                auto founder_id_opt = find_player_id_by_name(m.username);
+                if (founder_id_opt)
+                    targeted[*founder_id_opt].push_back(notif);
                 break;
             }
         }
@@ -107,13 +113,7 @@ CommandResult ClanCommandHandler::handle_clan_status(uint16_t player_id) {
     std::string clan_name = clan_manager.get_clan_name(sender_name);
     auto members = clan_manager.get_member_list(clan_name);
     for (auto& m: members) {
-        m.is_online = false;
-        for (const auto& [pid, p]: players) {
-            if (p.get_name() == m.username) {
-                m.is_online = true;
-                break;
-            }
-        }
+        m.is_online = find_player_id_by_name(m.username).has_value();
     }
     auto requests = clan_manager.get_pending_requests(clan_name);
 
@@ -149,11 +149,11 @@ CommandResult ClanCommandHandler::handle_clan_accept(uint16_t player_id, const s
     aresult.private_events = {ChatMsgEvent{ChatMsgType::SYSTEM, "", result.error_msg}};
     if (result.ok) {
         std::string clan_name = clan_manager.get_clan_name(sender_name);
-        for (auto& [pid, p]: players) {
-            if (p.get_name() == args) {
-                p.set_clan_name(clan_name);
-                break;
-            }
+        auto target_id_opt = find_player_id_by_name(args);
+        if (target_id_opt) {
+            auto pit = players.find(*target_id_opt);
+            if (pit != players.end())
+                pit->second.set_clan_name(clan_name);
         }
         send_clan_update(clan_name, aresult.targeted_events);
     }
@@ -175,12 +175,9 @@ CommandResult ClanCommandHandler::handle_clan_reject(uint16_t player_id, const s
     if (result.ok) {
         std::string clan_name = clan_manager.get_clan_name(sender_name);
         ClanNotificationEvent notif{ClanNotifType::JOIN_REJECTED, args, clan_name};
-        for (const auto& [pid, p]: players) {
-            if (p.get_name() == args) {
-                targeted[pid].push_back(notif);
-                break;
-            }
-        }
+        auto target_id_opt = find_player_id_by_name(args);
+        if (target_id_opt)
+            targeted[*target_id_opt].push_back(notif);
     }
     ChatMsgEvent ev{ChatMsgType::SYSTEM, "", result.error_msg};
     return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = std::move(targeted)};
@@ -200,13 +197,14 @@ CommandResult ClanCommandHandler::handle_clan_ban(uint16_t player_id, const std:
     std::map<uint16_t, std::vector<ServerEvent>> targeted;
     if (result.ok) {
         std::string clan_name = clan_manager.get_clan_name(sender_name);
-        for (auto& [pid, p]: players) {
-            if (p.get_name() == args) {
-                p.set_clan_name("");
-                targeted[pid].push_back(ClanNotificationEvent{ClanNotifType::KICKED, args, clan_name});
-                send_empty_clan_update(pid, targeted);
-                break;
-            }
+        auto target_id_opt = find_player_id_by_name(args);
+        if (target_id_opt) {
+            uint16_t target_id = *target_id_opt;
+            auto pit = players.find(target_id);
+            if (pit != players.end())
+                pit->second.set_clan_name("");
+            targeted[target_id].push_back(ClanNotificationEvent{ClanNotifType::KICKED, args, clan_name});
+            send_empty_clan_update(target_id, targeted);
         }
         send_clan_update(clan_name, targeted);
     }
@@ -242,13 +240,14 @@ CommandResult ClanCommandHandler::handle_clan_kick(uint16_t player_id, const std
     std::map<uint16_t, std::vector<ServerEvent>> targeted;
     if (result.ok) {
         std::string clan_name = clan_manager.get_clan_name(sender_name);
-        for (auto& [pid, p]: players) {
-            if (p.get_name() == args) {
-                p.set_clan_name("");
-                targeted[pid].push_back(ClanNotificationEvent{ClanNotifType::KICKED, args, clan_name});
-                send_empty_clan_update(pid, targeted);
-                break;
-            }
+        auto target_id_opt = find_player_id_by_name(args);
+        if (target_id_opt) {
+            uint16_t target_id = *target_id_opt;
+            auto pit = players.find(target_id);
+            if (pit != players.end())
+                pit->second.set_clan_name("");
+            targeted[target_id].push_back(ClanNotificationEvent{ClanNotifType::KICKED, args, clan_name});
+            send_empty_clan_update(target_id, targeted);
         }
         send_clan_update(clan_name, targeted);
     }
@@ -303,13 +302,10 @@ void ClanCommandHandler::send_clan_update(
     auto members = clan_manager.get_member_list(clan_name);
     std::vector<ClanMember> online_members;
     for (auto& m: members) {
-        m.is_online = false;
-        for (const auto& [pid, p]: players) {
-            if (p.get_name() == m.username && p.get_clan_name() == clan_name) {
-                m.is_online = true;
-                break;
-            }
-        }
+        auto id_opt = find_player_id_by_name(m.username);
+        m.is_online = id_opt.has_value() &&
+                      players.count(*id_opt) > 0 &&
+                      players.at(*id_opt).get_clan_name() == clan_name;
         online_members.push_back(m);
     }
     ClanUpdateEvent ev{clan_name, online_members};

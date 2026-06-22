@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <map>
+#include <optional>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -28,6 +29,7 @@
 class Game {
 private:
     std::map<uint16_t, Player> players;
+    std::unordered_map<std::string, uint16_t> player_name_index_;
     PlayerDataService& player_data_service;
     ClanManager clan_manager;
     ClanCommandHandler clan_handler;
@@ -119,6 +121,7 @@ private:
                                                                   const std::string& item_name,
                                                                   const std::string& action);
     bool is_username_logged_in(const std::string& username) const;
+    std::optional<uint16_t> find_player_id_by_name(const std::string& name) const;
     LoginOkEvent make_login_ok(const Player& p) const;
     EntitySpawnEvent make_entity_spawn(const Player& p) const;
     EntitySpawnEvent make_npc_spawn(const EnemyNpc& npc, uint16_t npc_id) const;

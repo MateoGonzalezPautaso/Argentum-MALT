@@ -2,6 +2,7 @@
 #define PLAYER_H
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -107,6 +108,8 @@ public:
     void increase_max_mana(uint32_t amount);
 
     std::vector<InventorySlot> dump_inventory() const;
+    std::optional<InventorySlot> find_slot_by_type(ItemType type) const;
+    std::optional<InventorySlot> find_bank_slot_by_type(ItemType type) const;
     void load_inventory(const std::vector<InventorySlotRecord>& records);
     bool add_item(ItemType type, const std::string& name);
     void remove_inventory_item(uint8_t slot_index);

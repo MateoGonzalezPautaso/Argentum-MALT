@@ -53,7 +53,7 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
            ClanPersistence& clan_persistence):
         player_data_service(player_data_service),
         clan_manager(clan_persistence, config.clan),
-        clan_handler(clan_manager, players),
+        clan_handler(clan_manager, players, player_name_index_),
         tilemap_configs(config.tilemap_configs),
         move_step(config.move_step),
         sprite_width(config.sprite_width),
@@ -233,6 +233,7 @@ CommandResult Game::remove_player(uint16_t player_id) {
     }
 
     pending_resurrections_.erase(player_id);
+    player_name_index_.erase(username);
     players.erase(it);
 
     // Notify clan members of logout
@@ -569,17 +570,16 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         if (space_pos != std::string::npos) {
             std::string target_nick = text.substr(1, space_pos - 1);
             std::string msg = text.substr(space_pos + 1);
-            for (const auto& [target_id, player]: players) {
-                if (player.get_name() == target_nick) {
-                    ChatMsgEvent chat_ev{ChatMsgType::PRIVATE, sender_name, msg, target_id,
-                                         player_id};
-                    std::map<uint16_t, std::vector<ServerEvent>> targeted;
-                    targeted[target_id].push_back(chat_ev);
-                    targeted[player_id].push_back(chat_ev);
-                    return {.private_events = {},
-                            .broadcast_events = {},
-                            .targeted_events = std::move(targeted)};
-                }
+            auto target_id_opt = find_player_id_by_name(target_nick);
+            if (target_id_opt) {
+                uint16_t target_id = *target_id_opt;
+                ChatMsgEvent chat_ev{ChatMsgType::PRIVATE, sender_name, msg, target_id, player_id};
+                std::map<uint16_t, std::vector<ServerEvent>> targeted;
+                targeted[target_id].push_back(chat_ev);
+                targeted[player_id].push_back(chat_ev);
+                return {.private_events = {},
+                        .broadcast_events = {},
+                        .targeted_events = std::move(targeted)};
             }
             ChatMsgEvent err{ChatMsgType::SYSTEM, "", "Jugador " + target_nick + " no encontrado"};
             return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
@@ -633,6 +633,7 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
         player_opt->set_clan_name(clan_name);
 
         auto it = players.emplace(player_id, std::move(*player_opt)).first;
+        player_name_index_[it->second.get_name()] = player_id;
         const Player& p = it->second;
 
         EntitySpawnEvent spawn = make_entity_spawn(p);
@@ -735,6 +736,7 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
     player_data_service.save_player(player);
 
     auto it = players.emplace(player_id, std::move(player)).first;
+    player_name_index_[it->second.get_name()] = player_id;
     const Player& p = it->second;
 
     CharacterCreatedEvent created{make_login_ok(p)};
@@ -1127,11 +1129,14 @@ void Game::save_all_players() {
 }
 
 bool Game::is_username_logged_in(const std::string& username) const {
-    for (const auto& [id, player]: players) {
-        if (player.get_name() == username)
-            return true;
-    }
-    return false;
+    return player_name_index_.count(username) > 0;
+}
+
+std::optional<uint16_t> Game::find_player_id_by_name(const std::string& name) const {
+    auto it = player_name_index_.find(name);
+    if (it == player_name_index_.end())
+        return std::nullopt;
+    return it->second;
 }
 
 std::tuple<uint16_t, uint16_t, uint16_t, uint16_t> Game::compute_combat_ranges(
@@ -1498,12 +1503,8 @@ CommandResult Game::handle_npc_sell(uint16_t player_id, const NpcSellCmd& cmd) {
         return {.private_events = {msg}};
     }
 
-    std::vector<InventorySlot> slots = player.dump_inventory();
-    auto slot_it = std::find_if(slots.begin(), slots.end(), [&](const InventorySlot& slot) {
-        return slot.item_type == item_def->type;
-    });
-
-    if (slot_it == slots.end()) {
+    auto slot_opt = player.find_slot_by_type(item_def->type);
+    if (!slot_opt) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                          "No tenés '" + item_def->name + "' en el inventario"};
         return {.private_events = {msg}};
@@ -1512,7 +1513,7 @@ CommandResult Game::handle_npc_sell(uint16_t player_id, const NpcSellCmd& cmd) {
     uint32_t sell_price =
             static_cast<uint32_t>(item_def->price * balance.merchant.sell_price_ratio);
 
-    player.remove_inventory_item(static_cast<uint8_t>(slot_it->slot_index));
+    player.remove_inventory_item(static_cast<uint8_t>(slot_opt->slot_index));
     player.gain_gold(sell_price);
 
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
@@ -1571,11 +1572,8 @@ CommandResult Game::handle_bank_deposit(uint16_t player_id, const BankDepositCmd
         return {.private_events = {msg}};
     }
 
-    std::vector<InventorySlot> slots = player.dump_inventory();
-    auto slot_it = std::find_if(slots.begin(), slots.end(), [&](const InventorySlot& slot) {
-        return slot.item_type == item_def->type;
-    });
-    if (slot_it == slots.end()) {
+    auto slot_opt = player.find_slot_by_type(item_def->type);
+    if (!slot_opt) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                          "No tenés '" + item_def->name + "' en el inventario"};
         return {.private_events = {msg}};
@@ -1585,7 +1583,7 @@ CommandResult Game::handle_bank_deposit(uint16_t player_id, const BankDepositCmd
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El banco está lleno"};
         return {.private_events = {msg}};
     }
-    player.remove_inventory_item(static_cast<uint8_t>(slot_it->slot_index));
+    player.remove_inventory_item(static_cast<uint8_t>(slot_opt->slot_index));
 
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Depositaste " + item_def->name};
@@ -1636,11 +1634,8 @@ CommandResult Game::handle_bank_withdraw(uint16_t player_id, const BankWithdrawC
         return {.private_events = {msg}};
     }
 
-    std::vector<InventorySlot> slots = player.dump_bank();
-    auto slot_it = std::find_if(slots.begin(), slots.end(), [&](const InventorySlot& slot) {
-        return slot.item_type == item_def->type;
-    });
-    if (slot_it == slots.end()) {
+    auto slot_opt = player.find_bank_slot_by_type(item_def->type);
+    if (!slot_opt) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No tenés '" + item_def->name + "' en el banco"};
         return {.private_events = {msg}};
     }
@@ -1649,7 +1644,7 @@ CommandResult Game::handle_bank_withdraw(uint16_t player_id, const BankWithdrawC
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Inventario lleno"};
         return {.private_events = {msg}};
     }
-    player.remove_bank_item(static_cast<uint8_t>(slot_it->slot_index));
+    player.remove_bank_item(static_cast<uint8_t>(slot_opt->slot_index));
 
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Retiraste " + item_def->name};
@@ -1747,11 +1742,8 @@ CommandResult Game::handle_drop_item(uint16_t player_id, const DropItemCmd& cmd)
         return {.private_events = {msg}};
     }
 
-    std::vector<InventorySlot> slots = player.dump_inventory();
-    auto slot_it = std::find_if(slots.begin(), slots.end(), [&](const InventorySlot& slot) {
-        return slot.item_type == item_def->type;
-    });
-    if (slot_it == slots.end()) {
+    auto slot_opt = player.find_slot_by_type(item_def->type);
+    if (!slot_opt) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                          "No tenés '" + item_def->name + "' en el inventario"};
         return {.private_events = {msg}};
@@ -1763,7 +1755,7 @@ CommandResult Game::handle_drop_item(uint16_t player_id, const DropItemCmd& cmd)
 
     Position pos{player.pos_x(), player.pos_y()};
 
-    player.remove_inventory_item(static_cast<uint8_t>(slot_it->slot_index));
+    player.remove_inventory_item(static_cast<uint8_t>(slot_opt->slot_index));
     ItemDroppedEvent drop_ev{pos, item_def->type, item_def->name};
     ground_items[map_name][cell].push_back(drop_ev);
 

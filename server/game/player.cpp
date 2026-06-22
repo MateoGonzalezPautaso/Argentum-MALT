@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <optional>
 #include <vector>
 
 #include "game_formulas.h"
@@ -270,6 +271,22 @@ void Player::clear_equipped() {
 }
 
 std::vector<InventorySlot> Player::dump_inventory() const { return inv.dump_slots(); }
+
+std::optional<InventorySlot> Player::find_slot_by_type(ItemType type) const {
+    for (const InventorySlot& slot: inv.dump_slots()) {
+        if (slot.item_type == type)
+            return slot;
+    }
+    return std::nullopt;
+}
+
+std::optional<InventorySlot> Player::find_bank_slot_by_type(ItemType type) const {
+    for (const InventorySlot& slot: bank_inv.dump_slots()) {
+        if (slot.item_type == type)
+            return slot;
+    }
+    return std::nullopt;
+}
 
 void Player::clear_inventory() { inv.load_slots({}); }
 

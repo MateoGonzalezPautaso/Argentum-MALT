@@ -5,6 +5,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <unordered_map>
 
 #include "../../common/messages.h"
 
@@ -14,7 +15,8 @@
 
 class ClanCommandHandler {
 public:
-    ClanCommandHandler(ClanManager& clan_manager, std::map<uint16_t, Player>& players);
+    ClanCommandHandler(ClanManager& clan_manager, std::map<uint16_t, Player>& players,
+                       const std::unordered_map<std::string, uint16_t>& player_name_index);
 
     std::optional<CommandResult> handle(uint16_t player_id, const std::string& cmd_name,
                                         const std::string& args);
@@ -35,6 +37,9 @@ public:
 private:
     ClanManager& clan_manager;
     std::map<uint16_t, Player>& players;
+    const std::unordered_map<std::string, uint16_t>& player_name_index_;
+
+    std::optional<uint16_t> find_player_id_by_name(const std::string& name) const;
 
     CommandResult handle_clan_chat(uint16_t player_id, const std::string& args);
     void send_clan_update(const std::string& clan_name,
