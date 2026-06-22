@@ -740,10 +740,7 @@ CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
     if (!changed)
         return {};
 
-    InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
-    player.dump_equipped(equipped_slots);
-    EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1], equipped_slots[2],
-                              equipped_slots[3]};
+    EquipUpdateEvent equip_ev = EntityEventFactory::make_equip_update(player_id, player);
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
 
     std::vector<ServerEvent> private_events{inv_ev};
@@ -766,10 +763,7 @@ CommandResult Game::handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd
 
     player.unequip(cmd.slot);
 
-    InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
-    player.dump_equipped(equipped_slots);
-    EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1], equipped_slots[2],
-                              equipped_slots[3]};
+    EquipUpdateEvent equip_ev = EntityEventFactory::make_equip_update(player_id, player);
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
 
     return {.private_events = {inv_ev},
