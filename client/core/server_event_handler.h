@@ -56,6 +56,7 @@ private:
     void play_spatial_sfx(const std::string& name, uint16_t entity_id);
     void apply_equipment_overlays(uint16_t entity_id, bool is_local,
                                   const ItemType equipped_types[EQUIP_SLOT_COUNT]);
+    bool get_world_center(uint16_t entity_id, int& wx, int& wy) const;
 };
 
 #endif  // CLIENT_SERVER_EVENT_HANDLER_H

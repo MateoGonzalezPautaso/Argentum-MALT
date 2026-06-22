@@ -71,14 +71,8 @@ void ServerEventHandler::apply(const ServerEvent& ev) {
                     [this](const PlayerStatsEvent& e) { handle_player_stats(e); },
                     [this](const SpellEffectEvent& e) {
                         int wx, wy;
-                        if (e.target_id == player_stats_.player_id) {
-                            world_renderer_.sprites().get_movable_position(wx, wy);
-                            wx += world_renderer_.sprites().movable_w() / 2;
-                            wy += world_renderer_.sprites().movable_h() / 2;
-                        } else if (!world_renderer_.sprites().get_entity_world_position(e.target_id,
-                                                                                        wx, wy)) {
+                        if (!get_world_center(e.target_id, wx, wy))
                             return;
-                        }
                         world_renderer_.sprites().trigger_spell_effect(e.effect_type, wx, wy);
                     },
                     [this](const GoldUpdateEvent& e) { player_stats_.gold = e.gold; },
@@ -214,13 +208,8 @@ void ServerEventHandler::handle_damage_received(const DamageReceivedEvent& e) {
         player_stats_.hp_max = e.hp_max;
     }
     int wx, wy;
-    if (e.target_id == player_stats_.player_id) {
-        world_renderer_.sprites().get_movable_position(wx, wy);
-        wx += world_renderer_.sprites().movable_w() / 2;
-        wy += world_renderer_.sprites().movable_h() / 2;
-    } else if (!world_renderer_.sprites().get_entity_world_position(e.target_id, wx, wy)) {
+    if (!get_world_center(e.target_id, wx, wy))
         return;
-    }
     world_renderer_.sprites().trigger_damage_effect(wx, wy);
 }
 
@@ -371,6 +360,16 @@ void ServerEventHandler::handle_player_stats(const PlayerStatsEvent& e) {
     player_stats_.dodge_chance = e.dodge_chance;
     player_stats_.strength = e.strength;
     player_stats_.agility = e.agility;
+}
+
+bool ServerEventHandler::get_world_center(uint16_t entity_id, int& wx, int& wy) const {
+    if (entity_id == player_stats_.player_id) {
+        world_renderer_.sprites().get_movable_position(wx, wy);
+        wx += world_renderer_.sprites().movable_w() / 2;
+        wy += world_renderer_.sprites().movable_h() / 2;
+        return true;
+    }
+    return world_renderer_.sprites().get_entity_world_position(entity_id, wx, wy);
 }
 
 void ServerEventHandler::play_spatial_sfx(const std::string& name, uint16_t entity_id) {
