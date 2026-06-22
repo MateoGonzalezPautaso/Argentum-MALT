@@ -77,6 +77,8 @@ bool Map::is_position_in_spawn_zone(int x, int y) const {
     return is_mob_spawn_tile(row, col);
 }
 
+bool Map::is_safe_zone(int x, int y) const { return !is_position_in_spawn_zone(x, y); }
+
 std::optional<std::pair<int, int>> Map::find_random_mob_spawn_pos_near(Rng& rng, int px, int py,
                                                                          int tile_radius) const {
     if (tilemap_->mob_spawn_zones.empty())

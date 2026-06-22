@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <map>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -66,6 +67,12 @@ private:
                                       uint32_t current_tick);
     CommandResult melee_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,
                                    uint32_t current_tick);
+
+    std::optional<CommandResult> validate_pvp(const Player& attacker, const Player& target) const;
+    CommandResult resolve_player_attack(Player& attacker, Player& target, uint16_t target_id,
+                                        uint32_t range_px);
+    CommandResult resolve_npc_attack(Player& attacker, EnemyNpc& npc_target, uint16_t npc_target_id,
+                                     uint32_t range_px, bool include_item_drop = true);
 
     const AttackConfig& config;
     const BalanceConfig& balance;

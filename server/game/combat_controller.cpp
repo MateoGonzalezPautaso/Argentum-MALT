@@ -33,33 +33,15 @@ const NpcDropConfig& CombatController::drop_config_for(const EnemyNpc& npc) cons
 
 void CombatController::set_clan_manager(ClanManager& mgr) { clan_manager = &mgr; }
 
-CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16_t target_id,
-                                                    uint32_t current_tick) {
-    if (attacker_id == target_id)
-        return {};
-
-    auto attacker_it = players.find(attacker_id);
-    if (attacker_it == players.end())
-        return {};
-
-    auto target_it = players.find(target_id);
-    if (target_it == players.end())
-        return {};
-
-    Player& attacker = attacker_it->second;
-    Player& target = target_it->second;
-
-    if (attacker.is_dead() || target.is_dead())
-        return {};
-
-
+std::optional<CommandResult> CombatController::validate_pvp(const Player& attacker,
+                                                             const Player& target) const {
     if (attacker.get_level() <= config.newbie_level) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar siendo newbie"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult{.private_events = {msg}};
     }
     if (target.get_level() <= config.newbie_level) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar a un jugador newbie"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult{.private_events = {msg}};
     }
 
     int level_diff =
@@ -67,25 +49,21 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
     if (level_diff > config.max_level_diff) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
                          "No puedes atacar a un jugador con diferencia de niveles mayor a 10"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult{.private_events = {msg}};
     }
 
     if (clan_manager && !attacker.get_clan_name().empty() && !target.get_clan_name().empty() &&
         attacker.get_clan_name() == target.get_clan_name()) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar a un miembro de tu clan"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult{.private_events = {msg}};
     }
 
-    if (!attacker.try_attack(current_tick, config.cooldown_ticks))
-        return {};
+    return std::nullopt;
+}
 
-    uint32_t range = config.attack_range_px;
-    const InventorySlot& weapon_slot2 = attacker.get_equipped(EquipSlot::WEAPON);
-    const Item* weapon_def2 = item_catalog_.find(weapon_slot2.item_type);
-    if (weapon_def2 && weapon_def2->attack_range > 0)
-        range = weapon_def2->attack_range;
-
-    if (!in_range(attacker.pos_x(), attacker.pos_y(), target.pos_x(), target.pos_y(), range))
+CommandResult CombatController::resolve_player_attack(Player& attacker, Player& target,
+                                                       uint16_t target_id, uint32_t range_px) {
+    if (!in_range(attacker.pos_x(), attacker.pos_y(), target.pos_x(), target.pos_y(), range_px))
         return {};
 
     uint32_t damage = calculate_damage(attacker);
@@ -103,8 +81,7 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
 
     target.take_damage(damage);
     attacker.gain_experience(GameFormulas::attack_experience(
-            damage, attacker.get_level(), target.get_level(),
-            balance.experience_level_offset));
+            damage, attacker.get_level(), target.get_level(), balance.experience_level_offset));
 
     CommandResult result =
             notify_entity_attacked(attacker, target_id, damage, target.get_hp_current(),
@@ -134,6 +111,82 @@ CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16
     }
 
     return result;
+}
+
+CommandResult CombatController::resolve_npc_attack(Player& attacker, EnemyNpc& npc_target,
+                                                    uint16_t npc_target_id, uint32_t range_px,
+                                                    bool include_item_drop) {
+    if (!in_range(attacker.pos_x(), attacker.pos_y(), npc_target.pos_x(), npc_target.pos_y(),
+                  range_px))
+        return {};
+
+    uint32_t damage = calculate_damage(attacker);
+    if (is_critical_attack(attacker)) {
+        damage *= static_cast<uint32_t>(config.critical_multiplier);
+    }
+
+    npc_target.take_damage(damage);
+    attacker.gain_experience(GameFormulas::attack_experience(
+            damage, attacker.get_level(), npc_target.get_level(), balance.experience_level_offset));
+
+    CommandResult result = notify_entity_attacked(
+            attacker, npc_target_id, damage, npc_target.get_hp_current(), npc_target.get_hp_max(),
+            npc_target.get_name(), "", npc_target.is_dead(), npc_target.get_level(), false);
+
+    if (npc_target.is_dead()) {
+        EnemyDrop drop = npc_target.get_kill_reward(drop_config_for(npc_target), balance);
+        if (drop.gold > 0) {
+            attacker.gain_gold(drop.gold);
+            result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
+        }
+        if (include_item_drop && drop.item.has_value()) {
+            const Item& item = drop.item.value();
+            if (attacker.add_item(item.type, item.name)) {
+                result.private_events.push_back(InventoryUpdateEvent{attacker.dump_inventory()});
+            } else {
+                result.private_events.push_back(
+                        ChatMsgEvent{ChatMsgType::SYSTEM, "",
+                                     npc_target.get_name() + " solto " + item.name +
+                                             " pero tu inventario esta lleno"});
+            }
+        }
+    }
+
+    return result;
+}
+
+CommandResult CombatController::melee_attack_player(uint16_t attacker_id, uint16_t target_id,
+                                                    uint32_t current_tick) {
+    if (attacker_id == target_id)
+        return {};
+
+    auto attacker_it = players.find(attacker_id);
+    if (attacker_it == players.end())
+        return {};
+
+    auto target_it = players.find(target_id);
+    if (target_it == players.end())
+        return {};
+
+    Player& attacker = attacker_it->second;
+    Player& target = target_it->second;
+
+    if (attacker.is_dead() || target.is_dead())
+        return {};
+
+    if (auto rejection = validate_pvp(attacker, target))
+        return *rejection;
+
+    if (!attacker.try_attack(current_tick, config.cooldown_ticks))
+        return {};
+
+    uint32_t range = config.attack_range_px;
+    const InventorySlot& weapon_slot = attacker.get_equipped(EquipSlot::WEAPON);
+    const Item* weapon_def = item_catalog_.find(weapon_slot.item_type);
+    if (weapon_def && weapon_def->attack_range > 0)
+        range = weapon_def->attack_range;
+
+    return resolve_player_attack(attacker, target, target_id, range);
 }
 
 CommandResult CombatController::melee_attack(uint16_t attacker_id, uint16_t target_id,
@@ -159,57 +212,16 @@ CommandResult CombatController::melee_attack_npc(uint16_t attacker_id, uint16_t 
     if (attacker.is_dead())
         return {};
 
-    EnemyNpc& npc_target = npc_target_it->second;
-
     if (!attacker.try_attack(current_tick, config.cooldown_ticks))
         return {};
 
     uint32_t range = config.attack_range_px;
-    const InventorySlot& weapon_slot2 = attacker.get_equipped(EquipSlot::WEAPON);
-    const Item* weapon_def2 = item_catalog_.find(weapon_slot2.item_type);
-    if (weapon_def2 && weapon_def2->attack_range > 0)
-        range = weapon_def2->attack_range;
+    const InventorySlot& weapon_slot = attacker.get_equipped(EquipSlot::WEAPON);
+    const Item* weapon_def = item_catalog_.find(weapon_slot.item_type);
+    if (weapon_def && weapon_def->attack_range > 0)
+        range = weapon_def->attack_range;
 
-    if (!in_range(attacker.pos_x(), attacker.pos_y(), npc_target.pos_x(), npc_target.pos_y(),
-                  range))
-        return {};
-
-    uint32_t damage = calculate_damage(attacker);
-    if (is_critical_attack(attacker)) {
-        damage *= static_cast<uint32_t>(config.critical_multiplier);
-    }
-
-    npc_target.take_damage(damage);
-    attacker.gain_experience(GameFormulas::attack_experience(
-            damage, attacker.get_level(), npc_target.get_level(),
-            balance.experience_level_offset));
-
-    bool esquivado_npc = false;
-    CommandResult result = notify_entity_attacked(
-            attacker, npc_target_id, damage, npc_target.get_hp_current(), npc_target.get_hp_max(),
-            npc_target.get_name(), "", npc_target.is_dead(), npc_target.get_level(), esquivado_npc);
-
-    if (npc_target.is_dead()) {
-        EnemyDrop drop = npc_target.get_kill_reward(drop_config_for(npc_target), balance);
-        if (drop.gold > 0) {
-            attacker.gain_gold(drop.gold);
-            result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
-        }
-        if (drop.item.has_value()) {
-            const Item& item = drop.item.value();
-            if (attacker.add_item(item.type, item.name)) {
-                result.private_events.push_back(
-                        InventoryUpdateEvent{attacker.dump_inventory()});
-            } else {
-                result.private_events.push_back(
-                        ChatMsgEvent{ChatMsgType::SYSTEM, "",
-                                     npc_target.get_name() + " solto " + item.name +
-                                             " pero tu inventario esta lleno"});
-            }
-        }
-    }
-
-    return result;
+    return resolve_npc_attack(attacker, npc_target_it->second, npc_target_id, range);
 }
 
 CommandResult CombatController::spell_attack_player(uint16_t attacker_id, uint16_t target_id,
@@ -231,79 +243,10 @@ CommandResult CombatController::spell_attack_player(uint16_t attacker_id, uint16
     if (attacker.is_dead() || target.is_dead())
         return {};
 
-    if (attacker.get_level() <= config.newbie_level) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar siendo newbie"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
-    }
-    if (target.get_level() <= config.newbie_level) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar a un jugador newbie"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
-    }
+    if (auto rejection = validate_pvp(attacker, target))
+        return *rejection;
 
-    int level_diff =
-            std::abs(static_cast<int>(attacker.get_level()) - static_cast<int>(target.get_level()));
-    if (level_diff > config.max_level_diff) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                         "No puedes atacar a un jugador con diferencia de niveles mayor a 10"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
-    }
-
-    if (clan_manager && !attacker.get_clan_name().empty() && !target.get_clan_name().empty() &&
-        attacker.get_clan_name() == target.get_clan_name()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar a un miembro de tu clan"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
-    }
-
-    if (!in_range(attacker.pos_x(), attacker.pos_y(), target.pos_x(), target.pos_y(),
-                  config.spell_attack_range_px))
-        return {};
-
-    uint32_t damage = calculate_damage(attacker);
-    bool esquivado = false;
-    if (is_critical_attack(attacker)) {
-        damage *= static_cast<uint32_t>(config.critical_multiplier);
-    } else {
-        esquivado = GameFormulas::is_dodged(config, target.get_agility(), rng);
-        if (esquivado)
-            damage = 0;
-    }
-
-    uint32_t defense = calculate_defense(target);
-    damage = damage > defense ? (damage - defense) : 0;
-
-    target.take_damage(damage);
-    attacker.gain_experience(GameFormulas::attack_experience(
-            damage, attacker.get_level(), target.get_level(),
-            balance.experience_level_offset));
-
-    CommandResult result =
-            notify_entity_attacked(attacker, target_id, damage, target.get_hp_current(),
-                                   target.get_hp_max(), target.get_name(), target.get_clan_name(),
-                                   target.is_dead(), target.get_level(), esquivado);
-
-    if (target.is_dead()) {
-        target.lose_experience_on_death();
-        PlayerStatsEvent stats{};
-        fill_player_stats_event(stats, target);
-        result.targeted_events[target_id].push_back(stats);
-
-        uint32_t excess = target.take_excess_gold();
-        if (excess > 0) {
-            attacker.gain_gold(excess);
-            result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
-            result.private_events.push_back(ChatMsgEvent{
-                    ChatMsgType::SYSTEM, "",
-                    "Le robaste " + std::to_string(excess) + " de oro a " + target.get_name()});
-            result.targeted_events[target_id].push_back(GoldUpdateEvent{target.get_gold()});
-            result.targeted_events[target_id].push_back(ChatMsgEvent{
-                    ChatMsgType::SYSTEM, "",
-                    attacker.get_name() + " te robó " + std::to_string(excess) + " de oro"});
-        }
-
-        drop_inventory_on_death(target, result.ground_drops, result.targeted_events[target_id]);
-    }
-
-    return result;
+    return resolve_player_attack(attacker, target, target_id, config.spell_attack_range_px);
 }
 
 CommandResult CombatController::spell_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,
@@ -320,35 +263,8 @@ CommandResult CombatController::spell_attack_npc(uint16_t attacker_id, uint16_t 
     if (attacker.is_dead())
         return {};
 
-    EnemyNpc& npc_target = npc_target_it->second;
-
-    if (!in_range(attacker.pos_x(), attacker.pos_y(), npc_target.pos_x(), npc_target.pos_y(),
-                  config.spell_attack_range_px))
-        return {};
-
-    uint32_t damage = calculate_damage(attacker);
-    if (is_critical_attack(attacker)) {
-        damage *= static_cast<uint32_t>(config.critical_multiplier);
-    }
-
-    npc_target.take_damage(damage);
-    attacker.gain_experience(GameFormulas::attack_experience(
-            damage, attacker.get_level(), npc_target.get_level(),
-            balance.experience_level_offset));
-
-    CommandResult result = notify_entity_attacked(
-            attacker, npc_target_id, damage, npc_target.get_hp_current(), npc_target.get_hp_max(),
-            npc_target.get_name(), "", npc_target.is_dead(), npc_target.get_level(), false);
-
-    if (npc_target.is_dead()) {
-        EnemyDrop drop = npc_target.get_kill_reward(drop_config_for(npc_target), balance);
-        if (drop.gold > 0) {
-            attacker.gain_gold(drop.gold);
-            result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
-        }
-    }
-
-    return result;
+    return resolve_npc_attack(attacker, npc_target_it->second, npc_target_id,
+                              config.spell_attack_range_px, /*include_item_drop=*/false);
 }
 
 Player* CombatController::get_nearest_player(const EnemyNpc& npc) {
@@ -428,8 +344,7 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
                 map = &it->second;
         }
 
-        bool player_in_safe_zone =
-                map && !map->is_position_in_spawn_zone(target->pos_x(), target->pos_y());
+        bool player_in_safe_zone = map && map->is_safe_zone(target->pos_x(), target->pos_y());
 
         // Chase: move toward player if not in attack range or cooldown active, and player not in
         // safe zone
@@ -458,9 +373,8 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
             if (new_y < 0)
                 new_y = 0;
 
-            // Don't enter safe zones (non-spawn areas) or non-walkable tiles
-            if (map &&
-                (!map->is_position_in_spawn_zone(new_x, new_y) || !map->is_walkable(new_x, new_y)))
+            // Don't enter safe zones or non-walkable tiles
+            if (map && (map->is_safe_zone(new_x, new_y) || !map->is_walkable(new_x, new_y)))
                 continue;
 
             npc.set_pos(static_cast<uint16_t>(new_x), static_cast<uint16_t>(new_y));

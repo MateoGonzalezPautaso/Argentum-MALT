@@ -100,16 +100,14 @@ const Map& Game::player_map(const Player& p) const {
 bool Game::target_in_safe_zone(uint16_t target_id) const {
     auto player_it = players.find(target_id);
     if (player_it != players.end())
-        return !player_map(player_it->second)
-                        .is_position_in_spawn_zone(player_it->second.pos_x(),
-                                                   player_it->second.pos_y());
+        return player_map(player_it->second)
+                        .is_safe_zone(player_it->second.pos_x(), player_it->second.pos_y());
 
     auto npc_it = enemy_npcs.find(target_id);
     if (npc_it != enemy_npcs.end()) {
         auto map_it = maps.find(npc_it->second.get_current_map());
         if (map_it != maps.end())
-            return !map_it->second.is_position_in_spawn_zone(npc_it->second.pos_x(),
-                                                              npc_it->second.pos_y());
+            return map_it->second.is_safe_zone(npc_it->second.pos_x(), npc_it->second.pos_y());
     }
 
     return false;
@@ -457,9 +455,8 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
         it->second.set_meditating(false);
     CommandResult result;
     const Map& map = player_map(it->second);
-    bool attacker_in_safe_zone = !map.is_position_in_spawn_zone(it->second.pos_x(), it->second.pos_y());
 
-    if (attacker_in_safe_zone || target_in_safe_zone(cmd.target_id)) {
+    if (map.is_safe_zone(it->second.pos_x(), it->second.pos_y()) || target_in_safe_zone(cmd.target_id)) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar en una zona segura"};
         return {.private_events = {msg}};
     }
@@ -502,7 +499,7 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
     }
 
     const Map& map = player_map(player);
-    if (!map.is_position_in_spawn_zone(player.pos_x(), player.pos_y())) {
+    if (map.is_safe_zone(player.pos_x(), player.pos_y())) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes lanzar hechizos en una zona segura"};
         return {.private_events = {msg}};
     }

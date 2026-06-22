@@ -29,6 +29,7 @@ public:
     std::optional<std::pair<int, int>> find_random_mob_spawn_pos_near(Rng& rng, int px, int py, int tile_radius) const;
 
     bool is_position_in_spawn_zone(int x, int y) const;
+    bool is_safe_zone(int x, int y) const;
 
 private:
     const TilemapConfig* tilemap_;
