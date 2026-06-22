@@ -10,6 +10,7 @@
 
 #include "../../../common/item_catalog.h"
 #include "../../../common/messages.h"
+#include "../../core/config.h"
 #include "../command_result.h"
 #include "../map.h"
 #include "../player.h"
@@ -17,7 +18,8 @@
 class GroundItemService {
 public:
     GroundItemService(std::map<uint16_t, Player>& players,
-                      std::unordered_map<std::string, Map>& maps, const ItemCatalog& item_catalog);
+                      std::unordered_map<std::string, Map>& maps, const ItemCatalog& item_catalog,
+                      const MessagesConfig& msgs);
 
     CommandResult handle_pickup_item(uint16_t player_id, const PickupItemCmd& cmd);
     CommandResult handle_drop_item(uint16_t player_id, const DropItemCmd& cmd);
@@ -40,6 +42,7 @@ private:
     std::map<uint16_t, Player>& players_;
     std::unordered_map<std::string, Map>& maps_;
     const ItemCatalog& item_catalog_;
+    const MessagesConfig& msgs_;
 };
 
 #endif  // GROUND_ITEM_SERVICE_H

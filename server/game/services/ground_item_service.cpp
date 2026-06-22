@@ -10,8 +10,9 @@
 
 GroundItemService::GroundItemService(std::map<uint16_t, Player>& players,
                                      std::unordered_map<std::string, Map>& maps,
-                                     const ItemCatalog& item_catalog):
-        players_(players), maps_(maps), item_catalog_(item_catalog) {}
+                                     const ItemCatalog& item_catalog,
+                                     const MessagesConfig& msgs):
+        players_(players), maps_(maps), item_catalog_(item_catalog), msgs_(msgs) {}
 
 std::pair<int, int> GroundItemService::tile_cell(const Map& map, int px, int py) {
     const int tile_size = map.tile_size();
@@ -60,7 +61,7 @@ CommandResult GroundItemService::handle_pickup_item(uint16_t player_id, const Pi
     Player& player = it->second;
 
     if (player.is_dead()) {
-        return CommandResult::with_msg("Los fantasmas no pueden recoger objetos");
+        return CommandResult::with_msg(msgs_.ghost_cant_pickup);
     }
 
     const std::string& map_name = player.get_current_map();
@@ -72,10 +73,10 @@ CommandResult GroundItemService::handle_pickup_item(uint16_t player_id, const Pi
 
     auto ground_map_it = ground_items_.find(map_name);
     if (ground_map_it == ground_items_.end())
-        return CommandResult::with_msg("No hay nada para recoger aquí");
+        return CommandResult::with_msg(msgs_.nothing_to_pickup);
     auto cell_it = ground_map_it->second.find(cell);
     if (cell_it == ground_map_it->second.end() || cell_it->second.empty())
-        return CommandResult::with_msg("No hay nada para recoger aquí");
+        return CommandResult::with_msg(msgs_.nothing_to_pickup);
 
     std::vector<ItemDroppedEvent>& vec = cell_it->second;
     std::vector<ItemDroppedEvent>::iterator pick_it;
@@ -98,7 +99,7 @@ CommandResult GroundItemService::handle_pickup_item(uint16_t player_id, const Pi
     const ItemDroppedEvent ground_item = *pick_it;
     const bool is_gold = ground_item.item_type == ItemType::GOLD_DROP;
     if (!is_gold && !player.add_item(ground_item.item_type, ground_item.item_name)) {
-        return CommandResult::with_msg("Inventario lleno");
+        return CommandResult::with_msg(msgs_.inventory_full);
     }
     vec.erase(pick_it);
     if (vec.empty())
@@ -127,7 +128,7 @@ CommandResult GroundItemService::handle_drop_item(uint16_t player_id, const Drop
     Player& player = it->second;
 
     if (player.is_dead()) {
-        return CommandResult::with_msg("Los fantasmas no pueden tirar objetos");
+        return CommandResult::with_msg(msgs_.ghost_cant_drop);
     }
 
     const Item* item_def = item_catalog_.find_by_name(cmd.item_name);

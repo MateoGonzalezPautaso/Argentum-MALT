@@ -9,8 +9,10 @@
 
 ClanCommandHandler::ClanCommandHandler(
         ClanManager& clan_manager, std::map<uint16_t, Player>& players,
-        const std::unordered_map<std::string, uint16_t>& player_name_index):
-        clan_manager(clan_manager), players(players), player_name_index_(player_name_index) {}
+        const std::unordered_map<std::string, uint16_t>& player_name_index,
+        const MessagesConfig& msgs):
+        clan_manager(clan_manager), players(players), player_name_index_(player_name_index),
+        msgs_(msgs) {}
 
 std::optional<uint16_t> ClanCommandHandler::find_player_id_by_name(const std::string& name) const {
     auto it = player_name_index_.find(name);
@@ -78,7 +80,7 @@ CommandResult ClanCommandHandler::notify_clan_members(const std::string& clan_na
 
 CommandResult ClanCommandHandler::handle_found_clan(uint16_t player_id, const std::string& args) {
     if (args.empty())
-        return CommandResult::with_msg("Uso: /fundar-clan <nombre>");
+        return CommandResult::with_msg(msgs_.usage_found_clan);
 
     Player* player = require_player(player_id);
     if (!player) return {};
@@ -101,7 +103,7 @@ CommandResult ClanCommandHandler::handle_found_clan(uint16_t player_id, const st
 
 CommandResult ClanCommandHandler::handle_join_clan(uint16_t player_id, const std::string& args) {
     if (args.empty())
-        return CommandResult::with_msg("Uso: /unirse <nombre del clan>");
+        return CommandResult::with_msg(msgs_.usage_join_clan);
 
     Player* player = require_player(player_id);
     if (!player) return {};
@@ -131,10 +133,10 @@ CommandResult ClanCommandHandler::handle_clan_status(uint16_t player_id) {
 
     const std::string& sender_name = player->get_name();
     if (!clan_manager.is_in_clan(sender_name))
-        return CommandResult::with_msg("No perteneces a ningun clan");
+        return CommandResult::with_msg(msgs_.not_in_clan);
 
     if (!clan_manager.is_founder(sender_name))
-        return CommandResult::with_msg("Solo el fundador puede revisar el clan");
+        return CommandResult::with_msg(msgs_.only_founder_review);
 
     std::string clan_name = clan_manager.get_clan_name(sender_name);
     auto members = clan_manager.get_member_list(clan_name);
@@ -155,14 +157,14 @@ CommandResult ClanCommandHandler::handle_clan_status(uint16_t player_id) {
         msg += "\nPedidos pendientes:";
         for (const auto& r: requests) msg += "\n  " + r;
     } else {
-        msg += "\nNo hay pedidos pendientes";
+        msg += "\n" + msgs_.no_pending_requests;
     }
     return CommandResult::with_msg(msg);
 }
 
 CommandResult ClanCommandHandler::handle_clan_accept(uint16_t player_id, const std::string& args) {
     if (args.empty())
-        return CommandResult::with_msg("Uso: /clan-aceptar <nick>");
+        return CommandResult::with_msg(msgs_.usage_clan_accept);
 
     Player* player = require_player(player_id);
     if (!player) return {};
@@ -187,7 +189,7 @@ CommandResult ClanCommandHandler::handle_clan_accept(uint16_t player_id, const s
 
 CommandResult ClanCommandHandler::handle_clan_reject(uint16_t player_id, const std::string& args) {
     if (args.empty())
-        return CommandResult::with_msg("Uso: /clan-rechazar <nick>");
+        return CommandResult::with_msg(msgs_.usage_clan_reject);
 
     Player* player = require_player(player_id);
     if (!player) return {};
@@ -208,12 +210,12 @@ CommandResult ClanCommandHandler::handle_clan_reject(uint16_t player_id, const s
 }
 
 CommandResult ClanCommandHandler::handle_clan_ban(uint16_t player_id, const std::string& args) {
-    return apply_removal(player_id, args, "Uso: /clan-ban <nick>", &ClanManager::ban_member);
+    return apply_removal(player_id, args, msgs_.usage_clan_ban, &ClanManager::ban_member);
 }
 
 CommandResult ClanCommandHandler::handle_clan_unban(uint16_t player_id, const std::string& args) {
     if (args.empty())
-        return CommandResult::with_msg("Uso: /clan-unban <nick>");
+        return CommandResult::with_msg(msgs_.usage_clan_unban);
 
     Player* player = require_player(player_id);
     if (!player) return {};
@@ -225,7 +227,7 @@ CommandResult ClanCommandHandler::handle_clan_unban(uint16_t player_id, const st
 }
 
 CommandResult ClanCommandHandler::handle_clan_kick(uint16_t player_id, const std::string& args) {
-    return apply_removal(player_id, args, "Uso: /clan-kick <nick>", &ClanManager::kick_member);
+    return apply_removal(player_id, args, msgs_.usage_clan_kick, &ClanManager::kick_member);
 }
 
 CommandResult ClanCommandHandler::handle_leave_clan(uint16_t player_id) {
@@ -248,14 +250,14 @@ CommandResult ClanCommandHandler::handle_leave_clan(uint16_t player_id) {
 
 CommandResult ClanCommandHandler::handle_clan_chat(uint16_t player_id, const std::string& args) {
     if (args.empty())
-        return CommandResult::with_msg("Uso: /c <mensaje>");
+        return CommandResult::with_msg(msgs_.usage_clan_chat);
 
     Player* player = require_player(player_id);
     if (!player) return {};
 
     const std::string& clan_name = player->get_clan_name();
     if (clan_name.empty())
-        return CommandResult::with_msg("No perteneces a ningun clan");
+        return CommandResult::with_msg(msgs_.not_in_clan);
 
     ChatMsgEvent clan_msg{ChatMsgType::CLAN, player->get_name(), args};
     std::map<uint16_t, std::vector<ServerEvent>> targeted;

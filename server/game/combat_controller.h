@@ -25,7 +25,8 @@ public:
                      const ItemCatalog& catalog, std::map<uint16_t, EnemyNpc>& enemy_npcs,
                      const NpcDropConfig& drop_config, const NpcDropConfig& drop_config_dungeon,
                      const BalanceConfig& balance, ClanManager& clan_manager,
-                     const std::unordered_map<std::string, Map>& maps);
+                     const std::unordered_map<std::string, Map>& maps,
+                     const MessagesConfig& msgs);
 
     CommandResult melee_attack(uint16_t attacker_id, uint16_t target_id, uint32_t current_tick);
     CommandResult update_npc_ai(uint32_t current_tick);
@@ -96,6 +97,7 @@ private:
     NpcDropConfig npc_drop_config;
     NpcDropConfig npc_drop_config_dungeon;
     const std::unordered_map<std::string, Map>& maps;
+    const MessagesConfig& msgs_;
 };
 
 #endif

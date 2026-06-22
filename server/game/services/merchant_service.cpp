@@ -19,12 +19,13 @@ bool vendor_sells(const VendorsConfig& vendors, const std::string& vendor, ItemT
 MerchantService::MerchantService(std::map<uint16_t, Player>& players,
                                  std::unordered_map<std::string, Map>& maps,
                                  const ItemCatalog& item_catalog, const BalanceConfig& balance,
-                                 BankService& bank_service):
+                                 BankService& bank_service, const MessagesConfig& msgs):
         players_(players),
         maps_(maps),
         item_catalog_(item_catalog),
         balance_(balance),
-        bank_service_(bank_service) {}
+        bank_service_(bank_service),
+        msgs_(msgs) {}
 
 std::variant<MerchantService::VendorContext, CommandResult> MerchantService::resolve_vendor_ctx(
         uint16_t player_id, const std::string& item_name, const std::string& action) {
@@ -62,7 +63,7 @@ CommandResult MerchantService::handle_npc_list(uint16_t player_id) {
     const Player& player = it->second;
 
     if (player.is_dead()) {
-        return CommandResult::with_msg("Los fantasmas no pueden listar");
+        return CommandResult::with_msg(msgs_.ghost_cant_list);
     }
 
     auto map_it = maps_.find(player.get_current_map());
@@ -85,7 +86,7 @@ CommandResult MerchantService::handle_npc_list(uint16_t player_id) {
     }
 
     if (!near_comerciante && !near_sacerdote) {
-        return CommandResult::with_msg("No hay un comerciante, sacerdote ni banquero cerca");
+        return CommandResult::with_msg(msgs_.no_merchant_priest_banker);
     }
 
     const std::string vendor_name =
@@ -114,7 +115,7 @@ CommandResult MerchantService::handle_npc_buy(uint16_t player_id, const NpcBuyCm
             std::string(PropNames::MERCHANT), ctx.px, ctx.py, ctx.range);
 
     if (!near_sacerdote && !near_comerciante) {
-        return CommandResult::with_msg("No hay un sacerdote ni un comerciante cerca");
+        return CommandResult::with_msg(msgs_.no_merchant_priest);
     }
 
     const Item* found = item_catalog_.find_by_name(item_name);
@@ -151,7 +152,7 @@ CommandResult MerchantService::handle_npc_buy(uint16_t player_id, const NpcBuyCm
 
     if (!player.add_item(found->type, found->name)) {
         player.gain_gold(found->price);
-        return CommandResult::with_msg("Inventario lleno");
+        return CommandResult::with_msg(msgs_.inventory_full);
     }
 
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
@@ -172,7 +173,7 @@ CommandResult MerchantService::handle_npc_sell(uint16_t player_id, const NpcSell
 
     if (!ctx.map->prop_grid().is_in_range_of(std::string(PropNames::MERCHANT), ctx.px, ctx.py,
                                              ctx.range)) {
-        return CommandResult::with_msg("No hay un comerciante cerca");
+        return CommandResult::with_msg(msgs_.no_merchant_nearby);
     }
 
     const Item* item_def = item_catalog_.find_by_name(item_name);
@@ -181,7 +182,7 @@ CommandResult MerchantService::handle_npc_sell(uint16_t player_id, const NpcSell
     }
 
     if (!vendor_sells(balance_.vendors, std::string(PropNames::MERCHANT), item_def->type)) {
-        return CommandResult::with_msg("El comerciante no compra ese tipo de objeto");
+        return CommandResult::with_msg(msgs_.merchant_doesnt_buy);
     }
 
     auto slot_opt = player.find_slot_by_type(item_def->type);

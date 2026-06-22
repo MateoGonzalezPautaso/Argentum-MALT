@@ -50,6 +50,7 @@ private:
     std::vector<NpcTemplate> dungeon_npc_templates;
     uint16_t next_npc_id;
     uint32_t mob_spawn_tick = 0;
+    MessagesConfig msgs_;
     CombatController combat_controller;
     BankService bank_service;
     MerchantService merchant_service;

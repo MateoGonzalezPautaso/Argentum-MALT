@@ -367,5 +367,69 @@ ServerConfig load_server_config(const std::string& path) {
         }
     }
 
+    if (auto msgs = root["messages"].as_table()) {
+        config.messages.attack_newbie_attacker = toml_get_string(*msgs, "attack_newbie_attacker", config.messages.attack_newbie_attacker);
+        config.messages.attack_newbie_target = toml_get_string(*msgs, "attack_newbie_target", config.messages.attack_newbie_target);
+        config.messages.attack_level_diff = toml_get_string(*msgs, "attack_level_diff", config.messages.attack_level_diff);
+        config.messages.attack_same_clan = toml_get_string(*msgs, "attack_same_clan", config.messages.attack_same_clan);
+        config.messages.attack_safe_zone = toml_get_string(*msgs, "attack_safe_zone", config.messages.attack_safe_zone);
+        config.messages.attack_self = toml_get_string(*msgs, "attack_self", config.messages.attack_self);
+        config.messages.warrior_no_magic = toml_get_string(*msgs, "warrior_no_magic", config.messages.warrior_no_magic);
+        config.messages.no_weapon_equipped = toml_get_string(*msgs, "no_weapon_equipped", config.messages.no_weapon_equipped);
+        config.messages.weapon_not_magic = toml_get_string(*msgs, "weapon_not_magic", config.messages.weapon_not_magic);
+        config.messages.insufficient_mana = toml_get_string(*msgs, "insufficient_mana", config.messages.insufficient_mana);
+        config.messages.spell_safe_zone = toml_get_string(*msgs, "spell_safe_zone", config.messages.spell_safe_zone);
+        config.messages.ghost_cant_interact = toml_get_string(*msgs, "ghost_cant_interact", config.messages.ghost_cant_interact);
+        config.messages.ghost_cant_pickup = toml_get_string(*msgs, "ghost_cant_pickup", config.messages.ghost_cant_pickup);
+        config.messages.ghost_cant_drop = toml_get_string(*msgs, "ghost_cant_drop", config.messages.ghost_cant_drop);
+        config.messages.ghost_cant_deposit = toml_get_string(*msgs, "ghost_cant_deposit", config.messages.ghost_cant_deposit);
+        config.messages.ghost_cant_withdraw = toml_get_string(*msgs, "ghost_cant_withdraw", config.messages.ghost_cant_withdraw);
+        config.messages.ghost_cant_be_healed = toml_get_string(*msgs, "ghost_cant_be_healed", config.messages.ghost_cant_be_healed);
+        config.messages.ghost_cant_list = toml_get_string(*msgs, "ghost_cant_list", config.messages.ghost_cant_list);
+        config.messages.inventory_full = toml_get_string(*msgs, "inventory_full", config.messages.inventory_full);
+        config.messages.no_banker_nearby = toml_get_string(*msgs, "no_banker_nearby", config.messages.no_banker_nearby);
+        config.messages.insufficient_gold = toml_get_string(*msgs, "insufficient_gold", config.messages.insufficient_gold);
+        config.messages.bank_full = toml_get_string(*msgs, "bank_full", config.messages.bank_full);
+        config.messages.insufficient_bank_gold = toml_get_string(*msgs, "insufficient_bank_gold", config.messages.insufficient_bank_gold);
+        config.messages.nothing_to_pickup = toml_get_string(*msgs, "nothing_to_pickup", config.messages.nothing_to_pickup);
+        config.messages.no_merchant_priest_banker = toml_get_string(*msgs, "no_merchant_priest_banker", config.messages.no_merchant_priest_banker);
+        config.messages.no_merchant_priest = toml_get_string(*msgs, "no_merchant_priest", config.messages.no_merchant_priest);
+        config.messages.no_merchant_nearby = toml_get_string(*msgs, "no_merchant_nearby", config.messages.no_merchant_nearby);
+        config.messages.merchant_doesnt_buy = toml_get_string(*msgs, "merchant_doesnt_buy", config.messages.merchant_doesnt_buy);
+        config.messages.no_priest_nearby = toml_get_string(*msgs, "no_priest_nearby", config.messages.no_priest_nearby);
+        config.messages.warrior_cant_meditate = toml_get_string(*msgs, "warrior_cant_meditate", config.messages.warrior_cant_meditate);
+        config.messages.not_dead = toml_get_string(*msgs, "not_dead", config.messages.not_dead);
+        config.messages.already_resurrecting = toml_get_string(*msgs, "already_resurrecting", config.messages.already_resurrecting);
+        config.messages.priest_resurrect = toml_get_string(*msgs, "priest_resurrect", config.messages.priest_resurrect);
+        config.messages.priest_heal = toml_get_string(*msgs, "priest_heal", config.messages.priest_heal);
+        config.messages.self_heal_success = toml_get_string(*msgs, "self_heal_success", config.messages.self_heal_success);
+        config.messages.not_in_clan = toml_get_string(*msgs, "not_in_clan", config.messages.not_in_clan);
+        config.messages.only_founder_review = toml_get_string(*msgs, "only_founder_review", config.messages.only_founder_review);
+        config.messages.no_pending_requests = toml_get_string(*msgs, "no_pending_requests", config.messages.no_pending_requests);
+        config.messages.usage_found_clan = toml_get_string(*msgs, "usage_found_clan", config.messages.usage_found_clan);
+        config.messages.usage_join_clan = toml_get_string(*msgs, "usage_join_clan", config.messages.usage_join_clan);
+        config.messages.usage_clan_accept = toml_get_string(*msgs, "usage_clan_accept", config.messages.usage_clan_accept);
+        config.messages.usage_clan_reject = toml_get_string(*msgs, "usage_clan_reject", config.messages.usage_clan_reject);
+        config.messages.usage_clan_ban = toml_get_string(*msgs, "usage_clan_ban", config.messages.usage_clan_ban);
+        config.messages.usage_clan_kick = toml_get_string(*msgs, "usage_clan_kick", config.messages.usage_clan_kick);
+        config.messages.usage_clan_unban = toml_get_string(*msgs, "usage_clan_unban", config.messages.usage_clan_unban);
+        config.messages.usage_clan_chat = toml_get_string(*msgs, "usage_clan_chat", config.messages.usage_clan_chat);
+        config.messages.cheat_inf_hp_on = toml_get_string(*msgs, "cheat_inf_hp_on", config.messages.cheat_inf_hp_on);
+        config.messages.cheat_inf_hp_off = toml_get_string(*msgs, "cheat_inf_hp_off", config.messages.cheat_inf_hp_off);
+        config.messages.cheat_inf_mana_on = toml_get_string(*msgs, "cheat_inf_mana_on", config.messages.cheat_inf_mana_on);
+        config.messages.cheat_inf_mana_off = toml_get_string(*msgs, "cheat_inf_mana_off", config.messages.cheat_inf_mana_off);
+        config.messages.cheat_died = toml_get_string(*msgs, "cheat_died", config.messages.cheat_died);
+        config.messages.cheat_not_dead = toml_get_string(*msgs, "cheat_not_dead", config.messages.cheat_not_dead);
+        config.messages.cheat_revived = toml_get_string(*msgs, "cheat_revived", config.messages.cheat_revived);
+        config.messages.cheat_max_level = toml_get_string(*msgs, "cheat_max_level", config.messages.cheat_max_level);
+        config.messages.cheat_min_level = toml_get_string(*msgs, "cheat_min_level", config.messages.cheat_min_level);
+        config.messages.cheat_gold_reset = toml_get_string(*msgs, "cheat_gold_reset", config.messages.cheat_gold_reset);
+        config.messages.cheat_mana_reset = toml_get_string(*msgs, "cheat_mana_reset", config.messages.cheat_mana_reset);
+        config.messages.cheat_velocity_on = toml_get_string(*msgs, "cheat_velocity_on", config.messages.cheat_velocity_on);
+        config.messages.cheat_velocity_off = toml_get_string(*msgs, "cheat_velocity_off", config.messages.cheat_velocity_off);
+        config.messages.cheat_inventory_filled = toml_get_string(*msgs, "cheat_inventory_filled", config.messages.cheat_inventory_filled);
+        config.messages.cheat_inventory_cleared = toml_get_string(*msgs, "cheat_inventory_cleared", config.messages.cheat_inventory_cleared);
+    }
+
     return config;
 }

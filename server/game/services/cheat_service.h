@@ -19,7 +19,7 @@ public:
     CheatService(std::map<uint16_t, Player>& players, const BalanceConfig& balance,
                  const ItemCatalog& item_catalog, PlayerDataService& player_data_service,
                  CombatController& combat_controller, const std::vector<std::string>& help_lines,
-                 bool cheats_enabled);
+                 bool cheats_enabled, const MessagesConfig& msgs);
 
     // Gate centralizado: si cheats_enabled == false devuelve CommandResult{} sin
     // llegar a ninguno de los handlers internos.
@@ -46,6 +46,7 @@ private:
     CombatController& combat_controller_;
     const std::vector<std::string>& help_lines_;
     bool cheats_enabled_;
+    const MessagesConfig& msgs_;
 
     PlayerStatsEvent make_player_stats_event(const Player& p) const;
 

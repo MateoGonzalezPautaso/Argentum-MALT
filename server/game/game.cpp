@@ -50,7 +50,7 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
            ClanPersistence& clan_persistence):
         player_data_service(player_data_service),
         clan_manager(clan_persistence, config.clan),
-        clan_handler(clan_manager, players, player_name_index_),
+        clan_handler(clan_manager, players, player_name_index_, config.messages),
         move_step(config.move_step),
         sprite_width(config.sprite_width),
         sprite_height(config.sprite_height),
@@ -60,22 +60,23 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         item_catalog(config.item_catalog),
         rng(),
         next_npc_id(config.npc_id_base),
+        msgs_(config.messages),
         combat_controller(config.attack, players, config.item_catalog, enemy_npcs,
                           config.balance.npc_drop, config.balance.npc_drop_dungeon, config.balance,
-                          clan_manager, maps),
-        bank_service(players, maps, config.item_catalog, config.balance),
-        merchant_service(players, maps, config.item_catalog, config.balance, bank_service),
+                          clan_manager, maps, msgs_),
+        bank_service(players, maps, config.item_catalog, config.balance, msgs_),
+        merchant_service(players, maps, config.item_catalog, config.balance, bank_service, msgs_),
         spawn_service(enemy_npcs, maps, next_npc_id, rng, players, config.balance,
                       config.item_catalog, config.mob_spawn, world_npc_templates,
                       dungeon_npc_templates),
-        ground_item_service(players, maps, config.item_catalog),
+        ground_item_service(players, maps, config.item_catalog, msgs_),
         map_transition_service(players, maps, enemy_npcs, player_data_service, config.balance,
                                config.sprite_width, config.sprite_height, ground_item_service),
         player_session_service(players, player_name_index_, player_data_service, maps, enemy_npcs,
                                config.balance, config.inventory, config.item_catalog, clan_manager,
                                clan_handler, combat_controller, ground_item_service),
         cheat_service(players, config.balance, config.item_catalog, player_data_service,
-                      combat_controller, config.help_lines, config.cheats_enabled),
+                      combat_controller, config.help_lines, config.cheats_enabled, msgs_),
         tick_rate_hz(config.tick_rate_hz),
         cheats_enabled(config.cheats_enabled),
         help_lines(config.help_lines) {
@@ -377,7 +378,7 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
 
     if (map.is_safe_zone(it->second.pos_x(), it->second.pos_y()) ||
         target_in_safe_zone(cmd.target_id)) {
-        return CommandResult::with_msg("No puedes atacar en una zona segura");
+        return CommandResult::with_msg(msgs_.attack_safe_zone);
     }
     result = combat_controller.melee_attack(player_id, cmd.target_id, tick_count);
     ground_item_service.commit_ground_drops(result, result.ground_drops);
@@ -389,26 +390,26 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
 
 std::optional<CommandResult> Game::validate_cast(const Player& player, const CastSpellCmd&) const {
     if (player.get_player_class() == PlayerClass::WARRIOR) {
-        return CommandResult::with_msg("Los guerreros no pueden usar magia");
+        return CommandResult::with_msg(msgs_.warrior_no_magic);
     }
 
     const InventorySlot& weapon_slot = player.get_equipped(EquipSlot::WEAPON);
     if (weapon_slot.item_type == ItemType::NONE) {
-        return CommandResult::with_msg("No tienes un arma equipada");
+        return CommandResult::with_msg(msgs_.no_weapon_equipped);
     }
 
     const Item* item = item_catalog.find(weapon_slot.item_type);
     if (!item || item->mana_consumed == 0) {
-        return CommandResult::with_msg("El arma equipada no es magica");
+        return CommandResult::with_msg(msgs_.weapon_not_magic);
     }
 
     if (player.get_mana_current() < item->mana_consumed) {
-        return CommandResult::with_msg("Mana insuficiente");
+        return CommandResult::with_msg(msgs_.insufficient_mana);
     }
 
     const Map& map = player_map(player);
     if (map.is_safe_zone(player.pos_x(), player.pos_y())) {
-        return CommandResult::with_msg("No puedes lanzar hechizos en una zona segura");
+        return CommandResult::with_msg(msgs_.spell_safe_zone);
     }
 
     return std::nullopt;
@@ -436,7 +437,7 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
         player.heal(heal_amount);
         HealReceivedEvent heal_ev{player_id, player.get_hp_current(), player.get_mana_current()};
         PlayerStatsEvent stats = make_player_stats_event(player);
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Te has curado!"};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.self_heal_success};
         DamageDealtEvent spell_ev{player_id, 0};
         SpellEffectEvent effect_ev{player_id, 0};
         return {.private_events = {msg, heal_ev, stats, spell_ev},
@@ -446,11 +447,11 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
     }
 
     if (cmd.target_id == player_id) {
-        return CommandResult::with_msg("No puedes atacarte a ti mismo");
+        return CommandResult::with_msg(msgs_.attack_self);
     }
 
     if (target_in_safe_zone(cmd.target_id)) {
-        return CommandResult::with_msg("No puedes lanzar hechizos en una zona segura");
+        return CommandResult::with_msg(msgs_.spell_safe_zone);
     }
 
     CommandResult result;
@@ -478,7 +479,7 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         return {};
 
     if (it->second.is_dead()) {
-        return CommandResult::with_msg("Los fantasmas no pueden interactuar");
+        return CommandResult::with_msg(msgs_.ghost_cant_interact);
     }
 
     it->second.set_meditating(false);
@@ -535,7 +536,7 @@ CommandResult Game::handle_meditate(uint16_t player_id) {
         return {};
 
     if (player.get_player_class() == PlayerClass::WARRIOR) {
-        return CommandResult::with_msg("Los guerreros no pueden meditar");
+        return CommandResult::with_msg(msgs_.warrior_cant_meditate);
     }
 
     if (player.get_is_meditating()) {
@@ -633,11 +634,11 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
 
     Player& player = it->second;
     if (!player.is_dead()) {
-        return CommandResult::with_msg("No estás muerto");
+        return CommandResult::with_msg(msgs_.not_dead);
     }
 
     if (pending_resurrections_.contains(player_id)) {
-        return CommandResult::with_msg("Ya estás resucitando, espera");
+        return CommandResult::with_msg(msgs_.already_resurrecting);
     }
 
     const std::string& current_map = player.get_current_map();
@@ -654,7 +655,7 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     if (map_it->second.prop_grid().is_in_range_of(std::string(PropNames::PRIEST), px, py, range)) {
         player.resurrect();
         PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Sacerdote: ¡Que la luz te devuelva a la vida!"};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.priest_resurrect};
         CommandResult result;
         result.private_events = {msg};
         result.map_events = {respawn};
@@ -761,7 +762,7 @@ CommandResult Game::handle_npc_heal(uint16_t player_id) {
     Player& player = it->second;
 
     if (player.is_dead()) {
-        return CommandResult::with_msg("Los fantasmas no pueden ser curados");
+        return CommandResult::with_msg(msgs_.ghost_cant_be_healed);
     }
 
     const std::string& current_map = player.get_current_map();
@@ -774,14 +775,14 @@ CommandResult Game::handle_npc_heal(uint16_t player_id) {
     const int py = static_cast<int>(player.pos_y());
 
     if (!map_it->second.prop_grid().is_in_range_of(std::string(PropNames::PRIEST), px, py, range)) {
-        return CommandResult::with_msg("No hay un sacerdote cerca");
+        return CommandResult::with_msg(msgs_.no_priest_nearby);
     }
 
     player.heal(player.get_hp_max());
     player.restore_mana(player.get_mana_max());
 
     HealReceivedEvent heal_ev{player_id, player.get_hp_current(), player.get_mana_current()};
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Sacerdote: ¡Que la luz te sane!"};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.priest_heal};
     return {.private_events = {heal_ev, msg}};
 }
 

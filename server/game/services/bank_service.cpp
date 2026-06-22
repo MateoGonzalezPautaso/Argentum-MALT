@@ -5,8 +5,9 @@
 
 BankService::BankService(std::map<uint16_t, Player>& players,
                          const std::unordered_map<std::string, Map>& maps,
-                         const ItemCatalog& item_catalog, const BalanceConfig& balance):
-        players_(players), maps_(maps), item_catalog_(item_catalog), balance_(balance) {}
+                         const ItemCatalog& item_catalog, const BalanceConfig& balance,
+                         const MessagesConfig& msgs):
+        players_(players), maps_(maps), item_catalog_(item_catalog), balance_(balance), msgs_(msgs) {}
 
 BankUpdateEvent BankService::make_bank_update_event(const Player& p) const {
     return BankUpdateEvent{p.dump_bank(), p.get_bank_gold()};
@@ -19,7 +20,7 @@ CommandResult BankService::handle_bank_deposit(uint16_t player_id, const BankDep
     Player& player = it->second;
 
     if (player.is_dead()) {
-        return CommandResult::with_msg("Los fantasmas no pueden depositar");
+        return CommandResult::with_msg(msgs_.ghost_cant_deposit);
     }
 
     auto map_it = maps_.find(player.get_current_map());
@@ -32,12 +33,12 @@ CommandResult BankService::handle_bank_deposit(uint16_t player_id, const BankDep
     const int py = static_cast<int>(player.pos_y());
 
     if (!map.prop_grid().is_in_range_of("banquero", px, py, range)) {
-        return CommandResult::with_msg("No hay un banquero cerca");
+        return CommandResult::with_msg(msgs_.no_banker_nearby);
     }
 
     if (cmd.is_gold) {
         if (cmd.gold_amount == 0 || player.get_gold() < cmd.gold_amount) {
-            return CommandResult::with_msg("Oro insuficiente");
+            return CommandResult::with_msg(msgs_.insufficient_gold);
         }
         player.spend_gold(cmd.gold_amount);
         player.add_bank_gold(cmd.gold_amount);
@@ -61,7 +62,7 @@ CommandResult BankService::handle_bank_deposit(uint16_t player_id, const BankDep
     }
 
     if (!player.add_to_bank(item_def->type, item_def->name)) {
-        return CommandResult::with_msg("El banco está lleno");
+        return CommandResult::with_msg(msgs_.bank_full);
     }
     player.remove_inventory_item(static_cast<uint8_t>(slot_opt->slot_index));
 
@@ -77,7 +78,7 @@ CommandResult BankService::handle_bank_withdraw(uint16_t player_id, const BankWi
     Player& player = it->second;
 
     if (player.is_dead()) {
-        return CommandResult::with_msg("Los fantasmas no pueden retirar");
+        return CommandResult::with_msg(msgs_.ghost_cant_withdraw);
     }
 
     auto map_it = maps_.find(player.get_current_map());
@@ -90,12 +91,12 @@ CommandResult BankService::handle_bank_withdraw(uint16_t player_id, const BankWi
     const int py = static_cast<int>(player.pos_y());
 
     if (!map.prop_grid().is_in_range_of("banquero", px, py, range)) {
-        return CommandResult::with_msg("No hay un banquero cerca");
+        return CommandResult::with_msg(msgs_.no_banker_nearby);
     }
 
     if (cmd.is_gold) {
         if (cmd.gold_amount == 0 || !player.take_bank_gold(cmd.gold_amount)) {
-            return CommandResult::with_msg("No tenés suficiente oro en el banco");
+            return CommandResult::with_msg(msgs_.insufficient_bank_gold);
         }
         player.gain_gold(cmd.gold_amount);
 
@@ -116,7 +117,7 @@ CommandResult BankService::handle_bank_withdraw(uint16_t player_id, const BankWi
     }
 
     if (!player.add_item(item_def->type, item_def->name)) {
-        return CommandResult::with_msg("Inventario lleno");
+        return CommandResult::with_msg(msgs_.inventory_full);
     }
     player.remove_bank_item(static_cast<uint8_t>(slot_opt->slot_index));
 

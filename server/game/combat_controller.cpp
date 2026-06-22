@@ -15,7 +15,8 @@ CombatController::CombatController(const AttackConfig& config, std::map<uint16_t
                                    const NpcDropConfig& drop_config,
                                    const NpcDropConfig& drop_config_dungeon,
                                    const BalanceConfig& balance, ClanManager& clan_manager,
-                                   const std::unordered_map<std::string, Map>& maps):
+                                   const std::unordered_map<std::string, Map>& maps,
+                                   const MessagesConfig& msgs):
         config(config),
         balance(balance),
         players(players),
@@ -24,7 +25,8 @@ CombatController::CombatController(const AttackConfig& config, std::map<uint16_t
         enemy_npcs(enemy_npcs),
         npc_drop_config(drop_config),
         npc_drop_config_dungeon(drop_config_dungeon),
-        maps(maps) {}
+        maps(maps),
+        msgs_(msgs) {}
 
 const NpcDropConfig& CombatController::drop_config_for(const EnemyNpc& npc) const {
     auto it = maps.find(npc.get_current_map());
@@ -37,25 +39,24 @@ const NpcDropConfig& CombatController::drop_config_for(const EnemyNpc& npc) cons
 std::optional<CommandResult> CombatController::validate_pvp(const Player& attacker,
                                                             const Player& target) const {
     if (attacker.get_level() <= config.newbie_level) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar siendo newbie"};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.attack_newbie_attacker};
         return CommandResult{.private_events = {msg}};
     }
     if (target.get_level() <= config.newbie_level) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar a un jugador newbie"};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.attack_newbie_target};
         return CommandResult{.private_events = {msg}};
     }
 
     int level_diff =
             std::abs(static_cast<int>(attacker.get_level()) - static_cast<int>(target.get_level()));
     if (level_diff > config.max_level_diff) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                         "No puedes atacar a un jugador con diferencia de niveles mayor a 10"};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.attack_level_diff};
         return CommandResult{.private_events = {msg}};
     }
 
     if (!attacker.get_clan_name().empty() && !target.get_clan_name().empty() &&
         attacker.get_clan_name() == target.get_clan_name()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar a un miembro de tu clan"};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.attack_same_clan};
         return CommandResult{.private_events = {msg}};
     }
 

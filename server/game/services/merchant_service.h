@@ -20,7 +20,7 @@ class MerchantService {
 public:
     MerchantService(std::map<uint16_t, Player>& players, std::unordered_map<std::string, Map>& maps,
                     const ItemCatalog& item_catalog, const BalanceConfig& balance,
-                    BankService& bank_service);
+                    BankService& bank_service, const MessagesConfig& msgs);
 
     CommandResult handle_npc_buy(uint16_t player_id, const NpcBuyCmd& cmd);
     CommandResult handle_npc_sell(uint16_t player_id, const NpcSellCmd& cmd);
@@ -44,6 +44,7 @@ private:
     const ItemCatalog& item_catalog_;
     const BalanceConfig& balance_;
     BankService& bank_service_;
+    const MessagesConfig& msgs_;
 };
 
 #endif  // MERCHANT_SERVICE_H

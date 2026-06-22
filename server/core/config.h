@@ -155,6 +155,80 @@ private:
     }};
 };
 
+struct MessagesConfig {
+    // Combat
+    std::string attack_newbie_attacker = "No puedes atacar siendo newbie";
+    std::string attack_newbie_target = "No puedes atacar a un jugador newbie";
+    std::string attack_level_diff = "No puedes atacar a un jugador con diferencia de niveles mayor a 10";
+    std::string attack_same_clan = "No puedes atacar a un miembro de tu clan";
+    std::string attack_safe_zone = "No puedes atacar en una zona segura";
+    std::string attack_self = "No puedes atacarte a ti mismo";
+    // Spell
+    std::string warrior_no_magic = "Los guerreros no pueden usar magia";
+    std::string no_weapon_equipped = "No tienes un arma equipada";
+    std::string weapon_not_magic = "El arma equipada no es magica";
+    std::string insufficient_mana = "Mana insuficiente";
+    std::string spell_safe_zone = "No puedes lanzar hechizos en una zona segura";
+    // Ghost restrictions
+    std::string ghost_cant_interact = "Los fantasmas no pueden interactuar";
+    std::string ghost_cant_pickup = "Los fantasmas no pueden recoger objetos";
+    std::string ghost_cant_drop = "Los fantasmas no pueden tirar objetos";
+    std::string ghost_cant_deposit = "Los fantasmas no pueden depositar";
+    std::string ghost_cant_withdraw = "Los fantasmas no pueden retirar";
+    std::string ghost_cant_be_healed = "Los fantasmas no pueden ser curados";
+    std::string ghost_cant_list = "Los fantasmas no pueden listar";
+    // Inventory / capacity
+    std::string inventory_full = "Inventario lleno";
+    // Bank
+    std::string no_banker_nearby = "No hay un banquero cerca";
+    std::string insufficient_gold = "Oro insuficiente";
+    std::string bank_full = "El banco está lleno";
+    std::string insufficient_bank_gold = "No tenés suficiente oro en el banco";
+    // Ground items
+    std::string nothing_to_pickup = "No hay nada para recoger aquí";
+    // Merchant / NPC
+    std::string no_merchant_priest_banker = "No hay un comerciante, sacerdote ni banquero cerca";
+    std::string no_merchant_priest = "No hay un sacerdote ni un comerciante cerca";
+    std::string no_merchant_nearby = "No hay un comerciante cerca";
+    std::string merchant_doesnt_buy = "El comerciante no compra ese tipo de objeto";
+    std::string no_priest_nearby = "No hay un sacerdote cerca";
+    // Resurrect / heal
+    std::string warrior_cant_meditate = "Los guerreros no pueden meditar";
+    std::string not_dead = "No estás muerto";
+    std::string already_resurrecting = "Ya estás resucitando, espera";
+    std::string priest_resurrect = "Sacerdote: ¡Que la luz te devuelva a la vida!";
+    std::string priest_heal = "Sacerdote: ¡Que la luz te sane!";
+    std::string self_heal_success = "Te has curado!";
+    // Clan
+    std::string not_in_clan = "No perteneces a ningun clan";
+    std::string only_founder_review = "Solo el fundador puede revisar el clan";
+    std::string no_pending_requests = "No hay pedidos pendientes";
+    std::string usage_found_clan = "Uso: /fundar-clan <nombre>";
+    std::string usage_join_clan = "Uso: /unirse <nombre del clan>";
+    std::string usage_clan_accept = "Uso: /clan-aceptar <nick>";
+    std::string usage_clan_reject = "Uso: /clan-rechazar <nick>";
+    std::string usage_clan_ban = "Uso: /clan-ban <nick>";
+    std::string usage_clan_kick = "Uso: /clan-kick <nick>";
+    std::string usage_clan_unban = "Uso: /clan-unban <nick>";
+    std::string usage_clan_chat = "Uso: /c <mensaje>";
+    // Cheats
+    std::string cheat_inf_hp_on = "[Cheat] HP infinito: ON";
+    std::string cheat_inf_hp_off = "[Cheat] HP infinito: OFF";
+    std::string cheat_inf_mana_on = "[Cheat] Mana infinito: ON";
+    std::string cheat_inf_mana_off = "[Cheat] Mana infinito: OFF";
+    std::string cheat_died = "[Cheat] Moriste!";
+    std::string cheat_not_dead = "[Cheat] No estás muerto";
+    std::string cheat_revived = "[Cheat] Reviviste!";
+    std::string cheat_max_level = "Ya estas en el nivel maximo";
+    std::string cheat_min_level = "Ya estas en el nivel minimo";
+    std::string cheat_gold_reset = "[Cheat] Oro reseteado a 0";
+    std::string cheat_mana_reset = "[Cheat] Mana reseteado a 0";
+    std::string cheat_velocity_on = "[Cheat] Velocidad: ON";
+    std::string cheat_velocity_off = "[Cheat] Velocidad: OFF";
+    std::string cheat_inventory_filled = "[Cheat] Inventario lleno con todos los items!";
+    std::string cheat_inventory_cleared = "[Cheat] Inventario vaciado!";
+};
+
 struct ServerConfig {
     uint16_t port = 1234;
     int tick_rate_hz = 20;
@@ -174,6 +248,7 @@ struct ServerConfig {
     ItemCatalog item_catalog;
     std::vector<NpcTemplate> npc_templates;
     std::vector<std::string> help_lines;
+    MessagesConfig messages;
 };
 
 std::vector<NpcTemplate> load_npc_templates(const std::string& path);

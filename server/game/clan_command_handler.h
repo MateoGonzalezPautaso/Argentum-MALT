@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "../../common/messages.h"
+#include "../core/config.h"
 
 #include "clan_manager.h"
 #include "command_result.h"
@@ -17,7 +18,8 @@
 class ClanCommandHandler {
 public:
     ClanCommandHandler(ClanManager& clan_manager, std::map<uint16_t, Player>& players,
-                       const std::unordered_map<std::string, uint16_t>& player_name_index);
+                       const std::unordered_map<std::string, uint16_t>& player_name_index,
+                       const MessagesConfig& msgs);
 
     std::optional<CommandResult> handle(uint16_t player_id, const std::string& cmd_name,
                                         const std::string& args);
@@ -39,6 +41,7 @@ private:
     ClanManager& clan_manager;
     std::map<uint16_t, Player>& players;
     const std::unordered_map<std::string, uint16_t>& player_name_index_;
+    const MessagesConfig& msgs_;
 
     std::optional<uint16_t> find_player_id_by_name(const std::string& name) const;
     Player* require_player(uint16_t player_id);
