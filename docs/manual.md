@@ -10,15 +10,43 @@ El juego se caracteriza por su estilo gráfico 2D top-down y su ambientación de
 
 ---
 
+## Índice
+
+- [1. Introducción](#1-introducción)
+- [2. Instalación y ejecución](#2-instalación-y-ejecución)
+- [3. Creación de personaje](#3-creación-de-personaje)
+- [4. Interfaz de usuario (HUD)](#4-interfaz-de-usuario-hud)
+- [5. Controles](#5-controles)
+- [6. Combate](#6-combate)
+- [7. Objetos y equipamiento](#7-objetos-y-equipamiento)
+- [8. Comandos](#8-comandos)
+- [9. NPCs y ciudades](#9-npcs-y-ciudades)
+- [10. Clanes](#10-clanes)
+- [11. Muerte y resurrección](#11-muerte-y-resurrección)
+- [12. Meditación](#12-meditación)
+- [13. Editor de mapas](#13-editor-de-mapas)
+- [14. Trucos / Cheats (debug)](#14-trucos--cheats-debug)
+- [15. Configuración](#15-configuración)
+- [16. Solución de problemas (FAQ)](#16-solución-de-problemas-faq)
+- [Créditos](#créditos)
+
+---
+
 ## 2. Instalación y ejecución
 
-### 2.1 Dependencias necesarias e instalación
+### 2.1 Requisitos del sistema e instalación
 
-El juego cuenta con las siguientes dependencias:
+#### Sistema operativo
 
-    - Herramientas de compilación: build-essential, cmake, git, pkg-config, ninja-build
+El proyecto está diseñado para **Ubuntu 24.04 LTS (Noble Numbat)** o **Xubuntu 24.04 LTS**, que es el entorno oficial de desarrollo y prueba de la cátedra.
 
-    - Testing y análisis estático: libgtest-dev, valgrind, cppcheck, clang-format
+#### Dependencias
+
+El juego requiere las siguientes dependencias (versiones correspondientes a Ubuntu 24.04):
+
+    - Herramientas de compilación: build-essential (gcc 13.2), cmake (3.28), git, pkg-config, ninja-build
+
+    - Testing y análisis estático: libgtest-dev (1.14), valgrind, cppcheck, clang-format
 
     - X11 (requerido por SDL2): libx11-dev, libxext-dev, libxrandr-dev, libxi-dev, libxcursor-dev, libxinerama-dev, libxss-dev, libxxf86vm-dev
 
@@ -32,21 +60,71 @@ El juego cuenta con las siguientes dependencias:
 
     - SDL2_image: libpng-dev, libjpeg-dev, libtiff-dev, libwebp-dev
 
-    - SDL2 — las librerías en sí: libsdl2-dev, libsdl2-image-dev, libsdl2-ttf-dev, libsdl2-mixer-dev
+    - SDL2 — las librerías en sí: libsdl2-dev (2.28), libsdl2-image-dev (2.6), libsdl2-ttf-dev (2.20), libsdl2-mixer-dev (2.6)
 
-    - Qt6 — para el editor gráfico: qt6-base-dev, qt6-tools-dev-tools, libqt6widgets6t64, libqt6opengl6-dev
+    - Qt6 (6.4) — para el editor gráfico: qt6-base-dev, qt6-tools-dev-tools, libqt6widgets6t64, libqt6opengl6-dev
 
     - Utilidades adicionales: libssl-dev, zlib1g-dev
 
-Todas estas dependencias se instalan y configuran automáticamente al ejecutar el instalador, por lo que no es necesario instalarlas manualmente.
+#### Instalación automática (recomendada)
 
-El instalador se llama `install.sh` y se encuentra en la raíz del proyecto. Para ejecutarlo, abre una terminal, navega hasta el directorio del proyecto y ejecuta:
+El instalador `install.sh` (en la raíz del proyecto) descarga, compila e instala todas las dependencias y el juego automáticamente:
 
 ```bash
 chmod +x install.sh
 ./install.sh
 ```
-Esto descargará, compilará e instalará todas las dependencias necesarias, así como el juego en sí.
+
+#### Instalación manual de dependencias
+
+Si preferís instalar las dependencias manualmente:
+
+```bash
+sudo apt update
+sudo apt install -y build-essential cmake git pkg-config ninja-build \
+    libgtest-dev valgrind cppcheck clang-format \
+    libx11-dev libxext-dev libxrandr-dev libxi-dev libxcursor-dev \
+    libxinerama-dev libxss-dev libxxf86vm-dev \
+    libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev \
+    libasound2-dev libpulse-dev \
+    libopus-dev libopusfile-dev libvorbis-dev libogg-dev \
+    libflac-dev libmpg123-dev libmodplug-dev libxmp-dev \
+    libfluidsynth-dev fluidsynth libwavpack-dev \
+    libfreetype-dev libharfbuzz-dev \
+    libpng-dev libjpeg-dev libtiff-dev libwebp-dev \
+    libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev \
+    qt6-base-dev qt6-tools-dev-tools libqt6widgets6t64 libqt6opengl6-dev \
+    libssl-dev zlib1g-dev
+```
+
+#### Compilación manual
+
+Una vez instaladas las dependencias, compilá el proyecto:
+
+```bash
+mkdir -p build && cd build
+cmake .. -G Ninja
+ninja
+```
+
+Esto genera los binarios `taller_server`, `taller_client` y `taller_editor` dentro de `build/`.
+
+Para correr los tests unitarios:
+
+```bash
+cd build
+ninja test
+```
+
+#### Assets y recursos
+
+El instalador (`install.sh`) copia automáticamente los assets a `~/.local/share/Argentum-MALT/`. Si compilaste manualmente, ejecutá:
+
+```bash
+cmake --install build --prefix ~/.local
+```
+
+Esto copia los binarios a `~/.local/bin/`, los assets a `~/.local/share/Argentum-MALT/` y la configuración a `~/.config/Argentum-MALT/`.
 
 
 ### 2.2 Iniciar el servidor
@@ -81,6 +159,18 @@ El cliente acepta los siguientes argumentos opcionales:
 | `--width <valor>` | Ancho de la ventana en píxeles (ej: 1280) |
 | `--height <valor>` | Alto de la ventana en píxeles (ej: 720) |
 
+
+### 2.4 Configuración del juego
+
+La configuración del juego se realiza mediante archivos TOML ubicados en el directorio `config/`:
+
+- **`config/server.toml`** — configuración del servidor (tick rate, intervalo de guardado, cheats, balance, drops, etc.).
+- **`config/common.toml`** — valores que deben coincidir entre servidor y cliente (puerto de red, velocidad de movimiento, ratio de venta).
+- **`config/client.toml`** — configuración del cliente (host, ventana, sprites, audio, teclas, etc.).
+
+No es necesario modificar estos archivos para jugar, pero si querés ajustar parámetros del juego (como el daño, la experiencia, el oro inicial, etc.) editá `server.toml`. Para más detalles, consultá la [sección 15](#15-configuración).
+
+Los archivos de configuración se instalan automáticamente en `~/.config/Argentum-MALT/` al ejecutar el instalador. Si compilaste manualmente, se ubican en `config/` dentro del repositorio.
 
 ---
 
@@ -641,11 +731,9 @@ Ubicado en `config/server.toml`. Controla parámetros del servidor:
 
 | Sección | Parámetro | Descripción |
 |---|---|---|
-| `[server]` | `port` | Puerto de escucha (defecto: 1234) |
 | `[server]` | `tick_rate_hz` | Ticks por segundo del game loop (defecto: 20) |
 | `[server]` | `save_interval_seconds` | Intervalo (en segundos) de persistencia automática de jugadores (defecto: 30) |
 | `[server]` | `cheats_enabled` | Habilita o deshabilita los comandos de debug |
-| `[movement]` | `move_step` | Velocidad de movimiento, en píxeles por tick |
 | `[sprite]` | `width`, `height` | Dimensiones en píxeles del sprite del personaje, usadas para colisiones |
 | `[attack]` | `base_damage` | Daño base de ataque |
 | `[attack]` | `attack_range_px` | Rango de ataque cuerpo a cuerpo (píxeles) |
@@ -659,6 +747,8 @@ Ubicado en `config/server.toml`. Controla parámetros del servidor:
 | `[attack]` | `clan_bonus_per_member` | Bonificación de daño/defensa por cada aliado cercano |
 | `[attack]` | `clan_bonus_max` | Tope de la bonificación de clan |
 | `[attack]` | `critical_chance` | Probabilidad base de golpe crítico |
+| `[attack]` | `critical_multiplier` | Multiplicador de daño en golpe crítico (defecto: 2 = doble daño) |
+| `[attack]` | `dodge_threshold` | Umbral de la fórmula de evasión (`rand(0,1)^Agilidad < dodge_threshold`) |
 | `[attack]` | `npc_vision_range_px` | Rango de visión de las criaturas (píxeles) |
 | `[attack]` | `npc_speed` | Velocidad de movimiento de las criaturas |
 | `[clan]` | `max_members` | Máximo de miembros por clan (incluido el fundador) |
@@ -673,9 +763,14 @@ Ubicado en `config/server.toml`. Controla parámetros del servidor:
 | `[balance]` | `starting_gold` | Oro inicial al crear personaje |
 | `[balance]` | `starting_pos_x`, `starting_pos_y`, `starting_map` | Posición y mapa donde aparece un personaje nuevo |
 | `[balance]` | `min_level`, `max_level` | Rango de nivel válido para un jugador |
-| `[balance]` | `gold_per_level` | Oro perdido al morir, por nivel |
+| `[balance]` | `gold_per_level` | Oro otorgado al subir de nivel, por nivel |
 | `[balance]` | `level_exp_base`, `level_exp_exponent` | Parámetros de la fórmula de experiencia requerida por nivel |
 | `[balance]` | `gold_cap_base`, `gold_cap_exponent` | Parámetros de la fórmula de oro máximo "seguro" (ver [Consigna](consigna_Argentum)) |
+| `[balance]` | `gold_excess_ratio` | Porcentaje adicional de oro "en exceso" que se puede portar por encima del máximo seguro (defecto: 0.5 = 150%) |
+| `[balance]` | `exp_loss_on_death_ratio` | Porcentaje de experiencia que se conserva al morir (defecto: 0.9 = se pierde 10%) |
+| `[balance]` | `experience_level_offset` | Offset de la fórmula de experiencia por ataque (`Daño * max(NivelDelOtro - Nivel + offset, 0)`) |
+| `[balance]` | `npc_gold_reward_min_pct`, `npc_gold_reward_max_pct` | Rango de la fórmula de oro al matar un NPC (`rand(min,max) * VidaMaxNPC`) |
+| `[balance]` | `extra_kill_exp_max_pct` | Tope de la fórmula de experiencia extra al matar (`rand(0, max) * VidaMaxDelOtro * factor de nivel`) |
 | `[balance.npc_drop]` | `gold_chance`, `potion_chance`, `item_chance` | Probabilidades de drop al matar criaturas en zona normal |
 | `[balance.npc_drop_dungeon]` | `gold_chance`, `potion_chance`, `item_chance` | Probabilidades de drop al matar criaturas en mazmorra |
 | `[recovery_rates]` | `human`, `elf`, `dwarf`, `gnome` | Tasa de recuperación de vida/maná por raza con el paso del tiempo |
@@ -688,17 +783,26 @@ Ubicado en `config/server.toml`. Controla parámetros del servidor:
 | `[race_agility_factor]` / `[class_agility_factor]` | ídem | Factores de raza y clase para agilidad |
 | `[starting_items]` | `warrior`, `mage`, `paladin`, `cleric` | Ítems iniciales por clase |
 | `[merchant]` | `interaction_range_tiles` | Distancia máxima (en tiles) para interactuar con un NPC |
-| `[merchant]` | `sell_price_ratio` | Porcentaje del precio de compra que se recibe al vender |
 | `[vendors]` | — | Inventario de cada NPC vendedor (uno por nombre de NPC) |
 | `[help]` | `lines` | Texto de ayuda del comando `/help` |
 
-### 15.2 `client.toml`
+### 15.2 `common.toml`
+
+Ubicado en `config/common.toml`. Valores que deben coincidir entre servidor y cliente — están en un único archivo en vez de duplicados en `server.toml`/`client.toml` para que no se desincronicen:
+
+| Sección | Parámetro | Descripción |
+|---|---|---|
+| `[network]` | `port` | Puerto de escucha del servidor / al que se conecta el cliente (defecto: 1234) |
+| `[movement]` | `move_step` | Velocidad de movimiento, en píxeles por tick |
+| `[merchant]` | `sell_price_ratio` | Porcentaje del precio de compra que se recibe al vender (servidor lo aplica, cliente lo usa solo para mostrar el precio) |
+
+### 15.3 `client.toml`
 
 Ubicado en `config/client.toml`. Controla parámetros del cliente:
 
 | Sección | Descripción |
 |---|---|
-| `[network]` | Host y puerto del servidor (defecto: 127.0.0.1:1234) |
+| `[network]` | Host del servidor (defecto: 127.0.0.1; el puerto sale de `common.toml`) |
 | `[window]` | Dimensiones y título de la ventana |
 | `[background]` | Imagen y posición del fondo de la pantalla de login |
 | `[viewport]` | Área lógica donde se dibuja el mundo dentro de la ventana del juego |
@@ -707,7 +811,7 @@ Ubicado en `config/client.toml`. Controla parámetros del cliente:
 | `[assets]` | Rutas de las imágenes de la interfaz (botones, fondos, barras) |
 | `[[sprites]]` | Sprites estáticos de ejemplo/depuración |
 | `[skins]` | Sprites de cuerpo por clase, de cabeza por raza, y de cada NPC |
-| `[movement]` | Parámetros de animación de movimiento (tamaño y cantidad de frames, velocidad) |
+| `[movement]` | Parámetros de animación de movimiento (tamaño y cantidad de frames; `move_step` sale de `common.toml`) |
 | `[[item_sprites]]` | Sprite e ícono de cada tipo de ítem, para inventario y suelo |
 | `[[equip_overlays]]` | Sprite superpuesto al personaje al equipar cada tipo de ítem |
 | `[ground_items]` | Tamaño y animación de flotación de los ítems en el suelo |
