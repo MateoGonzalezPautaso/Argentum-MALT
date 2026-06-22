@@ -90,7 +90,6 @@ private:
     std::tuple<uint16_t, uint16_t, uint16_t, uint16_t> compute_combat_ranges(const Player& p) const;
     PlayerStatsEvent make_player_stats_event(const Player& p) const;
     std::optional<uint16_t> find_player_id_by_name(const std::string& name) const;
-    LoginOkEvent make_login_ok(const Player& p) const;
     std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id) const;
     std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id,
                                                   const std::string& map_name) const;

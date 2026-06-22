@@ -544,24 +544,6 @@ CommandResult Game::handle_meditate(uint16_t player_id) {
     }
 }
 
-LoginOkEvent Game::make_login_ok(const Player& p) const {
-    return LoginOkEvent{
-            .player_id = p.get_id(),
-            .username = p.get_name(),
-            .race = p.get_race(),
-            .player_class = p.get_player_class(),
-            .level = p.get_level(),
-            .experience = p.get_experience(),
-            .exp_to_next = p.exp_to_next_level(),
-            .hp_current = p.get_hp_current(),
-            .hp_max = p.get_hp_max(),
-            .mana_current = p.get_mana_current(),
-            .mana_max = p.get_mana_max(),
-            .gold = p.get_gold(),
-            .pos = p.get_pos(),
-    };
-}
-
 std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id) const {
     std::vector<ServerEvent> spawns;
     for (const auto& [id, player]: players) {

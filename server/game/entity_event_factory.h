@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../../common/messages.h"
+
 #include "enemy_npc.h"
 #include "player.h"
 
