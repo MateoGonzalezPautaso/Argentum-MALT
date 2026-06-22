@@ -118,13 +118,16 @@ ninja test
 
 #### Assets y recursos
 
-El instalador (`install.sh`) copia automáticamente los assets a `~/.local/share/Argentum-MALT/`. Si compilaste manualmente, ejecutá:
+El instalador (`install.sh`) copia automáticamente los assets a `~/.local/share/argentum-malt/` y la configuración a `~/.config/argentum-malt/`. Si compilaste manualmente, `cmake --install` solo copia los binarios; para assets y configuración copiá los directorios a mano:
 
 ```bash
 cmake --install build --prefix ~/.local
+mkdir -p ~/.local/share/argentum-malt ~/.config/argentum-malt
+cp -r assets/. ~/.local/share/argentum-malt/
+cp -r config/. ~/.config/argentum-malt/
 ```
 
-Esto copia los binarios a `~/.local/bin/`, los assets a `~/.local/share/Argentum-MALT/` y la configuración a `~/.config/Argentum-MALT/`.
+Esto deja los binarios en `~/.local/bin/`, los assets en `~/.local/share/argentum-malt/` y la configuración en `~/.config/argentum-malt/`.
 
 
 ### 2.2 Iniciar el servidor
@@ -170,7 +173,7 @@ La configuración del juego se realiza mediante archivos TOML ubicados en el dir
 
 No es necesario modificar estos archivos para jugar, pero si querés ajustar parámetros del juego (como el daño, la experiencia, el oro inicial, etc.) editá `server.toml`. Para más detalles, consultá la [sección 15](#15-configuración).
 
-Los archivos de configuración se instalan automáticamente en `~/.config/Argentum-MALT/` al ejecutar el instalador. Si compilaste manualmente, se ubican en `config/` dentro del repositorio.
+Los archivos de configuración se instalan automáticamente en `~/.config/argentum-malt/` al ejecutar el instalador. Si compilaste manualmente, se ubican en `config/` dentro del repositorio.
 
 ---
 
