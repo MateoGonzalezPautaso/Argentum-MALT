@@ -97,8 +97,7 @@ private:
     bool target_in_safe_zone(uint16_t target_id) const;
     bool collides_with_entities(uint16_t moving_player_id, const std::string& map_name,
                                 int current_x, int current_y, int new_x, int new_y) const;
-    std::optional<CommandResult> validate_cast(const Player& player,
-                                               const CastSpellCmd& cmd) const;
+    std::optional<CommandResult> validate_cast(const Player& player, const CastSpellCmd& cmd) const;
 
 public:
     std::string get_player_map_name(uint16_t player_id) const;

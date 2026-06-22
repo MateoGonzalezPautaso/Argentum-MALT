@@ -77,10 +77,10 @@ CommandResult MerchantService::handle_npc_list(uint16_t player_id) {
     const int px = static_cast<int>(player.pos_x());
     const int py = static_cast<int>(player.pos_y());
 
-    const bool near_comerciante = map.prop_grid().is_in_range_of(
-            std::string(PropNames::MERCHANT), px, py, range);
-    const bool near_sacerdote = map.prop_grid().is_in_range_of(
-            std::string(PropNames::PRIEST), px, py, range);
+    const bool near_comerciante =
+            map.prop_grid().is_in_range_of(std::string(PropNames::MERCHANT), px, py, range);
+    const bool near_sacerdote =
+            map.prop_grid().is_in_range_of(std::string(PropNames::PRIEST), px, py, range);
     const bool near_banquero = map.prop_grid().is_in_range_of("banquero", px, py, range);
 
     if (near_banquero && !near_comerciante && !near_sacerdote) {
@@ -113,8 +113,8 @@ CommandResult MerchantService::handle_npc_buy(uint16_t player_id, const NpcBuyCm
     VendorContext ctx = std::get<VendorContext>(ctx_or_err);
     Player& player = *ctx.player;
 
-    const bool near_sacerdote = ctx.map->prop_grid().is_in_range_of(
-            std::string(PropNames::PRIEST), ctx.px, ctx.py, ctx.range);
+    const bool near_sacerdote = ctx.map->prop_grid().is_in_range_of(std::string(PropNames::PRIEST),
+                                                                    ctx.px, ctx.py, ctx.range);
     const bool near_comerciante = ctx.map->prop_grid().is_in_range_of(
             std::string(PropNames::MERCHANT), ctx.px, ctx.py, ctx.range);
 
@@ -182,7 +182,7 @@ CommandResult MerchantService::handle_npc_sell(uint16_t player_id, const NpcSell
     Player& player = *ctx.player;
 
     if (!ctx.map->prop_grid().is_in_range_of(std::string(PropNames::MERCHANT), ctx.px, ctx.py,
-                                              ctx.range)) {
+                                             ctx.range)) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un comerciante cerca"};
         return {.private_events = {msg}};
     }

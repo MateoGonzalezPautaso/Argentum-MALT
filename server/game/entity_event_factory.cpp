@@ -41,7 +41,7 @@ EquipUpdateEvent make_equip_update(uint16_t player_id, const Player& p) {
     InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
     p.dump_equipped(equipped_slots);
     return EquipUpdateEvent{player_id, equipped_slots[0], equipped_slots[1], equipped_slots[2],
-                             equipped_slots[3]};
+                            equipped_slots[3]};
 }
 
 }  // namespace EntityEventFactory

@@ -22,8 +22,7 @@ void GameLoop::dispatch(const CommandResult& result, std::optional<uint16_t> ori
     if (!origin)
         return;  // sin originador no hay a quién enviar private_events ni mapa que resolver
 
-    for (const ServerEvent& ev: result.private_events)
-        monitor.push_event(*origin, ev);
+    for (const ServerEvent& ev: result.private_events) monitor.push_event(*origin, ev);
 
     std::string origin_map = game.get_player_map_name(*origin);
     for (uint16_t pid: game.get_player_ids_on_map(origin_map)) {

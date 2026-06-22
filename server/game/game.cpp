@@ -94,9 +94,9 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
 Map& Game::player_map(const Player& p) {
     auto it = maps.find(p.get_current_map());
     if (it == maps.end()) {
-        ErrorLogger::log("[Game] player_map: map '" + p.get_current_map() + "' not found for player '" +
-                         p.get_name() + "' (id=" + std::to_string(p.get_id()) +
-                         "), falling back to an arbitrary map");
+        ErrorLogger::log("[Game] player_map: map '" + p.get_current_map() +
+                         "' not found for player '" + p.get_name() + "' (id=" +
+                         std::to_string(p.get_id()) + "), falling back to an arbitrary map");
         return maps.begin()->second;
     }
     return it->second;
@@ -105,9 +105,9 @@ Map& Game::player_map(const Player& p) {
 const Map& Game::player_map(const Player& p) const {
     auto it = maps.find(p.get_current_map());
     if (it == maps.end()) {
-        ErrorLogger::log("[Game] player_map: map '" + p.get_current_map() + "' not found for player '" +
-                         p.get_name() + "' (id=" + std::to_string(p.get_id()) +
-                         "), falling back to an arbitrary map");
+        ErrorLogger::log("[Game] player_map: map '" + p.get_current_map() +
+                         "' not found for player '" + p.get_name() + "' (id=" +
+                         std::to_string(p.get_id()) + "), falling back to an arbitrary map");
         return maps.begin()->second;
     }
     return it->second;
@@ -388,28 +388,31 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
     return result;
 }
 
-std::optional<CommandResult> Game::validate_cast(const Player& player,
-                                                  const CastSpellCmd&) const {
+std::optional<CommandResult> Game::validate_cast(const Player& player, const CastSpellCmd&) const {
     if (player.get_player_class() == PlayerClass::WARRIOR) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los guerreros no pueden usar magia"};
-        return CommandResult{.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult{
+                .private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
 
     const InventorySlot& weapon_slot = player.get_equipped(EquipSlot::WEAPON);
     if (weapon_slot.item_type == ItemType::NONE) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No tienes un arma equipada"};
-        return CommandResult{.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult{
+                .private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
 
     const Item* item = item_catalog.find(weapon_slot.item_type);
     if (!item || item->mana_consumed == 0) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El arma equipada no es magica"};
-        return CommandResult{.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult{
+                .private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
 
     if (player.get_mana_current() < item->mana_consumed) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Mana insuficiente"};
-        return CommandResult{.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult{
+                .private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
     }
 
     const Map& map = player_map(player);
@@ -666,8 +669,7 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     const int range = tile_size * balance.npc_interaction_range_tiles;
 
     // If the ghost is near a sacerdote, resurrect immediately
-    if (map_it->second.prop_grid().is_in_range_of(std::string(PropNames::PRIEST), px, py,
-                                                   range)) {
+    if (map_it->second.prop_grid().is_in_range_of(std::string(PropNames::PRIEST), px, py, range)) {
         player.resurrect();
         PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Sacerdote: ¡Que la luz te devuelva a la vida!"};
@@ -793,8 +795,7 @@ CommandResult Game::handle_npc_heal(uint16_t player_id) {
     const int px = static_cast<int>(player.pos_x());
     const int py = static_cast<int>(player.pos_y());
 
-    if (!map_it->second.prop_grid().is_in_range_of(std::string(PropNames::PRIEST), px, py,
-                                                    range)) {
+    if (!map_it->second.prop_grid().is_in_range_of(std::string(PropNames::PRIEST), px, py, range)) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un sacerdote cerca"};
         return {.private_events = {msg}};
     }
