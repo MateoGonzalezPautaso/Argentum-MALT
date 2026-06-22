@@ -24,6 +24,10 @@ Guía completa del juego: instalación, controles, combate, ítems, clanes, coma
 
 Arquitectura, protocolo, configuración y detalles de implementación. *(En construcción)*
 
+**[Manual de Proyecto](manual-de-proyecto)**
+
+Organización del equipo, herramientas, planificación semanal y retrospectiva.
+
 ---
 
 

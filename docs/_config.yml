@@ -5,4 +5,5 @@ theme: minima
 header_pages:
   - index.md
   - manual-de-usuario.md
+  - manual-de-proyecto.md
   - documentacion.md
