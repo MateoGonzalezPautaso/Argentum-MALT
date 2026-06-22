@@ -1,6 +1,7 @@
 #ifndef EDITOR_EDITOR_CONTROLLER_H
 #define EDITOR_EDITOR_CONTROLLER_H
 
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <vector>

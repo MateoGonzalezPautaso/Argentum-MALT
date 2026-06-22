@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <map>
 #include <string>
+#include <unordered_map>
 
 #include "../../../common/item_catalog.h"
 #include "../../../common/messages.h"

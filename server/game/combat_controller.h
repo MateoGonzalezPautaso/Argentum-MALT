@@ -6,6 +6,8 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "../../common/messages.h"
 #include "../core/config.h"

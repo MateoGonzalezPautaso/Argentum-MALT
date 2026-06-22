@@ -272,19 +272,21 @@ void Player::clear_equipped() {
 std::vector<InventorySlot> Player::dump_inventory() const { return inv.dump_slots(); }
 
 std::optional<InventorySlot> Player::find_slot_by_type(ItemType type) const {
-    for (const InventorySlot& slot: inv.dump_slots()) {
-        if (slot.item_type == type)
-            return slot;
-    }
-    return std::nullopt;
+    std::vector<InventorySlot> slots = inv.dump_slots();
+    auto it = std::find_if(slots.begin(), slots.end(),
+                           [type](const InventorySlot& slot) { return slot.item_type == type; });
+    if (it == slots.end())
+        return std::nullopt;
+    return *it;
 }
 
 std::optional<InventorySlot> Player::find_bank_slot_by_type(ItemType type) const {
-    for (const InventorySlot& slot: bank_inv.dump_slots()) {
-        if (slot.item_type == type)
-            return slot;
-    }
-    return std::nullopt;
+    std::vector<InventorySlot> slots = bank_inv.dump_slots();
+    auto it = std::find_if(slots.begin(), slots.end(),
+                           [type](const InventorySlot& slot) { return slot.item_type == type; });
+    if (it == slots.end())
+        return std::nullopt;
+    return *it;
 }
 
 void Player::clear_inventory() { inv.load_slots({}); }

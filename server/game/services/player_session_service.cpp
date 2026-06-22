@@ -1,6 +1,7 @@
 #include "player_session_service.h"
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "../entity_event_factory.h"

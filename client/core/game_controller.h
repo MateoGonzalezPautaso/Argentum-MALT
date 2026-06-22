@@ -1,6 +1,7 @@
 #ifndef CLIENT_GAME_CONTROLLER_H
 #define CLIENT_GAME_CONTROLLER_H
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 

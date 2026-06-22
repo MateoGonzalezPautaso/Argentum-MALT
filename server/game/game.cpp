@@ -629,10 +629,6 @@ void Game::save_all_players() {
     }
 }
 
-bool Game::is_username_logged_in(const std::string& username) const {
-    return player_name_index_.count(username) > 0;
-}
-
 std::optional<uint16_t> Game::find_player_id_by_name(const std::string& name) const {
     auto it = player_name_index_.find(name);
     if (it == player_name_index_.end())

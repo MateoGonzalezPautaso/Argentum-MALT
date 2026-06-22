@@ -1,6 +1,7 @@
 #include "chat_history.h"
 
 #include <algorithm>
+#include <utility>
 
 #include <SDL2/SDL.h>
 

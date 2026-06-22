@@ -70,9 +70,7 @@ toml::table TomlSerializer::save_mob_spawn_zones(const TilemapConfig& config) {
     toml::array zones_grid;
     for (const auto& row: config.mob_spawn_zones) {
         toml::array row_array;
-        for (bool v: row) {
-            row_array.push_back(v);
-        }
+        std::for_each(row.begin(), row.end(), [&row_array](bool v) { row_array.push_back(v); });
         zones_grid.push_back(std::move(row_array));
     }
     toml::table zones_tbl;

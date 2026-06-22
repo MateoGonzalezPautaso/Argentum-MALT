@@ -1,8 +1,10 @@
 #ifndef COMMAND_RESULT_H
 #define COMMAND_RESULT_H
 
+#include <iterator>
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "../../common/messages.h"
@@ -18,9 +20,14 @@ struct CommandResult {
     // Absorbe todos los eventos de `other` en este resultado.
     // Solo mergea targeted_events y broadcast_events (los más usados en tick()).
     CommandResult& merge(CommandResult&& other) {
-        for (auto& [pid, evs]: other.targeted_events)
-            for (auto& ev: evs) targeted_events[pid].push_back(std::move(ev));
-        for (auto& ev: other.broadcast_events) broadcast_events.push_back(std::move(ev));
+        for (auto& [pid, evs]: other.targeted_events) {
+            auto& target = targeted_events[pid];
+            target.insert(target.end(), std::make_move_iterator(evs.begin()),
+                          std::make_move_iterator(evs.end()));
+        }
+        broadcast_events.insert(broadcast_events.end(),
+                                std::make_move_iterator(other.broadcast_events.begin()),
+                                std::make_move_iterator(other.broadcast_events.end()));
         return *this;
     }
 };

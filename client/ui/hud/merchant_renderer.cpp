@@ -1,5 +1,6 @@
 #include "merchant_renderer.h"
 
+#include <algorithm>
 #include <stdexcept>
 #include <string>
 
