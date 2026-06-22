@@ -77,6 +77,34 @@ void PlayerSessionService::append_existing_entities(std::vector<ServerEvent>& ev
     events.insert(events.end(), items.begin(), items.end());
 }
 
+CommandResult PlayerSessionService::build_session_enter_events(const Player& p) const {
+    EntitySpawnEvent spawn = EntityEventFactory::make_entity_spawn(p);
+    std::vector<ServerEvent> private_events;
+
+    InventoryUpdateEvent inv_event{p.dump_inventory()};
+    private_events.push_back(inv_event);
+
+    EquipUpdateEvent equip_ev = EntityEventFactory::make_equip_update(p.get_id(), p);
+    private_events.push_back(equip_ev);
+
+    private_events.push_back(make_player_stats_event(p));
+
+    if (p.get_current_map() != balance_.starting_map) {
+        private_events.push_back(MapTransitionEvent{
+                .map_name = p.get_current_map(),
+                .pos_x = p.pos_x(),
+                .pos_y = p.pos_y(),
+        });
+    }
+
+    append_existing_entities(private_events, p.get_id(), p.get_current_map());
+
+    CommandResult result;
+    result.private_events = std::move(private_events);
+    result.map_events = {spawn};
+    return result;
+}
+
 CommandResult PlayerSessionService::handle_login(uint16_t player_id, const LoginCmd& cmd) {
     PlayerRecord rec;
 
@@ -107,34 +135,10 @@ CommandResult PlayerSessionService::handle_login(uint16_t player_id, const Login
         player_name_index_[it->second.get_name()] = player_id;
         const Player& p = it->second;
 
-        EntitySpawnEvent spawn = EntityEventFactory::make_entity_spawn(p);
-        std::vector<ServerEvent> private_events = {make_login_ok(p)};
-
-        // Send inventory after login
-        InventoryUpdateEvent inv_event{p.dump_inventory()};
-        private_events.push_back(inv_event);
-
-        // Send equipment state after login
-        EquipUpdateEvent equip_ev = EntityEventFactory::make_equip_update(player_id, p);
-        private_events.push_back(equip_ev);
-
-        private_events.push_back(make_player_stats_event(p));
-
-        if (p.get_current_map() != balance_.starting_map) {
-            private_events.push_back(MapTransitionEvent{
-                    .map_name = p.get_current_map(),
-                    .pos_x = p.pos_x(),
-                    .pos_y = p.pos_y(),
-            });
-        }
-
-        append_existing_entities(private_events, p.get_id(), p.get_current_map());
+        CommandResult login_result = build_session_enter_events(p);
+        login_result.private_events.insert(login_result.private_events.begin(), make_login_ok(p));
 
         // Notify clan members of login
-        CommandResult login_result;
-        login_result.private_events = std::move(private_events);
-        login_result.map_events = {spawn};
-
         if (!clan_name.empty()) {
             ClanNotificationEvent notif{ClanNotifType::MEMBER_ONLINE, cmd.username, clan_name};
             auto clan_result = clan_handler_.notify_clan_members(clan_name, notif, player_id);
@@ -208,30 +212,8 @@ CommandResult PlayerSessionService::handle_create_character(uint16_t player_id,
     const Player& p = it->second;
 
     CharacterCreatedEvent created{make_login_ok(p)};
-    EntitySpawnEvent spawn = EntityEventFactory::make_entity_spawn(p);
-    std::vector<ServerEvent> private_events = {created};
-
-    InventoryUpdateEvent inv_event{p.dump_inventory()};
-    private_events.push_back(inv_event);
-
-    EquipUpdateEvent equip_ev = EntityEventFactory::make_equip_update(player_id, p);
-    private_events.push_back(equip_ev);
-
-    private_events.push_back(make_player_stats_event(p));
-
-    if (p.get_current_map() != balance_.starting_map) {
-        private_events.push_back(MapTransitionEvent{
-                .map_name = p.get_current_map(),
-                .pos_x = p.pos_x(),
-                .pos_y = p.pos_y(),
-        });
-    }
-
-    append_existing_entities(private_events, p.get_id(), p.get_current_map());
-
-    CommandResult r;
-    r.private_events = std::move(private_events);
-    r.map_events = {spawn};
+    CommandResult r = build_session_enter_events(p);
+    r.private_events.insert(r.private_events.begin(), created);
     return r;
 }
 
