@@ -7,8 +7,6 @@
 #include <string>
 #include <tuple>
 #include <unordered_map>
-#include <utility>
-#include <variant>
 #include <vector>
 
 #include "../../common/messages.h"
@@ -24,7 +22,13 @@
 #include "map.h"
 #include "player.h"
 #include "player_data_service.h"
-#include "prop_grid.h"
+#include "services/bank_service.h"
+#include "services/cheat_service.h"
+#include "services/ground_item_service.h"
+#include "services/map_transition_service.h"
+#include "services/merchant_service.h"
+#include "services/player_session_service.h"
+#include "services/spawn_service.h"
 
 class Game {
 private:
@@ -43,22 +47,25 @@ private:
     MobSpawnConfig mob_spawn;
     const ItemCatalog& item_catalog;
     Rng rng;
+    std::map<uint16_t, EnemyNpc> enemy_npcs;
+    std::vector<NpcTemplate> world_npc_templates;
+    std::vector<NpcTemplate> dungeon_npc_templates;
+    uint16_t next_npc_id;
+    uint32_t mob_spawn_tick = 0;
     CombatController combat_controller;
+    BankService bank_service;
+    MerchantService merchant_service;
+    SpawnService spawn_service;
+    GroundItemService ground_item_service;
+    MapTransitionService map_transition_service;
+    PlayerSessionService player_session_service;
+    CheatService cheat_service;
     uint32_t tick_count = 0;
     int tick_rate_hz;
     bool cheats_enabled;
     std::vector<std::string> help_lines;
     std::unordered_map<uint16_t, double> hp_regen_accum;
     std::unordered_map<uint16_t, double> mana_regen_accum;
-    std::map<uint16_t, EnemyNpc> enemy_npcs;
-    std::vector<NpcTemplate> world_npc_templates;
-    std::vector<NpcTemplate> dungeon_npc_templates;
-    uint16_t next_npc_id;
-    uint32_t mob_spawn_tick = 0;
-
-    // mapa -> celda (tile_x, tile_y) -> lista de items tirados en el piso
-    std::map<std::string, std::map<std::pair<int, int>, std::vector<ItemDroppedEvent>>>
-            ground_items;
 
     struct PendingResurrection {
         uint32_t remaining_ticks;
@@ -69,57 +76,19 @@ private:
 
     CommandResult apply_regen();
     CommandResult process_pending_resurrections();
-    CommandResult spawn_mobs();
-    EnemyNpc create_random_npc(Position pos, uint8_t level, bool dungeon);
 
-    CommandResult handle_login(uint16_t player_id, const LoginCmd& cmd);
-    CommandResult handle_create_character(uint16_t player_id, const CreateCharacterCmd& cmd);
     CommandResult handle_move(uint16_t player_id, const MoveCmd& cmd);
     CommandResult handle_attack(uint16_t player_id, const AttackCmd& cmd);
     CommandResult handle_cast_spell(uint16_t player_id, const CastSpellCmd& cmd);
     CommandResult handle_send_chat_msg(uint16_t player_id, const SendChatMsgCmd& cmd);
-    CommandResult handle_cheat_infinite_hp(uint16_t player_id);
-    CommandResult handle_cheat_infinite_mana(uint16_t player_id);
-    CommandResult handle_cheat_die(uint16_t player_id);
-    CommandResult handle_cheat_level_up(uint16_t player_id);
-    CommandResult handle_cheat_level_down(uint16_t player_id);
-    CommandResult handle_cheat_add_gold(uint16_t player_id);
-    CommandResult handle_cheat_reset_gold(uint16_t player_id);
-    CommandResult handle_cheat_velocity(uint16_t player_id);
-    CommandResult handle_cheat_revive(uint16_t player_id);
-    CommandResult handle_cheat_fill_inventory(uint16_t player_id);
-    CommandResult handle_cheat_clear_inventory(uint16_t player_id);
-    CommandResult handle_cheat_reset_mana(uint16_t player_id);
-    CommandResult handle_help();
-    CommandResult handle_change_map(uint16_t player_id, const ChangeMapCmd& cmd);
     CommandResult handle_resurrect(uint16_t player_id);
     CommandResult handle_meditate(uint16_t player_id);
     CommandResult handle_equip(uint16_t player_id, const EquipItemCmd& cmd);
     CommandResult handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd);
     CommandResult handle_npc_heal(uint16_t player_id);
-    CommandResult handle_npc_list(uint16_t player_id);
-    CommandResult handle_bank_deposit(uint16_t player_id, const BankDepositCmd& cmd);
-    CommandResult handle_bank_withdraw(uint16_t player_id, const BankWithdrawCmd& cmd);
-    BankUpdateEvent make_bank_update_event(const Player& p) const;
-    CommandResult handle_pickup_item(uint16_t player_id, const PickupItemCmd& cmd);
-    CommandResult handle_drop_item(uint16_t player_id, const DropItemCmd& cmd);
-    static std::pair<int, int> tile_cell(const Map& map, int px, int py);
 
     std::tuple<uint16_t, uint16_t, uint16_t, uint16_t> compute_combat_ranges(const Player& p) const;
     PlayerStatsEvent make_player_stats_event(const Player& p) const;
-    CommandResult handle_npc_buy(uint16_t player_id, const NpcBuyCmd& cmd);
-    CommandResult handle_npc_sell(uint16_t player_id, const NpcSellCmd& cmd);
-
-    struct VendorContext {
-        Player* player;
-        Map* map;
-        int px;
-        int py;
-        int range;
-    };
-    std::variant<VendorContext, CommandResult> resolve_vendor_ctx(uint16_t player_id,
-                                                                  const std::string& item_name,
-                                                                  const std::string& action);
     bool is_username_logged_in(const std::string& username) const;
     std::optional<uint16_t> find_player_id_by_name(const std::string& name) const;
     LoginOkEvent make_login_ok(const Player& p) const;
@@ -128,26 +97,11 @@ private:
     std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id) const;
     std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id,
                                                   const std::string& map_name) const;
-    std::vector<ServerEvent> make_existing_ground_items(const std::string& map_name) const;
     void append_existing_entities(std::vector<ServerEvent>& events, uint16_t exclude_id,
                                   const std::string& map_name) const;
-    void commit_ground_drops(CommandResult& result,
-                             const std::map<std::string, std::vector<ItemDroppedEvent>>& drops);
     Map& player_map(const Player& p);
     const Map& player_map(const Player& p) const;
     bool target_in_safe_zone(uint16_t target_id) const;
-    bool try_map_transition(Player& player, CommandResult& result);
-    void do_transition(Player& player, CommandResult& result, const PropGrid::Entry& entry,
-                       const std::string& old_map_name);
-
-    Position compute_spawn_position(const Map& dest_map, const std::string& old_map_name,
-                                    const PropGrid::Entry& source_entry) const;
-    void despawn_player(CommandResult& result, uint16_t player_id,
-                        const std::string& old_map_name) const;
-    void notify_player_transition(CommandResult& result, const Player& player,
-                                  const std::string& map_name, Position spawn) const;
-    void notify_others_spawn(CommandResult& result, const Player& player,
-                             const std::string& map_name) const;
 
 public:
     std::string get_player_map_name(uint16_t player_id) const;
