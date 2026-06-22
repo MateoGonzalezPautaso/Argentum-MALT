@@ -79,17 +79,37 @@ class ServerProtocol {
   + send_login_ok(ev)
   + send_login_error(ev)
   + send_character_created(ev)
+  + send_character_error(ev)
   + send_player_stats(ev)
   + send_entity_spawn(ev)
   + send_entity_despawn(ev)
   + send_entity_move(ev)
   + send_damage_dealt(ev)
   + send_damage_received(ev)
+  + send_attack_dodged(ev)
   + send_entity_died(ev)
+  + send_player_respawned(ev)
+  + send_meditation_start()
+  + send_meditation_stop()
+  + send_inventory_update(ev)
+  + send_equip_update(ev)
+  + send_gold_update(ev)
+  + send_item_dropped(ev)
+  + send_item_picked(ev)
+  + send_npc_item_list(ev)
+  + send_bank_update(ev)
+  + send_chat_msg(ev)
+  + send_clan_notification(ev)
+  + send_clan_update(ev)
+  + send_map_transition(ev)
+  + send_heal_received(ev)
+  + send_spell_effect(ev)
   + send_event(ev)
   + recv_command()
   + shutdown_from_other_thread()
+  - send_login_payload(ev)
   - recv_login()
+  - recv_create_character()
   - recv_move()
   - recv_attack()
   - recv_send_chat_msg()
@@ -157,6 +177,7 @@ class GameLoop {
   - ClientListMonitor& monitor
   + GameLoop(config, input_queue, monitor, ...)
   + run()
+  - dispatch(result, origin)
 }
 Thread <|-- GameLoop : <<extends>>
 
@@ -165,9 +186,10 @@ Thread <|-- GameLoop : <<extends>>
 ' ============================================================
 class Game {
   - map<uint16_t, Player> players
+  - unordered_map<string, uint16_t> player_name_index_
   - map<uint16_t, EnemyNpc> enemy_npcs
   - ClanManager clan_manager
-  - map<string, Map> maps
+  - unordered_map<string, Map> maps
   - CombatController combat_controller
   - BankService bank_service
   - MerchantService merchant_service
@@ -176,19 +198,32 @@ class Game {
   - MapTransitionService map_transition_service
   - PlayerSessionService player_session_service
   - CheatService cheat_service
+  - ClanCommandHandler clan_handler
+  - RNG rng
+  - vector<NpcTemplate> world_npc_templates, dungeon_npc_templates
+  - uint64_t tick_count
+  - ... (config cacheado, contadores de regen/spawn, pending_resurrections_)
   + Game(config, player_data_service, clan_persistence)
   + process_command(player_id, cmd)
   + remove_player(player_id)
   + tick()
   + save_all_players()
+  + get_player_map_name(player_id)
+  + get_player_ids_on_map(map_name)
   - handle_move(player_id, cmd)
   - handle_attack(player_id, cmd)
+  - handle_cast_spell(player_id, cmd)
   - handle_send_chat_msg(player_id, cmd)
   - handle_resurrect(player_id)
   - handle_meditate(player_id)
   - handle_equip(player_id, cmd)
   - handle_unequip(player_id, cmd)
   - handle_npc_heal(player_id)
+  - apply_regen(...)
+  - process_pending_resurrections(...)
+  - find_player_id_by_name(name)
+  - target_in_safe_zone(...)
+  - collides_with_entities(...)
 }
 
 struct CommandResult {
@@ -198,9 +233,15 @@ struct CommandResult {
   + vector<ServerEvent> map_events
   + map<string, vector<ItemDroppedEvent>> ground_drops
   + merge(other)
+  + {static} with_msg(text)
 }
 
 Game ..> CommandResult : <<produce>>
+note bottom of Game
+  Lista de atributos/métodos no exhaustiva
+  (Game es la clase más grande del servidor).
+  Ver server/game/game.h para el detalle completo.
+end note
 
 ' ============================================================
 ' Network por cliente
@@ -237,9 +278,8 @@ class ClientListMonitor {
   + add(socket, input_queue)
   + push_event(player_id, event)
   + broadcast(event)
-  + clean_dead()
+  + clean_dead(): vector<uint16_t>
   + stop_all()
-  + is_empty()
 }
 ClientListMonitor o-- ClientHandler : <<contiene>>
 
