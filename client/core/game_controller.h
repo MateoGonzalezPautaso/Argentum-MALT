@@ -60,6 +60,9 @@ private:
     ServerEventHandler event_handler_;
 
     bool handle_mouse_button(const SDL_Event& event);
+    bool try_handle_ui_click(const SDL_Event& event);
+    bool try_handle_inventory_click(const SDL_Event& event);
+    bool try_handle_world_click(const SDL_Event& event);
     bool handle_mouse_motion(const SDL_Event& event);
     bool handle_keydown(const SDL_Event& event);
     void flush_pending_chat();

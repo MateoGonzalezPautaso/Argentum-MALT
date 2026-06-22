@@ -160,14 +160,24 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
     if (merchant_controller->is_open())
         return merchant_controller->handle_mouse_button(event);
 
-    if (event.button.button == SDL_BUTTON_LEFT &&
-        ui_renderer.is_audio_hit(event.button.x, event.button.y)) {
+    if (try_handle_ui_click(event))
+        return true;
+
+    if (try_handle_inventory_click(event))
+        return true;
+
+    return try_handle_world_click(event);
+}
+
+bool GameController::try_handle_ui_click(const SDL_Event& event) {
+    const bool left = event.button.button == SDL_BUTTON_LEFT;
+
+    if (left && ui_renderer.is_audio_hit(event.button.x, event.button.y)) {
         audio_manager.set_muted(!audio_manager.is_muted());
         return true;
     }
 
-    if (event.button.button == SDL_BUTTON_LEFT &&
-        ui_renderer.is_expand_hit(event.button.x, event.button.y)) {
+    if (left && ui_renderer.is_expand_hit(event.button.x, event.button.y)) {
         chat_expanded_ = !chat_expanded_;
         ui_renderer.set_chat_expanded(chat_expanded_);
         if (chat_expanded_ && !chat_input.is_focused())
@@ -182,52 +192,57 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
         ui_renderer.set_chat_expanded(false);
     }
 
-    if (chat_input.is_focused()) {
+    return chat_input.is_focused();
+}
+
+bool GameController::try_handle_inventory_click(const SDL_Event& event) {
+    if (event.button.button != SDL_BUTTON_LEFT)
+        return false;
+
+    const int potion = ui_renderer.get_hovered_potion();
+    if (potion > 0) {
+        const int slot = (potion == 1) ? ui_renderer.get_first_hp_potion_slot()
+                                       : ui_renderer.get_first_mana_potion_slot();
+        if (slot >= 0)
+            command_queue.push(EquipItemCmd{static_cast<uint8_t>(slot)});
         return true;
     }
 
-    if (event.button.button == SDL_BUTTON_LEFT) {
-        int potion = ui_renderer.get_hovered_potion();
-        if (potion > 0) {
-            int slot = (potion == 1) ? ui_renderer.get_first_hp_potion_slot()
-                                     : ui_renderer.get_first_mana_potion_slot();
-            if (slot >= 0)
-                command_queue.push(EquipItemCmd{static_cast<uint8_t>(slot)});
-            return true;
-        }
+    if (!ui_renderer.is_hovering_occupied())
+        return false;
 
-        if (ui_renderer.is_hovering_occupied()) {
-            int idx = ui_renderer.get_hovered_inv_slot();
-            if (idx >= 0) {
-                command_queue.push(EquipItemCmd{static_cast<uint8_t>(idx)});
-                return true;
-            }
-            int eq = ui_renderer.get_hovered_equip_slot();
-            if (eq >= 0) {
-                command_queue.push(UnequipItemCmd{static_cast<EquipSlot>(eq)});
-                return true;
-            }
-        }
-    }
-
-    int world_x = 0;
-    int world_y = 0;
-    if (!world_renderer.screen_to_world(event.button.x, event.button.y, world_x, world_y)) {
+    const int idx = ui_renderer.get_hovered_inv_slot();
+    if (idx >= 0) {
+        command_queue.push(EquipItemCmd{static_cast<uint8_t>(idx)});
         return true;
     }
+    const int eq = ui_renderer.get_hovered_equip_slot();
+    if (eq >= 0) {
+        command_queue.push(UnequipItemCmd{static_cast<EquipSlot>(eq)});
+        return true;
+    }
+    return false;
+}
+
+bool GameController::try_handle_world_click(const SDL_Event& event) {
+    int world_x = 0, world_y = 0;
+    if (!world_renderer.screen_to_world(event.button.x, event.button.y, world_x, world_y))
+        return true;
+
+    const bool left = event.button.button == SDL_BUTTON_LEFT;
+    const bool right = event.button.button == SDL_BUTTON_RIGHT;
 
     if (!player_is_ghost) {
         uint16_t entity_id = 0;
         if (world_renderer.sprites().hit_test_entity(world_x, world_y, entity_id)) {
-            if (event.button.button == SDL_BUTTON_RIGHT) {
+            if (right)
                 command_queue.push(CastSpellCmd{entity_id});
-            } else {
+            else
                 command_queue.push(AttackCmd{entity_id});
-            }
             return true;
         }
 
-        if (event.button.button == SDL_BUTTON_RIGHT) {
+        if (right) {
             int sx, sy;
             if (world_renderer.sprites().get_movable_position(sx, sy)) {
                 SDL2pp::Rect self_rect(sx, sy, world_renderer.sprites().movable_w(),
@@ -239,7 +254,7 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
             }
         }
 
-        if (event.button.button == SDL_BUTTON_LEFT) {
+        if (left) {
             std::string prop_name;
             if (world_renderer.hit_test_prop(world_x, world_y, prop_name)) {
                 interact_with_prop(prop_name, world_x, world_y);
@@ -248,9 +263,8 @@ bool GameController::handle_mouse_button(const SDL_Event& event) {
         }
     }
 
-    if (event.button.button == SDL_BUTTON_LEFT) {
+    if (left)
         move_controller.set_move_target(world_x, world_y);
-    }
     return true;
 }
 
