@@ -5,6 +5,8 @@
 #include <variant>
 #include <vector>
 
+#include "../prop_names.h"
+
 namespace {
 
 bool vendor_sells(const VendorsConfig& vendors, const std::string& vendor, ItemType type) {
@@ -75,8 +77,10 @@ CommandResult MerchantService::handle_npc_list(uint16_t player_id) {
     const int px = static_cast<int>(player.pos_x());
     const int py = static_cast<int>(player.pos_y());
 
-    const bool near_comerciante = map.prop_grid().is_in_range_of("comerciante", px, py, range);
-    const bool near_sacerdote = map.prop_grid().is_in_range_of("sacerdote", px, py, range);
+    const bool near_comerciante =
+            map.prop_grid().is_in_range_of(std::string(PropNames::MERCHANT), px, py, range);
+    const bool near_sacerdote =
+            map.prop_grid().is_in_range_of(std::string(PropNames::PRIEST), px, py, range);
     const bool near_banquero = map.prop_grid().is_in_range_of("banquero", px, py, range);
 
     if (near_banquero && !near_comerciante && !near_sacerdote) {
@@ -89,7 +93,8 @@ CommandResult MerchantService::handle_npc_list(uint16_t player_id) {
         return {.private_events = {msg}};
     }
 
-    const std::string vendor_name = near_comerciante ? "comerciante" : "sacerdote";
+    const std::string vendor_name =
+            near_comerciante ? std::string(PropNames::MERCHANT) : std::string(PropNames::PRIEST);
 
     std::vector<NpcItemEntry> items;
     for (const auto& item: item_catalog_.all()) {
@@ -108,10 +113,10 @@ CommandResult MerchantService::handle_npc_buy(uint16_t player_id, const NpcBuyCm
     VendorContext ctx = std::get<VendorContext>(ctx_or_err);
     Player& player = *ctx.player;
 
-    const bool near_sacerdote =
-            ctx.map->prop_grid().is_in_range_of("sacerdote", ctx.px, ctx.py, ctx.range);
-    const bool near_comerciante =
-            ctx.map->prop_grid().is_in_range_of("comerciante", ctx.px, ctx.py, ctx.range);
+    const bool near_sacerdote = ctx.map->prop_grid().is_in_range_of(std::string(PropNames::PRIEST),
+                                                                    ctx.px, ctx.py, ctx.range);
+    const bool near_comerciante = ctx.map->prop_grid().is_in_range_of(
+            std::string(PropNames::MERCHANT), ctx.px, ctx.py, ctx.range);
 
     if (!near_sacerdote && !near_comerciante) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un sacerdote ni un comerciante cerca"};
@@ -126,9 +131,11 @@ CommandResult MerchantService::handle_npc_buy(uint16_t player_id, const NpcBuyCm
     }
 
     const VendorsConfig& vendors = balance_.vendors;
-    const bool sacerdote_sells = near_sacerdote && vendor_sells(vendors, "sacerdote", found->type);
+    const bool sacerdote_sells =
+            near_sacerdote && vendor_sells(vendors, std::string(PropNames::PRIEST), found->type);
     const bool comerciante_sells =
-            near_comerciante && vendor_sells(vendors, "comerciante", found->type);
+            near_comerciante &&
+            vendor_sells(vendors, std::string(PropNames::MERCHANT), found->type);
 
     if (found->price == 0 || (!sacerdote_sells && !comerciante_sells)) {
         std::string vendor_label;
@@ -174,7 +181,8 @@ CommandResult MerchantService::handle_npc_sell(uint16_t player_id, const NpcSell
     VendorContext ctx = std::get<VendorContext>(ctx_or_err);
     Player& player = *ctx.player;
 
-    if (!ctx.map->prop_grid().is_in_range_of("comerciante", ctx.px, ctx.py, ctx.range)) {
+    if (!ctx.map->prop_grid().is_in_range_of(std::string(PropNames::MERCHANT), ctx.px, ctx.py,
+                                             ctx.range)) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un comerciante cerca"};
         return {.private_events = {msg}};
     }
@@ -185,7 +193,7 @@ CommandResult MerchantService::handle_npc_sell(uint16_t player_id, const NpcSell
         return {.private_events = {msg}};
     }
 
-    if (!vendor_sells(balance_.vendors, "comerciante", item_def->type)) {
+    if (!vendor_sells(balance_.vendors, std::string(PropNames::MERCHANT), item_def->type)) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El comerciante no compra ese tipo de objeto"};
         return {.private_events = {msg}};
     }

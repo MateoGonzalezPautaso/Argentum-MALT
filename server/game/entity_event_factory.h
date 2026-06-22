@@ -12,6 +12,7 @@ namespace EntityEventFactory {
 
 EntitySpawnEvent make_entity_spawn(const Player& p);
 EntitySpawnEvent make_npc_spawn(const EnemyNpc& npc, uint16_t npc_id);
+EquipUpdateEvent make_equip_update(uint16_t player_id, const Player& p);
 
 }  // namespace EntityEventFactory
 

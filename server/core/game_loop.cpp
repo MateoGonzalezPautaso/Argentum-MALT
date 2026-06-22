@@ -13,6 +13,23 @@ GameLoop::GameLoop(const ServerConfig& config, Queue<PlayerCommand>& input_queue
         input_queue(input_queue),
         monitor(monitor) {}
 
+void GameLoop::dispatch(const CommandResult& result, std::optional<uint16_t> origin) {
+    for (const auto& [target_id, events]: result.targeted_events)
+        for (const ServerEvent& ev: events) monitor.push_event(target_id, ev);
+
+    for (const ServerEvent& ev: result.broadcast_events) monitor.broadcast(ev);
+
+    if (!origin)
+        return;  // sin originador no hay a quién enviar private_events ni mapa que resolver
+
+    for (const ServerEvent& ev: result.private_events) monitor.push_event(*origin, ev);
+
+    std::string origin_map = game.get_player_map_name(*origin);
+    for (uint16_t pid: game.get_player_ids_on_map(origin_map)) {
+        for (const ServerEvent& ev: result.map_events) monitor.push_event(pid, ev);
+    }
+}
+
 void GameLoop::run() {
     using std::chrono::milliseconds;
     using std::chrono::steady_clock;
@@ -30,20 +47,7 @@ void GameLoop::run() {
 
             while (input_queue.try_pop(pcmd)) {
                 CommandResult result = game.process_command(pcmd.player_id, pcmd.cmd);
-
-                for (const ServerEvent& ev: result.private_events)
-                    monitor.push_event(pcmd.player_id, ev);
-
-                for (const auto& [target_id, events]: result.targeted_events)
-                    for (const ServerEvent& ev: events) monitor.push_event(target_id, ev);
-
-                for (const ServerEvent& ev: result.broadcast_events) monitor.broadcast(ev);
-
-                // Send map_events to all players on the same map as the command originator
-                std::string origin_map = game.get_player_map_name(pcmd.player_id);
-                for (uint16_t pid: game.get_player_ids_on_map(origin_map)) {
-                    for (const ServerEvent& ev: result.map_events) monitor.push_event(pid, ev);
-                }
+                dispatch(result, pcmd.player_id);
             }
         } catch (const ClosedQueue&) {
             break;
@@ -51,17 +55,12 @@ void GameLoop::run() {
 
         // Tick game
         CommandResult tick_result = game.tick();
-        for (const auto& [target_id, events]: tick_result.targeted_events)
-            for (const ServerEvent& ev: events) monitor.push_event(target_id, ev);
-        for (const ServerEvent& ev: tick_result.broadcast_events) monitor.broadcast(ev);
-        // tick_result.map_events has no originator, skip for now
+        dispatch(tick_result, std::nullopt);
 
         // Remove clients whose sender/receiver threads have exited
         for (uint16_t dead_id: monitor.clean_dead()) {
             CommandResult despawn = game.remove_player(dead_id);
-            for (const auto& [target_id, events]: despawn.targeted_events)
-                for (const ServerEvent& ev: events) monitor.push_event(target_id, ev);
-            for (const ServerEvent& ev: despawn.broadcast_events) monitor.broadcast(ev);
+            dispatch(despawn, std::nullopt);
         }
 
         // If the tick body overran, skip the missed complete ticks

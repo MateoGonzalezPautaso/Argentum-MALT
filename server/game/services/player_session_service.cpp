@@ -115,10 +115,7 @@ CommandResult PlayerSessionService::handle_login(uint16_t player_id, const Login
         private_events.push_back(inv_event);
 
         // Send equipment state after login
-        InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
-        p.dump_equipped(equipped_slots);
-        EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1],
-                                  equipped_slots[2], equipped_slots[3]};
+        EquipUpdateEvent equip_ev = EntityEventFactory::make_equip_update(player_id, p);
         private_events.push_back(equip_ev);
 
         private_events.push_back(make_player_stats_event(p));
@@ -217,10 +214,7 @@ CommandResult PlayerSessionService::handle_create_character(uint16_t player_id,
     InventoryUpdateEvent inv_event{p.dump_inventory()};
     private_events.push_back(inv_event);
 
-    InventorySlot equipped_slots[EQUIP_SLOT_COUNT];
-    p.dump_equipped(equipped_slots);
-    EquipUpdateEvent equip_ev{player_id, equipped_slots[0], equipped_slots[1], equipped_slots[2],
-                              equipped_slots[3]};
+    EquipUpdateEvent equip_ev = EntityEventFactory::make_equip_update(player_id, p);
     private_events.push_back(equip_ev);
 
     private_events.push_back(make_player_stats_event(p));

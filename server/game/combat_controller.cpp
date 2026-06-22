@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "clan_manager.h"
+#include "entity_event_factory.h"
 #include "game_formulas.h"
 #include "player_registry.h"
 
@@ -311,10 +312,7 @@ void CombatController::drop_inventory_on_death(
     target.clear_equipped();
 
     target_events.push_back(InventoryUpdateEvent{target.dump_inventory()});
-    target_events.push_back(EquipUpdateEvent{
-            target.get_id(), target.get_equipped(EquipSlot::WEAPON),
-            target.get_equipped(EquipSlot::ARMOR), target.get_equipped(EquipSlot::HELMET),
-            target.get_equipped(EquipSlot::SHIELD)});
+    target_events.push_back(EntityEventFactory::make_equip_update(target.get_id(), target));
 }
 
 CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
