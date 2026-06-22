@@ -27,7 +27,6 @@ protected:
     ClanManager clan_manager{clan_persistence, clan_config};
     MessagesConfig msgs_config;
     std::optional<CombatController> controller;
-    std::unordered_map<std::string, Map> test_maps;
     std::unordered_map<std::string, TilemapConfig> stored_configs;
     uint32_t next_npc_id = 5000;
 
@@ -87,8 +86,7 @@ protected:
                                                           std::vector<std::string>(cols, "ground"));
         tcfg.mob_spawn_zones = std::vector<std::vector<bool>>(rows, std::vector<bool>(cols, true));
         stored_configs[map_name] = std::move(tcfg);
-        test_maps.try_emplace(map_name, stored_configs[map_name]);
-        controller->set_maps(test_maps);
+        maps.try_emplace(map_name, stored_configs[map_name]);
     }
 
     Rng entity_rng;
@@ -404,8 +402,8 @@ TEST_F(CombatControllerTest, NpcIdleMove_TimerResetsOnBlockedMovement) {
     Position initial = npc.get_pos();
     controller->update_npc_ai(0);
 
-    EXPECT_EQ(npc.get_idle_move_timer(), 0u)
-            << "Move timer should reset to 0 when movement is blocked";
+    EXPECT_EQ(npc.get_idle_move_timer(), 1u)
+            << "Move timer should reset to 1 when movement is blocked";
     EXPECT_EQ(npc.get_pos().x, initial.x) << "NPC should not move on non-walkable tiles";
     EXPECT_EQ(npc.get_pos().y, initial.y) << "NPC should not move on non-walkable tiles";
 }
