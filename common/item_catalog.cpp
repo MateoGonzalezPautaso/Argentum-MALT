@@ -108,6 +108,7 @@ void ItemCatalog::load_from_file(const std::string& path) {
                 static_cast<uint8_t>(toml_get_int(*tbl, "restore_mana_percent", 0));
         item.price = static_cast<uint32_t>(toml_get_int(*tbl, "price", 0));
         item.attack_range = static_cast<uint16_t>(toml_get_int(*tbl, "attack_range", 0));
+        item.self_heal = (*tbl)["self_heal"].value_or(false);
 
         add(item);
     }

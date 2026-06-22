@@ -53,6 +53,7 @@ mana_cost = 100
 min_defense = 0
 max_defense = 0
 price = 200
+self_heal = true
 
 [[item]]
 item_type = "KNOTTED_STAFF"

@@ -23,6 +23,7 @@
 #include "services/regen_service.h"
 #include "services/resurrection_service.h"
 #include "services/spawn_service.h"
+#include "services/spell_service.h"
 
 #include "clan_command_handler.h"
 #include "clan_manager.h"
@@ -67,6 +68,7 @@ private:
     ResurrectionService resurrection_service_;
     MovementService movement_service_;
     RegenService regen_service_;
+    SpellService spell_service_;
     uint32_t tick_count = 0;
     int tick_rate_hz;
     bool cheats_enabled;
@@ -75,7 +77,6 @@ private:
     std::unordered_map<uint16_t, double> mana_regen_accum;
 
     CommandResult handle_attack(uint16_t player_id, const AttackCmd& cmd);
-    CommandResult handle_cast_spell(uint16_t player_id, const CastSpellCmd& cmd);
     CommandResult handle_send_chat_msg(uint16_t player_id, const SendChatMsgCmd& cmd);
     CommandResult handle_meditate(uint16_t player_id);
     CommandResult handle_equip(uint16_t player_id, const EquipItemCmd& cmd);
@@ -92,7 +93,6 @@ private:
     Map& player_map(const Player& p);
     const Map& player_map(const Player& p) const;
     bool target_in_safe_zone(uint16_t target_id) const;
-    std::optional<CommandResult> validate_cast(const Player& player, const CastSpellCmd& cmd) const;
 
 public:
     std::string get_player_map_name(uint16_t player_id) const;

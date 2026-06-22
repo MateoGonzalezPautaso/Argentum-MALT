@@ -12,7 +12,6 @@
 #include "../../common/visit.h"
 
 #include "entity_event_factory.h"
-#include "game_formulas.h"
 #include "player_registry.h"
 #include "prop_names.h"
 
@@ -67,6 +66,8 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
                           map_transition_service),
         regen_service_(players, config.balance, config.tick_rate_hz,
                        hp_regen_accum, mana_regen_accum),
+        spell_service_(players, enemy_npcs, maps, config.item_catalog, combat_controller,
+                       ground_item_service, config.balance, config.messages),
         tick_rate_hz(config.tick_rate_hz),
         cheats_enabled(config.cheats_enabled),
         help_lines(config.help_lines) {
@@ -168,7 +169,7 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const CheatResetManaCmd&) {
                         return cheat_service.dispatch_cheat_reset_mana(player_id);
                     },
-                    [&](const CastSpellCmd& cmd) { return handle_cast_spell(player_id, cmd); },
+                    [&](const CastSpellCmd& cmd) { return spell_service_.handle_cast_spell(player_id, cmd, tick_count); },
                     [&](const ChangeMapCmd& cmd) {
                         return map_transition_service.handle_change_map(player_id, cmd);
                     },
@@ -261,87 +262,6 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
 
     // Convert combat broadcasts to per-map events
     result.map_events = std::move(result.broadcast_events);
-    return result;
-}
-
-std::optional<CommandResult> Game::validate_cast(const Player& player, const CastSpellCmd&) const {
-    if (player.get_player_class() == PlayerClass::WARRIOR) {
-        return CommandResult::with_msg(msgs_.warrior_no_magic);
-    }
-
-    const InventorySlot& weapon_slot = player.get_equipped(EquipSlot::WEAPON);
-    if (weapon_slot.item_type == ItemType::NONE) {
-        return CommandResult::with_msg(msgs_.no_weapon_equipped);
-    }
-
-    const Item* item = item_catalog.find(weapon_slot.item_type);
-    if (!item || item->mana_consumed == 0) {
-        return CommandResult::with_msg(msgs_.weapon_not_magic);
-    }
-
-    if (player.get_mana_current() < item->mana_consumed) {
-        return CommandResult::with_msg(msgs_.insufficient_mana);
-    }
-
-    const Map& map = player_map(player);
-    if (map.is_safe_zone(player.pos_x(), player.pos_y())) {
-        return CommandResult::with_msg(msgs_.spell_safe_zone);
-    }
-
-    return std::nullopt;
-}
-
-CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cmd) {
-    auto it = players.find(player_id);
-    if (it == players.end())
-        return {};
-    Player& player = it->second;
-    if (player.is_dead())
-        return {};
-
-    if (auto rejection = validate_cast(player, cmd))
-        return *rejection;
-
-    const InventorySlot& weapon_slot = player.get_equipped(EquipSlot::WEAPON);
-    const Item* item = item_catalog.find(weapon_slot.item_type);
-
-    player.use_mana(item->mana_consumed);
-    player.set_meditating(false);
-
-    if (weapon_slot.item_type == ItemType::ELVEN_FLUTE) {
-        uint32_t heal_amount = GameFormulas::spell_self_heal(player.get_hp_max());
-        player.heal(heal_amount);
-        HealReceivedEvent heal_ev{player_id, player.get_hp_current(), player.get_mana_current()};
-        PlayerStatsEvent stats = make_player_stats_event(player);
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.self_heal_success};
-        DamageDealtEvent spell_ev{player_id, 0};
-        SpellEffectEvent effect_ev{player_id, 0};
-        return {.private_events = {msg, heal_ev, stats, spell_ev},
-                .broadcast_events = {},
-                .targeted_events = {},
-                .map_events = {effect_ev}};
-    }
-
-    if (cmd.target_id == player_id) {
-        return CommandResult::with_msg(msgs_.attack_self);
-    }
-
-    if (target_in_safe_zone(cmd.target_id)) {
-        return CommandResult::with_msg(msgs_.spell_safe_zone);
-    }
-
-    CommandResult result;
-    auto target_it = enemy_npcs.find(cmd.target_id);
-    if (target_it == enemy_npcs.end())
-        result = combat_controller.spell_attack_player(player_id, cmd.target_id, tick_count);
-    else
-        result = combat_controller.spell_attack_npc(player_id, cmd.target_id, tick_count);
-    ground_item_service.commit_ground_drops(result, result.ground_drops);
-    result.map_events = std::move(result.broadcast_events);
-    uint8_t effect_type = item->spell_effect_id;
-    if (effect_type == 0)
-        effect_type = balance.default_spell_effect_id;
-    result.map_events.push_back(SpellEffectEvent{cmd.target_id, effect_type});
     return result;
 }
 
