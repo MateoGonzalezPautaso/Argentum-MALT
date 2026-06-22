@@ -35,13 +35,11 @@ std::variant<MerchantService::VendorContext, CommandResult> MerchantService::res
     Player& player = it->second;
 
     if (player.is_dead()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden " + action};
-        return CommandResult{.private_events = {msg}};
+        return CommandResult::with_msg("Los fantasmas no pueden " + action);
     }
 
     if (item_name.empty()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Uso: /" + action + " <nombre del objeto>"};
-        return CommandResult{.private_events = {msg}};
+        return CommandResult::with_msg("Uso: /" + action + " <nombre del objeto>");
     }
 
     auto map_it = maps_.find(player.get_current_map());
@@ -64,8 +62,7 @@ CommandResult MerchantService::handle_npc_list(uint16_t player_id) {
     const Player& player = it->second;
 
     if (player.is_dead()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden listar"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("Los fantasmas no pueden listar");
     }
 
     auto map_it = maps_.find(player.get_current_map());
@@ -88,9 +85,7 @@ CommandResult MerchantService::handle_npc_list(uint16_t player_id) {
     }
 
     if (!near_comerciante && !near_sacerdote) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                         "No hay un comerciante, sacerdote ni banquero cerca"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("No hay un comerciante, sacerdote ni banquero cerca");
     }
 
     const std::string vendor_name =
@@ -119,15 +114,13 @@ CommandResult MerchantService::handle_npc_buy(uint16_t player_id, const NpcBuyCm
             std::string(PropNames::MERCHANT), ctx.px, ctx.py, ctx.range);
 
     if (!near_sacerdote && !near_comerciante) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un sacerdote ni un comerciante cerca"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("No hay un sacerdote ni un comerciante cerca");
     }
 
     const Item* found = item_catalog_.find_by_name(item_name);
 
     if (!found) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Objeto '" + item_name + "' no encontrado"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("Objeto '" + item_name + "' no encontrado");
     }
 
     const VendorsConfig& vendors = balance_.vendors;
@@ -146,23 +139,19 @@ CommandResult MerchantService::handle_npc_buy(uint16_t player_id, const NpcBuyCm
         } else {
             vendor_label = "El sacerdote";
         }
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", vendor_label + " no vende ese objeto"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg(vendor_label + " no vende ese objeto");
     }
 
     if (player.get_gold() < found->price) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                         "Oro insuficiente. El " + found->name + " cuesta " +
-                                 std::to_string(found->price) + " de oro"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("Oro insuficiente. El " + found->name + " cuesta " +
+                                       std::to_string(found->price) + " de oro");
     }
 
     player.spend_gold(found->price);
 
     if (!player.add_item(found->type, found->name)) {
         player.gain_gold(found->price);
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Inventario lleno"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("Inventario lleno");
     }
 
     InventoryUpdateEvent inv_ev{player.dump_inventory()};
@@ -183,26 +172,21 @@ CommandResult MerchantService::handle_npc_sell(uint16_t player_id, const NpcSell
 
     if (!ctx.map->prop_grid().is_in_range_of(std::string(PropNames::MERCHANT), ctx.px, ctx.py,
                                              ctx.range)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un comerciante cerca"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("No hay un comerciante cerca");
     }
 
     const Item* item_def = item_catalog_.find_by_name(item_name);
     if (!item_def) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Objeto '" + item_name + "' no encontrado"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("Objeto '" + item_name + "' no encontrado");
     }
 
     if (!vendor_sells(balance_.vendors, std::string(PropNames::MERCHANT), item_def->type)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El comerciante no compra ese tipo de objeto"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("El comerciante no compra ese tipo de objeto");
     }
 
     auto slot_opt = player.find_slot_by_type(item_def->type);
     if (!slot_opt) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                         "No tenés '" + item_def->name + "' en el inventario"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("No tenés '" + item_def->name + "' en el inventario");
     }
 
     uint32_t sell_price =

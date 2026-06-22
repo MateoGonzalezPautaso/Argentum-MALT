@@ -377,8 +377,7 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
 
     if (map.is_safe_zone(it->second.pos_x(), it->second.pos_y()) ||
         target_in_safe_zone(cmd.target_id)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar en una zona segura"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("No puedes atacar en una zona segura");
     }
     result = combat_controller.melee_attack(player_id, cmd.target_id, tick_count);
     ground_item_service.commit_ground_drops(result, result.ground_drops);
@@ -390,35 +389,26 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
 
 std::optional<CommandResult> Game::validate_cast(const Player& player, const CastSpellCmd&) const {
     if (player.get_player_class() == PlayerClass::WARRIOR) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los guerreros no pueden usar magia"};
-        return CommandResult{
-                .private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg("Los guerreros no pueden usar magia");
     }
 
     const InventorySlot& weapon_slot = player.get_equipped(EquipSlot::WEAPON);
     if (weapon_slot.item_type == ItemType::NONE) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No tienes un arma equipada"};
-        return CommandResult{
-                .private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg("No tienes un arma equipada");
     }
 
     const Item* item = item_catalog.find(weapon_slot.item_type);
     if (!item || item->mana_consumed == 0) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El arma equipada no es magica"};
-        return CommandResult{
-                .private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg("El arma equipada no es magica");
     }
 
     if (player.get_mana_current() < item->mana_consumed) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Mana insuficiente"};
-        return CommandResult{
-                .private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg("Mana insuficiente");
     }
 
     const Map& map = player_map(player);
     if (map.is_safe_zone(player.pos_x(), player.pos_y())) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes lanzar hechizos en una zona segura"};
-        return CommandResult{.private_events = {msg}};
+        return CommandResult::with_msg("No puedes lanzar hechizos en una zona segura");
     }
 
     return std::nullopt;
@@ -456,13 +446,11 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
     }
 
     if (cmd.target_id == player_id) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacarte a ti mismo"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg("No puedes atacarte a ti mismo");
     }
 
     if (target_in_safe_zone(cmd.target_id)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes lanzar hechizos en una zona segura"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg("No puedes lanzar hechizos en una zona segura");
     }
 
     CommandResult result;
@@ -490,8 +478,7 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         return {};
 
     if (it->second.is_dead()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden interactuar"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg("Los fantasmas no pueden interactuar");
     }
 
     it->second.set_meditating(false);
@@ -514,8 +501,7 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
                         .broadcast_events = {},
                         .targeted_events = std::move(targeted)};
             }
-            ChatMsgEvent err{ChatMsgType::SYSTEM, "", "Jugador " + target_nick + " no encontrado"};
-            return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
+            return CommandResult::with_msg("Jugador " + target_nick + " no encontrado");
         }
     }
 
@@ -530,8 +516,7 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         if (cmd_name == "/help")
             return cheat_service.handle_help();
 
-        ChatMsgEvent ev{ChatMsgType::SYSTEM, "", "Comando " + cmd_name + " no reconocido"};
-        return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg("Comando " + cmd_name + " no reconocido");
     }
 
     ChatMsgEvent broadcast_ev{ChatMsgType::SAY, sender_name, text};
@@ -550,8 +535,7 @@ CommandResult Game::handle_meditate(uint16_t player_id) {
         return {};
 
     if (player.get_player_class() == PlayerClass::WARRIOR) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los guerreros no pueden meditar"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg("Los guerreros no pueden meditar");
     }
 
     if (player.get_is_meditating()) {
@@ -649,13 +633,11 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
 
     Player& player = it->second;
     if (!player.is_dead()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No estás muerto"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("No estás muerto");
     }
 
     if (pending_resurrections_.contains(player_id)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Ya estás resucitando, espera"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("Ya estás resucitando, espera");
     }
 
     const std::string& current_map = player.get_current_map();
@@ -714,11 +696,8 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     pending_resurrections_[player_id] = {wait_ticks, target_map, target_pos};
 
     uint32_t remaining_tiles = wait_ticks / tick_rate_hz;
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     "Resucitando en " + std::to_string(remaining_tiles) +
-                             " segundos... Permanece inmóvil."};
-
-    return {.private_events = {msg}};
+    return CommandResult::with_msg("Resucitando en " + std::to_string(remaining_tiles) +
+                                   " segundos... Permanece inmóvil.");
 }
 
 CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
@@ -782,8 +761,7 @@ CommandResult Game::handle_npc_heal(uint16_t player_id) {
     Player& player = it->second;
 
     if (player.is_dead()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden ser curados"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("Los fantasmas no pueden ser curados");
     }
 
     const std::string& current_map = player.get_current_map();
@@ -796,8 +774,7 @@ CommandResult Game::handle_npc_heal(uint16_t player_id) {
     const int py = static_cast<int>(player.pos_y());
 
     if (!map_it->second.prop_grid().is_in_range_of(std::string(PropNames::PRIEST), px, py, range)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un sacerdote cerca"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("No hay un sacerdote cerca");
     }
 
     player.heal(player.get_hp_max());

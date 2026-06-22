@@ -19,8 +19,7 @@ CommandResult BankService::handle_bank_deposit(uint16_t player_id, const BankDep
     Player& player = it->second;
 
     if (player.is_dead()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden depositar"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("Los fantasmas no pueden depositar");
     }
 
     auto map_it = maps_.find(player.get_current_map());
@@ -33,14 +32,12 @@ CommandResult BankService::handle_bank_deposit(uint16_t player_id, const BankDep
     const int py = static_cast<int>(player.pos_y());
 
     if (!map.prop_grid().is_in_range_of("banquero", px, py, range)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un banquero cerca"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("No hay un banquero cerca");
     }
 
     if (cmd.is_gold) {
         if (cmd.gold_amount == 0 || player.get_gold() < cmd.gold_amount) {
-            ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Oro insuficiente"};
-            return {.private_events = {msg}};
+            return CommandResult::with_msg("Oro insuficiente");
         }
         player.spend_gold(cmd.gold_amount);
         player.add_bank_gold(cmd.gold_amount);
@@ -53,8 +50,7 @@ CommandResult BankService::handle_bank_deposit(uint16_t player_id, const BankDep
 
     const Item* item_def = item_catalog_.find_by_name(cmd.item_name);
     if (!item_def) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Objeto '" + cmd.item_name + "' no encontrado"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("Objeto '" + cmd.item_name + "' no encontrado");
     }
 
     auto slot_opt = player.find_slot_by_type(item_def->type);
@@ -65,8 +61,7 @@ CommandResult BankService::handle_bank_deposit(uint16_t player_id, const BankDep
     }
 
     if (!player.add_to_bank(item_def->type, item_def->name)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El banco está lleno"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("El banco está lleno");
     }
     player.remove_inventory_item(static_cast<uint8_t>(slot_opt->slot_index));
 
@@ -82,8 +77,7 @@ CommandResult BankService::handle_bank_withdraw(uint16_t player_id, const BankWi
     Player& player = it->second;
 
     if (player.is_dead()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden retirar"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("Los fantasmas no pueden retirar");
     }
 
     auto map_it = maps_.find(player.get_current_map());
@@ -96,14 +90,12 @@ CommandResult BankService::handle_bank_withdraw(uint16_t player_id, const BankWi
     const int py = static_cast<int>(player.pos_y());
 
     if (!map.prop_grid().is_in_range_of("banquero", px, py, range)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un banquero cerca"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("No hay un banquero cerca");
     }
 
     if (cmd.is_gold) {
         if (cmd.gold_amount == 0 || !player.take_bank_gold(cmd.gold_amount)) {
-            ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No tenés suficiente oro en el banco"};
-            return {.private_events = {msg}};
+            return CommandResult::with_msg("No tenés suficiente oro en el banco");
         }
         player.gain_gold(cmd.gold_amount);
 
@@ -115,19 +107,16 @@ CommandResult BankService::handle_bank_withdraw(uint16_t player_id, const BankWi
 
     const Item* item_def = item_catalog_.find_by_name(cmd.item_name);
     if (!item_def) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Objeto '" + cmd.item_name + "' no encontrado"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("Objeto '" + cmd.item_name + "' no encontrado");
     }
 
     auto slot_opt = player.find_bank_slot_by_type(item_def->type);
     if (!slot_opt) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No tenés '" + item_def->name + "' en el banco"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("No tenés '" + item_def->name + "' en el banco");
     }
 
     if (!player.add_item(item_def->type, item_def->name)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Inventario lleno"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg("Inventario lleno");
     }
     player.remove_bank_item(static_cast<uint8_t>(slot_opt->slot_index));
 

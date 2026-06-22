@@ -102,9 +102,7 @@ CommandResult CheatService::handle_cheat_infinite_hp(uint16_t player_id) {
     if (it == players_.end())
         return {};
     bool active = it->second.toggle_cheat_infinite_hp();
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     active ? "[Cheat] HP infinito: ON" : "[Cheat] HP infinito: OFF"};
-    return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    return CommandResult::with_msg(active ? "[Cheat] HP infinito: ON" : "[Cheat] HP infinito: OFF");
 }
 
 CommandResult CheatService::handle_cheat_infinite_mana(uint16_t player_id) {
@@ -145,8 +143,7 @@ CommandResult CheatService::handle_cheat_revive(uint16_t player_id) {
         return {};
     Player& player = it->second;
     if (!player.is_dead()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] No estás muerto"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg("[Cheat] No estás muerto");
     }
     player.resurrect();
     PlayerRespawnedEvent respawn_ev{player_id, player.get_hp_current(), player.get_hp_max()};
@@ -163,8 +160,7 @@ CommandResult CheatService::handle_cheat_level_up(uint16_t player_id) {
         return {};
     Player& player = it->second;
     if (player.get_level() >= balance_.max_level) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Ya estas en el nivel maximo"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg("Ya estas en el nivel maximo");
     }
     player.level_up();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
@@ -180,8 +176,7 @@ CommandResult CheatService::handle_cheat_level_down(uint16_t player_id) {
         return {};
     Player& player = it->second;
     if (player.get_level() <= balance_.min_level) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Ya estas en el nivel minimo"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg("Ya estas en el nivel minimo");
     }
     player.level_down();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
@@ -231,9 +226,7 @@ CommandResult CheatService::handle_cheat_velocity(uint16_t player_id) {
         return {};
     Player& player = it->second;
     bool active = player.toggle_cheat_fast_velocity();
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     std::string("[Cheat] Velocidad: ") + (active ? "ON" : "OFF")};
-    return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    return CommandResult::with_msg(std::string("[Cheat] Velocidad: ") + (active ? "ON" : "OFF"));
 }
 
 CommandResult CheatService::handle_cheat_fill_inventory(uint16_t player_id) {
