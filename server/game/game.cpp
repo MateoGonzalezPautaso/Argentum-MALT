@@ -68,7 +68,8 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
                           config.balance),
         tick_rate_hz(config.tick_rate_hz),
         cheats_enabled(config.cheats_enabled),
-        help_lines(config.help_lines) {
+        help_lines(config.help_lines),
+        next_npc_id(config.npc_id_base) {
     for (const auto& tmpl: config.npc_templates) {
         if (tmpl.dungeon_only)
             dungeon_npc_templates.push_back(tmpl);
@@ -374,8 +375,9 @@ CommandResult Game::spawn_mobs() {
 EnemyNpc Game::create_random_npc(Position pos, uint8_t level, bool dungeon) {
     const std::vector<NpcTemplate>& pool = dungeon ? dungeon_npc_templates : world_npc_templates;
     if (pool.empty())
-        return EnemyNpc(pos, GameFormulas::npc_hp(100, level),
-                        GameFormulas::npc_damage(5, level), rng, item_catalog, level, "NPC");
+        return EnemyNpc(pos, GameFormulas::npc_hp(balance.npc_fallback_base_hp, level),
+                        GameFormulas::npc_damage(balance.npc_fallback_base_damage, level), rng,
+                        item_catalog, level, "NPC");
     int roll = rng.get_random_int(0, static_cast<int>(pool.size()) - 1);
     const NpcTemplate& t = pool[roll];
     return EnemyNpc(pos, GameFormulas::npc_hp(t.base_hp, level),
@@ -542,7 +544,7 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
     result.map_events = std::move(result.broadcast_events);
     uint8_t effect_type = item->spell_effect_id;
     if (effect_type == 0)
-        effect_type = 1;
+        effect_type = balance.default_spell_effect_id;
     result.map_events.push_back(SpellEffectEvent{cmd.target_id, effect_type});
     return result;
 }
@@ -652,7 +654,7 @@ CommandResult Game::handle_login(uint16_t player_id, const LoginCmd& cmd) {
 
         private_events.push_back(make_player_stats_event(p));
 
-        if (p.get_current_map() != "city") {
+        if (p.get_current_map() != balance.starting_map) {
             private_events.push_back(MapTransitionEvent{
                     .map_name = p.get_current_map(),
                     .pos_x = p.pos_x(),
@@ -767,7 +769,7 @@ CommandResult Game::handle_create_character(uint16_t player_id, const CreateChar
 
     private_events.push_back(make_player_stats_event(p));
 
-    if (p.get_current_map() != "city") {
+    if (p.get_current_map() != balance.starting_map) {
         private_events.push_back(MapTransitionEvent{
                 .map_name = p.get_current_map(),
                 .pos_x = p.pos_x(),
@@ -881,9 +883,10 @@ CommandResult Game::handle_cheat_add_gold(uint16_t player_id) {
     if (it == players.end())
         return {};
     Player& player = it->second;
-    player.gain_gold(1000);
+    player.gain_gold(static_cast<uint32_t>(balance.cheat_gold_amount));
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     "[Cheat] +1000 oro (total: " + std::to_string(player.get_gold()) + ")"};
+                     "[Cheat] +" + std::to_string(balance.cheat_gold_amount) +
+                             " oro (total: " + std::to_string(player.get_gold()) + ")"};
     GoldUpdateEvent gold{player.get_gold()};
     return {.private_events = {msg, gold}, .broadcast_events = {}, .targeted_events = {}};
 }
@@ -1082,7 +1085,7 @@ std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id,
 std::string Game::get_player_map_name(uint16_t player_id) const {
     auto it = players.find(player_id);
     if (it == players.end())
-        return "city";
+        return balance.starting_map;
     return it->second.get_current_map();
 }
 
@@ -1199,7 +1202,7 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     const int tile_size = map_it->second.tile_size();
     const int px = static_cast<int>(player.pos_x());
     const int py = static_cast<int>(player.pos_y());
-    const int range = tile_size * 3;
+    const int range = tile_size * balance.npc_interaction_range_tiles;
 
     // If the ghost is near a sacerdote, resurrect immediately
     if (map_it->second.prop_grid().is_in_range_of("sacerdote", px, py, range)) {
@@ -1228,16 +1231,16 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
         int dist_tiles = dist_px / tile_size;
         wait_ticks = static_cast<uint32_t>(dist_tiles * tick_rate_hz);
     } else {
-        auto main_it = maps.find("city");
+        auto main_it = maps.find(balance.starting_map);
         if (main_it == maps.end())
             return {};
         san_entry = main_it->second.prop_grid().find_closest("sanadora", 0, 0);
         if (!san_entry)
             return {};
-        target_map = "city";
+        target_map = balance.starting_map;
         san_cx = san_entry->center_x;
         san_cy = san_entry->center_y;
-        wait_ticks = static_cast<uint32_t>(10 * tick_rate_hz);
+        wait_ticks = static_cast<uint32_t>(balance.default_resurrect_wait_seconds * tick_rate_hz);
     }
 
     Position target_pos{static_cast<uint16_t>(san_cx - sprite_width / 2),
@@ -1329,7 +1332,7 @@ CommandResult Game::handle_npc_heal(uint16_t player_id) {
     if (map_it == maps.end())
         return {};
 
-    const int range = map_it->second.tile_size() * 3;
+    const int range = map_it->second.tile_size() * balance.npc_interaction_range_tiles;
     const int px = static_cast<int>(player.pos_x());
     const int py = static_cast<int>(player.pos_y());
 
@@ -1946,7 +1949,7 @@ CommandResult Game::handle_change_map(uint16_t player_id, const ChangeMapCmd& cm
         return {};
 
     const TilemapConfig& cfg = map_it->second.config();
-    const int range = cfg.tile_size * 3;
+    const int range = cfg.tile_size * balance.npc_interaction_range_tiles;
     const int px = static_cast<int>(player.pos_x());
     const int py = static_cast<int>(player.pos_y());
 

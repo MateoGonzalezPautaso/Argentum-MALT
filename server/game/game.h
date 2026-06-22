@@ -51,7 +51,7 @@ private:
     std::map<uint16_t, EnemyNpc> enemy_npcs;
     std::vector<NpcTemplate> world_npc_templates;
     std::vector<NpcTemplate> dungeon_npc_templates;
-    uint16_t next_npc_id = 2000;
+    uint16_t next_npc_id;
     uint32_t mob_spawn_tick = 0;
 
     // mapa -> celda (tile_x, tile_y) -> lista de items tirados en el piso

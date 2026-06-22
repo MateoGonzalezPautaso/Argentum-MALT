@@ -153,6 +153,12 @@ struct BalanceConfig {
     int starting_pos_x = 100;
     int starting_pos_y = 100;
     std::string starting_map = "city";
+    int npc_interaction_range_tiles = 3;
+    int default_resurrect_wait_seconds = 10;
+    int cheat_gold_amount = 1000;
+    uint32_t npc_fallback_base_hp = 100;
+    uint32_t npc_fallback_base_damage = 5;
+    uint8_t default_spell_effect_id = 1;
     int min_level = 1;
     int max_level = 100;
     int gold_per_level = 100;
@@ -183,6 +189,7 @@ struct ServerConfig {
     int tick_rate_hz = 20;
     int save_interval_seconds = 30;
     bool cheats_enabled = false;
+    uint16_t npc_id_base = 2000;
     TilemapConfig tilemap;
     std::unordered_map<std::string, TilemapConfig> tilemap_configs;
     int move_step = 4;

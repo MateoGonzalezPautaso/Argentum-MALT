@@ -1,6 +1,7 @@
 [server]
 tick_rate_hz = 20
 cheats_enabled = true
+npc_id_base = 2000
 
 [sprite]
 width = 27
@@ -62,6 +63,12 @@ experience_level_offset = 10
 npc_gold_reward_min_pct = 0.01
 npc_gold_reward_max_pct = 0.2
 extra_kill_exp_max_pct = 0.1
+npc_interaction_range_tiles = 3
+default_resurrect_wait_seconds = 10
+cheat_gold_amount = 1000
+npc_fallback_base_hp = 100
+npc_fallback_base_damage = 5
+default_spell_effect_id = 1
 
 [balance.npc_drop]
 gold_chance = 8.0

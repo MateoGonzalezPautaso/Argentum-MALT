@@ -8,8 +8,6 @@
 #include "../../common/messages.h"
 #include "../../common/rng.h"
 #include "../core/config.h"
-
-// Forward include — player.h does not include game_formulas.h so there is no cycle
 #include "player.h"
 
 class GameFormulas {

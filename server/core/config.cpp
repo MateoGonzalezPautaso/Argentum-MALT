@@ -41,6 +41,8 @@ ServerConfig load_server_config(const std::string& path) {
         config.save_interval_seconds =
                 toml_get_int(*server, "save_interval_seconds", config.save_interval_seconds);
         config.cheats_enabled = toml_get_bool(*server, "cheats_enabled", config.cheats_enabled);
+        config.npc_id_base = static_cast<uint16_t>(
+                toml_get_int(*server, "npc_id_base", config.npc_id_base));
     }
 
     SharedConfig shared = load_shared_config("config/common.toml");
@@ -169,6 +171,20 @@ ServerConfig load_server_config(const std::string& path) {
                 *balance, "npc_gold_reward_max_pct", config.balance.npc_gold_reward_max_pct);
         config.balance.extra_kill_exp_max_pct = toml_get_double(
                 *balance, "extra_kill_exp_max_pct", config.balance.extra_kill_exp_max_pct);
+        config.balance.npc_interaction_range_tiles =
+                toml_get_int(*balance, "npc_interaction_range_tiles",
+                             config.balance.npc_interaction_range_tiles);
+        config.balance.default_resurrect_wait_seconds =
+                toml_get_int(*balance, "default_resurrect_wait_seconds",
+                             config.balance.default_resurrect_wait_seconds);
+        config.balance.cheat_gold_amount =
+                toml_get_int(*balance, "cheat_gold_amount", config.balance.cheat_gold_amount);
+        config.balance.npc_fallback_base_hp = static_cast<uint32_t>(
+                toml_get_int(*balance, "npc_fallback_base_hp", config.balance.npc_fallback_base_hp));
+        config.balance.npc_fallback_base_damage = static_cast<uint32_t>(toml_get_int(
+                *balance, "npc_fallback_base_damage", config.balance.npc_fallback_base_damage));
+        config.balance.default_spell_effect_id = static_cast<uint8_t>(toml_get_int(
+                *balance, "default_spell_effect_id", config.balance.default_spell_effect_id));
 
         if (auto drop = (*balance)["npc_drop"].as_table()) {
             config.balance.npc_drop.gold_chance =
