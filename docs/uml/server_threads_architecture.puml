@@ -61,12 +61,20 @@ class Sender extends Thread {
   - protocol: ServerProtocol&
   + run()
 }
+note bottom of Sender
+  Envía eventos al Client remoto
+  (otro proceso, vía socket TCP)
+end note
 
 class Receiver extends Thread {
   - input_queue: Queue<PlayerCommand>&
   - protocol: ServerProtocol&
   + run()
 }
+note bottom of Receiver
+  Recibe comandos del Client remoto
+  (otro proceso, vía socket TCP)
+end note
 
 class ServerProtocol {
   + send_event(ev: ServerEvent)
