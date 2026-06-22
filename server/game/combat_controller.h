@@ -76,7 +76,9 @@ private:
     CommandResult resolve_npc_attack(Player& attacker, EnemyNpc& npc_target, uint16_t npc_target_id,
                                      uint32_t range_px, bool include_item_drop = true);
     void move_random(EnemyNpc& npc, const Map* map,
-                     std::map<uint16_t, std::vector<ServerEvent>>& targeted);
+                     std::map<uint16_t, std::vector<ServerEvent>>& targeted, uint16_t npc_id);
+    bool try_move_npc(EnemyNpc& npc, uint16_t npc_id, const Map* map,
+                      std::map<uint16_t, std::vector<ServerEvent>>& targeted, Direction dir);
 
     const AttackConfig& config;
     const BalanceConfig& balance;

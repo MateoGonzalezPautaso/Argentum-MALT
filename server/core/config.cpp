@@ -393,12 +393,12 @@ ServerConfig load_server_config(const std::string& path) {
     }
 
     if (auto npc = root["npc"].as_table()) {
+        config.npc.vision_range_px = static_cast<uint32_t>(
+                toml_get_int(*npc, "vision_range_px", config.npc.vision_range_px));
         config.npc.idle_move_min_ticks = static_cast<uint32_t>(
                 toml_get_int(*npc, "idle_move_min_ticks", config.npc.idle_move_min_ticks));
         config.npc.idle_move_max_ticks = static_cast<uint32_t>(
                 toml_get_int(*npc, "idle_move_max_ticks", config.npc.idle_move_max_ticks));
-        config.npc.vision_range_px = static_cast<uint32_t>(
-                toml_get_int(*npc, "vision_range_px", config.npc.vision_range_px));
     }
 
     return config;

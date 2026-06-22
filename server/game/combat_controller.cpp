@@ -334,7 +334,7 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
 
         Player* target = get_nearest_player(npc);
         if (!target) {
-            move_random(npc, map, targeted);
+            move_random(npc, map, targeted, npc_id);
             continue;
         }
 
@@ -344,7 +344,7 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
                                         npc_config.vision_range_px);
 
         if (!in_vision_range) {
-            move_random(npc, map, targeted);
+            move_random(npc, map, targeted, npc_id);
             continue;
         }
 
@@ -358,36 +358,14 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
             int dy = static_cast<int>(target->pos_y()) - static_cast<int>(npc.pos_y());
 
             Direction move_dir;
-            int step_x = 0, step_y = 0;
-            int speed = static_cast<int>(npc.get_speed());
 
-            if (std::abs(dx) > std::abs(dy)) {
-                step_x = (dx > 0) ? speed : -speed;
+            if (std::abs(dx) > std::abs(dy))
                 move_dir = (dx > 0) ? Direction::EAST : Direction::WEST;
-            } else {
-                step_y = (dy > 0) ? speed : -speed;
+            else
                 move_dir = (dy > 0) ? Direction::SOUTH : Direction::NORTH;
-            }
 
-            int new_x = static_cast<int>(npc.pos_x()) + step_x;
-            int new_y = static_cast<int>(npc.pos_y()) + step_y;
-
-            if (new_x < 0)
-                new_x = 0;
-            if (new_y < 0)
-                new_y = 0;
-
-            // Don't enter safe zones or non-walkable tiles
-            if (map && (map->is_safe_zone(new_x, new_y) || !map->is_walkable(new_x, new_y)))
+            if (!try_move_npc(npc, npc_id, map, targeted, move_dir))
                 continue;
-
-            npc.set_pos(static_cast<uint16_t>(new_x), static_cast<uint16_t>(new_y));
-            npc.set_dir(move_dir);
-
-            EntityMoveEvent move_ev{npc_id, npc.get_pos(), move_dir};
-            for (uint16_t pid: PlayerRegistry(players).ids_on_map(npc.get_current_map())) {
-                targeted[pid].push_back(move_ev);
-            }
         }
 
         // Attack if in range, target not in a safe zone, and cooldown OK
@@ -452,26 +430,73 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
 }
 
 void CombatController::move_random(EnemyNpc& npc, const Map* map,
-                                   std::map<uint16_t, std::vector<ServerEvent>>& targeted) {
+                                   std::map<uint16_t, std::vector<ServerEvent>>& targeted,
+                                   uint16_t npc_id) {
     npc.set_idle_move_timer(npc.get_idle_move_timer() - 1);
 
     if (npc.get_idle_move_timer() == 0) {
-        int dir_x = rng.get_random_int(0, 3);
-        switch (dir_x) {
+        int dir_idx = rng.get_random_int(0, 3);
+        switch (dir_idx) {
             case 0:
                 npc.set_idle_move_dir(Direction::NORTH);
                 break;
             case 1:
-                npc.set_idle_move_dir(Direction::EAST);
+                npc.set_idle_move_dir(Direction::SOUTH);
                 break;
             case 2:
-                npc.set_idle_move_dir(Direction::SOUTH);
+                npc.set_idle_move_dir(Direction::EAST);
                 break;
             case 3:
                 npc.set_idle_move_dir(Direction::WEST);
                 break;
         }
+        npc.set_idle_move_timer(
+                rng.get_random_int(npc_config.idle_move_min_ticks, npc_config.idle_move_max_ticks));
     }
+
+    Direction d = npc.get_idle_move_dir();
+    if (!try_move_npc(npc, npc_id, map, targeted, d))
+        npc.set_idle_move_timer(1);
+}
+
+bool CombatController::try_move_npc(EnemyNpc& npc, uint16_t npc_id, const Map* map,
+                                    std::map<uint16_t, std::vector<ServerEvent>>& targeted,
+                                    Direction dir) {
+    int step_x = 0, step_y = 0;
+    int speed = static_cast<int>(npc.get_speed());
+    switch (dir) {
+        case Direction::NORTH:
+            step_y = -speed;
+            break;
+        case Direction::SOUTH:
+            step_y = speed;
+            break;
+        case Direction::EAST:
+            step_x = speed;
+            break;
+        case Direction::WEST:
+            step_x = -speed;
+            break;
+    }
+
+    int new_x = static_cast<int>(npc.pos_x()) + step_x;
+    int new_y = static_cast<int>(npc.pos_y()) + step_y;
+    if (new_x < 0)
+        new_x = 0;
+    if (new_y < 0)
+        new_y = 0;
+
+    if (map && (map->is_safe_zone(new_x, new_y) || !map->is_walkable(new_x, new_y)))
+        return false;
+
+    npc.set_pos(static_cast<uint16_t>(new_x), static_cast<uint16_t>(new_y));
+    npc.set_dir(dir);
+
+    EntityMoveEvent move_ev{npc_id, npc.get_pos(), dir};
+    for (uint16_t pid: PlayerRegistry(players).ids_on_map(npc.get_current_map())) {
+        targeted[pid].push_back(move_ev);
+    }
+    return true;
 }
 
 bool CombatController::is_critical_attack(const Player& attacker) {

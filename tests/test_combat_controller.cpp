@@ -1,10 +1,14 @@
 #include <map>
 #include <optional>
+#include <unordered_map>
 
+#include "common/config.h"
 #include "common/item.h"
 #include "gtest/gtest.h"
 #include "server/core/config.h"
 #include "server/game/combat_controller.h"
+#include "server/game/game_formulas.h"
+#include "server/game/map.h"
 #include "server/game/player.h"
 
 class CombatControllerTest: public ::testing::Test {
@@ -12,9 +16,13 @@ protected:
     std::map<uint16_t, Player> players;
     std::map<uint16_t, EnemyNpc> enemy_npcs;
     AttackConfig config;
+    NpcConfig npc_config;
     ItemCatalog item_catalog;
     BalanceConfig balance_config;
     std::optional<CombatController> controller;
+    std::unordered_map<std::string, Map> test_maps;
+    std::unordered_map<std::string, TilemapConfig> stored_configs;
+    uint32_t next_npc_id = 5000;
 
     void SetUp() override {
         config.base_damage = 10;
@@ -22,8 +30,12 @@ protected:
         config.attack_range_px = 200;
         config.cooldown_ticks = 10;
         config.critical_chance = 0;
+        npc_config.vision_range_px = 200;
+        npc_config.idle_move_min_ticks = 10;
+        npc_config.idle_move_max_ticks = 20;
+
         controller.emplace(config, players, item_catalog, enemy_npcs, NpcDropConfig{},
-                           NpcDropConfig{}, balance_config);
+                           NpcDropConfig{}, balance_config, npc_config);
     }
 
     Player& add_player(uint16_t id, const std::string& username, Position pos = {100, 100}) {
@@ -43,10 +55,35 @@ protected:
         return players.at(id);
     }
 
-    // Levels a player up to the given level (from level 1)
     void set_level(Player& p, int target_level) {
         for (int i = 1; i < target_level; ++i) p.level_up();
     }
+
+    EnemyNpc& add_npc(uint16_t id, const std::string& name, Position pos = {200, 200},
+                      uint32_t hp = 100, uint32_t damage = 5, uint8_t level = 5,
+                      uint32_t speed = 2) {
+        auto [it, _] = enemy_npcs.emplace(
+                id, EnemyNpc(pos, hp, damage, entity_rng, item_catalog, level, name, 0, speed));
+        return it->second;
+    }
+
+    void set_map(const std::string& map_name, int tile_size, int cols, int rows,
+                 bool all_walkable = true) {
+        TilemapConfig tcfg;
+        tcfg.tile_size = tile_size;
+        tcfg.map_type = MapType::DUNGEON;
+        TileDef td;
+        td.walkable = all_walkable;
+        tcfg.tiles["ground"] = td;
+        tcfg.mapa = std::vector<std::vector<std::string>>(rows,
+                                                          std::vector<std::string>(cols, "ground"));
+        tcfg.mob_spawn_zones = std::vector<std::vector<bool>>(rows, std::vector<bool>(cols, true));
+        stored_configs[map_name] = std::move(tcfg);
+        test_maps.try_emplace(map_name, stored_configs[map_name]);
+        controller->set_maps(test_maps);
+    }
+
+    Rng entity_rng;
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -280,7 +317,7 @@ TEST_F(CombatControllerTest, WeaponEquipped_DamageUsesStrength) {
     sword.max_damage = 5;
     item_catalog.add(sword);
     controller.emplace(config, players, item_catalog, enemy_npcs, NpcDropConfig{}, NpcDropConfig{},
-                       balance_config);
+                       balance_config, npc_config);
 
     auto& attacker = add_player(1, "alice");
     auto& target = add_player(2, "bob");
@@ -296,4 +333,71 @@ TEST_F(CombatControllerTest, WeaponEquipped_DamageUsesStrength) {
     ASSERT_TRUE(std::holds_alternative<DamageReceivedEvent>(result.targeted_events.at(2)[0]));
     const auto& dmg = std::get<DamageReceivedEvent>(result.targeted_events.at(2)[0]);
     EXPECT_EQ(dmg.damage, attacker.get_strength() * 5u);
+}
+
+// ─────────────────────────────────────────────────────────────
+// NPC idle movement
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(CombatControllerTest, NpcIdleMove_MovesWhenNoPlayer) {
+    set_map("dungeon", 32, 30, 30, true);
+
+    auto& npc = add_npc(5001, "Orc", {320, 320}, 100, 10, 5, 2);
+    npc.set_current_map("dungeon");
+    npc.set_idle_move_timer(1);
+
+    Position initial = npc.get_pos();
+    controller->update_npc_ai(0);
+
+    bool moved_x = npc.get_pos().x != initial.x;
+    bool moved_y = npc.get_pos().y != initial.y;
+    EXPECT_TRUE(moved_x || moved_y)
+            << "NPC should move on idle from position {" << initial.x << "," << initial.y << "}";
+}
+
+TEST_F(CombatControllerTest, NpcIdleMove_DeadNpcDoesNotMove) {
+    set_map("dungeon", 32, 30, 30, true);
+
+    auto& npc = add_npc(5001, "Orc", {320, 320}, 100, 10, 5, 2);
+    npc.set_current_map("dungeon");
+    npc.take_damage(npc.get_hp_max());
+    ASSERT_TRUE(npc.is_dead());
+
+    Position initial = npc.get_pos();
+    controller->update_npc_ai(0);
+
+    EXPECT_EQ(npc.get_pos().x, initial.x) << "Dead NPC should not move";
+    EXPECT_EQ(npc.get_pos().y, initial.y) << "Dead NPC should not move";
+}
+
+TEST_F(CombatControllerTest, NpcIdleMove_EmitsEntityMoveEvent) {
+    set_map("dungeon", 32, 30, 30, true);
+
+    auto& npc = add_npc(5001, "Orc", {320, 320}, 100, 10, 5, 2);
+    npc.set_current_map("dungeon");
+    npc.set_idle_move_timer(1);
+
+    auto& player = add_player(1, "alice", {100, 100});
+    player.set_current_map("dungeon");
+
+    auto result = controller->update_npc_ai(0);
+
+    ASSERT_FALSE(result.targeted_events.empty())
+            << "Should emit EntityMoveEvent for players on NPC map";
+}
+
+TEST_F(CombatControllerTest, NpcIdleMove_TimerResetsOnBlockedMovement) {
+    set_map("dungeon", 32, 30, 30, false);
+
+    auto& npc = add_npc(5001, "Orc", {320, 320}, 100, 10, 5, 2);
+    npc.set_current_map("dungeon");
+    npc.set_idle_move_timer(1);
+
+    Position initial = npc.get_pos();
+    controller->update_npc_ai(0);
+
+    EXPECT_EQ(npc.get_idle_move_timer(), 0u)
+            << "Move timer should reset to 0 when movement is blocked";
+    EXPECT_EQ(npc.get_pos().x, initial.x) << "NPC should not move on non-walkable tiles";
+    EXPECT_EQ(npc.get_pos().y, initial.y) << "NPC should not move on non-walkable tiles";
 }

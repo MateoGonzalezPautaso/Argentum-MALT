@@ -22,7 +22,7 @@ private:
     uint32_t damage;
     Rng& rng;
     const ItemCatalog& catalog;
-    uint32_t idle_move_timer = 0;
+    uint32_t idle_move_timer = 1;
     Direction idle_move_dir = Direction::SOUTH;
 
 public:
@@ -34,7 +34,7 @@ public:
     void set_idle_move_timer(uint32_t new_timer) { idle_move_timer = new_timer; }
     uint32_t get_idle_move_timer() const { return idle_move_timer; }
     void set_idle_move_dir(Direction new_dir) { idle_move_dir = new_dir; }
-    Direction get_idle_move_dir() { return idle_move_dir; }
+    Direction get_idle_move_dir() const { return idle_move_dir; }
 };
 
 #endif
