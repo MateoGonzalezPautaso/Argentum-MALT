@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "../entity_event_factory.h"
+#include "../player_registry.h"
 
 PlayerSessionService::PlayerSessionService(
         std::map<uint16_t, Player>& players,
@@ -253,10 +254,8 @@ CommandResult PlayerSessionService::remove_player(uint16_t player_id) {
     EntityDespawnEvent despawn{.entity_id = player_id};
 
     CommandResult result;
-    for (const auto& [id, player]: players_) {
+    for (uint16_t id: PlayerRegistry(players_).ids_on_map(map_name)) {
         if (id == player_id)
-            continue;
-        if (player.get_current_map() != map_name)
             continue;
         result.targeted_events[id].push_back(despawn);
     }

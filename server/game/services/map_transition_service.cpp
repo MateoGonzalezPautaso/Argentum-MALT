@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "../entity_event_factory.h"
+#include "../player_registry.h"
 
 MapTransitionService::MapTransitionService(std::map<uint16_t, Player>& players,
                                            std::unordered_map<std::string, Map>& maps,
@@ -24,12 +25,7 @@ MapTransitionService::MapTransitionService(std::map<uint16_t, Player>& players,
 
 std::vector<uint16_t> MapTransitionService::get_player_ids_on_map(
         const std::string& map_name) const {
-    std::vector<uint16_t> ids;
-    for (const auto& [id, player]: players_) {
-        if (player.get_current_map() == map_name)
-            ids.push_back(id);
-    }
-    return ids;
+    return PlayerRegistry(players_).ids_on_map(map_name);
 }
 
 void MapTransitionService::append_existing_entities(std::vector<ServerEvent>& events,

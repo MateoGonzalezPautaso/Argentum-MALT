@@ -7,6 +7,7 @@
 
 #include "../entity_event_factory.h"
 #include "../game_formulas.h"
+#include "../player_registry.h"
 
 SpawnService::SpawnService(std::map<uint16_t, EnemyNpc>& enemy_npcs,
                            std::unordered_map<std::string, Map>& maps, uint16_t& next_npc_id,
@@ -27,12 +28,7 @@ SpawnService::SpawnService(std::map<uint16_t, EnemyNpc>& enemy_npcs,
         dungeon_npc_templates_(dungeon_npc_templates) {}
 
 std::vector<uint16_t> SpawnService::get_player_ids_on_map(const std::string& map_name) const {
-    std::vector<uint16_t> ids;
-    for (const auto& [id, player]: players_) {
-        if (player.get_current_map() == map_name)
-            ids.push_back(id);
-    }
-    return ids;
+    return PlayerRegistry(players_).ids_on_map(map_name);
 }
 
 EnemyNpc SpawnService::create_random_npc(Position pos, uint8_t level, bool dungeon) {

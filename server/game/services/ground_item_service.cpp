@@ -6,6 +6,8 @@
 #include <utility>
 #include <vector>
 
+#include "../player_registry.h"
+
 GroundItemService::GroundItemService(std::map<uint16_t, Player>& players,
                                      std::unordered_map<std::string, Map>& maps,
                                      const ItemCatalog& item_catalog):
@@ -17,12 +19,7 @@ std::pair<int, int> GroundItemService::tile_cell(const Map& map, int px, int py)
 }
 
 std::vector<uint16_t> GroundItemService::get_player_ids_on_map(const std::string& map_name) const {
-    std::vector<uint16_t> ids;
-    for (const auto& [id, player]: players_) {
-        if (player.get_current_map() == map_name)
-            ids.push_back(id);
-    }
-    return ids;
+    return PlayerRegistry(players_).ids_on_map(map_name);
 }
 
 std::vector<ServerEvent> GroundItemService::make_existing_ground_items(

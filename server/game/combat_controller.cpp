@@ -6,6 +6,7 @@
 
 #include "clan_manager.h"
 #include "game_formulas.h"
+#include "player_registry.h"
 
 CombatController::CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
                                    const ItemCatalog& catalog,
@@ -381,9 +382,8 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
             npc.set_dir(move_dir);
 
             EntityMoveEvent move_ev{npc_id, npc.get_pos(), move_dir};
-            for (const auto& [pid, player]: players) {
-                if (player.get_current_map() == npc.get_current_map())
-                    targeted[pid].push_back(move_ev);
+            for (uint16_t pid: PlayerRegistry(players).ids_on_map(npc.get_current_map())) {
+                targeted[pid].push_back(move_ev);
             }
         }
 

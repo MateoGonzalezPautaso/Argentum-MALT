@@ -12,6 +12,7 @@
 
 #include "entity_event_factory.h"
 #include "game_formulas.h"
+#include "player_registry.h"
 
 namespace {
 
@@ -597,12 +598,7 @@ void Game::append_existing_entities(std::vector<ServerEvent>& events, uint16_t e
 
 
 std::vector<uint16_t> Game::get_player_ids_on_map(const std::string& map_name) const {
-    std::vector<uint16_t> ids;
-    for (const auto& [id, player]: players) {
-        if (player.get_current_map() == map_name)
-            ids.push_back(id);
-    }
-    return ids;
+    return PlayerRegistry(players).ids_on_map(map_name);
 }
 
 void Game::save_all_players() {
