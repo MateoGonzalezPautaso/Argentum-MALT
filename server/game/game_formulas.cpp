@@ -45,6 +45,7 @@ struct ClassStatInputs {
     double mana_factor;
     double strength_factor;
     double agility_factor;
+    double meditation_factor;
 };
 
 ClassStatInputs class_inputs(const BalanceConfig& balance, PlayerClass cls) {
@@ -52,21 +53,40 @@ ClassStatInputs class_inputs(const BalanceConfig& balance, PlayerClass cls) {
         case PlayerClass::WARRIOR:
             return {balance.hp.class_hp_factor_warrior, balance.mana.class_mana_factor_warrior,
                     balance.strength.class_strength_factor_warrior,
-                    balance.agility.class_agility_factor_warrior};
+                    balance.agility.class_agility_factor_warrior,
+                    balance.mana.class_meditation_factor_warrior};
         case PlayerClass::PALADIN:
             return {balance.hp.class_hp_factor_paladin, balance.mana.class_mana_factor_paladin,
                     balance.strength.class_strength_factor_paladin,
-                    balance.agility.class_agility_factor_paladin};
+                    balance.agility.class_agility_factor_paladin,
+                    balance.mana.class_meditation_factor_paladin};
         case PlayerClass::CLERIC:
             return {balance.hp.class_hp_factor_cleric, balance.mana.class_mana_factor_cleric,
                     balance.strength.class_strength_factor_cleric,
-                    balance.agility.class_agility_factor_cleric};
+                    balance.agility.class_agility_factor_cleric,
+                    balance.mana.class_meditation_factor_cleric};
         case PlayerClass::MAGE:
             return {balance.hp.class_hp_factor_mage, balance.mana.class_mana_factor_mage,
                     balance.strength.class_strength_factor_mage,
-                    balance.agility.class_agility_factor_mage};
+                    balance.agility.class_agility_factor_mage,
+                    balance.mana.class_meditation_factor_mage};
     }
     return {};
+}
+
+double recovery_rate(const BalanceConfig& balance, Race race) {
+    const auto& r = balance.race_recovery;
+    switch (race) {
+        case Race::HUMAN:
+            return r.human;
+        case Race::ELF:
+            return r.elf;
+        case Race::DWARF:
+            return r.dwarf;
+        case Race::GNOME:
+            return r.gnome;
+    }
+    return r.human;
 }
 
 }  // namespace
@@ -195,14 +215,17 @@ uint32_t GameFormulas::attack_experience(uint32_t damage, uint8_t attacker_level
     return damage * static_cast<uint32_t>(std::max(level_factor, 0));
 }
 
-uint32_t GameFormulas::hp_regen_per_second(double race_recovery_factor) {
-    return static_cast<uint32_t>(race_recovery_factor);
+double GameFormulas::hp_regen_per_second(const BalanceConfig& balance, Race race) {
+    return recovery_rate(balance, race);
 }
 
-uint32_t GameFormulas::mana_regen_per_second(double race_recovery_factor) {
-    return static_cast<uint32_t>(race_recovery_factor);
+double GameFormulas::mana_regen_per_second(const BalanceConfig& balance, Race race) {
+    return recovery_rate(balance, race);
 }
 
-uint32_t GameFormulas::meditation_mana_per_second(double meditation_factor, uint32_t intelligence) {
-    return static_cast<uint32_t>(meditation_factor * static_cast<double>(intelligence));
+double GameFormulas::meditation_mana_per_second(const BalanceConfig& balance, Race race,
+                                                PlayerClass cls) {
+    auto r = race_inputs(balance, race);
+    auto c = class_inputs(balance, cls);
+    return c.meditation_factor * static_cast<double>(r.intelligence);
 }

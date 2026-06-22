@@ -65,9 +65,6 @@ private:
     };
     std::unordered_map<uint16_t, PendingResurrection> pending_resurrections_;
 
-    double recovery_rate_for(Race race) const;
-    double intelligence_for(Race race) const;
-    double meditation_factor_for(PlayerClass player_class) const;
     CommandResult apply_regen();
     CommandResult process_pending_resurrections();
     CommandResult spawn_mobs();

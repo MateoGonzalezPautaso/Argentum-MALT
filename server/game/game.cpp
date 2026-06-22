@@ -247,51 +247,6 @@ CommandResult Game::remove_player(uint16_t player_id) {
     return result;
 }
 
-double Game::recovery_rate_for(Race race) const {
-    const auto& r = balance.race_recovery;
-    switch (race) {
-        case Race::HUMAN:
-            return r.human;
-        case Race::ELF:
-            return r.elf;
-        case Race::DWARF:
-            return r.dwarf;
-        case Race::GNOME:
-            return r.gnome;
-    }
-    return r.human;
-}
-
-double Game::intelligence_for(Race race) const {
-    const auto& m = balance.mana;
-    switch (race) {
-        case Race::HUMAN:
-            return m.intelligence_human;
-        case Race::ELF:
-            return m.intelligence_elf;
-        case Race::DWARF:
-            return m.intelligence_dwarf;
-        case Race::GNOME:
-            return m.intelligence_gnome;
-    }
-    return m.intelligence_human;
-}
-
-double Game::meditation_factor_for(PlayerClass player_class) const {
-    const auto& m = balance.mana;
-    switch (player_class) {
-        case PlayerClass::WARRIOR:
-            return m.class_meditation_factor_warrior;
-        case PlayerClass::PALADIN:
-            return m.class_meditation_factor_paladin;
-        case PlayerClass::CLERIC:
-            return m.class_meditation_factor_cleric;
-        case PlayerClass::MAGE:
-            return m.class_meditation_factor_mage;
-    }
-    return m.class_meditation_factor_warrior;
-}
-
 CommandResult Game::apply_regen() {
     CommandResult result;
     const double dt = 1.0 / tick_rate_hz;
@@ -301,7 +256,7 @@ CommandResult Game::apply_regen() {
             continue;
 
         bool changed = false;
-        double rate = recovery_rate_for(player.get_race());
+        double rate = GameFormulas::hp_regen_per_second(balance, player.get_race());
 
         // rate is in HP/second, but tick() runs 20 times per second.
         // Each tick only represents dt = 1/20 = 0.05 seconds,
@@ -316,10 +271,10 @@ CommandResult Game::apply_regen() {
             hp_regen_accum[id] = 0.0;
         }
 
-        double mana_rate = rate;
+        double mana_rate = GameFormulas::mana_regen_per_second(balance, player.get_race());
         if (player.get_is_meditating())
-            mana_rate += meditation_factor_for(player.get_player_class()) *
-                         intelligence_for(player.get_race());
+            mana_rate += GameFormulas::meditation_mana_per_second(balance, player.get_race(),
+                                                                  player.get_player_class());
         mana_regen_accum[id] += mana_rate * dt;
         if (mana_regen_accum[id] >= 1.0 && player.get_mana_current() < player.get_mana_max()) {
             uint32_t gain = static_cast<uint32_t>(mana_regen_accum[id]);

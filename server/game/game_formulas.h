@@ -50,12 +50,13 @@ public:
     static uint32_t attack_experience(uint32_t damage, uint8_t attacker_level,
                                        uint8_t target_level, int level_diff_offset);
 
-    // Recuperación pasiva por segundo: FRazaRecuperacion * 1s
-    static uint32_t hp_regen_per_second(double race_recovery_factor);
-    static uint32_t mana_regen_per_second(double race_recovery_factor);
+    // Recuperación pasiva por segundo: Vida/Mana = FRazaRecuperacion * segundos
+    static double hp_regen_per_second(const BalanceConfig& balance, Race race);
+    static double mana_regen_per_second(const BalanceConfig& balance, Race race);
 
-    // Recuperación por meditación por segundo: FClaseMeditacion * Inteligencia * 1s
-    static uint32_t meditation_mana_per_second(double meditation_factor, uint32_t intelligence);
+    // Recuperación por meditación por segundo: Mana = FClaseMeditacion * Inteligencia * segundos
+    static double meditation_mana_per_second(const BalanceConfig& balance, Race race,
+                                             PlayerClass cls);
 };
 
 #endif  // GAME_FORMULAS_H
