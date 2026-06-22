@@ -1,6 +1,7 @@
 #include "clan_command_handler.h"
 
 #include <algorithm>
+#include <format>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -86,9 +87,9 @@ CommandResult ClanCommandHandler::handle_found_clan(uint16_t player_id, const st
     if (!player) return {};
 
     if (player->get_level() < clan_manager.min_level_found()) {
-        return CommandResult::with_msg("Necesitas nivel " +
-                                       std::to_string(clan_manager.min_level_found()) +
-                                       " para fundar un clan");
+        const int min_level = clan_manager.min_level_found();
+        return CommandResult::with_msg(
+                std::vformat(msgs_.clan_level_required, std::make_format_args(min_level)));
     }
 
     const std::string& sender_name = player->get_name();

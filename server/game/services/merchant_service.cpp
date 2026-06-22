@@ -1,5 +1,6 @@
 #include "merchant_service.h"
 
+#include <format>
 #include <string>
 #include <utility>
 #include <variant>
@@ -36,11 +37,13 @@ std::variant<MerchantService::VendorContext, CommandResult> MerchantService::res
     Player& player = it->second;
 
     if (player.is_dead()) {
-        return CommandResult::with_msg("Los fantasmas no pueden " + action);
+        return CommandResult::with_msg(
+                std::vformat(msgs_.ghost_cant_action, std::make_format_args(action)));
     }
 
     if (item_name.empty()) {
-        return CommandResult::with_msg("Uso: /" + action + " <nombre del objeto>");
+        return CommandResult::with_msg(
+                std::vformat(msgs_.usage_action_item, std::make_format_args(action)));
     }
 
     auto map_it = maps_.find(player.get_current_map());
@@ -121,7 +124,8 @@ CommandResult MerchantService::handle_npc_buy(uint16_t player_id, const NpcBuyCm
     const Item* found = item_catalog_.find_by_name(item_name);
 
     if (!found) {
-        return CommandResult::with_msg("Objeto '" + item_name + "' no encontrado");
+        return CommandResult::with_msg(
+                std::vformat(msgs_.item_not_found, std::make_format_args(item_name)));
     }
 
     const VendorsConfig& vendors = balance_.vendors;
@@ -140,12 +144,14 @@ CommandResult MerchantService::handle_npc_buy(uint16_t player_id, const NpcBuyCm
         } else {
             vendor_label = "El sacerdote";
         }
-        return CommandResult::with_msg(vendor_label + " no vende ese objeto");
+        return CommandResult::with_msg(
+                std::vformat(msgs_.vendor_doesnt_sell, std::make_format_args(vendor_label)));
     }
 
     if (player.get_gold() < found->price) {
-        return CommandResult::with_msg("Oro insuficiente. El " + found->name + " cuesta " +
-                                       std::to_string(found->price) + " de oro");
+        return CommandResult::with_msg(std::vformat(
+                msgs_.insufficient_gold_item,
+                std::make_format_args(found->name, found->price)));
     }
 
     player.spend_gold(found->price);
@@ -178,7 +184,8 @@ CommandResult MerchantService::handle_npc_sell(uint16_t player_id, const NpcSell
 
     const Item* item_def = item_catalog_.find_by_name(item_name);
     if (!item_def) {
-        return CommandResult::with_msg("Objeto '" + item_name + "' no encontrado");
+        return CommandResult::with_msg(
+                std::vformat(msgs_.item_not_found, std::make_format_args(item_name)));
     }
 
     if (!vendor_sells(balance_.vendors, std::string(PropNames::MERCHANT), item_def->type)) {
@@ -187,7 +194,8 @@ CommandResult MerchantService::handle_npc_sell(uint16_t player_id, const NpcSell
 
     auto slot_opt = player.find_slot_by_type(item_def->type);
     if (!slot_opt) {
-        return CommandResult::with_msg("No tenés '" + item_def->name + "' en el inventario");
+        return CommandResult::with_msg(
+                std::vformat(msgs_.item_not_in_inventory, std::make_format_args(item_def->name)));
     }
 
     uint32_t sell_price =

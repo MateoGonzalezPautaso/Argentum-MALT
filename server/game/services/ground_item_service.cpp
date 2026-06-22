@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <format>
 #include <string>
 #include <utility>
 #include <vector>
@@ -92,7 +93,8 @@ CommandResult GroundItemService::handle_pickup_item(uint16_t player_id, const Pi
                               });
         });
         if (pick_it == vec.end()) {
-            return CommandResult::with_msg("No hay '" + cmd.item_name + "' en el piso aquí");
+            return CommandResult::with_msg(
+                    std::vformat(msgs_.item_not_on_ground, std::make_format_args(cmd.item_name)));
         }
     }
 
@@ -133,12 +135,14 @@ CommandResult GroundItemService::handle_drop_item(uint16_t player_id, const Drop
 
     const Item* item_def = item_catalog_.find_by_name(cmd.item_name);
     if (!item_def) {
-        return CommandResult::with_msg("Objeto '" + cmd.item_name + "' no encontrado");
+        return CommandResult::with_msg(
+                std::vformat(msgs_.item_not_found, std::make_format_args(cmd.item_name)));
     }
 
     auto slot_opt = player.find_slot_by_type(item_def->type);
     if (!slot_opt) {
-        return CommandResult::with_msg("No tenés '" + item_def->name + "' en el inventario");
+        return CommandResult::with_msg(
+                std::vformat(msgs_.item_not_in_inventory, std::make_format_args(item_def->name)));
     }
 
     const std::string& map_name = player.get_current_map();

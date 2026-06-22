@@ -211,6 +211,25 @@ struct MessagesConfig {
     std::string usage_clan_kick = "Uso: /clan-kick <nick>";
     std::string usage_clan_unban = "Uso: /clan-unban <nick>";
     std::string usage_clan_chat = "Uso: /c <mensaje>";
+    // Dynamic — item/player names interpolated at runtime
+    std::string item_not_found          = "Objeto '{}' no encontrado";
+    std::string item_not_in_bank        = "No tenés '{}' en el banco";
+    std::string item_not_in_inventory   = "No tenés '{}' en el inventario";
+    std::string item_not_on_ground      = "No hay '{}' en el piso aquí";
+    std::string vendor_doesnt_sell      = "{} no vende ese objeto";
+    std::string insufficient_gold_item  = "Oro insuficiente. El {} cuesta {}";
+    std::string ghost_cant_action       = "Los fantasmas no pueden {}";
+    std::string usage_action_item       = "Uso: /{} <nombre del objeto>";
+    std::string npc_drop_inventory_full = "{} soltó {} pero tu inventario está lleno";
+    std::string gold_stolen_from        = "Le robaste {} de oro a {}";
+    std::string gold_stolen_by          = "{} te robó {} de oro";
+    std::string gold_lost_on_death      = "Perdiste {} de oro al morir";
+    std::string npc_attacked_player     = "{} atacó a {} por {} de daño";
+    std::string player_killed           = "{} mató a {}";
+    std::string player_not_found        = "Jugador {} no encontrado";
+    std::string command_not_recognized  = "Comando {} no reconocido";
+    std::string resurrect_countdown     = "Resucitando en {} segundos... Permanece inmóvil.";
+    std::string clan_level_required     = "Necesitas nivel {} para fundar un clan";
     // Cheats
     std::string cheat_inf_hp_on = "[Cheat] HP infinito: ON";
     std::string cheat_inf_hp_off = "[Cheat] HP infinito: OFF";

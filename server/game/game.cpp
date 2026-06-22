@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <format>
 #include <string>
 #include <utility>
 #include <variant>
@@ -502,7 +503,8 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
                         .broadcast_events = {},
                         .targeted_events = std::move(targeted)};
             }
-            return CommandResult::with_msg("Jugador " + target_nick + " no encontrado");
+            return CommandResult::with_msg(
+                    std::vformat(msgs_.player_not_found, std::make_format_args(target_nick)));
         }
     }
 
@@ -517,7 +519,8 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         if (cmd_name == "/help")
             return cheat_service.handle_help();
 
-        return CommandResult::with_msg("Comando " + cmd_name + " no reconocido");
+        return CommandResult::with_msg(
+                std::vformat(msgs_.command_not_recognized, std::make_format_args(cmd_name)));
     }
 
     ChatMsgEvent broadcast_ev{ChatMsgType::SAY, sender_name, text};
@@ -697,8 +700,8 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     pending_resurrections_[player_id] = {wait_ticks, target_map, target_pos};
 
     uint32_t remaining_tiles = wait_ticks / tick_rate_hz;
-    return CommandResult::with_msg("Resucitando en " + std::to_string(remaining_tiles) +
-                                   " segundos... Permanece inmóvil.");
+    return CommandResult::with_msg(
+            std::vformat(msgs_.resurrect_countdown, std::make_format_args(remaining_tiles)));
 }
 
 CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {

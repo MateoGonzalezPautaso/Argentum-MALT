@@ -429,6 +429,24 @@ ServerConfig load_server_config(const std::string& path) {
         config.messages.cheat_velocity_off = toml_get_string(*msgs, "cheat_velocity_off", config.messages.cheat_velocity_off);
         config.messages.cheat_inventory_filled = toml_get_string(*msgs, "cheat_inventory_filled", config.messages.cheat_inventory_filled);
         config.messages.cheat_inventory_cleared = toml_get_string(*msgs, "cheat_inventory_cleared", config.messages.cheat_inventory_cleared);
+        config.messages.item_not_found = toml_get_string(*msgs, "item_not_found", config.messages.item_not_found);
+        config.messages.item_not_in_bank = toml_get_string(*msgs, "item_not_in_bank", config.messages.item_not_in_bank);
+        config.messages.item_not_in_inventory = toml_get_string(*msgs, "item_not_in_inventory", config.messages.item_not_in_inventory);
+        config.messages.item_not_on_ground = toml_get_string(*msgs, "item_not_on_ground", config.messages.item_not_on_ground);
+        config.messages.vendor_doesnt_sell = toml_get_string(*msgs, "vendor_doesnt_sell", config.messages.vendor_doesnt_sell);
+        config.messages.insufficient_gold_item = toml_get_string(*msgs, "insufficient_gold_item", config.messages.insufficient_gold_item);
+        config.messages.ghost_cant_action = toml_get_string(*msgs, "ghost_cant_action", config.messages.ghost_cant_action);
+        config.messages.usage_action_item = toml_get_string(*msgs, "usage_action_item", config.messages.usage_action_item);
+        config.messages.npc_drop_inventory_full = toml_get_string(*msgs, "npc_drop_inventory_full", config.messages.npc_drop_inventory_full);
+        config.messages.gold_stolen_from = toml_get_string(*msgs, "gold_stolen_from", config.messages.gold_stolen_from);
+        config.messages.gold_stolen_by = toml_get_string(*msgs, "gold_stolen_by", config.messages.gold_stolen_by);
+        config.messages.gold_lost_on_death = toml_get_string(*msgs, "gold_lost_on_death", config.messages.gold_lost_on_death);
+        config.messages.npc_attacked_player = toml_get_string(*msgs, "npc_attacked_player", config.messages.npc_attacked_player);
+        config.messages.player_killed = toml_get_string(*msgs, "player_killed", config.messages.player_killed);
+        config.messages.player_not_found = toml_get_string(*msgs, "player_not_found", config.messages.player_not_found);
+        config.messages.command_not_recognized = toml_get_string(*msgs, "command_not_recognized", config.messages.command_not_recognized);
+        config.messages.resurrect_countdown = toml_get_string(*msgs, "resurrect_countdown", config.messages.resurrect_countdown);
+        config.messages.clan_level_required = toml_get_string(*msgs, "clan_level_required", config.messages.clan_level_required);
     }
 
     return config;

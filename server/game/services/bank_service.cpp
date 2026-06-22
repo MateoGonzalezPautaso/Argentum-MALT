@@ -1,5 +1,6 @@
 #include "bank_service.h"
 
+#include <format>
 #include <string>
 #include <unordered_map>
 
@@ -51,13 +52,15 @@ CommandResult BankService::handle_bank_deposit(uint16_t player_id, const BankDep
 
     const Item* item_def = item_catalog_.find_by_name(cmd.item_name);
     if (!item_def) {
-        return CommandResult::with_msg("Objeto '" + cmd.item_name + "' no encontrado");
+        return CommandResult::with_msg(
+                std::vformat(msgs_.item_not_found, std::make_format_args(cmd.item_name)));
     }
 
     auto slot_opt = player.find_slot_by_type(item_def->type);
     if (!slot_opt) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                         "No tenés '" + item_def->name + "' en el inventario"};
+                         std::vformat(msgs_.item_not_in_inventory,
+                                      std::make_format_args(item_def->name))};
         return {.private_events = {msg}};
     }
 
@@ -108,12 +111,14 @@ CommandResult BankService::handle_bank_withdraw(uint16_t player_id, const BankWi
 
     const Item* item_def = item_catalog_.find_by_name(cmd.item_name);
     if (!item_def) {
-        return CommandResult::with_msg("Objeto '" + cmd.item_name + "' no encontrado");
+        return CommandResult::with_msg(
+                std::vformat(msgs_.item_not_found, std::make_format_args(cmd.item_name)));
     }
 
     auto slot_opt = player.find_bank_slot_by_type(item_def->type);
     if (!slot_opt) {
-        return CommandResult::with_msg("No tenés '" + item_def->name + "' en el banco");
+        return CommandResult::with_msg(
+                std::vformat(msgs_.item_not_in_bank, std::make_format_args(item_def->name)));
     }
 
     if (!player.add_item(item_def->type, item_def->name)) {

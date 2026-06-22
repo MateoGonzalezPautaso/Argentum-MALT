@@ -1,6 +1,7 @@
 #include "combat_controller.h"
 
 #include <cmath>
+#include <format>
 #include <utility>
 #include <vector>
 
@@ -129,10 +130,11 @@ CommandResult CombatController::resolve_npc_attack(Player& attacker, EnemyNpc& n
             if (attacker.add_item(item.type, item.name)) {
                 result.private_events.push_back(InventoryUpdateEvent{attacker.dump_inventory()});
             } else {
+                const std::string npc_name = npc_target.get_name();
                 result.private_events.push_back(
                         ChatMsgEvent{ChatMsgType::SYSTEM, "",
-                                     npc_target.get_name() + " solto " + item.name +
-                                             " pero tu inventario esta lleno"});
+                                     std::vformat(msgs_.npc_drop_inventory_full,
+                                                  std::make_format_args(npc_name, item.name))});
             }
         }
     }
@@ -314,24 +316,26 @@ void CombatController::on_player_death(
         if (killer) {
             killer->gain_gold(excess);
             if (killer_events) {
+                const std::string victim_name = victim.get_name();
                 killer_events->push_back(GoldUpdateEvent{killer->get_gold()});
                 killer_events->push_back(
                         ChatMsgEvent{ChatMsgType::SYSTEM, "",
-                                     "Le robaste " + std::to_string(excess) + " de oro a " +
-                                             victim.get_name()});
+                                     std::vformat(msgs_.gold_stolen_from,
+                                                  std::make_format_args(excess, victim_name))});
             }
+            const std::string killer_name = killer->get_name();
             victim_events.push_back(GoldUpdateEvent{victim.get_gold()});
             victim_events.push_back(
                     ChatMsgEvent{ChatMsgType::SYSTEM, "",
-                                 killer->get_name() + " te robó " + std::to_string(excess) +
-                                         " de oro"});
+                                 std::vformat(msgs_.gold_stolen_by,
+                                              std::make_format_args(killer_name, excess))});
         } else {
             drops[victim.get_current_map()].push_back(
                     ItemDroppedEvent{Position{victim.pos_x(), victim.pos_y()}, ItemType::GOLD_DROP,
                                      "Oro", excess});
-            victim_events.push_back(ChatMsgEvent{ChatMsgType::SYSTEM, "",
-                                                 "Perdiste " + std::to_string(excess) +
-                                                         " de oro al morir"});
+            victim_events.push_back(ChatMsgEvent{
+                    ChatMsgType::SYSTEM, "",
+                    std::vformat(msgs_.gold_lost_on_death, std::make_format_args(excess))});
         }
     }
 
@@ -401,10 +405,14 @@ void CombatController::npc_attack_target(
         targeted[target_id].push_back(DamageReceivedEvent{target_id, npc_id, damage,
                                                            target.get_hp_current(),
                                                            target.get_hp_max()});
-        targeted[target_id].push_back(
-                ChatMsgEvent{ChatMsgType::SYSTEM, "",
-                             npc.get_name() + " ataco a " + target.get_name() + " por " +
-                                     std::to_string(damage) + " de dano"});
+        {
+            const std::string npc_name = npc.get_name();
+            const std::string tgt_name = target.get_name();
+            targeted[target_id].push_back(
+                    ChatMsgEvent{ChatMsgType::SYSTEM, "",
+                                 std::vformat(msgs_.npc_attacked_player,
+                                              std::make_format_args(npc_name, tgt_name, damage))});
+        }
     }
 
     if (target.is_dead()) {
@@ -579,9 +587,11 @@ CommandResult CombatController::notify_entity_attacked(
     } else {
         DamageReceivedEvent received{target_id, attacker.get_id(), damage, target_hp_current,
                                      target_hp_max};
+        const std::string attacker_name = attacker.get_name();
         ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
-                              attacker.get_name() + " ataco a " + target_name + " por " +
-                                      std::to_string(damage) + " de daño"};
+                              std::vformat(msgs_.npc_attacked_player,
+                                           std::make_format_args(attacker_name, target_name,
+                                                                  damage))};
         targeted[target_id].push_back(received);
         targeted[target_id].push_back(chat_msg);
         targeted[attacker.get_id()].push_back(chat_msg);
@@ -589,8 +599,10 @@ CommandResult CombatController::notify_entity_attacked(
         if (target_is_dead) {
             EntityDiedEvent died{target_id};
             broadcast.push_back(died);
-            broadcast.push_back(ChatMsgEvent{ChatMsgType::SYSTEM, "",
-                                             attacker.get_name() + " mato a " + target_name});
+            broadcast.push_back(ChatMsgEvent{
+                    ChatMsgType::SYSTEM, "",
+                    std::vformat(msgs_.player_killed,
+                                 std::make_format_args(attacker_name, target_name))});
 
             attacker.gain_experience(GameFormulas::bonus_kill_experience(
                     balance, target_hp_max, attacker.get_level(), target_level, rng));
