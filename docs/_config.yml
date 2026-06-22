@@ -4,5 +4,5 @@ theme: minima
 
 header_pages:
   - index.md
-  - manual.md
+  - manual-de-usuario.md
   - documentacion.md

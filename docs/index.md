@@ -16,7 +16,7 @@ Estilo gráfico 2D top-down y ambientación de fantasía medieval. Creá tu pers
 
 Video promocional del juego.
 
-**[Manual de Usuario](manual)**
+**[Manual de Usuario](manual-de-usuario)**
 
 Guía completa del juego: instalación, controles, combate, ítems, clanes, comandos y más.
 
