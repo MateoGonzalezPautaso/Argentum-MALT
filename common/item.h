@@ -20,6 +20,7 @@ struct Item {
     uint8_t restore_mana_percent = 0;
     uint32_t price = 0;
     uint16_t attack_range = 0;
+    bool self_heal = false;
 };
 
 #endif

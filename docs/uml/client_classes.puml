@@ -1,0 +1,240 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam backgroundColor #FEFEFE
+title Argentum MALT — Arquitectura del Cliente (clases principales)
+
+note as N1
+  Enfocado en la capa de infraestructura de red
+  y lógica de juego/UI (Socket, Protocol, Engine,
+  GameController). Para el detalle de threading
+  (Sender, Receiver, Queue), ver
+  client_threads_architecture.puml.
+  Para el pipeline de renderizado de sprites
+  (SpriteRenderer, EntitySpriteRegistry,
+  EffectOverlaySystem), ver client.puml.
+end note
+
+' ============================================================
+' Common / Infraestructura (compartida con el servidor)
+' ============================================================
+class Socket {
+  - int skt
+  - bool closed
+  - std::atomic<int> stream_status
+  + Socket(hostname, servname)
+  + sendall(data, sz)
+  + recvall(data, sz)
+  + shutdown(how)
+  + shutdown_from_other_thread(how)
+  + close()
+}
+
+class Protocol {
+  - Socket& skt
+  + Protocol(Socket&)
+  + send_uint8(value) / recv_uint8()
+  + send_uint16(value) / recv_uint16()
+  + send_uint32(value) / recv_uint32()
+  + send_str(message) / recv_str()
+  + send_opcode(opcode) / recv_opcode()
+  + send_bool(value) / recv_bool()
+}
+note bottom of Socket
+  Misma clase que en el servidor
+  (común/socket.h), ver server_classes.puml.
+end note
+
+class ClientProtocol {
+  - Socket skt
+  - Protocol protocol
+  + ClientProtocol(Socket&&)
+  + send_login(cmd)
+  + send_create_character(cmd)
+  + send_move(cmd)
+  + send_attack(cmd)
+  + send_cast_spell(cmd)
+  + send_chat_msg(cmd)
+  + send_clan_found(cmd) / ... (8 comandos de clan)
+  + send_cheat_infinite_hp() / ... (12 cheats)
+  + ... (35 métodos send_* en total, uno por ClientCommand)
+  + send_command(cmd: ClientCommand)
+  + recv_event(): ServerEvent
+  + shutdown_from_other_thread()
+  - recv_login_payload()
+  - recv_login_ok() / recv_entity_spawn() / ... (~20 deserializadores privados)
+}
+Protocol o-- ClientProtocol : <<compone>>
+Socket *-- ClientProtocol : <<dueño>>
+
+' ============================================================
+' Top-level: Client
+' ============================================================
+class Client {
+  - ClientConfig config
+  - Socket skt
+  - ClientProtocol protocol
+  - Queue<ClientCommand> command_queue
+  - Queue<ServerEvent> event_queue
+  - AudioManager audio_manager
+  - Engine engine
+  - Sender sender
+  - Receiver receiver
+  + Client(config)
+  + run()
+  - run_menu(): bool
+  - run_login(): optional<LoginOkEvent>
+  - run_create_character(): optional<LoginOkEvent>
+  - game_loop()
+  - shutdown()
+}
+note right of Client
+  Sender/Receiver y el detalle de las
+  colas están en client_threads_architecture.puml.
+  Acá se muestra Client solo como dueño
+  de Engine y punto de entrada del proceso.
+end note
+
+' ============================================================
+' Engine: máquina de estados de pantallas
+' ============================================================
+class Engine {
+  - RenderContext render_ctx
+  - MenuController menu_ctrl
+  - LoginController login_ctrl
+  - CreateCharacterController create_char_ctrl
+  - AudioManager& audio_manager
+  - GameController game_controller
+  - bool create_char_requested
+  + Engine(config, command_queue, audio_manager)
+  + dispatch_event(state: GameState&): bool
+  + render_menu_frame() / render_login_frame() / render_create_char_frame() / render_game_frame()
+  + tick_game()
+  + apply_server_event(ev)
+  + load_game_assets()
+  + try_submit_login(username, password): bool
+  + handle_login_error(msg)
+  + try_submit_create_character(username, password, race, player_class): bool
+  + handle_create_char_error(msg)
+  + wants_create_character(): bool
+  - dispatch_menu_event(event, state): bool
+  - dispatch_login_event(event, state)
+  - dispatch_create_char_event(event, state)
+}
+Engine *-- GameController : <<dueño>>
+Engine *-- RenderContext : <<dueño>>
+
+class RenderContext {
+  - SDL2pp::Window window
+  - SDL2pp::Renderer sdl_renderer
+  - int logical_w
+  - int logical_h
+  + RenderContext(title, window_w, window_h, ...)
+  + renderer(): SDL2pp::Renderer&
+}
+
+enum GameState {
+  Menu
+  Login
+  CreateCharacter
+  Playing
+}
+
+' ============================================================
+' GameController: estado y lógica de la partida en curso
+' ============================================================
+class GameController {
+  - AudioManager& audio_manager
+  - PlayerStats player_stats
+  - bool player_is_ghost
+  - std::string current_map_name
+  - WorldRenderer world_renderer
+  - UIRenderer ui_renderer
+  - Queue<ClientCommand>& command_queue
+  - MoveController move_controller
+  - ChatInput chat_input
+  - ChatHistory chat_history
+  - ChatCommandParser chat_parser_
+  - unique_ptr<MerchantController> merchant_controller
+  - ServerEventHandler event_handler_
+  + GameController(renderer, config, command_queue, audio_manager)
+  + tick()
+  + render()
+  + apply_server_event(ev)
+  + handle_event(event: SDL_Event): bool
+  + is_chat_focused(): bool
+  + load_game_assets()
+  - handle_mouse_button(event): bool
+  - try_handle_ui_click(event): bool
+  - try_handle_inventory_click(event): bool
+  - try_handle_world_click(event): bool
+  - handle_mouse_motion(event): bool
+  - handle_keydown(event): bool
+  - flush_pending_chat()
+  - apply_movement_visual(dir, advance_frame)
+  - interact_with_prop(prop_name, world_x, world_y)
+}
+note bottom of GameController
+  Equivalente del lado cliente a `Game` en el
+  servidor: mantiene el estado local de la
+  partida (HUD, posición de cámara, inventario
+  visible). A diferencia de `Game`, no es la
+  fuente de verdad — solo refleja lo que llega
+  por ServerEvent.
+end note
+
+GameController *-- WorldRenderer : <<dueño>>
+GameController *-- ServerEventHandler : <<dueño>>
+
+' ============================================================
+' ServerEventHandler: aplica ServerEvent al estado de UI/render
+' ============================================================
+class ServerEventHandler {
+  - PlayerStats& player_stats_
+  - WorldRenderer& world_renderer_
+  - AudioManager& audio_manager_
+  - ChatHistory& chat_history_
+  - MoveController& move_controller_
+  - MerchantController& merchant_controller_
+  - bool& player_is_ghost_
+  - std::string& current_map_name_
+  + ServerEventHandler(player_stats, world_renderer, audio_manager, ...)
+  + apply(ev: ServerEvent)
+  - handle_entity_move(e) / handle_entity_spawn(e) / handle_entity_despawn(e)
+  - handle_login_ok(e) / handle_damage_received(e) / handle_attack_dodged(e)
+  - handle_chat_msg(e) / handle_entity_died(e) / handle_player_respawned(e)
+  - handle_clan_notification(e) / handle_clan_update(e) / handle_map_transition(e)
+  - handle_heal_received(e) / handle_inventory_update(e) / handle_equip_update(e)
+  - handle_player_stats(e) / handle_bank_update(e)
+  - play_spatial_sfx(name, entity_id)
+  - apply_equipment_overlays(entity_id, is_local, equipped_types)
+}
+note right of ServerEventHandler
+  Despacha vía std::visit + overloaded
+  sobre el variant ServerEvent (~29 tipos),
+  análogo a Game::process_command() del
+  lado servidor pero solo actualizando
+  render/UI, sin lógica de juego.
+end note
+
+class WorldRenderer {
+  - SpriteRenderer sprite_renderer
+  - TilemapRenderer tilemap_renderer
+  - PropRenderer prop_renderer
+  - GroundItemRenderer ground_item_renderer
+  - Camera camera
+  - AnimationSystem anim_system
+  + load_assets(tilemap, sprites_config, skin_config, ...)
+  + render()
+  + load_map(tilemap)
+  + screen_to_world(screen_x, screen_y, world_x&, world_y&): bool
+  + hit_test_prop(world_x, world_y, out_prop_name&): bool
+  + sprites(): SpriteRenderer&
+  + ground_items(): GroundItemRenderer&
+}
+note bottom of WorldRenderer
+  Composición interna (SpriteRenderer,
+  EntitySpriteRegistry, EffectOverlaySystem,
+  etc.) detallada en client.puml.
+end note
+
+@enduml

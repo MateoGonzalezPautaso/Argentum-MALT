@@ -8,11 +8,11 @@
 #include <variant>
 #include <vector>
 
+
 #include "../../common/error_logger.h"
 #include "../../common/visit.h"
 
 #include "entity_event_factory.h"
-#include "game_formulas.h"
 #include "player_registry.h"
 #include "prop_names.h"
 
@@ -59,9 +59,16 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
                                clan_handler, combat_controller, ground_item_service),
         cheat_service(players, config.balance, config.item_catalog, player_data_service,
                       combat_controller, config.help_lines, config.cheats_enabled, msgs_),
+        resurrection_service_(players, maps, enemy_npcs, pending_resurrections_,
+                              ground_item_service, config.balance, config.messages,
+                              config.sprite_width, config.sprite_height, config.tick_rate_hz),
         movement_service_(players, maps, enemy_npcs, pending_resurrections_, config.balance,
                           config.move_step, config.sprite_width, config.sprite_height,
                           map_transition_service),
+        regen_service_(players, config.balance, config.tick_rate_hz,
+                       hp_regen_accum, mana_regen_accum),
+        spell_service_(players, enemy_npcs, maps, config.item_catalog, combat_controller,
+                       ground_item_service, config.balance, config.messages),
         tick_rate_hz(config.tick_rate_hz),
         cheats_enabled(config.cheats_enabled),
         help_lines(config.help_lines) {
@@ -129,42 +136,44 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const AttackCmd& cmd) { return handle_attack(player_id, cmd); },
                     [&](const SendChatMsgCmd& cmd) { return handle_send_chat_msg(player_id, cmd); },
                     [&](const MeditateCmd&) { return handle_meditate(player_id); },
-                    [&](const ResurrectCmd&) { return handle_resurrect(player_id); },
+                    [&](const ResurrectCmd&) { return resurrection_service_.handle_resurrect(player_id); },
                     [&](const CheatInfiniteHpCmd&) {
-                        return cheat_service.dispatch_cheat_infinite_hp(player_id);
+                        return cheat_service.dispatch(CheatType::INFINITE_HP, player_id);
                     },
                     [&](const CheatInfiniteManaCmd&) {
-                        return cheat_service.dispatch_cheat_infinite_mana(player_id);
+                        return cheat_service.dispatch(CheatType::INFINITE_MANA, player_id);
                     },
-                    [&](const CheatDieCmd&) { return cheat_service.dispatch_cheat_die(player_id); },
+                    [&](const CheatDieCmd&) {
+                        return cheat_service.dispatch(CheatType::DIE, player_id);
+                    },
                     [&](const CheatLevelUpCmd&) {
-                        return cheat_service.dispatch_cheat_level_up(player_id);
+                        return cheat_service.dispatch(CheatType::LEVEL_UP, player_id);
                     },
                     [&](const CheatLevelDownCmd&) {
-                        return cheat_service.dispatch_cheat_level_down(player_id);
+                        return cheat_service.dispatch(CheatType::LEVEL_DOWN, player_id);
                     },
                     [&](const CheatAddGoldCmd&) {
-                        return cheat_service.dispatch_cheat_add_gold(player_id);
+                        return cheat_service.dispatch(CheatType::ADD_GOLD, player_id);
                     },
                     [&](const CheatResetGoldCmd&) {
-                        return cheat_service.dispatch_cheat_reset_gold(player_id);
+                        return cheat_service.dispatch(CheatType::RESET_GOLD, player_id);
                     },
                     [&](const CheatVelocityCmd&) {
-                        return cheat_service.dispatch_cheat_velocity(player_id);
+                        return cheat_service.dispatch(CheatType::VELOCITY, player_id);
                     },
                     [&](const CheatReviveCmd&) {
-                        return cheat_service.dispatch_cheat_revive(player_id);
+                        return cheat_service.dispatch(CheatType::REVIVE, player_id);
                     },
                     [&](const CheatFillInventoryCmd&) {
-                        return cheat_service.dispatch_cheat_fill_inventory(player_id);
+                        return cheat_service.dispatch(CheatType::FILL_INVENTORY, player_id);
                     },
                     [&](const CheatClearInventoryCmd&) {
-                        return cheat_service.dispatch_cheat_clear_inventory(player_id);
+                        return cheat_service.dispatch(CheatType::CLEAR_INVENTORY, player_id);
                     },
                     [&](const CheatResetManaCmd&) {
-                        return cheat_service.dispatch_cheat_reset_mana(player_id);
+                        return cheat_service.dispatch(CheatType::RESET_MANA, player_id);
                     },
-                    [&](const CastSpellCmd& cmd) { return handle_cast_spell(player_id, cmd); },
+                    [&](const CastSpellCmd& cmd) { return spell_service_.handle_cast_spell(player_id, cmd, tick_count); },
                     [&](const ChangeMapCmd& cmd) {
                         return map_transition_service.handle_change_map(player_id, cmd);
                     },
@@ -225,57 +234,11 @@ CommandResult Game::remove_player(uint16_t player_id) {
     return player_session_service.remove_player(player_id);
 }
 
-CommandResult Game::apply_regen() {
-    CommandResult result;
-    const double dt = 1.0 / tick_rate_hz;
-
-    for (auto& [id, player]: players) {
-        if (player.is_dead())
-            continue;
-
-        bool changed = false;
-        double rate = GameFormulas::hp_regen_per_second(balance, player.get_race());
-
-        // rate is in HP/second, but tick() runs 20 times per second.
-        // Each tick only represents dt = 1/20 = 0.05 seconds,
-        // so the per-tick gain is 1.0 * 0.05 = 0.05 HP
-        hp_regen_accum[id] += rate * dt;
-        if (hp_regen_accum[id] >= 1.0 && player.get_hp_current() < player.get_hp_max()) {
-            uint32_t gain = static_cast<uint32_t>(hp_regen_accum[id]);
-            player.heal(gain);
-            hp_regen_accum[id] -= gain;
-            changed = true;
-        } else if (hp_regen_accum[id] >= 1.0) {
-            hp_regen_accum[id] = 0.0;
-        }
-
-        double mana_rate = GameFormulas::mana_regen_per_second(balance, player.get_race());
-        if (player.get_is_meditating())
-            mana_rate += GameFormulas::meditation_mana_per_second(balance, player.get_race(),
-                                                                  player.get_player_class());
-        mana_regen_accum[id] += mana_rate * dt;
-        if (mana_regen_accum[id] >= 1.0 && player.get_mana_current() < player.get_mana_max()) {
-            uint32_t gain = static_cast<uint32_t>(mana_regen_accum[id]);
-            player.restore_mana(gain);
-            mana_regen_accum[id] -= gain;
-            changed = true;
-        } else if (mana_regen_accum[id] >= 1.0) {
-            mana_regen_accum[id] = 0.0;
-        }
-
-        if (changed) {
-            HealReceivedEvent ev{id, player.get_hp_current(), player.get_mana_current()};
-            result.broadcast_events.push_back(ev);
-        }
-    }
-    return result;
-}
-
 CommandResult Game::tick() {
     ++tick_count;
-    CommandResult result = apply_regen();
+    CommandResult result = regen_service_.apply_regen();
 
-    result.merge(process_pending_resurrections());
+    result.merge(resurrection_service_.process_pending_resurrections());
 
     CommandResult npc_result = combat_controller.update_npc_ai(tick_count);
     ground_item_service.commit_ground_drops(npc_result, npc_result.ground_drops);
@@ -286,74 +249,6 @@ CommandResult Game::tick() {
     return result;
 }
 
-
-CommandResult Game::process_pending_resurrections() {
-    CommandResult result;
-
-    for (auto it = pending_resurrections_.begin(); it != pending_resurrections_.end();) {
-        auto& [player_id, pending] = *it;
-
-        if (pending.remaining_ticks > 0) {
-            --pending.remaining_ticks;
-            ++it;
-            continue;
-        }
-
-        auto player_it = players.find(player_id);
-        if (player_it == players.end()) {
-            it = pending_resurrections_.erase(it);
-            continue;
-        }
-
-        Player& player = player_it->second;
-        const std::string old_map = player.get_current_map();
-        const bool needs_map_transition = (pending.target_map != old_map);
-
-        if (needs_map_transition) {
-            EntityDespawnEvent despawn{player_id};
-            for (uint16_t pid: get_player_ids_on_map(old_map)) {
-                if (pid != player_id)
-                    result.targeted_events[pid].push_back(despawn);
-            }
-
-            player.set_current_map(pending.target_map);
-            player.set_pos(pending.target_pos.x, pending.target_pos.y);
-
-            player.resurrect();
-
-            std::vector<ServerEvent> private_events;
-            private_events.push_back(MapTransitionEvent{pending.target_map, pending.target_pos.x,
-                                                        pending.target_pos.y});
-            append_existing_entities(private_events, player_id, pending.target_map);
-            result.targeted_events[player_id] = std::move(private_events);
-
-            EntitySpawnEvent spawn = EntityEventFactory::make_entity_spawn(player);
-            PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
-            for (uint16_t pid: get_player_ids_on_map(pending.target_map)) {
-                if (pid != player_id)
-                    result.targeted_events[pid].push_back(spawn);
-                result.targeted_events[pid].push_back(respawn);
-            }
-        } else {
-            player.set_pos(pending.target_pos.x, pending.target_pos.y);
-            player.resurrect();
-
-            EntitySpawnEvent spawn = EntityEventFactory::make_entity_spawn(player);
-            EntityMoveEvent move_ev{player_id, player.get_pos(), player.get_dir()};
-            PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
-            for (uint16_t pid: get_player_ids_on_map(pending.target_map)) {
-                if (pid != player_id)
-                    result.targeted_events[pid].push_back(spawn);
-                result.targeted_events[pid].push_back(move_ev);
-                result.targeted_events[pid].push_back(respawn);
-            }
-        }
-
-        it = pending_resurrections_.erase(it);
-    }
-
-    return result;
-}
 
 CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
     auto it = players.find(player_id);
@@ -371,87 +266,6 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
 
     // Convert combat broadcasts to per-map events
     result.map_events = std::move(result.broadcast_events);
-    return result;
-}
-
-std::optional<CommandResult> Game::validate_cast(const Player& player, const CastSpellCmd&) const {
-    if (player.get_player_class() == PlayerClass::WARRIOR) {
-        return CommandResult::with_msg(msgs_.warrior_no_magic);
-    }
-
-    const InventorySlot& weapon_slot = player.get_equipped(EquipSlot::WEAPON);
-    if (weapon_slot.item_type == ItemType::NONE) {
-        return CommandResult::with_msg(msgs_.no_weapon_equipped);
-    }
-
-    const Item* item = item_catalog.find(weapon_slot.item_type);
-    if (!item || item->mana_consumed == 0) {
-        return CommandResult::with_msg(msgs_.weapon_not_magic);
-    }
-
-    if (player.get_mana_current() < item->mana_consumed) {
-        return CommandResult::with_msg(msgs_.insufficient_mana);
-    }
-
-    const Map& map = player_map(player);
-    if (map.is_safe_zone(player.pos_x(), player.pos_y())) {
-        return CommandResult::with_msg(msgs_.spell_safe_zone);
-    }
-
-    return std::nullopt;
-}
-
-CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cmd) {
-    auto it = players.find(player_id);
-    if (it == players.end())
-        return {};
-    Player& player = it->second;
-    if (player.is_dead())
-        return {};
-
-    if (auto rejection = validate_cast(player, cmd))
-        return *rejection;
-
-    const InventorySlot& weapon_slot = player.get_equipped(EquipSlot::WEAPON);
-    const Item* item = item_catalog.find(weapon_slot.item_type);
-
-    player.use_mana(item->mana_consumed);
-    player.set_meditating(false);
-
-    if (weapon_slot.item_type == ItemType::ELVEN_FLUTE) {
-        uint32_t heal_amount = GameFormulas::spell_self_heal(player.get_hp_max());
-        player.heal(heal_amount);
-        HealReceivedEvent heal_ev{player_id, player.get_hp_current(), player.get_mana_current()};
-        PlayerStatsEvent stats = make_player_stats_event(player);
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.self_heal_success};
-        DamageDealtEvent spell_ev{player_id, 0};
-        SpellEffectEvent effect_ev{player_id, 0};
-        return {.private_events = {msg, heal_ev, stats, spell_ev},
-                .broadcast_events = {},
-                .targeted_events = {},
-                .map_events = {effect_ev}};
-    }
-
-    if (cmd.target_id == player_id) {
-        return CommandResult::with_msg(msgs_.attack_self);
-    }
-
-    if (target_in_safe_zone(cmd.target_id)) {
-        return CommandResult::with_msg(msgs_.spell_safe_zone);
-    }
-
-    CommandResult result;
-    auto target_it = enemy_npcs.find(cmd.target_id);
-    if (target_it == enemy_npcs.end())
-        result = combat_controller.spell_attack_player(player_id, cmd.target_id, tick_count);
-    else
-        result = combat_controller.spell_attack_npc(player_id, cmd.target_id, tick_count);
-    ground_item_service.commit_ground_drops(result, result.ground_drops);
-    result.map_events = std::move(result.broadcast_events);
-    uint8_t effect_type = item->spell_effect_id;
-    if (effect_type == 0)
-        effect_type = balance.default_spell_effect_id;
-    result.map_events.push_back(SpellEffectEvent{cmd.target_id, effect_type});
     return result;
 }
 
@@ -613,80 +427,6 @@ PlayerStatsEvent Game::make_player_stats_event(const Player& p) const {
     PlayerStatsEvent ev{};
     combat_controller.fill_player_stats_event(ev, p);
     return ev;
-}
-
-CommandResult Game::handle_resurrect(uint16_t player_id) {
-    auto it = players.find(player_id);
-    if (it == players.end())
-        return {};
-
-    Player& player = it->second;
-    if (!player.is_dead()) {
-        return CommandResult::with_msg(msgs_.not_dead);
-    }
-
-    if (pending_resurrections_.contains(player_id)) {
-        return CommandResult::with_msg(msgs_.already_resurrecting);
-    }
-
-    const std::string& current_map = player.get_current_map();
-    auto map_it = maps.find(current_map);
-    if (map_it == maps.end())
-        return {};
-
-    const int tile_size = map_it->second.tile_size();
-    const int px = static_cast<int>(player.pos_x());
-    const int py = static_cast<int>(player.pos_y());
-    const int range = tile_size * balance.npc_interaction_range_tiles;
-
-    // If the ghost is near a sacerdote, resurrect immediately
-    if (map_it->second.prop_grid().is_in_range_of(std::string(PropNames::PRIEST), px, py, range)) {
-        player.resurrect();
-        PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.priest_resurrect};
-        CommandResult result;
-        result.private_events = {msg};
-        result.map_events = {respawn};
-        return result;
-    }
-
-
-    std::string target_map;
-    uint32_t wait_ticks;
-    int san_cx, san_cy;
-
-    const PropGrid::Entry* san_entry =
-            map_it->second.prop_grid().find_closest(std::string(PropNames::HEALER), px, py);
-    if (san_entry) {
-        target_map = current_map;
-        san_cx = san_entry->center_x;
-        san_cy = san_entry->center_y;
-        int dx = px - san_cx;
-        int dy = py - san_cy;
-        int dist_px = static_cast<int>(std::sqrt(static_cast<double>(dx * dx + dy * dy)));
-        int dist_tiles = dist_px / tile_size;
-        wait_ticks = static_cast<uint32_t>(dist_tiles * tick_rate_hz);
-    } else {
-        auto main_it = maps.find(balance.starting_map);
-        if (main_it == maps.end())
-            return {};
-        san_entry = main_it->second.prop_grid().find_closest(std::string(PropNames::HEALER), 0, 0);
-        if (!san_entry)
-            return {};
-        target_map = balance.starting_map;
-        san_cx = san_entry->center_x;
-        san_cy = san_entry->center_y;
-        wait_ticks = static_cast<uint32_t>(balance.default_resurrect_wait_seconds * tick_rate_hz);
-    }
-
-    Position target_pos{static_cast<uint16_t>(san_cx - sprite_width / 2),
-                        static_cast<uint16_t>(san_cy - sprite_height)};
-
-    pending_resurrections_[player_id] = {wait_ticks, target_map, target_pos};
-
-    uint32_t remaining_tiles = wait_ticks / tick_rate_hz;
-    return CommandResult::with_msg(
-            std::vformat(msgs_.resurrect_countdown, std::make_format_args(remaining_tiles)));
 }
 
 CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {

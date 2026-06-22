@@ -43,6 +43,7 @@ private:
     void append_existing_entities(std::vector<ServerEvent>& events, uint16_t exclude_id,
                                   const std::string& map_name) const;
     bool is_username_logged_in(const std::string& username) const;
+    CommandResult build_session_enter_events(const Player& p) const;
 
     std::map<uint16_t, Player>& players_;
     std::unordered_map<std::string, uint16_t>& player_name_index_;

@@ -33,9 +33,12 @@ target_sources(taller_tests
     ${CMAKE_SOURCE_DIR}/server/game/services/ground_item_service.cpp
     ${CMAKE_SOURCE_DIR}/server/game/services/map_transition_service.cpp
     ${CMAKE_SOURCE_DIR}/server/game/services/movement_service.cpp
+    ${CMAKE_SOURCE_DIR}/server/game/services/regen_service.cpp
+    ${CMAKE_SOURCE_DIR}/server/game/services/resurrection_service.cpp
     ${CMAKE_SOURCE_DIR}/server/game/services/player_session_service.cpp
     ${CMAKE_SOURCE_DIR}/server/game/services/merchant_service.cpp
     ${CMAKE_SOURCE_DIR}/server/game/services/spawn_service.cpp
+    ${CMAKE_SOURCE_DIR}/server/game/services/spell_service.cpp
     ${CMAKE_SOURCE_DIR}/server/game/player_data_service.cpp
     ${CMAKE_SOURCE_DIR}/server/persistence/clan_persistence.cpp
     ${CMAKE_SOURCE_DIR}/server/persistence/clan_record.cpp
