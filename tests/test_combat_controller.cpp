@@ -1,11 +1,15 @@
 #include <map>
 #include <optional>
+#include <unordered_map>
 
 #include "common/item.h"
 #include "gtest/gtest.h"
 #include "server/core/config.h"
+#include "server/game/clan_manager.h"
 #include "server/game/combat_controller.h"
+#include "server/game/map.h"
 #include "server/game/player.h"
+#include "server/persistence/clan_persistence.h"
 
 class CombatControllerTest: public ::testing::Test {
 protected:
@@ -14,6 +18,10 @@ protected:
     AttackConfig config;
     ItemCatalog item_catalog;
     BalanceConfig balance_config;
+    std::unordered_map<std::string, Map> maps;
+    ClanConfig clan_config;
+    ClanPersistence clan_persistence{"", ""};
+    ClanManager clan_manager{clan_persistence, clan_config};
     std::optional<CombatController> controller;
 
     void SetUp() override {
@@ -23,7 +31,7 @@ protected:
         config.cooldown_ticks = 10;
         config.critical_chance = 0;
         controller.emplace(config, players, item_catalog, enemy_npcs, NpcDropConfig{},
-                           NpcDropConfig{}, balance_config);
+                           NpcDropConfig{}, balance_config, clan_manager, maps);
     }
 
     Player& add_player(uint16_t id, const std::string& username, Position pos = {100, 100}) {
@@ -280,7 +288,7 @@ TEST_F(CombatControllerTest, WeaponEquipped_DamageUsesStrength) {
     sword.max_damage = 5;
     item_catalog.add(sword);
     controller.emplace(config, players, item_catalog, enemy_npcs, NpcDropConfig{}, NpcDropConfig{},
-                       balance_config);
+                       balance_config, clan_manager, maps);
 
     auto& attacker = add_player(1, "alice");
     auto& target = add_player(2, "bob");

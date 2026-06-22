@@ -14,26 +14,25 @@ CombatController::CombatController(const AttackConfig& config, std::map<uint16_t
                                    std::map<uint16_t, EnemyNpc>& enemy_npcs,
                                    const NpcDropConfig& drop_config,
                                    const NpcDropConfig& drop_config_dungeon,
-                                   const BalanceConfig& balance):
+                                   const BalanceConfig& balance, ClanManager& clan_manager,
+                                   const std::unordered_map<std::string, Map>& maps):
         config(config),
         balance(balance),
         players(players),
+        clan_manager(clan_manager),
         item_catalog_(catalog),
         enemy_npcs(enemy_npcs),
         npc_drop_config(drop_config),
-        npc_drop_config_dungeon(drop_config_dungeon) {}
+        npc_drop_config_dungeon(drop_config_dungeon),
+        maps(maps) {}
 
 const NpcDropConfig& CombatController::drop_config_for(const EnemyNpc& npc) const {
-    if (!maps)
-        return npc_drop_config;
-    auto it = maps->find(npc.get_current_map());
-    if (it == maps->end())
+    auto it = maps.find(npc.get_current_map());
+    if (it == maps.end())
         return npc_drop_config;
     return it->second.config().map_type == MapType::DUNGEON ? npc_drop_config_dungeon :
                                                               npc_drop_config;
 }
-
-void CombatController::set_clan_manager(ClanManager& mgr) { clan_manager = &mgr; }
 
 std::optional<CommandResult> CombatController::validate_pvp(const Player& attacker,
                                                             const Player& target) const {
@@ -54,7 +53,7 @@ std::optional<CommandResult> CombatController::validate_pvp(const Player& attack
         return CommandResult{.private_events = {msg}};
     }
 
-    if (clan_manager && !attacker.get_clan_name().empty() && !target.get_clan_name().empty() &&
+    if (!attacker.get_clan_name().empty() && !target.get_clan_name().empty() &&
         attacker.get_clan_name() == target.get_clan_name()) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar a un miembro de tu clan"};
         return CommandResult{.private_events = {msg}};
@@ -434,12 +433,8 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
         if (!in_vision_range)
             continue;
 
-        const Map* map = nullptr;
-        if (maps) {
-            auto it = maps->find(npc.get_current_map());
-            if (it != maps->end())
-                map = &it->second;
-        }
+        auto map_it = maps.find(npc.get_current_map());
+        const Map* map = (map_it != maps.end()) ? &map_it->second : nullptr;
 
         bool player_in_safe_zone = map && map->is_safe_zone(target->pos_x(), target->pos_y());
 
@@ -543,8 +538,6 @@ uint32_t CombatController::calculate_object_defense(const InventorySlot& object_
 }
 
 int CombatController::count_nearby_clan_members(const Player& player) const {
-    if (!clan_manager)
-        return 0;
     int count = 0;
     for (const auto& [pid, p]: players) {
         if (pid == player.get_id())
@@ -564,7 +557,7 @@ int CombatController::count_nearby_clan_members(const Player& player) const {
 }
 
 double CombatController::get_clan_bonus(const Player& player) const {
-    if (!clan_manager || player.get_clan_name().empty())
+    if (player.get_clan_name().empty())
         return 0;
     int nearby_allies = count_nearby_clan_members(player);
     return GameFormulas::clan_bonus(config, nearby_allies);
@@ -604,7 +597,7 @@ CommandResult CombatController::notify_entity_attacked(
     }
 
     // Notify clan members when someone is attacked
-    if (clan_manager && !target_clan_name.empty()) {
+    if (!target_clan_name.empty()) {
         ClanNotificationEvent notif{ClanNotifType::MEMBER_ATTACKED, target_name,
                                     std::string(target_clan_name)};
         for (const auto& [pid, p]: players) {

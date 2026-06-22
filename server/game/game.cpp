@@ -61,7 +61,8 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         rng(),
         next_npc_id(config.npc_id_base),
         combat_controller(config.attack, players, config.item_catalog, enemy_npcs,
-                          config.balance.npc_drop, config.balance.npc_drop_dungeon, config.balance),
+                          config.balance.npc_drop, config.balance.npc_drop_dungeon, config.balance,
+                          clan_manager, maps),
         bank_service(players, maps, config.item_catalog, config.balance),
         merchant_service(players, maps, config.item_catalog, config.balance, bank_service),
         spawn_service(enemy_npcs, maps, next_npc_id, rng, players, config.balance,
@@ -87,8 +88,7 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
     for (const auto& [name, tc]: config.tilemap_configs) {
         maps.emplace(name, Map(tc));
     }
-    combat_controller.set_clan_manager(clan_manager);
-    combat_controller.set_maps(maps);
+
 }
 
 Map& Game::player_map(const Player& p) {

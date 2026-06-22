@@ -24,13 +24,11 @@ public:
     CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
                      const ItemCatalog& catalog, std::map<uint16_t, EnemyNpc>& enemy_npcs,
                      const NpcDropConfig& drop_config, const NpcDropConfig& drop_config_dungeon,
-                     const BalanceConfig& balance);
+                     const BalanceConfig& balance, ClanManager& clan_manager,
+                     const std::unordered_map<std::string, Map>& maps);
 
-    void set_clan_manager(ClanManager& mgr);
     CommandResult melee_attack(uint16_t attacker_id, uint16_t target_id, uint32_t current_tick);
     CommandResult update_npc_ai(uint32_t current_tick);
-
-    void set_maps(const std::unordered_map<std::string, Map>& m) { maps = &m; }
 
     CommandResult spell_attack_player(uint16_t attacker_id, uint16_t target_id,
                                       uint32_t current_tick);
@@ -91,13 +89,13 @@ private:
     const AttackConfig& config;
     const BalanceConfig& balance;
     std::map<uint16_t, Player>& players;
-    ClanManager* clan_manager = nullptr;
+    ClanManager& clan_manager;
     const ItemCatalog& item_catalog_;
     Rng rng;
     std::map<uint16_t, EnemyNpc>& enemy_npcs;
     NpcDropConfig npc_drop_config;
     NpcDropConfig npc_drop_config_dungeon;
-    const std::unordered_map<std::string, Map>* maps = nullptr;
+    const std::unordered_map<std::string, Map>& maps;
 };
 
 #endif
