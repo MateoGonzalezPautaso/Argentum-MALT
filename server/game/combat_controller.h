@@ -65,6 +65,10 @@ private:
     void drop_inventory_on_death(Player& target,
                                  std::map<std::string, std::vector<ItemDroppedEvent>>& drops,
                                  std::vector<ServerEvent>& target_events);
+    void on_player_death(Player& victim, uint16_t victim_id, Player* killer,
+                         std::vector<ServerEvent>& victim_events,
+                         std::map<std::string, std::vector<ItemDroppedEvent>>& drops,
+                         std::vector<ServerEvent>* killer_events = nullptr);
     CommandResult melee_attack_player(uint16_t attacker_id, uint16_t target_id,
                                       uint32_t current_tick);
     CommandResult melee_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,

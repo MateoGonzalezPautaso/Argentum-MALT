@@ -91,25 +91,8 @@ CommandResult CombatController::resolve_player_attack(Player& attacker, Player& 
                                    target.is_dead(), target.get_level(), esquivado);
 
     if (target.is_dead()) {
-        target.lose_experience_on_death();
-        PlayerStatsEvent stats{};
-        fill_player_stats_event(stats, target);
-        result.targeted_events[target_id].push_back(stats);
-
-        uint32_t excess = target.take_excess_gold();
-        if (excess > 0) {
-            attacker.gain_gold(excess);
-            result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
-            result.private_events.push_back(ChatMsgEvent{
-                    ChatMsgType::SYSTEM, "",
-                    "Le robaste " + std::to_string(excess) + " de oro a " + target.get_name()});
-            result.targeted_events[target_id].push_back(GoldUpdateEvent{target.get_gold()});
-            result.targeted_events[target_id].push_back(ChatMsgEvent{
-                    ChatMsgType::SYSTEM, "",
-                    attacker.get_name() + " te robó " + std::to_string(excess) + " de oro"});
-        }
-
-        drop_inventory_on_death(target, result.ground_drops, result.targeted_events[target_id]);
+        on_player_death(target, target_id, &attacker, result.targeted_events[target_id],
+                        result.ground_drops, &result.private_events);
     }
 
     return result;
@@ -315,6 +298,49 @@ void CombatController::drop_inventory_on_death(
     target_events.push_back(EntityEventFactory::make_equip_update(target.get_id(), target));
 }
 
+void CombatController::on_player_death(
+        Player& victim, uint16_t /*victim_id*/, Player* killer,
+        std::vector<ServerEvent>& victim_events,
+        std::map<std::string, std::vector<ItemDroppedEvent>>& drops,
+        std::vector<ServerEvent>* killer_events) {
+    victim.lose_experience_on_death();
+
+    PlayerStatsEvent stats{};
+    fill_player_stats_event(stats, victim);
+    victim_events.push_back(stats);
+
+    uint32_t excess = victim.take_excess_gold();
+    if (excess > 0) {
+        if (killer) {
+            killer->gain_gold(excess);
+            if (killer_events) {
+                killer_events->push_back(GoldUpdateEvent{killer->get_gold()});
+                killer_events->push_back(
+                        ChatMsgEvent{ChatMsgType::SYSTEM, "",
+                                     "Le robaste " + std::to_string(excess) + " de oro a " +
+                                             victim.get_name()});
+            }
+            victim_events.push_back(GoldUpdateEvent{victim.get_gold()});
+            victim_events.push_back(
+                    ChatMsgEvent{ChatMsgType::SYSTEM, "",
+                                 killer->get_name() + " te robó " + std::to_string(excess) +
+                                         " de oro"});
+        } else {
+            drops[victim.get_current_map()].push_back(
+                    ItemDroppedEvent{Position{victim.pos_x(), victim.pos_y()}, ItemType::GOLD_DROP,
+                                     "Oro", excess});
+            victim_events.push_back(ChatMsgEvent{ChatMsgType::SYSTEM, "",
+                                                 "Perdiste " + std::to_string(excess) +
+                                                         " de oro al morir"});
+        }
+    }
+
+    if (!killer)
+        victim_events.push_back(GoldUpdateEvent{victim.get_gold()});
+
+    drop_inventory_on_death(victim, drops, victim_events);
+}
+
 CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
     std::vector<ServerEvent> broadcast;
     std::map<uint16_t, std::vector<ServerEvent>> targeted;
@@ -416,26 +442,8 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
         }
 
         if (target->is_dead()) {
-            target->lose_experience_on_death();
-
-            uint32_t excess = target->take_excess_gold();
-            if (excess > 0) {
-                ground_drops[target->get_current_map()].push_back(
-                        ItemDroppedEvent{Position{target->pos_x(), target->pos_y()},
-                                         ItemType::GOLD_DROP, "Oro", excess});
-                targeted[target_id].push_back(
-                        ChatMsgEvent{ChatMsgType::SYSTEM, "",
-                                     "Perdiste " + std::to_string(excess) + " de oro al morir"});
-            }
-            PlayerStatsEvent stats{};
-            fill_player_stats_event(stats, *target);
-            targeted[target_id].push_back(stats);
-            targeted[target_id].push_back(GoldUpdateEvent{target->get_gold()});
-
-            drop_inventory_on_death(*target, ground_drops, targeted[target_id]);
-
-            EntityDiedEvent died{target_id};
-            broadcast.push_back(died);
+            on_player_death(*target, target_id, nullptr, targeted[target_id], ground_drops);
+            broadcast.push_back(EntityDiedEvent{target_id});
         }
     }
 
