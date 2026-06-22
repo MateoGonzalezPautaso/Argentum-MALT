@@ -194,6 +194,9 @@ ServerConfig load_server_config(const std::string& path) {
                              config.balance.default_resurrect_wait_seconds);
         config.balance.cheat_gold_amount =
                 toml_get_int(*balance, "cheat_gold_amount", config.balance.cheat_gold_amount);
+        config.balance.cheat_velocity_multiplier =
+                toml_get_int(*balance, "cheat_velocity_multiplier",
+                             config.balance.cheat_velocity_multiplier);
         config.balance.npc_fallback_base_hp = static_cast<uint32_t>(toml_get_int(
                 *balance, "npc_fallback_base_hp", config.balance.npc_fallback_base_hp));
         config.balance.npc_fallback_base_damage = static_cast<uint32_t>(toml_get_int(

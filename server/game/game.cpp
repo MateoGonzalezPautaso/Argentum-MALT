@@ -835,7 +835,9 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
 
     Map& cur_map = player_map(player);
 
-    int effective_step = player.has_cheat_fast_velocity() ? move_step * 2 : move_step;
+    int effective_step = player.has_cheat_fast_velocity()
+                                 ? move_step * balance.cheat_velocity_multiplier
+                                 : move_step;
     auto [dx, dy] = direction_to_delta(cmd.direction, effective_step);
 
     const int current_x = static_cast<int>(player.pos_x());

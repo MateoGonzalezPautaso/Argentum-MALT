@@ -110,6 +110,7 @@ struct BalanceConfig {
     int npc_interaction_range_tiles = 3;
     int default_resurrect_wait_seconds = 10;
     int cheat_gold_amount = 1000;
+    int cheat_velocity_multiplier = 2;
     uint32_t npc_fallback_base_hp = 100;
     uint32_t npc_fallback_base_damage = 5;
     uint8_t default_spell_effect_id = 1;

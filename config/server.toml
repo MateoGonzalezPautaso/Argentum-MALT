@@ -66,6 +66,7 @@ extra_kill_exp_max_pct = 0.1
 npc_interaction_range_tiles = 3
 default_resurrect_wait_seconds = 10
 cheat_gold_amount = 1000
+cheat_velocity_multiplier = 2
 npc_fallback_base_hp = 100
 npc_fallback_base_damage = 5
 default_spell_effect_id = 1
