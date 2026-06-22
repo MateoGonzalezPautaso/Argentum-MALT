@@ -1,0 +1,107 @@
+@startuml
+title Jerarquía de Entidades
+
+class Entity {
+  - hp_current: int
+  - hp_max: int
+  - name: string
+  - pos: Position
+  - dir: Direction
+  - level: int
+  - sprite_id: uint16_t
+  - speed: int
+  + take_damage(damage: int)
+  + is_dead(): bool
+  + try_attack(tick: int, cooldown: int): bool
+  + kill(): EnemyDrop
+  + get_dir(): Direction
+  + set_dir(d: Direction)
+}
+
+class Player {
+  - id: uint16_t
+  - race: Race
+  - player_class: PlayerClass
+  - experience: int
+  - gold: int
+  - mana_current: int
+  - mana_max: int
+  - strength: int
+  - agility: int
+  - inv: PlayerInventory
+  - bank_inv: Inventory
+  - bank_gold: int
+  - clan_name: string
+  + level_up()
+  + gain_experience(amount: int)
+  + equip(item: ItemSlot)
+  + unequip(slot: EquipSlot)
+  + heal(amount: int)
+  + restore_mana(amount: int)
+}
+
+class EnemyNpc {
+  - damage: int
+  - rng: RNG
+  + get_kill_reward(config: NpcDropConfig): EnemyDrop
+}
+
+class PlayerInventory {
+  - equip: Inventory
+  - hp_potions: Inventory
+  - mana_potions: Inventory
+  + equip_item(slot: ItemSlot): ItemSlot
+  + unequip_item(slot: EquipSlot): ItemSlot
+  + add_potion(item: ItemSlot)
+  + use_hp_potion(): int
+  + use_mana_potion(): int
+}
+
+class Inventory {
+  - slots: vector<ItemSlot>
+  - max_slots: int
+  + add_item(item: ItemSlot): bool
+  + remove_item(slot: int): ItemSlot
+  + get_item(slot: int): ItemSlot
+  + is_full(): bool
+}
+
+class PlayerRegistry {
+  - players: map<uint16_t, Player>
+  + get(id: uint16_t): Player&
+  + add(id: uint16_t, player: Player)
+  + remove(id: uint16_t)
+  + count(): size_t
+}
+
+class Game {
+  - player_registry: PlayerRegistry
+  - combat_controller: CombatController
+  - clan_manager: ClanManager
+  - map_manager: MapManager
+  + process_command(id: uint16_t, cmd: ClientCommand): CommandResult
+  + tick(): CommandResult
+}
+
+class CombatController {
+  + melee_attack(attacker_id, target_id, tick): CommandResult
+  + update_npc_ai(current_tick): CommandResult
+}
+
+class ClanManager {
+  + create_clan(founder, name): CommandResult
+  + request_join(applicant, clan): CommandResult
+  + accept_member(founder, target): CommandResult
+  + kick_member(founder, target): CommandResult
+}
+
+Entity <|-- Player
+Entity <|-- EnemyNpc
+Player *-- PlayerInventory
+PlayerInventory *-- Inventory
+Game "1" *-- "1" PlayerRegistry
+Game "1" *-- "1" CombatController
+Game "1" *-- "1" ClanManager
+PlayerRegistry "1" o-- "*" Player
+CombatController o-- EnemyNpc
+@enduml

@@ -1,0 +1,86 @@
+@startuml
+title Protocolo de Mensajes
+
+class Protocol {
+  + send_uint8(v: uint8_t)
+  + send_uint16(v: uint16_t)
+  + send_uint32(v: uint32_t)
+  + send_string(s: string)
+  + recv_uint8(): uint8_t
+  + recv_uint16(): uint16_t
+  + recv_uint32(): uint32_t
+  + recv_string(): string
+}
+
+class ServerProtocol {
+  + send_event(ev: ServerEvent)
+  + recv_command(): ClientCommand
+  - send_login_ok(...)
+  - send_entity_spawn(...)
+  - send_damage_dealt(...)
+  - recv_login(...)
+  - recv_move(...)
+  - recv_attack(...)
+}
+
+class ClientProtocol {
+  + send_command(cmd: ClientCommand)
+  + recv_event(): ServerEvent
+  - send_login(...)
+  - send_move(...)
+  - send_attack(...)
+  - recv_login_ok(...)
+  - recv_entity_spawn(...)
+  - recv_damage_received(...)
+}
+
+class Socket {
+  - fd: int
+  + send(buf, len): int
+  + recv(buf, len): int
+}
+
+class ClientCommand <<variant>> {
+  LoginCmd
+  MoveCmd
+  AttackCmd
+  CastSpellCmd
+  PickUpItemCmd
+  EquipCmd
+  MeditateCmd
+  CreateCharacterCmd
+  SendMessageCmd
+  ClanCommandCmd
+  ... (40 variantes)
+}
+
+class ServerEvent <<variant>> {
+  LoginOkEvent
+  EntitySpawnEvent
+  EntityMoveEvent
+  EntityDiedEvent
+  DamageDealtEvent
+  DamageReceivedEvent
+  PlayerStatsEvent
+  InventoryUpdateEvent
+  ClanUpdateEvent
+  GroundItemSpawnEvent
+  ... (29 variantes)
+}
+
+Protocol <|-- ServerProtocol
+Protocol <|-- ClientProtocol
+Protocol *-- Socket
+ServerProtocol ..> ServerEvent: serializa
+ServerProtocol ..> ClientCommand: deserializa
+ClientProtocol ..> ClientCommand: serializa
+ClientProtocol ..> ServerEvent: deserializa
+note right of ClientCommand
+  std::variant con ~40 tipos
+  Dispatch via std::visit + overloaded
+end note
+note right of ServerEvent
+  std::variant con ~29 tipos
+  Dispatch via std::visit + overloaded
+end note
+@enduml

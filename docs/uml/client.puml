@@ -1,0 +1,73 @@
+@startuml
+title Pipeline de Renderizado — Cliente
+
+class SpriteRenderer {
+  - entity_registry: EntitySpriteRegistry
+  - overlay_system: EffectOverlaySystem
+  + spawn_entity(id, x, y, name, race, class, sprite_id)
+  + step_entity_src_x(id, step, frame_count)
+  + set_entity_src_y(id, body_y, head_y)
+  + render(camera)
+}
+
+class EntitySpriteRegistry {
+  - entities: map<uint16_t, RenderedEntity>
+  - skin_config: SkinConfig
+  + spawn_entity(id, x, y, name, race, class, sprite_id)
+  + despawn_entity(id)
+  + step_entity_src_x(id, step, frame_count)
+  + set_entity_src_y(id, body_y, head_y)
+  + set_local_clan_name(name)
+  + set_entity_clan_name(id, name)
+  + {static} resolve_entity_skin(skin, cfg, race, class, sprite_id): SpriteConfig
+}
+
+class EffectOverlaySystem {
+  + add_overlay(entity_id, effect)
+  + tick_overlays(tick)
+  + render(entity_id, camera)
+}
+
+class RenderedEntity {
+  sprite_id: uint16_t
+  frame_w: int
+  frame_h: int
+  base_src_x: int
+  base_src_y: int
+  speed: int
+  move_counter: int
+  parts: vector<SpriteRender>
+  name_label: optional<EntityNameRender>
+  clan_name: string
+}
+
+class SkinConfig {
+  body: map<string, string>
+  head: map<string, string>
+  npc: map<uint16_t, NpcSkinDef>
+  + npc_path_for(id): string
+  + npc_frame_w(id): int
+  + npc_row_positions(id): vector<int>
+  + npc_frame_positions(id): vector<int>
+  + npc_walk_row_offset(id): int
+  + speed(id): int
+}
+
+class NpcSkinDef {
+  path: string
+  frame_w: int; frame_h: int
+  src_x: int; src_y: int
+  frames_per_dir: int
+  walk_row_offset: int
+  swap_lr: bool
+  row_positions: vector<int>
+  frame_positions: vector<int>
+  speed: int
+}
+
+SpriteRenderer *--> EntitySpriteRegistry
+SpriteRenderer *--> EffectOverlaySystem
+EntitySpriteRegistry "1" o-- "*" RenderedEntity
+EntitySpriteRegistry --> SkinConfig: consulta
+SkinConfig "1" o-- "*" NpcSkinDef
+@enduml

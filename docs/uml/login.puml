@@ -1,0 +1,34 @@
+@startuml
+title Flujo de Login
+
+actor Usuario
+participant "Client\n(Main Thread)" as Client
+participant "Sender\n(Thread)" as CS
+participant TCP
+participant "Receiver\n(Thread)" as SR
+participant "GameLoop\n(Thread)" as GL
+participant Game
+participant PlayerSessionService as PSS
+participant PlayerDataService as PDS
+participant "output_queue" as OQ
+
+Usuario -> Client: ingresar usuario + contraseña
+Client -> CS: push(LoginCmd{user, pass})
+CS -> TCP: ClientProtocol::send_login()
+TCP -> SR: bytes
+SR -> GL: push(PlayerCommand{0, LoginCmd})
+GL -> Game: process_command(0, cmd)
+Game -> PSS: handle_login(cmd, registry, ...)
+PSS -> PDS: load_player(username)
+alt jugador existe
+  PDS -> PSS: PlayerRecord (stats, inv, clan)
+  PSS -> PSS: crear Player, asignar id
+  PSS -> OQ: LoginOkEvent{player_id, stats, ...}
+else jugador nuevo
+  PSS -> OQ: LoginErrorEvent
+end
+OQ -> CS: pop() evento
+CS -> TCP: ServerProtocol::send_event(LoginOkEvent)
+TCP -> Client: bytes
+Client -> Client: transiciona a estado "Crear PJ" o "Juego"
+@enduml

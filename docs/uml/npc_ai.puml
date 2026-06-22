@@ -1,0 +1,52 @@
+@startuml
+title IA de NPCs en cada Tick
+
+participant "GameLoop\n(Thread)" as GL
+participant Game
+participant CombatController as CC
+participant EntityEventFactory as EF
+participant Map
+participant EnemyNpc as NPC
+participant Player as P
+
+GL -> Game: tick()
+Game -> CC: update_npc_ai(tick_count)
+
+loop para cada NPC vivo
+  CC -> Map: nearest_alive_player(npc.pos, map)
+  Map -> CC: Player* o nullptr
+
+  alt jugador dentro de npc_vision_range_px (250px)
+    CC -> CC: ¿está en zona segura?
+    alt fuera de zona segura
+      alt jugador fuera de attack_range (80px)
+        CC -> NPC: mover hacia jugador (chase)
+        CC -> EF: make_move_event(npc)
+        EF -> CC: EntityMoveEvent
+        CC -> Game: CommandResult{EntityMoveEvent}
+        note right: paso de 8px por tick\nrespeta walkability\nrespeta safe zones
+      else jugador en rango de ataque
+        CC -> NPC: try_attack(tick, cooldown)
+        alt ataque exitoso
+          CC -> CC: calcular daño
+          CC -> P: take_damage(damage)
+          CC -> EF: make_damage_event(...)
+          EF -> CC: DamageDealtEvent
+          CC -> Game: CommandResult{DamageDealtEvent}
+          alt jugador muere
+            CC -> EF: make_death_event(...)
+            CC -> Game: EntityDiedEvent
+          end
+        end
+      end
+    else NPC en zona segura
+      note right: NPC no ataca ni\npersigue en safe zones
+    end
+  else nadie en rango
+    note right: NPC idle, sin acción
+  end
+end
+
+Game -> GL: CommandResult con todos los eventos
+GL -> GL: despachar eventos a clientes
+@enduml

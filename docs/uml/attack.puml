@@ -1,0 +1,43 @@
+@startuml
+title Flujo de Ataque Jugador → NPC
+
+actor Usuario
+participant "GameController\n(client/screen/)" as GC
+participant "command_queue" as CQ
+participant "Sender\n(Thread)" as S
+participant TCP
+participant "Receiver\n(Thread)" as R
+participant "input_queue" as IQ
+participant "GameLoop\n(Thread)" as GL
+participant Game
+participant CombatController as CC
+participant EntityEventFactory as EF
+participant EnemyNpc as NPC
+
+Usuario -> GC: presiona tecla ataque
+GC -> CQ: push(AttackCmd{target_id})
+CQ -> S: pop()
+S -> TCP: ClientProtocol::send_attack()
+TCP -> R: bytes
+R -> IQ: push(PlayerCommand{player_id, AttackCmd})
+IQ -> GL: pop()
+GL -> Game: process_command(player_id, cmd)
+Game -> CC: melee_attack(attacker, target_id, tick)
+CC -> NPC: try_attack(tick, cooldown)
+NPC -> CC: true
+CC -> CC: calcular daño\n(damage * str * clan_bonus - defense)
+CC -> NPC: take_damage(damage)
+NPC -> CC: is_dead()? → kill()
+CC -> EF: make_damage_event(), make_death_event()
+EF -> CC: ServerEvents
+CC -> Game: CommandResult\n{private_events, broadcast_events, ...}
+Game -> GL: CommandResult
+GL -> GL: despachar eventos a colas de salida
+S -> TCP: ServerProtocol::send_event(DamageDealtEvent)
+
+note over Usuario, TCP
+  El cliente recibe DamageDealtEvent,
+  DamageReceivedEvent, EntityDiedEvent (si mata)
+  y actualiza UI (HP, EXP, SFX)
+end note
+@enduml

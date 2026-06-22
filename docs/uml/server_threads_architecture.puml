@@ -1,0 +1,65 @@
+@startuml
+title Arquitectura de Threads — Servidor
+
+class Server {
+  + run()
+}
+
+class Acceptor extends Thread {
+  + run()
+}
+
+class GameLoop extends Thread {
+  - game: Game
+  - input_queue: Queue<PlayerCommand>
+  + run()
+}
+
+class ClientHandler {
+  - sender: Sender
+  - receiver: Receiver
+  - input_queue: Queue<PlayerCommand>&
+  - output_queue: Queue<ServerEvent>
+}
+
+class Sender extends Thread {
+  - output_queue: Queue<ServerEvent>
+  - protocol: ServerProtocol
+  + run()
+}
+
+class Receiver extends Thread {
+  - input_queue: Queue<PlayerCommand>
+  - protocol: ServerProtocol
+  + run()
+}
+
+class ServerProtocol {
+  + send_event(ev: ServerEvent)
+  + recv_command(): ClientCommand
+}
+
+class Queue<T> {
+  + push(item: T)
+  + pop(): T
+  + try_pop(item: T&): bool
+  + try_push(item: T): bool
+}
+
+Server --> Acceptor: crea
+Server --> GameLoop: crea
+Acceptor --> ClientHandler: crea por conexión
+ClientHandler *-- Sender
+ClientHandler *-- Receiver
+GameLoop --> Queue: pop() comandos
+Receiver --> Queue: push() comandos
+GameLoop --> ClientHandler: push() eventos
+ClientHandler --> "out" Queue: eventos privados
+Sender --> Queue: pop() eventos
+Sender --> ServerProtocol
+Receiver --> ServerProtocol
+note right of Queue
+  Cola MPMC bloqueante
+  Thread-safe
+end note
+@enduml

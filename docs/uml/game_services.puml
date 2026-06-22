@@ -1,0 +1,64 @@
+@startuml
+title Servicios del Servidor
+
+class Game {
+  + process_command(id, cmd): CommandResult
+  + tick(): CommandResult
+}
+
+class PlayerSessionService {
+  + handle_login(cmd, registry, ...): CommandResult
+  + handle_create_character(cmd, ...): CommandResult
+}
+
+class SpawnService {
+  + tick_spawn(tick, map_manager, ...): CommandResult
+}
+
+class CombatController {
+  + melee_attack(a, t, tick): CommandResult
+  + update_npc_ai(tick): CommandResult
+}
+
+class GroundItemService {
+  + handle_pickup(player, cmd, map): CommandResult
+  + handle_drop(player, cmd, map): CommandResult
+}
+
+class MerchantService {
+  + handle_npc_buy(player, cmd): CommandResult
+  + handle_npc_sell(player, cmd): CommandResult
+}
+
+class BankService {
+  + handle_deposit_gold(player, amount): CommandResult
+  + handle_withdraw_gold(player, amount): CommandResult
+  + handle_deposit_item(player, slot): CommandResult
+  + handle_withdraw_item(player, slot): CommandResult
+}
+
+class MapTransitionService {
+  + handle_map_change(player, ...): CommandResult
+}
+
+class CheatService {
+  + handle_cheat(player, cmd): CommandResult
+}
+
+class EntityEventFactory {
+  + make_spawn_event(entity): ServerEvent
+  + make_move_event(entity): ServerEvent
+  + make_death_event(entity): ServerEvent
+}
+
+Game *--> PlayerSessionService
+Game *--> SpawnService
+Game *--> CombatController
+Game *--> GroundItemService
+Game *--> MerchantService
+Game *--> BankService
+Game *--> MapTransitionService
+Game *--> CheatService
+CombatController --> EntityEventFactory
+SpawnService --> EntityEventFactory
+@enduml
