@@ -20,6 +20,7 @@
 #include "services/merchant_service.h"
 #include "services/movement_service.h"
 #include "services/player_session_service.h"
+#include "services/regen_service.h"
 #include "services/spawn_service.h"
 
 #include "clan_command_handler.h"
@@ -63,6 +64,7 @@ private:
     CheatService cheat_service;
     std::unordered_map<uint16_t, PendingResurrection> pending_resurrections_;
     MovementService movement_service_;
+    RegenService regen_service_;
     uint32_t tick_count = 0;
     int tick_rate_hz;
     bool cheats_enabled;
@@ -70,7 +72,6 @@ private:
     std::unordered_map<uint16_t, double> hp_regen_accum;
     std::unordered_map<uint16_t, double> mana_regen_accum;
 
-    CommandResult apply_regen();
     CommandResult process_pending_resurrections();
 
     CommandResult handle_attack(uint16_t player_id, const AttackCmd& cmd);

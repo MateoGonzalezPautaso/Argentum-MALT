@@ -62,6 +62,8 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         movement_service_(players, maps, enemy_npcs, pending_resurrections_, config.balance,
                           config.move_step, config.sprite_width, config.sprite_height,
                           map_transition_service),
+        regen_service_(players, config.balance, config.tick_rate_hz,
+                       hp_regen_accum, mana_regen_accum),
         tick_rate_hz(config.tick_rate_hz),
         cheats_enabled(config.cheats_enabled),
         help_lines(config.help_lines) {
@@ -224,55 +226,9 @@ CommandResult Game::remove_player(uint16_t player_id) {
     return player_session_service.remove_player(player_id);
 }
 
-CommandResult Game::apply_regen() {
-    CommandResult result;
-    const double dt = 1.0 / tick_rate_hz;
-
-    for (auto& [id, player]: players) {
-        if (player.is_dead())
-            continue;
-
-        bool changed = false;
-        double rate = GameFormulas::hp_regen_per_second(balance, player.get_race());
-
-        // rate is in HP/second, but tick() runs 20 times per second.
-        // Each tick only represents dt = 1/20 = 0.05 seconds,
-        // so the per-tick gain is 1.0 * 0.05 = 0.05 HP
-        hp_regen_accum[id] += rate * dt;
-        if (hp_regen_accum[id] >= 1.0 && player.get_hp_current() < player.get_hp_max()) {
-            uint32_t gain = static_cast<uint32_t>(hp_regen_accum[id]);
-            player.heal(gain);
-            hp_regen_accum[id] -= gain;
-            changed = true;
-        } else if (hp_regen_accum[id] >= 1.0) {
-            hp_regen_accum[id] = 0.0;
-        }
-
-        double mana_rate = GameFormulas::mana_regen_per_second(balance, player.get_race());
-        if (player.get_is_meditating())
-            mana_rate += GameFormulas::meditation_mana_per_second(balance, player.get_race(),
-                                                                  player.get_player_class());
-        mana_regen_accum[id] += mana_rate * dt;
-        if (mana_regen_accum[id] >= 1.0 && player.get_mana_current() < player.get_mana_max()) {
-            uint32_t gain = static_cast<uint32_t>(mana_regen_accum[id]);
-            player.restore_mana(gain);
-            mana_regen_accum[id] -= gain;
-            changed = true;
-        } else if (mana_regen_accum[id] >= 1.0) {
-            mana_regen_accum[id] = 0.0;
-        }
-
-        if (changed) {
-            HealReceivedEvent ev{id, player.get_hp_current(), player.get_mana_current()};
-            result.broadcast_events.push_back(ev);
-        }
-    }
-    return result;
-}
-
 CommandResult Game::tick() {
     ++tick_count;
-    CommandResult result = apply_regen();
+    CommandResult result = regen_service_.apply_regen();
 
     result.merge(process_pending_resurrections());
 
