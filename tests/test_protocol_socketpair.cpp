@@ -594,7 +594,14 @@ INSTANTIATE_TEST_SUITE_P(
         ::testing::Values(ClientCommand{MeditateCmd{}}, ClientCommand{ResurrectCmd{}},
                           ClientCommand{CheatInfiniteHpCmd{}},
                           ClientCommand{CheatInfiniteManaCmd{}}, ClientCommand{CheatDieCmd{}},
-                          ClientCommand{CheatLevelUpCmd{}}, ClientCommand{CheatLevelDownCmd{}}));
+                          ClientCommand{CheatLevelUpCmd{}}, ClientCommand{CheatLevelDownCmd{}},
+                          ClientCommand{NpcHealCmd{}}, ClientCommand{NpcListCmd{}},
+                          ClientCommand{ClanReviewCmd{}}, ClientCommand{ClanLeaveCmd{}},
+                          ClientCommand{CheatAddGoldCmd{}}, ClientCommand{CheatResetGoldCmd{}},
+                          ClientCommand{CheatVelocityCmd{}}, ClientCommand{CheatReviveCmd{}},
+                          ClientCommand{CheatFillInventoryCmd{}},
+                          ClientCommand{CheatClearInventoryCmd{}},
+                          ClientCommand{CheatResetManaCmd{}}));
 
 // ─────────────────────────────────────────────────────────────
 // DAMAGE_DEALT event
@@ -723,3 +730,577 @@ TEST_P(ProtocolChatMsgTest, RoundtripAllTypes) {
 INSTANTIATE_TEST_SUITE_P(AllChatTypes, ProtocolChatMsgTest,
                          ::testing::Values(ChatMsgType::SAY, ChatMsgType::PRIVATE,
                                            ChatMsgType::CLAN, ChatMsgType::SYSTEM));
+
+// ─────────────────────────────────────────────────────────────
+// CAST_SPELL command
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, CastSpellRoundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    CastSpellCmd sent{.target_id = 123};
+    client.send_command(sent);
+
+    ClientCommand cmd = server.recv_command();
+    ASSERT_TRUE(std::holds_alternative<CastSpellCmd>(cmd));
+    EXPECT_EQ(std::get<CastSpellCmd>(cmd).target_id, sent.target_id);
+}
+
+// ─────────────────────────────────────────────────────────────
+// PICKUP_ITEM command
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, PickupItemRoundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    PickupItemCmd sent{.item_name = "sword"};
+    client.send_command(sent);
+
+    ClientCommand cmd = server.recv_command();
+    ASSERT_TRUE(std::holds_alternative<PickupItemCmd>(cmd));
+    EXPECT_EQ(std::get<PickupItemCmd>(cmd).item_name, sent.item_name);
+}
+
+TEST_F(ProtocolTest, PickupItemEmptyNameRoundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    client.send_command(PickupItemCmd{.item_name = ""});
+
+    ClientCommand cmd = server.recv_command();
+    ASSERT_TRUE(std::holds_alternative<PickupItemCmd>(cmd));
+    EXPECT_EQ(std::get<PickupItemCmd>(cmd).item_name, "");
+}
+
+// ─────────────────────────────────────────────────────────────
+// DROP_ITEM command
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, DropItemRoundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    DropItemCmd sent{.item_name = "shield"};
+    client.send_command(sent);
+
+    ClientCommand cmd = server.recv_command();
+    ASSERT_TRUE(std::holds_alternative<DropItemCmd>(cmd));
+    EXPECT_EQ(std::get<DropItemCmd>(cmd).item_name, sent.item_name);
+}
+
+// ─────────────────────────────────────────────────────────────
+// EQUIP_ITEM command
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, EquipItemRoundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    EquipItemCmd sent{.slot_index = 3};
+    client.send_command(sent);
+
+    ClientCommand cmd = server.recv_command();
+    ASSERT_TRUE(std::holds_alternative<EquipItemCmd>(cmd));
+    EXPECT_EQ(std::get<EquipItemCmd>(cmd).slot_index, sent.slot_index);
+}
+
+// ─────────────────────────────────────────────────────────────
+// UNEQUIP_ITEM command
+// ─────────────────────────────────────────────────────────────
+
+class ProtocolUnequipItemTest:
+        public ProtocolTest,
+        public ::testing::WithParamInterface<EquipSlot> {};
+
+TEST_P(ProtocolUnequipItemTest, RoundtripAllSlots) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    EquipSlot slot = GetParam();
+    client.send_command(UnequipItemCmd{slot});
+
+    ClientCommand cmd = server.recv_command();
+    ASSERT_TRUE(std::holds_alternative<UnequipItemCmd>(cmd));
+    EXPECT_EQ(std::get<UnequipItemCmd>(cmd).slot, slot);
+}
+
+INSTANTIATE_TEST_SUITE_P(AllEquipSlots, ProtocolUnequipItemTest,
+                         ::testing::Values(EquipSlot::WEAPON, EquipSlot::ARMOR,
+                                           EquipSlot::HELMET, EquipSlot::SHIELD,
+                                           EquipSlot::CONSUMABLE, EquipSlot::NONE));
+
+// ─────────────────────────────────────────────────────────────
+// NPC_BUY command
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, NpcBuyRoundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    NpcBuyCmd sent{.item_name = "health_potion"};
+    client.send_command(sent);
+
+    ClientCommand cmd = server.recv_command();
+    ASSERT_TRUE(std::holds_alternative<NpcBuyCmd>(cmd));
+    EXPECT_EQ(std::get<NpcBuyCmd>(cmd).item_name, sent.item_name);
+}
+
+// ─────────────────────────────────────────────────────────────
+// NPC_SELL command
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, NpcSellRoundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    NpcSellCmd sent{.item_name = "iron_helmet"};
+    client.send_command(sent);
+
+    ClientCommand cmd = server.recv_command();
+    ASSERT_TRUE(std::holds_alternative<NpcSellCmd>(cmd));
+    EXPECT_EQ(std::get<NpcSellCmd>(cmd).item_name, sent.item_name);
+}
+
+// ─────────────────────────────────────────────────────────────
+// BANK_DEPOSIT command
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, BankDepositGoldRoundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    BankDepositCmd sent{.is_gold = true, .item_name = "", .gold_amount = 500};
+    client.send_command(sent);
+
+    ClientCommand cmd = server.recv_command();
+    ASSERT_TRUE(std::holds_alternative<BankDepositCmd>(cmd));
+    const auto& received = std::get<BankDepositCmd>(cmd);
+    EXPECT_EQ(received.is_gold, sent.is_gold);
+    EXPECT_EQ(received.gold_amount, sent.gold_amount);
+}
+
+TEST_F(ProtocolTest, BankDepositItemRoundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    BankDepositCmd sent{.is_gold = false, .item_name = "leather_armor", .gold_amount = 0};
+    client.send_command(sent);
+
+    ClientCommand cmd = server.recv_command();
+    ASSERT_TRUE(std::holds_alternative<BankDepositCmd>(cmd));
+    const auto& received = std::get<BankDepositCmd>(cmd);
+    EXPECT_EQ(received.is_gold, sent.is_gold);
+    EXPECT_EQ(received.item_name, sent.item_name);
+}
+
+// ─────────────────────────────────────────────────────────────
+// BANK_WITHDRAW command
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, BankWithdrawGoldRoundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    BankWithdrawCmd sent{.is_gold = true, .item_name = "", .gold_amount = 300};
+    client.send_command(sent);
+
+    ClientCommand cmd = server.recv_command();
+    ASSERT_TRUE(std::holds_alternative<BankWithdrawCmd>(cmd));
+    const auto& received = std::get<BankWithdrawCmd>(cmd);
+    EXPECT_EQ(received.is_gold, sent.is_gold);
+    EXPECT_EQ(received.gold_amount, sent.gold_amount);
+}
+
+TEST_F(ProtocolTest, BankWithdrawItemRoundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    BankWithdrawCmd sent{.is_gold = false, .item_name = "plate_armor", .gold_amount = 0};
+    client.send_command(sent);
+
+    ClientCommand cmd = server.recv_command();
+    ASSERT_TRUE(std::holds_alternative<BankWithdrawCmd>(cmd));
+    const auto& received = std::get<BankWithdrawCmd>(cmd);
+    EXPECT_EQ(received.is_gold, sent.is_gold);
+    EXPECT_EQ(received.item_name, sent.item_name);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Clan string commands (parameterized over all clan commands with a string field)
+// ─────────────────────────────────────────────────────────────
+
+using ClanStringCmdParam = std::pair<ClientCommand, std::string>;
+
+class ProtocolClanStringCmdTest:
+        public ProtocolTest,
+        public ::testing::WithParamInterface<ClanStringCmdParam> {};
+
+TEST_P(ProtocolClanStringCmdTest, Roundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    client.send_command(GetParam().first);
+
+    ClientCommand received = server.recv_command();
+    EXPECT_EQ(received.index(), GetParam().first.index());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        ClanStringCommands, ProtocolClanStringCmdTest,
+        ::testing::Values(
+                ClanStringCmdParam{ClanFoundCmd{"MyClan"}, "MyClan"},
+                ClanStringCmdParam{ClanJoinRequestCmd{"MyClan"}, "MyClan"},
+                ClanStringCmdParam{ClanAcceptCmd{"player1"}, "player1"},
+                ClanStringCmdParam{ClanRejectCmd{"player1"}, "player1"},
+                ClanStringCmdParam{ClanBanCmd{"badplayer"}, "badplayer"},
+                ClanStringCmdParam{ClanUnbanCmd{"badplayer"}, "badplayer"},
+                ClanStringCmdParam{ClanKickCmd{"member1"}, "member1"}));
+
+// ─────────────────────────────────────────────────────────────
+// CHANGE_MAP command
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, ChangeMapRoundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    ChangeMapCmd sent{.prop_name = "map001"};
+    client.send_command(sent);
+
+    ClientCommand cmd = server.recv_command();
+    ASSERT_TRUE(std::holds_alternative<ChangeMapCmd>(cmd));
+    EXPECT_EQ(std::get<ChangeMapCmd>(cmd).prop_name, sent.prop_name);
+}
+
+// ─────────────────────────────────────────────────────────────
+// ATTACK_DODGED event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, AttackDodgedRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    AttackDodgedEvent sent{.player_id = 7};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<AttackDodgedEvent>(ev));
+    EXPECT_EQ(std::get<AttackDodgedEvent>(ev).player_id, sent.player_id);
+}
+
+// ─────────────────────────────────────────────────────────────
+// GOLD_UPDATE event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, GoldUpdateRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    GoldUpdateEvent sent{.gold = 12345};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<GoldUpdateEvent>(ev));
+    EXPECT_EQ(std::get<GoldUpdateEvent>(ev).gold, sent.gold);
+}
+
+// ─────────────────────────────────────────────────────────────
+// HEAL_RECEIVED event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, HealReceivedRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    HealReceivedEvent sent{.player_id = 1, .hp_current = 90, .mana_current = 45};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<HealReceivedEvent>(ev));
+    const auto& received = std::get<HealReceivedEvent>(ev);
+    EXPECT_EQ(received.player_id, sent.player_id);
+    EXPECT_EQ(received.hp_current, sent.hp_current);
+    EXPECT_EQ(received.mana_current, sent.mana_current);
+}
+
+// ─────────────────────────────────────────────────────────────
+// SPELL_EFFECT event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, SpellEffectRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    SpellEffectEvent sent{.target_id = 42, .effect_type = 0};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<SpellEffectEvent>(ev));
+    const auto& received = std::get<SpellEffectEvent>(ev);
+    EXPECT_EQ(received.target_id, sent.target_id);
+    EXPECT_EQ(received.effect_type, sent.effect_type);
+}
+
+// ─────────────────────────────────────────────────────────────
+// MAP_TRANSITION event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, MapTransitionRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    MapTransitionEvent sent{.map_name = "dungeon_01", .pos_x = 100, .pos_y = 200};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<MapTransitionEvent>(ev));
+    const auto& received = std::get<MapTransitionEvent>(ev);
+    EXPECT_EQ(received.map_name, sent.map_name);
+    EXPECT_EQ(received.pos_x, sent.pos_x);
+    EXPECT_EQ(received.pos_y, sent.pos_y);
+}
+
+// ─────────────────────────────────────────────────────────────
+// PLAYER_STATS event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, PlayerStatsRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    PlayerStatsEvent sent{};
+    sent.level = 10;
+    sent.experience = 5000;
+    sent.exp_to_next = 10000;
+    sent.hp_current = 75;
+    sent.hp_max = 100;
+    sent.mana_current = 30;
+    sent.mana_max = 50;
+    sent.crit_chance = 15;
+    sent.damage_min = 8;
+    sent.damage_max = 20;
+    sent.defense_min = 3;
+    sent.defense_max = 10;
+    sent.dodge_chance = 5;
+    sent.strength = 12;
+    sent.agility = 9;
+
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<PlayerStatsEvent>(ev));
+    const auto& r = std::get<PlayerStatsEvent>(ev);
+    EXPECT_EQ(r.level, sent.level);
+    EXPECT_EQ(r.experience, sent.experience);
+    EXPECT_EQ(r.exp_to_next, sent.exp_to_next);
+    EXPECT_EQ(r.hp_current, sent.hp_current);
+    EXPECT_EQ(r.hp_max, sent.hp_max);
+    EXPECT_EQ(r.mana_current, sent.mana_current);
+    EXPECT_EQ(r.mana_max, sent.mana_max);
+    EXPECT_EQ(r.crit_chance, sent.crit_chance);
+    EXPECT_EQ(r.damage_min, sent.damage_min);
+    EXPECT_EQ(r.damage_max, sent.damage_max);
+    EXPECT_EQ(r.defense_min, sent.defense_min);
+    EXPECT_EQ(r.defense_max, sent.defense_max);
+    EXPECT_EQ(r.dodge_chance, sent.dodge_chance);
+    EXPECT_EQ(r.strength, sent.strength);
+    EXPECT_EQ(r.agility, sent.agility);
+}
+
+// ─────────────────────────────────────────────────────────────
+// INVENTORY_UPDATE event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, InventoryUpdateEmptyRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    InventoryUpdateEvent sent{std::vector<InventorySlot>{}};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<InventoryUpdateEvent>(ev));
+    EXPECT_TRUE(std::get<InventoryUpdateEvent>(ev).slots.empty());
+}
+
+TEST_F(ProtocolTest, InventoryUpdateWithItemsRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    std::vector<InventorySlot> slots;
+    slots.push_back({0, ItemType::SWORD, "bronze_sword"});
+    slots.push_back({1, ItemType::HEALTH_POTION, "health_potion"});
+    InventoryUpdateEvent sent{std::move(slots)};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<InventoryUpdateEvent>(ev));
+    const auto& received = std::get<InventoryUpdateEvent>(ev);
+    ASSERT_EQ(received.slots.size(), 2);
+    EXPECT_EQ(received.slots[0].slot_index, 0);
+    EXPECT_EQ(received.slots[0].item_type, ItemType::SWORD);
+    EXPECT_EQ(received.slots[0].item_name, "bronze_sword");
+    EXPECT_EQ(received.slots[1].slot_index, 1);
+    EXPECT_EQ(received.slots[1].item_type, ItemType::HEALTH_POTION);
+    EXPECT_EQ(received.slots[1].item_name, "health_potion");
+}
+
+// ─────────────────────────────────────────────────────────────
+// EQUIP_UPDATE event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, EquipUpdateRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    EquipUpdateEvent sent{};
+    sent.entity_id = 1;
+    sent.weapon = {0, ItemType::SWORD, "iron_sword"};
+    sent.armor = {1, ItemType::PLATE_ARMOR, "plate_armor"};
+    sent.helmet = {2, ItemType::IRON_HELMET, "iron_helmet"};
+    sent.shield = {3, ItemType::IRON_SHIELD, "iron_shield"};
+
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<EquipUpdateEvent>(ev));
+    const auto& received = std::get<EquipUpdateEvent>(ev);
+    EXPECT_EQ(received.entity_id, sent.entity_id);
+    EXPECT_EQ(received.weapon.item_type, sent.weapon.item_type);
+    EXPECT_EQ(received.weapon.item_name, sent.weapon.item_name);
+    EXPECT_EQ(received.armor.item_type, sent.armor.item_type);
+    EXPECT_EQ(received.armor.item_name, sent.armor.item_name);
+    EXPECT_EQ(received.helmet.item_type, sent.helmet.item_type);
+    EXPECT_EQ(received.helmet.item_name, sent.helmet.item_name);
+    EXPECT_EQ(received.shield.item_type, sent.shield.item_type);
+    EXPECT_EQ(received.shield.item_name, sent.shield.item_name);
+}
+
+// ─────────────────────────────────────────────────────────────
+// NPC_ITEM_LIST event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, NpcItemListEmptyRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    NpcItemListEvent sent{std::vector<NpcItemEntry>{}};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<NpcItemListEvent>(ev));
+    EXPECT_TRUE(std::get<NpcItemListEvent>(ev).items.empty());
+}
+
+TEST_F(ProtocolTest, NpcItemListWithItemsRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    std::vector<NpcItemEntry> items;
+    items.push_back({"iron_sword", ItemType::SWORD, 1, 100});
+    items.push_back({"health_potion", ItemType::HEALTH_POTION, 2, 50});
+    NpcItemListEvent sent{std::move(items)};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<NpcItemListEvent>(ev));
+    const auto& received = std::get<NpcItemListEvent>(ev);
+    ASSERT_EQ(received.items.size(), 2);
+    EXPECT_EQ(received.items[0].item_name, "iron_sword");
+    EXPECT_EQ(received.items[0].item_type, ItemType::SWORD);
+    EXPECT_EQ(received.items[0].sprite_id, 1);
+    EXPECT_EQ(received.items[0].price, 100);
+    EXPECT_EQ(received.items[1].item_name, "health_potion");
+    EXPECT_EQ(received.items[1].item_type, ItemType::HEALTH_POTION);
+    EXPECT_EQ(received.items[1].sprite_id, 2);
+    EXPECT_EQ(received.items[1].price, 50);
+}
+
+// ─────────────────────────────────────────────────────────────
+// ITEM_DROPPED event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, ItemDroppedRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    ItemDroppedEvent sent{};
+    sent.pos = {10, 20};
+    sent.item_type = ItemType::GOLD_DROP;
+    sent.item_name = "gold";
+    sent.amount = 50;
+
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<ItemDroppedEvent>(ev));
+    const auto& received = std::get<ItemDroppedEvent>(ev);
+    EXPECT_EQ(received.pos.x, sent.pos.x);
+    EXPECT_EQ(received.pos.y, sent.pos.y);
+    EXPECT_EQ(received.item_type, sent.item_type);
+    EXPECT_EQ(received.item_name, sent.item_name);
+    EXPECT_EQ(received.amount, sent.amount);
+}
+
+// ─────────────────────────────────────────────────────────────
+// ITEM_PICKED event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, ItemPickedRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    ItemPickedEvent sent{};
+    sent.pos = {5, 15};
+    sent.item_name = "gold";
+    sent.amount = 30;
+
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<ItemPickedEvent>(ev));
+    const auto& received = std::get<ItemPickedEvent>(ev);
+    EXPECT_EQ(received.pos.x, sent.pos.x);
+    EXPECT_EQ(received.pos.y, sent.pos.y);
+    EXPECT_EQ(received.item_name, sent.item_name);
+    EXPECT_EQ(received.amount, sent.amount);
+}
+
+// ─────────────────────────────────────────────────────────────
+// BANK_UPDATE event
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, BankUpdateEmptyRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    BankUpdateEvent sent{std::vector<InventorySlot>{}, 0};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<BankUpdateEvent>(ev));
+    const auto& received = std::get<BankUpdateEvent>(ev);
+    EXPECT_TRUE(received.slots.empty());
+    EXPECT_EQ(received.gold, 0);
+}
+
+TEST_F(ProtocolTest, BankUpdateWithItemsRoundtrip) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    std::vector<InventorySlot> slots;
+    slots.push_back({0, ItemType::ASH_STAFF, "ash_staff"});
+    BankUpdateEvent sent{std::move(slots), 999};
+    server.send_event(sent);
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<BankUpdateEvent>(ev));
+    const auto& received = std::get<BankUpdateEvent>(ev);
+    ASSERT_EQ(received.slots.size(), 1);
+    EXPECT_EQ(received.slots[0].slot_index, 0);
+    EXPECT_EQ(received.slots[0].item_type, ItemType::ASH_STAFF);
+    EXPECT_EQ(received.slots[0].item_name, "ash_staff");
+    EXPECT_EQ(received.gold, 999);
+}
