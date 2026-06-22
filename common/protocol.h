@@ -25,7 +25,6 @@ enum class OpCode : uint8_t {
     BANK_DEPOSIT = 0x0F,
     BANK_WITHDRAW = 0x10,
     NPC_LIST = 0x11,
-    PRIVATE_MSG = 0x12,
     CLAN_FOUND = 0x13,
     CLAN_JOIN_REQUEST = 0x14,
     CLAN_REVIEW = 0x15,
@@ -54,7 +53,6 @@ enum class OpCode : uint8_t {
     LOGIN_ERROR = 0x81,
     CHARACTER_CREATED = 0x82,
     CHARACTER_ERROR = 0x83,
-    MAP_INFO = 0x84,
     PLAYER_STATS = 0x85,
     ENTITY_SPAWN = 0x86,
     ENTITY_DESPAWN = 0x87,
@@ -72,12 +70,9 @@ enum class OpCode : uint8_t {
     ITEM_DROPPED = 0x93,
     ITEM_PICKED = 0x94,
     NPC_ITEM_LIST = 0x95,
-    TRANSACTION_OK = 0x96,
-    TRANSACTION_ERROR = 0x97,
     CHAT_MSG = 0x98,
     CLAN_NOTIFICATION = 0x99,
     CLAN_UPDATE = 0x9A,
-    SERVER_MSG = 0x9B,
     HEAL_RECEIVED = 0x9C,
     MAP_TRANSITION = 0x9D,
     SPELL_EFFECT = 0x9E,
@@ -87,14 +82,6 @@ enum class OpCode : uint8_t {
 class Protocol {
 public:
     explicit Protocol(Socket& skt);
-
-    /* TODO
-    uint32_t    recv_uint32();
-    std::string recv_string();
-    bool        recv_bool();
-
-    hacer las versiones send tambien
-    */
 
     void send_uint8(uint8_t value);
     uint8_t recv_uint8();

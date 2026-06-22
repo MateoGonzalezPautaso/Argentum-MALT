@@ -13,7 +13,6 @@ public:
     void send_login_error(const LoginErrorEvent& ev);
     void send_character_created(const CharacterCreatedEvent& ev);
     void send_character_error(const CharacterErrorEvent& ev);
-    void send_map_info(const MapInfoEvent& ev);
     void send_player_stats(const PlayerStatsEvent& ev);
     void send_entity_spawn(const EntitySpawnEvent& ev);
     void send_entity_despawn(const EntityDespawnEvent& ev);
@@ -32,12 +31,9 @@ public:
     void send_item_picked(const ItemPickedEvent& ev);
     void send_npc_item_list(const NpcItemListEvent& ev);
     void send_bank_update(const BankUpdateEvent& ev);
-    void send_transaction_ok(const TransactionOkEvent& ev);
-    void send_transaction_error(const TransactionErrorEvent& ev);
     void send_chat_msg(const ChatMsgEvent& ev);
     void send_clan_notification(const ClanNotificationEvent& ev);
     void send_clan_update(const ClanUpdateEvent& ev);
-    void send_server_msg(const ServerMsgEvent& ev);
     void send_map_transition(const MapTransitionEvent& ev);
     void send_heal_received(const HealReceivedEvent& ev);
     void send_spell_effect(const SpellEffectEvent& ev);

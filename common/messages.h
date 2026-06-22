@@ -95,8 +95,6 @@ enum class ClanNotifType : uint8_t {
     KICKED = 0x06
 };
 
-enum class ServerMsgSeverity : uint8_t { INFO = 0x00, WARNING = 0x01, ERROR = 0x02 };
-
 enum class TileType : uint8_t {
     GRASS = 0x00,
     SAND = 0x01,
@@ -232,12 +230,6 @@ struct BankWithdrawCmd {
 // 0x11
 struct NpcListCmd {};
 
-// 0x12
-struct PrivateMsgCmd {
-    std::string target_nick;
-    std::string message;
-};
-
 // 0x13 – 0x1A  Clanes
 struct ClanFoundCmd { std::string clan_name; };
 struct ClanJoinRequestCmd { std::string clan_name; };
@@ -279,7 +271,7 @@ struct ChangeMapCmd {
 using ClientCommand = std::variant<
         LoginCmd, CreateCharacterCmd, MoveCmd, AttackCmd, CastSpellCmd, PickupItemCmd, DropItemCmd,
         EquipItemCmd, UnequipItemCmd, MeditateCmd, ResurrectCmd, NpcBuyCmd, NpcSellCmd, NpcHealCmd,
-        BankDepositCmd, BankWithdrawCmd, NpcListCmd, PrivateMsgCmd, SendChatMsgCmd, ClanFoundCmd,
+        BankDepositCmd, BankWithdrawCmd, NpcListCmd, SendChatMsgCmd, ClanFoundCmd,
         ClanJoinRequestCmd, ClanReviewCmd, ClanAcceptCmd, ClanRejectCmd, ClanBanCmd, ClanUnbanCmd,
         ClanKickCmd, ClanLeaveCmd, CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd, CheatLevelUpCmd,
         CheatLevelDownCmd, CheatAddGoldCmd, CheatResetGoldCmd, CheatVelocityCmd, CheatReviveCmd,
@@ -322,9 +314,6 @@ struct CharacterErrorEvent {
     CharacterError error_code;
     std::string message;
 };
-
-// 0x84
-struct MapInfoEvent {};
 
 // 0x85
 struct PlayerStatsEvent {
@@ -449,12 +438,6 @@ struct NpcItemListEvent {
     std::vector<NpcItemEntry> items;
 };
 
-// 0x96
-struct TransactionOkEvent {};
-
-// 0x97
-struct TransactionErrorEvent {};
-
 // 0x98
 struct ChatMsgEvent {
     ChatMsgType type;
@@ -477,10 +460,7 @@ struct ClanUpdateEvent {
     std::vector<ClanMember> members;
 };
 
-// 0x9B
-struct ServerMsgEvent {};
-
-// 0x9C
+// 0x9D
 struct MapTransitionEvent {
     std::string map_name;
     uint16_t pos_x;
@@ -510,13 +490,13 @@ struct BankUpdateEvent {
  */
 using ServerEvent =
         std::variant<LoginOkEvent, LoginErrorEvent, CharacterCreatedEvent, CharacterErrorEvent,
-                     MapInfoEvent, PlayerStatsEvent, EntitySpawnEvent, EntityDespawnEvent,
+                     PlayerStatsEvent, EntitySpawnEvent, EntityDespawnEvent,
                      EntityMoveEvent, DamageDealtEvent, DamageReceivedEvent, AttackDodgedEvent,
                      EntityDiedEvent, PlayerRespawnedEvent, MeditationStartEvent,
                      MeditationStopEvent, InventoryUpdateEvent, EquipUpdateEvent, GoldUpdateEvent,
-                     ItemDroppedEvent, ItemPickedEvent, NpcItemListEvent, TransactionOkEvent,
-                     TransactionErrorEvent, ChatMsgEvent, ClanNotificationEvent, ClanUpdateEvent,
-                     ServerMsgEvent, MapTransitionEvent, HealReceivedEvent, SpellEffectEvent,
+                     ItemDroppedEvent, ItemPickedEvent, NpcItemListEvent,
+                     ChatMsgEvent, ClanNotificationEvent, ClanUpdateEvent,
+                     MapTransitionEvent, HealReceivedEvent, SpellEffectEvent,
                      BankUpdateEvent>;
 
 #endif  // MESSAGES_H_

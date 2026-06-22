@@ -28,7 +28,6 @@ public:
     void send_bank_deposit(const BankDepositCmd& cmd);
     void send_bank_withdraw(const BankWithdrawCmd& cmd);
     void send_npc_list(const NpcListCmd& cmd);
-    void send_private_msg(const PrivateMsgCmd& cmd);
     void send_chat_msg(const SendChatMsgCmd& cmd);
     void send_clan_found(const ClanFoundCmd& cmd);
     void send_clan_join_request(const ClanJoinRequestCmd& cmd);
