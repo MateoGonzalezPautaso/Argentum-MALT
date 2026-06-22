@@ -29,7 +29,6 @@ public:
 
 private:
     EnemyNpc create_random_npc(Position pos, uint8_t level, bool dungeon);
-    EntitySpawnEvent make_npc_spawn(const EnemyNpc& npc, uint16_t npc_id) const;
     std::vector<uint16_t> get_player_ids_on_map(const std::string& map_name) const;
 
     std::map<uint16_t, EnemyNpc>& enemy_npcs_;
