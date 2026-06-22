@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include <array>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -7,6 +8,21 @@
 #include <toml++/toml.h>
 
 #include "../../common/config.h"
+
+namespace {
+constexpr std::array<std::pair<const char*, Race>, 4> kRaceNames = {{
+    {"human", Race::HUMAN},
+    {"elf", Race::ELF},
+    {"dwarf", Race::DWARF},
+    {"gnome", Race::GNOME},
+}};
+constexpr std::array<std::pair<const char*, PlayerClass>, 4> kClassNames = {{
+    {"mage", PlayerClass::MAGE},
+    {"cleric", PlayerClass::CLERIC},
+    {"paladin", PlayerClass::PALADIN},
+    {"warrior", PlayerClass::WARRIOR},
+}};
+}  // namespace
 
 std::vector<NpcTemplate> load_npc_templates(const std::string& path) {
     toml::table root = toml::parse_file(path);
@@ -206,136 +222,88 @@ ServerConfig load_server_config(const std::string& path) {
         }
     }
 
-    if (auto recovery = root["recovery_rates"].as_table()) {
-        config.balance.race_recovery.human =
-                toml_get_double(*recovery, "human", config.balance.race_recovery.human);
-        config.balance.race_recovery.elf =
-                toml_get_double(*recovery, "elf", config.balance.race_recovery.elf);
-        config.balance.race_recovery.dwarf =
-                toml_get_double(*recovery, "dwarf", config.balance.race_recovery.dwarf);
-        config.balance.race_recovery.gnome =
-                toml_get_double(*recovery, "gnome", config.balance.race_recovery.gnome);
+    if (auto tbl = root["recovery_rates"].as_table()) {
+        for (auto [name, race] : kRaceNames) {
+            auto& rs = config.balance.race_stat(race);
+            rs.recovery = toml_get_double(*tbl, name, rs.recovery);
+        }
     }
 
-    if (auto c = root["constitution"].as_table()) {
-        config.balance.hp.constitution_human =
-                toml_get_int(*c, "human", config.balance.hp.constitution_human);
-        config.balance.hp.constitution_elf =
-                toml_get_int(*c, "elf", config.balance.hp.constitution_elf);
-        config.balance.hp.constitution_dwarf =
-                toml_get_int(*c, "dwarf", config.balance.hp.constitution_dwarf);
-        config.balance.hp.constitution_gnome =
-                toml_get_int(*c, "gnome", config.balance.hp.constitution_gnome);
+    if (auto tbl = root["constitution"].as_table()) {
+        for (auto [name, race] : kRaceNames) {
+            auto& rs = config.balance.race_stat(race);
+            rs.constitution = toml_get_int(*tbl, name, rs.constitution);
+        }
     }
 
-    if (auto r = root["race_hp_factor"].as_table()) {
-        config.balance.hp.race_hp_factor_human =
-                toml_get_double(*r, "human", config.balance.hp.race_hp_factor_human);
-        config.balance.hp.race_hp_factor_elf =
-                toml_get_double(*r, "elf", config.balance.hp.race_hp_factor_elf);
-        config.balance.hp.race_hp_factor_dwarf =
-                toml_get_double(*r, "dwarf", config.balance.hp.race_hp_factor_dwarf);
-        config.balance.hp.race_hp_factor_gnome =
-                toml_get_double(*r, "gnome", config.balance.hp.race_hp_factor_gnome);
+    if (auto tbl = root["intelligence"].as_table()) {
+        for (auto [name, race] : kRaceNames) {
+            auto& rs = config.balance.race_stat(race);
+            rs.intelligence = toml_get_int(*tbl, name, rs.intelligence);
+        }
     }
 
-    if (auto cl = root["class_hp_factor"].as_table()) {
-        config.balance.hp.class_hp_factor_warrior =
-                toml_get_double(*cl, "warrior", config.balance.hp.class_hp_factor_warrior);
-        config.balance.hp.class_hp_factor_paladin =
-                toml_get_double(*cl, "paladin", config.balance.hp.class_hp_factor_paladin);
-        config.balance.hp.class_hp_factor_cleric =
-                toml_get_double(*cl, "cleric", config.balance.hp.class_hp_factor_cleric);
-        config.balance.hp.class_hp_factor_mage =
-                toml_get_double(*cl, "mage", config.balance.hp.class_hp_factor_mage);
+    if (auto tbl = root["race_hp_factor"].as_table()) {
+        for (auto [name, race] : kRaceNames) {
+            auto& rs = config.balance.race_stat(race);
+            rs.hp_factor = toml_get_double(*tbl, name, rs.hp_factor);
+        }
     }
 
-    if (auto i = root["intelligence"].as_table()) {
-        config.balance.mana.intelligence_human =
-                toml_get_int(*i, "human", config.balance.mana.intelligence_human);
-        config.balance.mana.intelligence_elf =
-                toml_get_int(*i, "elf", config.balance.mana.intelligence_elf);
-        config.balance.mana.intelligence_dwarf =
-                toml_get_int(*i, "dwarf", config.balance.mana.intelligence_dwarf);
-        config.balance.mana.intelligence_gnome =
-                toml_get_int(*i, "gnome", config.balance.mana.intelligence_gnome);
+    if (auto tbl = root["race_mana_factor"].as_table()) {
+        for (auto [name, race] : kRaceNames) {
+            auto& rs = config.balance.race_stat(race);
+            rs.mana_factor = toml_get_double(*tbl, name, rs.mana_factor);
+        }
     }
 
-    if (auto r = root["race_mana_factor"].as_table()) {
-        config.balance.mana.race_mana_factor_human =
-                toml_get_double(*r, "human", config.balance.mana.race_mana_factor_human);
-        config.balance.mana.race_mana_factor_elf =
-                toml_get_double(*r, "elf", config.balance.mana.race_mana_factor_elf);
-        config.balance.mana.race_mana_factor_dwarf =
-                toml_get_double(*r, "dwarf", config.balance.mana.race_mana_factor_dwarf);
-        config.balance.mana.race_mana_factor_gnome =
-                toml_get_double(*r, "gnome", config.balance.mana.race_mana_factor_gnome);
+    if (auto tbl = root["race_strength_factor"].as_table()) {
+        for (auto [name, race] : kRaceNames) {
+            auto& rs = config.balance.race_stat(race);
+            rs.strength_factor = toml_get_double(*tbl, name, rs.strength_factor);
+        }
     }
 
-    if (auto cl = root["class_mana_factor"].as_table()) {
-        config.balance.mana.class_mana_factor_warrior =
-                toml_get_double(*cl, "warrior", config.balance.mana.class_mana_factor_warrior);
-        config.balance.mana.class_mana_factor_paladin =
-                toml_get_double(*cl, "paladin", config.balance.mana.class_mana_factor_paladin);
-        config.balance.mana.class_mana_factor_cleric =
-                toml_get_double(*cl, "cleric", config.balance.mana.class_mana_factor_cleric);
-        config.balance.mana.class_mana_factor_mage =
-                toml_get_double(*cl, "mage", config.balance.mana.class_mana_factor_mage);
+    if (auto tbl = root["race_agility_factor"].as_table()) {
+        for (auto [name, race] : kRaceNames) {
+            auto& rs = config.balance.race_stat(race);
+            rs.agility_factor = toml_get_double(*tbl, name, rs.agility_factor);
+        }
     }
 
-    if (auto cl = root["class_meditation_factor"].as_table()) {
-        config.balance.mana.class_meditation_factor_warrior = toml_get_double(
-                *cl, "warrior", config.balance.mana.class_meditation_factor_warrior);
-        config.balance.mana.class_meditation_factor_paladin = toml_get_double(
-                *cl, "paladin", config.balance.mana.class_meditation_factor_paladin);
-        config.balance.mana.class_meditation_factor_cleric =
-                toml_get_double(*cl, "cleric", config.balance.mana.class_meditation_factor_cleric);
-        config.balance.mana.class_meditation_factor_mage =
-                toml_get_double(*cl, "mage", config.balance.mana.class_meditation_factor_mage);
+    if (auto tbl = root["class_hp_factor"].as_table()) {
+        for (auto [name, cls] : kClassNames) {
+            auto& cs = config.balance.class_stat(cls);
+            cs.hp_factor = toml_get_double(*tbl, name, cs.hp_factor);
+        }
     }
 
-    if (auto r = root["race_strength_factor"].as_table()) {
-        config.balance.strength.race_strength_factor_human =
-                toml_get_double(*r, "human", config.balance.strength.race_strength_factor_human);
-        config.balance.strength.race_strength_factor_elf =
-                toml_get_double(*r, "elf", config.balance.strength.race_strength_factor_elf);
-        config.balance.strength.race_strength_factor_dwarf =
-                toml_get_double(*r, "dwarf", config.balance.strength.race_strength_factor_dwarf);
-        config.balance.strength.race_strength_factor_gnome =
-                toml_get_double(*r, "gnome", config.balance.strength.race_strength_factor_gnome);
+    if (auto tbl = root["class_mana_factor"].as_table()) {
+        for (auto [name, cls] : kClassNames) {
+            auto& cs = config.balance.class_stat(cls);
+            cs.mana_factor = toml_get_double(*tbl, name, cs.mana_factor);
+        }
     }
 
-    if (auto cs = root["class_strength_factor"].as_table()) {
-        config.balance.strength.class_strength_factor_warrior = toml_get_double(
-                *cs, "warrior", config.balance.strength.class_strength_factor_warrior);
-        config.balance.strength.class_strength_factor_paladin = toml_get_double(
-                *cs, "paladin", config.balance.strength.class_strength_factor_paladin);
-        config.balance.strength.class_strength_factor_cleric = toml_get_double(
-                *cs, "cleric", config.balance.strength.class_strength_factor_cleric);
-        config.balance.strength.class_strength_factor_mage =
-                toml_get_double(*cs, "mage", config.balance.strength.class_strength_factor_mage);
+    if (auto tbl = root["class_strength_factor"].as_table()) {
+        for (auto [name, cls] : kClassNames) {
+            auto& cs = config.balance.class_stat(cls);
+            cs.strength_factor = toml_get_double(*tbl, name, cs.strength_factor);
+        }
     }
 
-    if (auto r = root["race_agility_factor"].as_table()) {
-        config.balance.agility.race_agility_factor_human =
-                toml_get_double(*r, "human", config.balance.agility.race_agility_factor_human);
-        config.balance.agility.race_agility_factor_elf =
-                toml_get_double(*r, "elf", config.balance.agility.race_agility_factor_elf);
-        config.balance.agility.race_agility_factor_dwarf =
-                toml_get_double(*r, "dwarf", config.balance.agility.race_agility_factor_dwarf);
-        config.balance.agility.race_agility_factor_gnome =
-                toml_get_double(*r, "gnome", config.balance.agility.race_agility_factor_gnome);
+    if (auto tbl = root["class_agility_factor"].as_table()) {
+        for (auto [name, cls] : kClassNames) {
+            auto& cs = config.balance.class_stat(cls);
+            cs.agility_factor = toml_get_double(*tbl, name, cs.agility_factor);
+        }
     }
 
-    if (auto ca = root["class_agility_factor"].as_table()) {
-        config.balance.agility.class_agility_factor_warrior = toml_get_double(
-                *ca, "warrior", config.balance.agility.class_agility_factor_warrior);
-        config.balance.agility.class_agility_factor_paladin = toml_get_double(
-                *ca, "paladin", config.balance.agility.class_agility_factor_paladin);
-        config.balance.agility.class_agility_factor_cleric =
-                toml_get_double(*ca, "cleric", config.balance.agility.class_agility_factor_cleric);
-        config.balance.agility.class_agility_factor_mage =
-                toml_get_double(*ca, "mage", config.balance.agility.class_agility_factor_mage);
+    if (auto tbl = root["class_meditation_factor"].as_table()) {
+        for (auto [name, cls] : kClassNames) {
+            auto& cs = config.balance.class_stat(cls);
+            cs.meditation_factor = toml_get_double(*tbl, name, cs.meditation_factor);
+        }
     }
 
     if (auto si = root["starting_items"].as_table()) {

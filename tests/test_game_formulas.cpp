@@ -7,18 +7,7 @@ namespace {
 
 BalanceConfig make_balance() {
     BalanceConfig b;
-    b.hp.constitution_human = 20;
-    b.hp.race_hp_factor_human = 1.0;
-    b.hp.class_hp_factor_warrior = 2.0;
-    b.mana.intelligence_human = 20;
-    b.mana.race_mana_factor_human = 1.0;
-    b.mana.class_mana_factor_mage = 2.0;
-    b.mana.class_mana_factor_warrior = 0.0;
-    b.mana.class_meditation_factor_mage = 2.0;
-    b.strength.race_strength_factor_human = 1.0;
-    b.strength.class_strength_factor_warrior = 1.5;
-    b.agility.race_agility_factor_human = 0.9;
-    b.agility.class_agility_factor_warrior = 0.7;
+    // race_stats and class_stats carry correct defaults from BalanceConfig initializer
     b.level_exp_base = 1000;
     b.level_exp_exponent = 1.8;
     b.gold_cap_base = 100;
@@ -27,7 +16,6 @@ BalanceConfig make_balance() {
     b.npc_gold_reward_min_pct = 0.01;
     b.npc_gold_reward_max_pct = 0.2;
     b.extra_kill_exp_max_pct = 0.1;
-    b.race_recovery.human = 1.0;
     return b;
 }
 
@@ -323,20 +311,20 @@ TEST(GameFormulasTest, AttackExperienceZeroDamage) {
 
 TEST(GameFormulasTest, HpRegenPerSecondMatchesRaceFactor) {
     BalanceConfig b = make_balance();
-    b.race_recovery.human = 1.5;
+    b.race_stat(Race::HUMAN).recovery = 1.5;
     EXPECT_DOUBLE_EQ(GameFormulas::hp_regen_per_second(b, Race::HUMAN), 1.5);
 }
 
 TEST(GameFormulasTest, ManaRegenPerSecondMatchesRaceFactor) {
     BalanceConfig b = make_balance();
-    b.race_recovery.elf = 2.0;
+    b.race_stat(Race::ELF).recovery = 2.0;
     EXPECT_DOUBLE_EQ(GameFormulas::mana_regen_per_second(b, Race::ELF), 2.0);
 }
 
 TEST(GameFormulasTest, MeditationManaPerSecondFormula) {
     BalanceConfig b = make_balance();
-    b.mana.intelligence_human = 20;
-    b.mana.class_meditation_factor_mage = 2.0;
+    b.race_stat(Race::HUMAN).intelligence = 20;
+    b.class_stat(PlayerClass::MAGE).meditation_factor = 2.0;
     // Mana = FClaseMeditacion * Inteligencia = 2.0 * 20 = 40
     EXPECT_DOUBLE_EQ(GameFormulas::meditation_mana_per_second(b, Race::HUMAN, PlayerClass::MAGE),
                      40.0);

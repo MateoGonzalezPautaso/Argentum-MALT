@@ -1,6 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <array>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
@@ -35,68 +36,24 @@ struct ClanConfig {
     int max_name_length = 30;
 };
 
-struct RaceRecoveryConfig {
-    double human = 1.0;
-    double elf = 1.5;
-    double dwarf = 0.8;
-    double gnome = 1.2;
+struct RaceStats {
+    int constitution = 20;
+    double hp_factor = 1.0;
+    int intelligence = 20;
+    double mana_factor = 1.0;
+    double strength_factor = 1.0;
+    double agility_factor = 1.0;
+    double recovery = 1.0;
 };
 
-struct ManaConfig {
-    int intelligence_human = 20;
-    int intelligence_elf = 25;
-    int intelligence_dwarf = 15;
-    int intelligence_gnome = 23;
-    double race_mana_factor_human = 1.0;
-    double race_mana_factor_elf = 1.3;
-    double race_mana_factor_dwarf = 0.7;
-    double race_mana_factor_gnome = 1.1;
-    double class_mana_factor_warrior = 0.0;
-    double class_mana_factor_paladin = 0.5;
-    double class_mana_factor_cleric = 1.3;
-    double class_mana_factor_mage = 2.0;
-    double class_meditation_factor_warrior = 0.0;
-    double class_meditation_factor_paladin = 0.5;
-    double class_meditation_factor_cleric = 1.0;
-    double class_meditation_factor_mage = 2.0;
+struct ClassStats {
+    double hp_factor = 1.0;
+    double mana_factor = 1.0;
+    double strength_factor = 1.0;
+    double agility_factor = 1.0;
+    double meditation_factor = 1.0;
 };
 
-struct StrengthConfig {
-    double race_strength_factor_human = 1.0;
-    double race_strength_factor_elf = 0.7;
-    double race_strength_factor_dwarf = 1.3;
-    double race_strength_factor_gnome = 0.9;
-    double class_strength_factor_warrior = 1.5;
-    double class_strength_factor_paladin = 1.2;
-    double class_strength_factor_cleric = 0.8;
-    double class_strength_factor_mage = 0.5;
-};
-
-struct AgilityConfig {
-    double race_agility_factor_human = 0.9;
-    double race_agility_factor_elf = 1.5;
-    double race_agility_factor_dwarf = 0.6;
-    double race_agility_factor_gnome = 1.0;
-    double class_agility_factor_warrior = 0.7;
-    double class_agility_factor_paladin = 0.9;
-    double class_agility_factor_cleric = 1.1;
-    double class_agility_factor_mage = 1.0;
-};
-
-struct HpConfig {
-    int constitution_human = 20;
-    int constitution_elf = 15;
-    int constitution_dwarf = 25;
-    int constitution_gnome = 20;
-    double race_hp_factor_human = 1.0;
-    double race_hp_factor_elf = 0.8;
-    double race_hp_factor_dwarf = 1.2;
-    double race_hp_factor_gnome = 1.0;
-    double class_hp_factor_warrior = 2.0;
-    double class_hp_factor_paladin = 1.5;
-    double class_hp_factor_cleric = 1.2;
-    double class_hp_factor_mage = 0.8;
-};
 
 struct StartingItemsConfig {
     std::unordered_map<PlayerClass, std::vector<ItemType>> by_class;
@@ -169,16 +126,32 @@ struct BalanceConfig {
     double npc_gold_reward_min_pct = 0.01;
     double npc_gold_reward_max_pct = 0.2;
     double extra_kill_exp_max_pct = 0.1;
-    RaceRecoveryConfig race_recovery;
-    HpConfig hp;
-    ManaConfig mana;
-    StrengthConfig strength;
-    AgilityConfig agility;
     StartingItemsConfig starting_items;
     VendorsConfig vendors;
     MerchantConfig merchant;
     NpcDropConfig npc_drop;
     NpcDropConfig npc_drop_dungeon;
+
+    const RaceStats&  race_stat(Race r)        const noexcept { return race_stats[static_cast<size_t>(r) - 1]; }
+    RaceStats&        race_stat(Race r)               noexcept { return race_stats[static_cast<size_t>(r) - 1]; }
+    const ClassStats& class_stat(PlayerClass c) const noexcept { return class_stats[static_cast<size_t>(c) - 1]; }
+    ClassStats&       class_stat(PlayerClass c)       noexcept { return class_stats[static_cast<size_t>(c) - 1]; }
+
+private:
+    // Order: HUMAN, ELF, DWARF, GNOME
+    std::array<RaceStats, 4> race_stats = {{
+        {20, 1.0, 20, 1.0, 1.0, 0.9, 1.0},  // HUMAN
+        {15, 0.8, 25, 1.3, 0.7, 1.5, 1.5},  // ELF
+        {25, 1.2, 15, 0.7, 1.3, 0.6, 0.8},  // DWARF
+        {20, 1.0, 23, 1.1, 0.9, 1.0, 1.2},  // GNOME
+    }};
+    // Order: MAGE, CLERIC, PALADIN, WARRIOR
+    std::array<ClassStats, 4> class_stats = {{
+        {0.8, 2.0, 0.5, 1.0, 2.0},  // MAGE
+        {1.2, 1.3, 0.8, 1.1, 1.0},  // CLERIC
+        {1.5, 0.5, 1.2, 0.9, 0.5},  // PALADIN
+        {2.0, 0.0, 1.5, 0.7, 0.0},  // WARRIOR
+    }};
 };
 
 struct ServerConfig {

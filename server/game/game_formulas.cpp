@@ -3,127 +3,32 @@
 #include <algorithm>
 #include <cmath>
 
-namespace {
-
-struct RaceStatInputs {
-    int constitution;
-    double hp_factor;
-    int intelligence;
-    double mana_factor;
-    double strength_factor;
-    double agility_factor;
-};
-
-RaceStatInputs race_inputs(const BalanceConfig& balance, Race race) {
-    switch (race) {
-        case Race::HUMAN:
-            return {balance.hp.constitution_human,
-                    balance.hp.race_hp_factor_human,
-                    balance.mana.intelligence_human,
-                    balance.mana.race_mana_factor_human,
-                    balance.strength.race_strength_factor_human,
-                    balance.agility.race_agility_factor_human};
-        case Race::ELF:
-            return {balance.hp.constitution_elf,
-                    balance.hp.race_hp_factor_elf,
-                    balance.mana.intelligence_elf,
-                    balance.mana.race_mana_factor_elf,
-                    balance.strength.race_strength_factor_elf,
-                    balance.agility.race_agility_factor_elf};
-        case Race::DWARF:
-            return {balance.hp.constitution_dwarf,
-                    balance.hp.race_hp_factor_dwarf,
-                    balance.mana.intelligence_dwarf,
-                    balance.mana.race_mana_factor_dwarf,
-                    balance.strength.race_strength_factor_dwarf,
-                    balance.agility.race_agility_factor_dwarf};
-        case Race::GNOME:
-            return {balance.hp.constitution_gnome,
-                    balance.hp.race_hp_factor_gnome,
-                    balance.mana.intelligence_gnome,
-                    balance.mana.race_mana_factor_gnome,
-                    balance.strength.race_strength_factor_gnome,
-                    balance.agility.race_agility_factor_gnome};
-    }
-    return {};
-}
-
-struct ClassStatInputs {
-    double hp_factor;
-    double mana_factor;
-    double strength_factor;
-    double agility_factor;
-    double meditation_factor;
-};
-
-ClassStatInputs class_inputs(const BalanceConfig& balance, PlayerClass cls) {
-    switch (cls) {
-        case PlayerClass::WARRIOR:
-            return {balance.hp.class_hp_factor_warrior, balance.mana.class_mana_factor_warrior,
-                    balance.strength.class_strength_factor_warrior,
-                    balance.agility.class_agility_factor_warrior,
-                    balance.mana.class_meditation_factor_warrior};
-        case PlayerClass::PALADIN:
-            return {balance.hp.class_hp_factor_paladin, balance.mana.class_mana_factor_paladin,
-                    balance.strength.class_strength_factor_paladin,
-                    balance.agility.class_agility_factor_paladin,
-                    balance.mana.class_meditation_factor_paladin};
-        case PlayerClass::CLERIC:
-            return {balance.hp.class_hp_factor_cleric, balance.mana.class_mana_factor_cleric,
-                    balance.strength.class_strength_factor_cleric,
-                    balance.agility.class_agility_factor_cleric,
-                    balance.mana.class_meditation_factor_cleric};
-        case PlayerClass::MAGE:
-            return {balance.hp.class_hp_factor_mage, balance.mana.class_mana_factor_mage,
-                    balance.strength.class_strength_factor_mage,
-                    balance.agility.class_agility_factor_mage,
-                    balance.mana.class_meditation_factor_mage};
-    }
-    return {};
-}
-
-double recovery_rate(const BalanceConfig& balance, Race race) {
-    const auto& r = balance.race_recovery;
-    switch (race) {
-        case Race::HUMAN:
-            return r.human;
-        case Race::ELF:
-            return r.elf;
-        case Race::DWARF:
-            return r.dwarf;
-        case Race::GNOME:
-            return r.gnome;
-    }
-    return r.human;
-}
-
-}  // namespace
 
 uint32_t GameFormulas::max_hp(const BalanceConfig& balance, Race race, PlayerClass cls,
                               uint8_t level) {
-    auto r = race_inputs(balance, race);
-    auto c = class_inputs(balance, cls);
+    const auto& r = balance.race_stat(race);
+    const auto& c = balance.class_stat(cls);
     return static_cast<uint32_t>(r.constitution * r.hp_factor * c.hp_factor * level);
 }
 
 uint32_t GameFormulas::max_mana(const BalanceConfig& balance, Race race, PlayerClass cls,
                                 uint8_t level) {
-    auto r = race_inputs(balance, race);
-    auto c = class_inputs(balance, cls);
+    const auto& r = balance.race_stat(race);
+    const auto& c = balance.class_stat(cls);
     return static_cast<uint32_t>(r.intelligence * r.mana_factor * c.mana_factor * level);
 }
 
 uint32_t GameFormulas::strength(const BalanceConfig& balance, Race race, PlayerClass cls,
                                 uint8_t level) {
-    auto r = race_inputs(balance, race);
-    auto c = class_inputs(balance, cls);
+    const auto& r = balance.race_stat(race);
+    const auto& c = balance.class_stat(cls);
     return static_cast<uint32_t>(std::ceil(r.strength_factor * c.strength_factor * level));
 }
 
 uint32_t GameFormulas::agility(const BalanceConfig& balance, Race race, PlayerClass cls,
                                uint8_t level) {
-    auto r = race_inputs(balance, race);
-    auto c = class_inputs(balance, cls);
+    const auto& r = balance.race_stat(race);
+    const auto& c = balance.class_stat(cls);
     return static_cast<uint32_t>(std::ceil(r.agility_factor * c.agility_factor * level));
 }
 
@@ -271,16 +176,16 @@ std::pair<uint16_t, uint16_t> GameFormulas::display_defense_range(const Player& 
 }
 
 double GameFormulas::hp_regen_per_second(const BalanceConfig& balance, Race race) {
-    return recovery_rate(balance, race);
+    return balance.race_stat(race).recovery;
 }
 
 double GameFormulas::mana_regen_per_second(const BalanceConfig& balance, Race race) {
-    return recovery_rate(balance, race);
+    return balance.race_stat(race).recovery;
 }
 
 double GameFormulas::meditation_mana_per_second(const BalanceConfig& balance, Race race,
                                                 PlayerClass cls) {
-    auto r = race_inputs(balance, race);
-    auto c = class_inputs(balance, cls);
+    const auto& r = balance.race_stat(race);
+    const auto& c = balance.class_stat(cls);
     return c.meditation_factor * static_cast<double>(r.intelligence);
 }

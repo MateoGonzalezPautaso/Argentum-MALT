@@ -34,10 +34,10 @@ protected:
         bal.level_exp_exponent = 1.8;
         bal.gold_cap_base = 1000;
         bal.gold_cap_exponent = 1.0;
-        bal.agility.race_agility_factor_human = 0.0;
-        bal.agility.class_agility_factor_warrior = 0.0;
-        bal.strength.race_strength_factor_human = 0.0;
-        bal.strength.class_strength_factor_warrior = 0.0;
+        bal.race_stat(Race::HUMAN).agility_factor = 0.0;
+        bal.class_stat(PlayerClass::WARRIOR).agility_factor = 0.0;
+        bal.race_stat(Race::HUMAN).strength_factor = 0.0;
+        bal.class_stat(PlayerClass::WARRIOR).strength_factor = 0.0;
         players.emplace(id, Player(id, username, pos, Direction::SOUTH, Race::HUMAN,
                                    PlayerClass::WARRIOR, bal, 20, 10, 10, 40));
         return players.at(id);
