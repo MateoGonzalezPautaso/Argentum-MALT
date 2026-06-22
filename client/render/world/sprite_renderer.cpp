@@ -263,6 +263,9 @@ void SpriteRenderer::set_entity_clan_by_username(const std::string& username,
 void SpriteRenderer::set_entity_alpha(uint16_t id, uint8_t alpha) {
     entity_registry_.set_entity_alpha(id, alpha);
 }
+bool SpriteRenderer::is_npc(uint16_t id) const {
+    return entity_registry_.is_npc(id);
+}
 void SpriteRenderer::update_entity_equipment_overlay(uint16_t id, uint8_t slot,
                                                      const std::string& path, int offset_y,
                                                      bool static_frame) {

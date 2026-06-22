@@ -45,6 +45,7 @@ public:
     void set_entity_clan_by_username(const std::string& username, const std::string& clan);
     void set_entity_alpha(uint16_t entity_id, uint8_t alpha);
     void set_movable_alpha(uint8_t alpha);
+    bool is_npc(uint16_t entity_id) const;
     void reposition_anchored_sprites();
     void rebuild_local_player_sprites(Race race, PlayerClass player_class);
     void set_skin_config(const SkinConfig& skin_config);

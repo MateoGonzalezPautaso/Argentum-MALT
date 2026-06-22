@@ -86,6 +86,7 @@ public:
 
     bool hit_test_entity(int world_x, int world_y, uint16_t& out_id) const;
     bool get_entity_world_position(uint16_t id, int& x, int& y) const;
+    bool is_npc(uint16_t id) const;
 
     // Collects entity drawables for the shared Z-sorted render pass.
     void collect_drawables(const SDL2pp::Rect& cam, std::vector<Drawable>& out);

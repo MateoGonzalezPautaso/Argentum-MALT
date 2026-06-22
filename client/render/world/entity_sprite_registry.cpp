@@ -479,6 +479,12 @@ bool EntitySpriteRegistry::get_entity_world_position(uint16_t id, int& x, int& y
     return true;
 }
 
+bool EntitySpriteRegistry::is_npc(uint16_t id) const {
+    auto it = entities.find(id);
+    if (it == entities.end()) return false;
+    return it->second.sprite_id > 0;
+}
+
 // ── Rendering ─────────────────────────────────────────────────────────────────
 
 void EntitySpriteRegistry::collect_drawables(const SDL2pp::Rect& cam, std::vector<Drawable>& out) {

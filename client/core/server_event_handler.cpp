@@ -292,7 +292,11 @@ void ServerEventHandler::handle_equip_update(const EquipUpdateEvent& e) {
 
 void ServerEventHandler::handle_entity_died(const EntityDiedEvent& e) {
     if (e.entity_id != player_stats_.player_id) {
-        world_renderer_.sprites().remove_entity(e.entity_id);
+        if (world_renderer_.sprites().is_npc(e.entity_id)) {
+            world_renderer_.sprites().remove_entity(e.entity_id);
+        } else {
+            world_renderer_.sprites().set_entity_alpha(e.entity_id, 128);
+        }
         return;
     }
     audio_manager_.play_sfx("death");

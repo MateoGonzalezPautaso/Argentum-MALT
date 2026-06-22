@@ -345,9 +345,12 @@ CommandResult Game::process_pending_resurrections() {
             player.set_pos(pending.target_pos.x, pending.target_pos.y);
             player.resurrect();
 
+            EntitySpawnEvent spawn = make_entity_spawn(player);
             EntityMoveEvent move_ev{player_id, player.get_pos(), player.get_dir()};
             PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
             for (uint16_t pid: get_player_ids_on_map(pending.target_map)) {
+                if (pid != player_id)
+                    result.targeted_events[pid].push_back(spawn);
                 result.targeted_events[pid].push_back(move_ev);
                 result.targeted_events[pid].push_back(respawn);
             }
@@ -911,6 +914,22 @@ CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
         if (already_overlapping)
             continue;
         if (std::abs(new_x - ox) < hw && std::abs(new_y - oy) < hh)
+            return {};
+    }
+
+    for (const auto& [npc_id, npc]: enemy_npcs) {
+        if (npc.is_dead())
+            continue;
+        if (npc.get_current_map() != player.get_current_map())
+            continue;
+        const int nx = static_cast<int>(npc.pos_x());
+        const int ny = static_cast<int>(npc.pos_y());
+        const int hw = sprite_width / 2;
+        const int hh = sprite_height / 2;
+        bool already_overlapping = (std::abs(current_x - nx) < hw && std::abs(current_y - ny) < hh);
+        if (already_overlapping)
+            continue;
+        if (std::abs(new_x - nx) < hw && std::abs(new_y - ny) < hh)
             return {};
     }
 
