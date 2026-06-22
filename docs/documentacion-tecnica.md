@@ -110,6 +110,8 @@ Diagrama de clases completo de threading: [server_threads_architecture.puml](uml
 
 ## 2. Arquitectura del cliente
 
+[client_classes.puml](uml/client_classes.puml) — Diagrama de clases centrado en la infraestructura de red y la lógica de juego/UI (`Socket`, `Protocol`, `ClientProtocol`, `Engine`, `GameController`, `ServerEventHandler`), análogo a [server_classes.puml](uml/server_classes.puml) del lado servidor. `GameController` cumple un rol similar a `Game`, pero solo refleja el estado que llega por `ServerEvent` — no es fuente de verdad.
+
 El cliente corre todo en el thread principal salvo `Sender`/`Receiver` de red, que son simétricos a su contraparte del servidor: `Client` ≈ `ClientHandler`, compone un `Sender` y un `Receiver`, cada uno con su propia `Queue`. La diferencia es que hay un solo `Client` por proceso, y el thread "dueño" además dibuja la UI.
 
 ![](images/client_threads_architecture.png)
