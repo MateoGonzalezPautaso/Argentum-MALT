@@ -1,0 +1,119 @@
+@startuml
+title Arquitectura de Threads — Cliente
+
+class Client {
+  - config: ClientConfig
+  - skt: Socket
+  - protocol: ClientProtocol
+  - command_queue: Queue<ClientCommand>
+  - event_queue: Queue<ServerEvent>
+  - audio_manager: AudioManager
+  - engine: Engine
+  - sender: Sender
+  - receiver: Receiver
+  + run()
+  - run_menu(): bool
+  - run_login(): optional<LoginOkEvent>
+  - run_create_character(): optional<LoginOkEvent>
+  - game_loop()
+  - shutdown()
+  - frame_sync(last_tick, render)
+}
+note right of Client
+  Corre en el thread principal
+  (también dueño del render loop,
+  no solo de la red).
+end note
+
+class Sender extends Thread {
+  - protocol: ClientProtocol&
+  - queue: Queue<ClientCommand>&
+  + run()
+}
+note bottom of Sender
+  pop() bloqueante de command_queue
+  → protocol.send_command(cmd)
+  Envía comandos al Server remoto
+  (otro proceso, vía socket TCP)
+end note
+
+class Receiver extends Thread {
+  - protocol: ClientProtocol&
+  - queue: Queue<ServerEvent>&
+  + run()
+}
+note bottom of Receiver
+  protocol.recv_event() bloqueante
+  → push() a event_queue
+  Recibe eventos del Server remoto
+  (otro proceso, vía socket TCP)
+end note
+
+class ClientProtocol {
+  - Socket skt
+  - Protocol protocol
+  + ClientProtocol(Socket&&)
+  + send_login(cmd)
+  + send_create_character(cmd)
+  + send_move(cmd)
+  + send_attack(cmd)
+  + send_cast_spell(cmd)
+  + send_chat_msg(cmd)
+  + send_clan_found(cmd) / ... (8 comandos de clan)
+  + send_cheat_infinite_hp() / ... (12 cheats)
+  + ... (35 métodos send_* en total, uno por ClientCommand)
+  + send_command(cmd: ClientCommand)
+  + recv_event(): ServerEvent
+  + shutdown_from_other_thread()
+  - recv_login_payload()
+  - recv_login_ok() / recv_entity_spawn() / ... (~20 deserializadores privados)
+}
+
+class Queue<T> {
+  + push(item: T)
+  + pop(): T
+  + try_push(item: T): bool
+  + try_pop(item: T&): bool
+  + close()
+}
+note right of Queue
+  Template MPMC bloqueante
+  (común con el servidor).
+  Usos concretos:
+  Queue<ClientCommand>
+  Queue<ServerEvent>
+end note
+
+class Engine {
+  + dispatch_event(state): bool
+  + apply_server_event(ev)
+  + tick_game()
+  + render_menu_frame() / render_login_frame() / ...
+  + ... (máquina de estados: login, crear PJ, juego)
+}
+
+Client *-- Sender : <<dueño>>
+Client *-- Receiver : <<dueño>>
+Client *-- "Queue<ClientCommand>" : <<dueño>>
+Client *-- "Queue<ServerEvent>" : <<dueño>>
+Client *-- Engine : <<dueño>>
+Client --> "Queue<ClientCommand>" : command_queue.push()\n<<solo LoginCmd/CreateCharacterCmd,\nen run_login()/run_create_character()>>
+Engine --> "Queue<ClientCommand>" : command_queue.push()\n<<resto de comandos de juego, por input de\nusuario, vía GameController/MoveController/\nMerchantController — referencia compartida,\nno pasa por Client>>
+Sender --> "Queue<ClientCommand>" : command_queue.pop()
+Sender --> ClientProtocol : send_command()
+Receiver --> ClientProtocol : recv_event()
+Receiver --> "Queue<ServerEvent>" : event_queue.push()
+Client --> "Queue<ServerEvent>" : event_queue.try_pop()\n<<en game_loop(), no bloqueante>>
+Client --> Engine : aplica eventos\n<<actualiza render/estado>>
+
+note bottom
+  Simétrico a la arquitectura del servidor
+  (ver server_threads_architecture.puml):
+  Client ≈ ClientHandler — compone un
+  Sender y un Receiver, cada uno con su
+  Queue. La diferencia es que acá hay un
+  solo Client por proceso (no un mapa
+  protegido por mutex como ClientListMonitor),
+  y el thread "dueño" además dibuja la UI.
+end note
+@enduml

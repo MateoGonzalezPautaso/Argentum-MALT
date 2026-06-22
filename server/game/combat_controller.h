@@ -24,13 +24,12 @@ public:
     CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
                      const ItemCatalog& catalog, std::map<uint16_t, EnemyNpc>& enemy_npcs,
                      const NpcDropConfig& drop_config, const NpcDropConfig& drop_config_dungeon,
-                     const BalanceConfig& balance, const NpcConfig& npc_config);
+                     const BalanceConfig& balance, const NpcConfig& npc_config,
+                     ClanManager& clan_manager, const std::unordered_map<std::string, Map>& maps,
+                     const MessagesConfig& msgs);
 
-    void set_clan_manager(ClanManager& mgr);
     CommandResult melee_attack(uint16_t attacker_id, uint16_t target_id, uint32_t current_tick);
     CommandResult update_npc_ai(uint32_t current_tick);
-
-    void set_maps(const std::unordered_map<std::string, Map>& m) { maps = &m; }
 
     CommandResult spell_attack_player(uint16_t attacker_id, uint16_t target_id,
                                       uint32_t current_tick);
@@ -65,6 +64,18 @@ private:
     void drop_inventory_on_death(Player& target,
                                  std::map<std::string, std::vector<ItemDroppedEvent>>& drops,
                                  std::vector<ServerEvent>& target_events);
+    void on_player_death(Player& victim, uint16_t victim_id, Player* killer,
+                         std::vector<ServerEvent>& victim_events,
+                         std::map<std::string, std::vector<ItemDroppedEvent>>& drops,
+                         std::vector<ServerEvent>* killer_events = nullptr);
+    // Returns true if the NPC was blocked and the attack phase should be skipped.
+    bool chase_target(uint16_t npc_id, EnemyNpc& npc, const Player& target, bool in_attack_range,
+                      bool player_in_safe_zone, const Map* map,
+                      std::map<uint16_t, std::vector<ServerEvent>>& targeted);
+    void npc_attack_target(uint16_t npc_id, EnemyNpc& npc, Player& target, uint32_t current_tick,
+                           std::vector<ServerEvent>& broadcast,
+                           std::map<uint16_t, std::vector<ServerEvent>>& targeted,
+                           std::map<std::string, std::vector<ItemDroppedEvent>>& ground_drops);
     CommandResult melee_attack_player(uint16_t attacker_id, uint16_t target_id,
                                       uint32_t current_tick);
     CommandResult melee_attack_npc(uint16_t attacker_id, uint16_t npc_target_id,
@@ -84,13 +95,14 @@ private:
     const BalanceConfig& balance;
     const NpcConfig& npc_config;
     std::map<uint16_t, Player>& players;
-    ClanManager* clan_manager = nullptr;
+    ClanManager& clan_manager;
     const ItemCatalog& item_catalog_;
     Rng rng;
     std::map<uint16_t, EnemyNpc>& enemy_npcs;
     NpcDropConfig npc_drop_config;
     NpcDropConfig npc_drop_config_dungeon;
-    const std::unordered_map<std::string, Map>* maps = nullptr;
+    const std::unordered_map<std::string, Map>& maps;
+    const MessagesConfig& msgs_;
 };
 
 #endif

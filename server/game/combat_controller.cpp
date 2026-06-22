@@ -1,6 +1,7 @@
 #include "combat_controller.h"
 
 #include <cmath>
+#include <format>
 #include <utility>
 #include <vector>
 
@@ -9,55 +10,53 @@
 #include "game_formulas.h"
 #include "player_registry.h"
 
-CombatController::CombatController(const AttackConfig& config, std::map<uint16_t, Player>& players,
-                                   const ItemCatalog& catalog,
-                                   std::map<uint16_t, EnemyNpc>& enemy_npcs,
-                                   const NpcDropConfig& drop_config,
-                                   const NpcDropConfig& drop_config_dungeon,
-                                   const BalanceConfig& balance, const NpcConfig& npc_config):
+CombatController::CombatController(
+        const AttackConfig& config, std::map<uint16_t, Player>& players, const ItemCatalog& catalog,
+        std::map<uint16_t, EnemyNpc>& enemy_npcs, const NpcDropConfig& drop_config,
+        const NpcDropConfig& drop_config_dungeon, const BalanceConfig& balance,
+        const NpcConfig& npc_config, ClanManager& clan_manager,
+        const std::unordered_map<std::string, Map>& maps, const MessagesConfig& msgs):
         config(config),
         balance(balance),
         npc_config(npc_config),
         players(players),
+        clan_manager(clan_manager),
         item_catalog_(catalog),
         enemy_npcs(enemy_npcs),
         npc_drop_config(drop_config),
-        npc_drop_config_dungeon(drop_config_dungeon) {}
+        npc_drop_config_dungeon(drop_config_dungeon),
+        maps(maps),
+        msgs_(msgs) {}
 
 const NpcDropConfig& CombatController::drop_config_for(const EnemyNpc& npc) const {
-    if (!maps)
-        return npc_drop_config;
-    auto it = maps->find(npc.get_current_map());
-    if (it == maps->end())
+    auto it = maps.find(npc.get_current_map());
+    if (it == maps.end())
         return npc_drop_config;
     return it->second.config().map_type == MapType::DUNGEON ? npc_drop_config_dungeon :
                                                               npc_drop_config;
 }
 
-void CombatController::set_clan_manager(ClanManager& mgr) { clan_manager = &mgr; }
-
 std::optional<CommandResult> CombatController::validate_pvp(const Player& attacker,
                                                             const Player& target) const {
     if (attacker.get_level() <= config.newbie_level) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar siendo newbie"};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.attack_newbie_attacker};
         return CommandResult{.private_events = {msg}};
     }
     if (target.get_level() <= config.newbie_level) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar a un jugador newbie"};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.attack_newbie_target};
         return CommandResult{.private_events = {msg}};
     }
 
     int level_diff =
             std::abs(static_cast<int>(attacker.get_level()) - static_cast<int>(target.get_level()));
     if (level_diff > config.max_level_diff) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                         "No puedes atacar a un jugador con diferencia de niveles mayor a 10"};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.attack_level_diff};
         return CommandResult{.private_events = {msg}};
     }
 
-    if (clan_manager && !attacker.get_clan_name().empty() && !target.get_clan_name().empty() &&
+    if (!attacker.get_clan_name().empty() && !target.get_clan_name().empty() &&
         attacker.get_clan_name() == target.get_clan_name()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar a un miembro de tu clan"};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.attack_same_clan};
         return CommandResult{.private_events = {msg}};
     }
 
@@ -92,25 +91,8 @@ CommandResult CombatController::resolve_player_attack(Player& attacker, Player& 
                                    target.is_dead(), target.get_level(), esquivado);
 
     if (target.is_dead()) {
-        target.lose_experience_on_death();
-        PlayerStatsEvent stats{};
-        fill_player_stats_event(stats, target);
-        result.targeted_events[target_id].push_back(stats);
-
-        uint32_t excess = target.take_excess_gold();
-        if (excess > 0) {
-            attacker.gain_gold(excess);
-            result.private_events.push_back(GoldUpdateEvent{attacker.get_gold()});
-            result.private_events.push_back(ChatMsgEvent{
-                    ChatMsgType::SYSTEM, "",
-                    "Le robaste " + std::to_string(excess) + " de oro a " + target.get_name()});
-            result.targeted_events[target_id].push_back(GoldUpdateEvent{target.get_gold()});
-            result.targeted_events[target_id].push_back(ChatMsgEvent{
-                    ChatMsgType::SYSTEM, "",
-                    attacker.get_name() + " te robó " + std::to_string(excess) + " de oro"});
-        }
-
-        drop_inventory_on_death(target, result.ground_drops, result.targeted_events[target_id]);
+        on_player_death(target, target_id, &attacker, result.targeted_events[target_id],
+                        result.ground_drops, &result.private_events);
     }
 
     return result;
@@ -147,10 +129,11 @@ CommandResult CombatController::resolve_npc_attack(Player& attacker, EnemyNpc& n
             if (attacker.add_item(item.type, item.name)) {
                 result.private_events.push_back(InventoryUpdateEvent{attacker.dump_inventory()});
             } else {
+                const std::string npc_name = npc_target.get_name();
                 result.private_events.push_back(
                         ChatMsgEvent{ChatMsgType::SYSTEM, "",
-                                     npc_target.get_name() + " solto " + item.name +
-                                             " pero tu inventario esta lleno"});
+                                     std::vformat(msgs_.npc_drop_inventory_full,
+                                                  std::make_format_args(npc_name, item.name))});
             }
         }
     }
@@ -316,6 +299,108 @@ void CombatController::drop_inventory_on_death(
     target_events.push_back(EntityEventFactory::make_equip_update(target.get_id(), target));
 }
 
+void CombatController::on_player_death(Player& victim, uint16_t /*victim_id*/, Player* killer,
+                                       std::vector<ServerEvent>& victim_events,
+                                       std::map<std::string, std::vector<ItemDroppedEvent>>& drops,
+                                       std::vector<ServerEvent>* killer_events) {
+    victim.lose_experience_on_death();
+
+    PlayerStatsEvent stats{};
+    fill_player_stats_event(stats, victim);
+    victim_events.push_back(stats);
+
+    uint32_t excess = victim.take_excess_gold();
+    if (excess > 0) {
+        if (killer) {
+            killer->gain_gold(excess);
+            if (killer_events) {
+                const std::string victim_name = victim.get_name();
+                killer_events->push_back(GoldUpdateEvent{killer->get_gold()});
+                killer_events->push_back(
+                        ChatMsgEvent{ChatMsgType::SYSTEM, "",
+                                     std::vformat(msgs_.gold_stolen_from,
+                                                  std::make_format_args(excess, victim_name))});
+            }
+            const std::string killer_name = killer->get_name();
+            victim_events.push_back(GoldUpdateEvent{victim.get_gold()});
+            victim_events.push_back(
+                    ChatMsgEvent{ChatMsgType::SYSTEM, "",
+                                 std::vformat(msgs_.gold_stolen_by,
+                                              std::make_format_args(killer_name, excess))});
+        } else {
+            drops[victim.get_current_map()].push_back(ItemDroppedEvent{
+                    Position{victim.pos_x(), victim.pos_y()}, ItemType::GOLD_DROP, "Oro", excess});
+            victim_events.push_back(ChatMsgEvent{
+                    ChatMsgType::SYSTEM, "",
+                    std::vformat(msgs_.gold_lost_on_death, std::make_format_args(excess))});
+        }
+    }
+
+    if (!killer)
+        victim_events.push_back(GoldUpdateEvent{victim.get_gold()});
+
+    drop_inventory_on_death(victim, drops, victim_events);
+}
+
+bool CombatController::chase_target(uint16_t npc_id, EnemyNpc& npc, const Player& target,
+                                    bool in_attack_range, bool player_in_safe_zone, const Map* map,
+                                    std::map<uint16_t, std::vector<ServerEvent>>& targeted) {
+    if (in_attack_range || player_in_safe_zone)
+        return false;
+
+    int dx = static_cast<int>(target.pos_x()) - static_cast<int>(npc.pos_x());
+    int dy = static_cast<int>(target.pos_y()) - static_cast<int>(npc.pos_y());
+
+    Direction move_dir;
+
+    if (std::abs(dx) > std::abs(dy))
+        move_dir = (dx > 0) ? Direction::EAST : Direction::WEST;
+    else
+        move_dir = (dy > 0) ? Direction::SOUTH : Direction::NORTH;
+
+    if (!try_move_npc(npc, npc_id, map, targeted, move_dir))
+        return true;
+
+    return false;
+}
+
+void CombatController::npc_attack_target(
+        uint16_t npc_id, EnemyNpc& npc, Player& target, uint32_t current_tick,
+        std::vector<ServerEvent>& broadcast, std::map<uint16_t, std::vector<ServerEvent>>& targeted,
+        std::map<std::string, std::vector<ItemDroppedEvent>>& ground_drops) {
+    if (!npc.try_attack(current_tick, config.cooldown_ticks))
+        return;
+
+    uint16_t target_id = target.get_id();
+    bool esquivado = GameFormulas::is_dodged(config, target.get_agility(), rng);
+
+    if (esquivado) {
+        targeted[target_id].push_back(AttackDodgedEvent{target_id});
+    } else {
+        uint32_t damage = npc.get_damage();
+        uint32_t defense = calculate_defense(target);
+        damage = damage > defense ? (damage - defense) : 0;
+
+        target.take_damage(damage);
+
+        targeted[target_id].push_back(DamageReceivedEvent{
+                target_id, npc_id, damage, target.get_hp_current(), target.get_hp_max()});
+        {
+            const std::string npc_name = npc.get_name();
+            const std::string tgt_name = target.get_name();
+            targeted[target_id].push_back(
+                    ChatMsgEvent{ChatMsgType::SYSTEM, "",
+                                 std::vformat(msgs_.npc_attacked_player,
+                                              std::make_format_args(npc_name, tgt_name, damage))});
+        }
+    }
+
+    if (target.is_dead()) {
+        on_player_death(target, target_id, nullptr, targeted[target_id], ground_drops);
+        broadcast.push_back(EntityDiedEvent{target_id});
+    }
+}
+
 CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
     std::vector<ServerEvent> broadcast;
     std::map<uint16_t, std::vector<ServerEvent>> targeted;
@@ -325,12 +410,8 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
         if (npc.is_dead())
             continue;
 
-        const Map* map = nullptr;
-        if (maps) {
-            auto it = maps->find(npc.get_current_map());
-            if (it != maps->end())
-                map = &it->second;
-        }
+        auto map_it = maps.find(npc.get_current_map());
+        const Map* map = (map_it != maps.end()) ? &map_it->second : nullptr;
 
         Player* target = get_nearest_player(npc);
         if (!target) {
@@ -348,78 +429,16 @@ CommandResult CombatController::update_npc_ai(uint32_t current_tick) {
             continue;
         }
 
+
         bool player_in_safe_zone = map && map->is_safe_zone(target->pos_x(), target->pos_y());
 
-        // Chase: move toward player if not in attack range or cooldown active, and player not in
-        // safe zone
-        bool should_chase = in_vision_range && !player_in_safe_zone;
-        if (should_chase && !in_attack_range) {
-            int dx = static_cast<int>(target->pos_x()) - static_cast<int>(npc.pos_x());
-            int dy = static_cast<int>(target->pos_y()) - static_cast<int>(npc.pos_y());
+        if (chase_target(npc_id, npc, *target, in_attack_range, player_in_safe_zone, map, targeted))
+            continue;
 
-            Direction move_dir;
-
-            if (std::abs(dx) > std::abs(dy))
-                move_dir = (dx > 0) ? Direction::EAST : Direction::WEST;
-            else
-                move_dir = (dy > 0) ? Direction::SOUTH : Direction::NORTH;
-
-            if (!try_move_npc(npc, npc_id, map, targeted, move_dir))
-                continue;
-        }
-
-        // Attack if in range, target not in a safe zone, and cooldown OK
         if (!in_attack_range || player_in_safe_zone)
             continue;
 
-        if (!npc.try_attack(current_tick, config.cooldown_ticks))
-            continue;
-
-        uint16_t target_id = target->get_id();
-        bool esquivado = GameFormulas::is_dodged(config, target->get_agility(), rng);
-
-        if (esquivado) {
-            AttackDodgedEvent dodged{target_id};
-            targeted[target_id].push_back(dodged);
-        } else {
-            uint32_t damage = npc.get_damage();
-            uint32_t defense = calculate_defense(*target);
-            damage = damage > defense ? (damage - defense) : 0;
-
-            target->take_damage(damage);
-
-            DamageReceivedEvent received{target_id, npc_id, damage, target->get_hp_current(),
-                                         target->get_hp_max()};
-            targeted[target_id].push_back(received);
-
-            ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
-                                  npc.get_name() + " ataco a " + target->get_name() + " por " +
-                                          std::to_string(damage) + " de dano"};
-            targeted[target_id].push_back(chat_msg);
-        }
-
-        if (target->is_dead()) {
-            target->lose_experience_on_death();
-
-            uint32_t excess = target->take_excess_gold();
-            if (excess > 0) {
-                ground_drops[target->get_current_map()].push_back(
-                        ItemDroppedEvent{Position{target->pos_x(), target->pos_y()},
-                                         ItemType::GOLD_DROP, "Oro", excess});
-                targeted[target_id].push_back(
-                        ChatMsgEvent{ChatMsgType::SYSTEM, "",
-                                     "Perdiste " + std::to_string(excess) + " de oro al morir"});
-            }
-            PlayerStatsEvent stats{};
-            fill_player_stats_event(stats, *target);
-            targeted[target_id].push_back(stats);
-            targeted[target_id].push_back(GoldUpdateEvent{target->get_gold()});
-
-            drop_inventory_on_death(*target, ground_drops, targeted[target_id]);
-
-            EntityDiedEvent died{target_id};
-            broadcast.push_back(died);
-        }
+        npc_attack_target(npc_id, npc, *target, current_tick, broadcast, targeted, ground_drops);
     }
 
     return {.private_events = {},
@@ -583,8 +602,6 @@ uint32_t CombatController::calculate_object_defense(const InventorySlot& object_
 }
 
 int CombatController::count_nearby_clan_members(const Player& player) const {
-    if (!clan_manager)
-        return 0;
     int count = 0;
     for (const auto& [pid, p]: players) {
         if (pid == player.get_id())
@@ -604,7 +621,7 @@ int CombatController::count_nearby_clan_members(const Player& player) const {
 }
 
 double CombatController::get_clan_bonus(const Player& player) const {
-    if (!clan_manager || player.get_clan_name().empty())
+    if (player.get_clan_name().empty())
         return 0;
     int nearby_allies = count_nearby_clan_members(player);
     return GameFormulas::clan_bonus(config, nearby_allies);
@@ -625,9 +642,11 @@ CommandResult CombatController::notify_entity_attacked(
     } else {
         DamageReceivedEvent received{target_id, attacker.get_id(), damage, target_hp_current,
                                      target_hp_max};
-        ChatMsgEvent chat_msg{ChatMsgType::SYSTEM, "",
-                              attacker.get_name() + " ataco a " + target_name + " por " +
-                                      std::to_string(damage) + " de daño"};
+        const std::string attacker_name = attacker.get_name();
+        ChatMsgEvent chat_msg{
+                ChatMsgType::SYSTEM, "",
+                std::vformat(msgs_.npc_attacked_player,
+                             std::make_format_args(attacker_name, target_name, damage))};
         targeted[target_id].push_back(received);
         targeted[target_id].push_back(chat_msg);
         targeted[attacker.get_id()].push_back(chat_msg);
@@ -635,8 +654,10 @@ CommandResult CombatController::notify_entity_attacked(
         if (target_is_dead) {
             EntityDiedEvent died{target_id};
             broadcast.push_back(died);
-            broadcast.push_back(ChatMsgEvent{ChatMsgType::SYSTEM, "",
-                                             attacker.get_name() + " mato a " + target_name});
+            broadcast.push_back(
+                    ChatMsgEvent{ChatMsgType::SYSTEM, "",
+                                 std::vformat(msgs_.player_killed,
+                                              std::make_format_args(attacker_name, target_name))});
 
             attacker.gain_experience(GameFormulas::bonus_kill_experience(
                     balance, target_hp_max, attacker.get_level(), target_level, rng));
@@ -644,7 +665,7 @@ CommandResult CombatController::notify_entity_attacked(
     }
 
     // Notify clan members when someone is attacked
-    if (clan_manager && !target_clan_name.empty()) {
+    if (!target_clan_name.empty()) {
         ClanNotificationEvent notif{ClanNotifType::MEMBER_ATTACKED, target_name,
                                     std::string(target_clan_name)};
         for (const auto& [pid, p]: players) {

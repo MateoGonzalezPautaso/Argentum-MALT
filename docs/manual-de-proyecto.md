@@ -1,4 +1,4 @@
-# Manual de Proyecto — Argentum MALT
+# Manual de Proyecto
 
 ## Integrantes y roles
 

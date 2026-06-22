@@ -12,11 +12,13 @@
 #include "../../common/rng.h"
 #include "../core/config.h"
 #include "../persistence/clan_persistence.h"
+#include "pending_resurrection.h"
 #include "services/bank_service.h"
 #include "services/cheat_service.h"
 #include "services/ground_item_service.h"
 #include "services/map_transition_service.h"
 #include "services/merchant_service.h"
+#include "services/movement_service.h"
 #include "services/player_session_service.h"
 #include "services/spawn_service.h"
 
@@ -50,6 +52,7 @@ private:
     std::vector<NpcTemplate> dungeon_npc_templates;
     uint16_t next_npc_id;
     uint32_t mob_spawn_tick = 0;
+    MessagesConfig msgs_;
     CombatController combat_controller;
     BankService bank_service;
     MerchantService merchant_service;
@@ -58,6 +61,8 @@ private:
     MapTransitionService map_transition_service;
     PlayerSessionService player_session_service;
     CheatService cheat_service;
+    std::unordered_map<uint16_t, PendingResurrection> pending_resurrections_;
+    MovementService movement_service_;
     uint32_t tick_count = 0;
     int tick_rate_hz;
     bool cheats_enabled;
@@ -65,17 +70,9 @@ private:
     std::unordered_map<uint16_t, double> hp_regen_accum;
     std::unordered_map<uint16_t, double> mana_regen_accum;
 
-    struct PendingResurrection {
-        uint32_t remaining_ticks;
-        std::string target_map;
-        Position target_pos;
-    };
-    std::unordered_map<uint16_t, PendingResurrection> pending_resurrections_;
-
     CommandResult apply_regen();
     CommandResult process_pending_resurrections();
 
-    CommandResult handle_move(uint16_t player_id, const MoveCmd& cmd);
     CommandResult handle_attack(uint16_t player_id, const AttackCmd& cmd);
     CommandResult handle_cast_spell(uint16_t player_id, const CastSpellCmd& cmd);
     CommandResult handle_send_chat_msg(uint16_t player_id, const SendChatMsgCmd& cmd);
@@ -95,8 +92,6 @@ private:
     Map& player_map(const Player& p);
     const Map& player_map(const Player& p) const;
     bool target_in_safe_zone(uint16_t target_id) const;
-    bool collides_with_entities(uint16_t moving_player_id, const std::string& map_name,
-                                int current_x, int current_y, int new_x, int new_y) const;
     std::optional<CommandResult> validate_cast(const Player& player, const CastSpellCmd& cmd) const;
 
 public:

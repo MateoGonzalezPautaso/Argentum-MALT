@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <format>
 #include <string>
 #include <utility>
 #include <variant>
@@ -17,25 +18,6 @@
 
 namespace {
 
-struct Delta {
-    int dx;
-    int dy;
-};
-
-Delta direction_to_delta(Direction dir, int step) {
-    switch (dir) {
-        case Direction::NORTH:
-            return {0, -step};
-        case Direction::SOUTH:
-            return {0, step};
-        case Direction::WEST:
-            return {-step, 0};
-        case Direction::EAST:
-            return {step, 0};
-    }
-    return {0, 0};
-}
-
 std::string trim(const std::string& s) {
     size_t start = s.find_first_not_of(' ');
     if (start == std::string::npos)
@@ -50,7 +32,7 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
            ClanPersistence& clan_persistence):
         player_data_service(player_data_service),
         clan_manager(clan_persistence, config.clan),
-        clan_handler(clan_manager, players, player_name_index_),
+        clan_handler(clan_manager, players, player_name_index_, config.messages),
         move_step(config.move_step),
         sprite_width(config.sprite_width),
         sprite_height(config.sprite_height),
@@ -60,22 +42,26 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         item_catalog(config.item_catalog),
         rng(),
         next_npc_id(config.npc_id_base),
+        msgs_(config.messages),
         combat_controller(config.attack, players, config.item_catalog, enemy_npcs,
                           config.balance.npc_drop, config.balance.npc_drop_dungeon, config.balance,
-                          config.npc),
-        bank_service(players, maps, config.item_catalog, config.balance),
-        merchant_service(players, maps, config.item_catalog, config.balance, bank_service),
+                          config.npc, clan_manager, maps, msgs_),
+        bank_service(players, maps, config.item_catalog, config.balance, msgs_),
+        merchant_service(players, maps, config.item_catalog, config.balance, bank_service, msgs_),
         spawn_service(enemy_npcs, maps, next_npc_id, rng, players, config.balance,
                       config.item_catalog, config.mob_spawn, world_npc_templates,
                       dungeon_npc_templates),
-        ground_item_service(players, maps, config.item_catalog),
+        ground_item_service(players, maps, config.item_catalog, msgs_),
         map_transition_service(players, maps, enemy_npcs, player_data_service, config.balance,
                                config.sprite_width, config.sprite_height, ground_item_service),
         player_session_service(players, player_name_index_, player_data_service, maps, enemy_npcs,
                                config.balance, config.inventory, config.item_catalog, clan_manager,
                                clan_handler, combat_controller, ground_item_service),
         cheat_service(players, config.balance, config.item_catalog, player_data_service,
-                      combat_controller, config.help_lines, config.cheats_enabled),
+                      combat_controller, config.help_lines, config.cheats_enabled, msgs_),
+        movement_service_(players, maps, enemy_npcs, pending_resurrections_, config.balance,
+                          config.move_step, config.sprite_width, config.sprite_height,
+                          map_transition_service),
         tick_rate_hz(config.tick_rate_hz),
         cheats_enabled(config.cheats_enabled),
         help_lines(config.help_lines) {
@@ -88,8 +74,6 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
     for (const auto& [name, tc]: config.tilemap_configs) {
         maps.emplace(name, Map(tc));
     }
-    combat_controller.set_clan_manager(clan_manager);
-    combat_controller.set_maps(maps);
 }
 
 Map& Game::player_map(const Player& p) {
@@ -139,7 +123,9 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const CreateCharacterCmd& cmd) {
                         return player_session_service.handle_create_character(player_id, cmd);
                     },
-                    [&](const MoveCmd& cmd) { return handle_move(player_id, cmd); },
+                    [&](const MoveCmd& cmd) {
+                        return movement_service_.handle_move(player_id, cmd);
+                    },
                     [&](const AttackCmd& cmd) { return handle_attack(player_id, cmd); },
                     [&](const SendChatMsgCmd& cmd) { return handle_send_chat_msg(player_id, cmd); },
                     [&](const MeditateCmd&) { return handle_meditate(player_id); },
@@ -378,8 +364,7 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
 
     if (map.is_safe_zone(it->second.pos_x(), it->second.pos_y()) ||
         target_in_safe_zone(cmd.target_id)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacar en una zona segura"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg(msgs_.attack_safe_zone);
     }
     result = combat_controller.melee_attack(player_id, cmd.target_id, tick_count);
     ground_item_service.commit_ground_drops(result, result.ground_drops);
@@ -391,35 +376,26 @@ CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
 
 std::optional<CommandResult> Game::validate_cast(const Player& player, const CastSpellCmd&) const {
     if (player.get_player_class() == PlayerClass::WARRIOR) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los guerreros no pueden usar magia"};
-        return CommandResult{
-                .private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg(msgs_.warrior_no_magic);
     }
 
     const InventorySlot& weapon_slot = player.get_equipped(EquipSlot::WEAPON);
     if (weapon_slot.item_type == ItemType::NONE) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No tienes un arma equipada"};
-        return CommandResult{
-                .private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg(msgs_.no_weapon_equipped);
     }
 
     const Item* item = item_catalog.find(weapon_slot.item_type);
     if (!item || item->mana_consumed == 0) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El arma equipada no es magica"};
-        return CommandResult{
-                .private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg(msgs_.weapon_not_magic);
     }
 
     if (player.get_mana_current() < item->mana_consumed) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Mana insuficiente"};
-        return CommandResult{
-                .private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg(msgs_.insufficient_mana);
     }
 
     const Map& map = player_map(player);
     if (map.is_safe_zone(player.pos_x(), player.pos_y())) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes lanzar hechizos en una zona segura"};
-        return CommandResult{.private_events = {msg}};
+        return CommandResult::with_msg(msgs_.spell_safe_zone);
     }
 
     return std::nullopt;
@@ -447,7 +423,7 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
         player.heal(heal_amount);
         HealReceivedEvent heal_ev{player_id, player.get_hp_current(), player.get_mana_current()};
         PlayerStatsEvent stats = make_player_stats_event(player);
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Te has curado!"};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.self_heal_success};
         DamageDealtEvent spell_ev{player_id, 0};
         SpellEffectEvent effect_ev{player_id, 0};
         return {.private_events = {msg, heal_ev, stats, spell_ev},
@@ -457,13 +433,11 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
     }
 
     if (cmd.target_id == player_id) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes atacarte a ti mismo"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg(msgs_.attack_self);
     }
 
     if (target_in_safe_zone(cmd.target_id)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No puedes lanzar hechizos en una zona segura"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg(msgs_.spell_safe_zone);
     }
 
     CommandResult result;
@@ -491,8 +465,7 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         return {};
 
     if (it->second.is_dead()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden interactuar"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg(msgs_.ghost_cant_interact);
     }
 
     it->second.set_meditating(false);
@@ -515,8 +488,8 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
                         .broadcast_events = {},
                         .targeted_events = std::move(targeted)};
             }
-            ChatMsgEvent err{ChatMsgType::SYSTEM, "", "Jugador " + target_nick + " no encontrado"};
-            return {.private_events = {err}, .broadcast_events = {}, .targeted_events = {}};
+            return CommandResult::with_msg(
+                    std::vformat(msgs_.player_not_found, std::make_format_args(target_nick)));
         }
     }
 
@@ -531,8 +504,8 @@ CommandResult Game::handle_send_chat_msg(uint16_t player_id, const SendChatMsgCm
         if (cmd_name == "/help")
             return cheat_service.handle_help();
 
-        ChatMsgEvent ev{ChatMsgType::SYSTEM, "", "Comando " + cmd_name + " no reconocido"};
-        return {.private_events = {ev}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg(
+                std::vformat(msgs_.command_not_recognized, std::make_format_args(cmd_name)));
     }
 
     ChatMsgEvent broadcast_ev{ChatMsgType::SAY, sender_name, text};
@@ -551,8 +524,7 @@ CommandResult Game::handle_meditate(uint16_t player_id) {
         return {};
 
     if (player.get_player_class() == PlayerClass::WARRIOR) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los guerreros no pueden meditar"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg(msgs_.warrior_cant_meditate);
     }
 
     if (player.get_is_meditating()) {
@@ -650,13 +622,11 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
 
     Player& player = it->second;
     if (!player.is_dead()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No estás muerto"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg(msgs_.not_dead);
     }
 
     if (pending_resurrections_.contains(player_id)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Ya estás resucitando, espera"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg(msgs_.already_resurrecting);
     }
 
     const std::string& current_map = player.get_current_map();
@@ -673,7 +643,7 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     if (map_it->second.prop_grid().is_in_range_of(std::string(PropNames::PRIEST), px, py, range)) {
         player.resurrect();
         PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Sacerdote: ¡Que la luz te devuelva a la vida!"};
+        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.priest_resurrect};
         CommandResult result;
         result.private_events = {msg};
         result.map_events = {respawn};
@@ -715,11 +685,8 @@ CommandResult Game::handle_resurrect(uint16_t player_id) {
     pending_resurrections_[player_id] = {wait_ticks, target_map, target_pos};
 
     uint32_t remaining_tiles = wait_ticks / tick_rate_hz;
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     "Resucitando en " + std::to_string(remaining_tiles) +
-                             " segundos... Permanece inmóvil."};
-
-    return {.private_events = {msg}};
+    return CommandResult::with_msg(
+            std::vformat(msgs_.resurrect_countdown, std::make_format_args(remaining_tiles)));
 }
 
 CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
@@ -783,8 +750,7 @@ CommandResult Game::handle_npc_heal(uint16_t player_id) {
     Player& player = it->second;
 
     if (player.is_dead()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden ser curados"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg(msgs_.ghost_cant_be_healed);
     }
 
     const std::string& current_map = player.get_current_map();
@@ -797,100 +763,13 @@ CommandResult Game::handle_npc_heal(uint16_t player_id) {
     const int py = static_cast<int>(player.pos_y());
 
     if (!map_it->second.prop_grid().is_in_range_of(std::string(PropNames::PRIEST), px, py, range)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un sacerdote cerca"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg(msgs_.no_priest_nearby);
     }
 
     player.heal(player.get_hp_max());
     player.restore_mana(player.get_mana_max());
 
     HealReceivedEvent heal_ev{player_id, player.get_hp_current(), player.get_mana_current()};
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Sacerdote: ¡Que la luz te sane!"};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.priest_heal};
     return {.private_events = {heal_ev, msg}};
-}
-
-
-bool Game::collides_with_entities(uint16_t moving_player_id, const std::string& map_name,
-                                  int current_x, int current_y, int new_x, int new_y) const {
-    const int hw = sprite_width / 2;
-    const int hh = sprite_height / 2;
-
-    for (const auto& [other_id, other]: players) {
-        if (other_id == moving_player_id)
-            continue;
-        if (other.get_current_map() != map_name)
-            continue;
-        const int ox = static_cast<int>(other.pos_x());
-        const int oy = static_cast<int>(other.pos_y());
-        bool already_overlapping = (std::abs(current_x - ox) < hw && std::abs(current_y - oy) < hh);
-        if (already_overlapping)
-            continue;
-        if (std::abs(new_x - ox) < hw && std::abs(new_y - oy) < hh)
-            return true;
-    }
-
-    for (const auto& [npc_id, npc]: enemy_npcs) {
-        if (npc.is_dead())
-            continue;
-        if (npc.get_current_map() != map_name)
-            continue;
-        const int nx = static_cast<int>(npc.pos_x());
-        const int ny = static_cast<int>(npc.pos_y());
-        bool already_overlapping = (std::abs(current_x - nx) < hw && std::abs(current_y - ny) < hh);
-        if (already_overlapping)
-            continue;
-        if (std::abs(new_x - nx) < hw && std::abs(new_y - ny) < hh)
-            return true;
-    }
-
-    return false;
-}
-
-CommandResult Game::handle_move(uint16_t player_id, const MoveCmd& cmd) {
-    auto it = players.find(player_id);
-    if (it == players.end())
-        return {};
-
-    Player& player = it->second;
-    player.set_meditating(false);
-
-    if (pending_resurrections_.contains(player_id))
-        return {};
-
-    Map& cur_map = player_map(player);
-
-    int effective_step = player.has_cheat_fast_velocity() ? move_step * 2 : move_step;
-    auto [dx, dy] = direction_to_delta(cmd.direction, effective_step);
-
-    const int current_x = static_cast<int>(player.pos_x());
-    const int current_y = static_cast<int>(player.pos_y());
-    const int new_x = cur_map.clamp_x(current_x + dx, sprite_width);
-    const int new_y = cur_map.clamp_y(current_y + dy, sprite_height);
-
-    if (!cur_map.is_walkable(new_x + sprite_width / 2, new_y + sprite_height))
-        return {};
-
-    if (collides_with_entities(player_id, player.get_current_map(), current_x, current_y, new_x,
-                               new_y))
-        return {};
-
-    const int final_dx = new_x - current_x;
-    const int final_dy = new_y - current_y;
-    if (final_dx == 0 && final_dy == 0)
-        return {};
-
-    player.apply_move(cmd.direction, final_dx, final_dy);
-
-    CommandResult result;
-
-    if (map_transition_service.try_map_transition(player, result))
-        return result;
-
-    EntityMoveEvent move{
-            .entity_id = player.get_id(),
-            .entity_pos = player.get_pos(),
-            .entity_dir = player.get_dir(),
-    };
-    result.map_events = {move};
-    return result;
 }

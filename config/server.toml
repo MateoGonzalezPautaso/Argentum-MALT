@@ -64,6 +64,7 @@ extra_kill_exp_max_pct = 0.1
 npc_interaction_range_tiles = 3
 default_resurrect_wait_seconds = 10
 cheat_gold_amount = 1000
+cheat_velocity_multiplier = 2
 npc_fallback_base_hp = 100
 npc_fallback_base_damage = 5
 default_spell_effect_id = 1
@@ -166,6 +167,98 @@ comerciante = ["SWORD", "AXE", "HAMMER", "SIMPLE_BOW", "COMPOSITE_BOW",
                "LEATHER_ARMOR", "PLATE_ARMOR", "BLUE_TUNIC", "HOOD",
                "IRON_HELMET", "MAGIC_HAT", "TURTLE_SHIELD", "IRON_SHIELD",
                "HEALTH_POTION", "MANA_POTION"]
+
+[messages]
+# Combat
+attack_newbie_attacker = "No puedes atacar siendo newbie"
+attack_newbie_target = "No puedes atacar a un jugador newbie"
+attack_level_diff = "No puedes atacar a un jugador con diferencia de niveles mayor a 10"
+attack_same_clan = "No puedes atacar a un miembro de tu clan"
+attack_safe_zone = "No puedes atacar en una zona segura"
+attack_self = "No puedes atacarte a ti mismo"
+# Spell
+warrior_no_magic = "Los guerreros no pueden usar magia"
+no_weapon_equipped = "No tienes un arma equipada"
+weapon_not_magic = "El arma equipada no es magica"
+insufficient_mana = "Mana insuficiente"
+spell_safe_zone = "No puedes lanzar hechizos en una zona segura"
+# Ghost restrictions
+ghost_cant_interact = "Los fantasmas no pueden interactuar"
+ghost_cant_pickup = "Los fantasmas no pueden recoger objetos"
+ghost_cant_drop = "Los fantasmas no pueden tirar objetos"
+ghost_cant_deposit = "Los fantasmas no pueden depositar"
+ghost_cant_withdraw = "Los fantasmas no pueden retirar"
+ghost_cant_be_healed = "Los fantasmas no pueden ser curados"
+ghost_cant_list = "Los fantasmas no pueden listar"
+# Inventory / capacity
+inventory_full = "Inventario lleno"
+# Bank
+no_banker_nearby = "No hay un banquero cerca"
+insufficient_gold = "Oro insuficiente"
+bank_full = "El banco está lleno"
+insufficient_bank_gold = "No tenés suficiente oro en el banco"
+# Ground items
+nothing_to_pickup = "No hay nada para recoger aquí"
+# Merchant / NPC
+no_merchant_priest_banker = "No hay un comerciante, sacerdote ni banquero cerca"
+no_merchant_priest = "No hay un sacerdote ni un comerciante cerca"
+no_merchant_nearby = "No hay un comerciante cerca"
+merchant_doesnt_buy = "El comerciante no compra ese tipo de objeto"
+no_priest_nearby = "No hay un sacerdote cerca"
+# Resurrect / heal
+warrior_cant_meditate = "Los guerreros no pueden meditar"
+not_dead = "No estás muerto"
+already_resurrecting = "Ya estás resucitando, espera"
+priest_resurrect = "Sacerdote: ¡Que la luz te devuelva a la vida!"
+priest_heal = "Sacerdote: ¡Que la luz te sane!"
+self_heal_success = "Te has curado!"
+# Clan
+not_in_clan = "No perteneces a ningun clan"
+only_founder_review = "Solo el fundador puede revisar el clan"
+no_pending_requests = "No hay pedidos pendientes"
+usage_found_clan = "Uso: /fundar-clan <nombre>"
+usage_join_clan = "Uso: /unirse <nombre del clan>"
+usage_clan_accept = "Uso: /clan-aceptar <nick>"
+usage_clan_reject = "Uso: /clan-rechazar <nick>"
+usage_clan_ban = "Uso: /clan-ban <nick>"
+usage_clan_kick = "Uso: /clan-kick <nick>"
+usage_clan_unban = "Uso: /clan-unban <nick>"
+usage_clan_chat = "Uso: /c <mensaje>"
+# Cheats
+cheat_inf_hp_on = "[Cheat] HP infinito: ON"
+cheat_inf_hp_off = "[Cheat] HP infinito: OFF"
+cheat_inf_mana_on = "[Cheat] Mana infinito: ON"
+cheat_inf_mana_off = "[Cheat] Mana infinito: OFF"
+cheat_died = "[Cheat] Moriste!"
+cheat_not_dead = "[Cheat] No estás muerto"
+cheat_revived = "[Cheat] Reviviste!"
+cheat_max_level = "Ya estas en el nivel maximo"
+cheat_min_level = "Ya estas en el nivel minimo"
+cheat_gold_reset = "[Cheat] Oro reseteado a 0"
+cheat_mana_reset = "[Cheat] Mana reseteado a 0"
+cheat_velocity_on = "[Cheat] Velocidad: ON"
+cheat_velocity_off = "[Cheat] Velocidad: OFF"
+cheat_inventory_filled = "[Cheat] Inventario lleno con todos los items!"
+cheat_inventory_cleared = "[Cheat] Inventario vaciado!"
+# Dynamic (with {} placeholders)
+item_not_found = "Objeto '{}' no encontrado"
+item_not_in_bank = "No tenés '{}' en el banco"
+item_not_in_inventory = "No tenés '{}' en el inventario"
+item_not_on_ground = "No hay '{}' en el piso aquí"
+vendor_doesnt_sell = "{} no vende ese objeto"
+insufficient_gold_item = "Oro insuficiente. El {} cuesta {}"
+ghost_cant_action = "Los fantasmas no pueden {}"
+usage_action_item = "Uso: /{} <nombre del objeto>"
+npc_drop_inventory_full = "{} soltó {} pero tu inventario está lleno"
+gold_stolen_from = "Le robaste {} de oro a {}"
+gold_stolen_by = "{} te robó {} de oro"
+gold_lost_on_death = "Perdiste {} de oro al morir"
+npc_attacked_player = "{} atacó a {} por {} de daño"
+player_killed = "{} mató a {}"
+player_not_found = "Jugador {} no encontrado"
+command_not_recognized = "Comando {} no reconocido"
+resurrect_countdown = "Resucitando en {} segundos... Permanece inmóvil."
+clan_level_required = "Necesitas nivel {} para fundar un clan"
 
 [help]
 lines = [

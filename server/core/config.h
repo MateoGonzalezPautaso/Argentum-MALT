@@ -1,6 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <array>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
@@ -33,68 +34,24 @@ struct ClanConfig {
     int max_name_length = 30;
 };
 
-struct RaceRecoveryConfig {
-    double human = 1.0;
-    double elf = 1.5;
-    double dwarf = 0.8;
-    double gnome = 1.2;
+struct RaceStats {
+    int constitution = 20;
+    double hp_factor = 1.0;
+    int intelligence = 20;
+    double mana_factor = 1.0;
+    double strength_factor = 1.0;
+    double agility_factor = 1.0;
+    double recovery = 1.0;
 };
 
-struct ManaConfig {
-    int intelligence_human = 20;
-    int intelligence_elf = 25;
-    int intelligence_dwarf = 15;
-    int intelligence_gnome = 23;
-    double race_mana_factor_human = 1.0;
-    double race_mana_factor_elf = 1.3;
-    double race_mana_factor_dwarf = 0.7;
-    double race_mana_factor_gnome = 1.1;
-    double class_mana_factor_warrior = 0.0;
-    double class_mana_factor_paladin = 0.5;
-    double class_mana_factor_cleric = 1.3;
-    double class_mana_factor_mage = 2.0;
-    double class_meditation_factor_warrior = 0.0;
-    double class_meditation_factor_paladin = 0.5;
-    double class_meditation_factor_cleric = 1.0;
-    double class_meditation_factor_mage = 2.0;
+struct ClassStats {
+    double hp_factor = 1.0;
+    double mana_factor = 1.0;
+    double strength_factor = 1.0;
+    double agility_factor = 1.0;
+    double meditation_factor = 1.0;
 };
 
-struct StrengthConfig {
-    double race_strength_factor_human = 1.0;
-    double race_strength_factor_elf = 0.7;
-    double race_strength_factor_dwarf = 1.3;
-    double race_strength_factor_gnome = 0.9;
-    double class_strength_factor_warrior = 1.5;
-    double class_strength_factor_paladin = 1.2;
-    double class_strength_factor_cleric = 0.8;
-    double class_strength_factor_mage = 0.5;
-};
-
-struct AgilityConfig {
-    double race_agility_factor_human = 0.9;
-    double race_agility_factor_elf = 1.5;
-    double race_agility_factor_dwarf = 0.6;
-    double race_agility_factor_gnome = 1.0;
-    double class_agility_factor_warrior = 0.7;
-    double class_agility_factor_paladin = 0.9;
-    double class_agility_factor_cleric = 1.1;
-    double class_agility_factor_mage = 1.0;
-};
-
-struct HpConfig {
-    int constitution_human = 20;
-    int constitution_elf = 15;
-    int constitution_dwarf = 25;
-    int constitution_gnome = 20;
-    double race_hp_factor_human = 1.0;
-    double race_hp_factor_elf = 0.8;
-    double race_hp_factor_dwarf = 1.2;
-    double race_hp_factor_gnome = 1.0;
-    double class_hp_factor_warrior = 2.0;
-    double class_hp_factor_paladin = 1.5;
-    double class_hp_factor_cleric = 1.2;
-    double class_hp_factor_mage = 0.8;
-};
 
 struct StartingItemsConfig {
     std::unordered_map<PlayerClass, std::vector<ItemType>> by_class;
@@ -151,6 +108,7 @@ struct BalanceConfig {
     int npc_interaction_range_tiles = 3;
     int default_resurrect_wait_seconds = 10;
     int cheat_gold_amount = 1000;
+    int cheat_velocity_multiplier = 2;
     uint32_t npc_fallback_base_hp = 100;
     uint32_t npc_fallback_base_damage = 5;
     uint8_t default_spell_effect_id = 1;
@@ -167,16 +125,132 @@ struct BalanceConfig {
     double npc_gold_reward_min_pct = 0.01;
     double npc_gold_reward_max_pct = 0.2;
     double extra_kill_exp_max_pct = 0.1;
-    RaceRecoveryConfig race_recovery;
-    HpConfig hp;
-    ManaConfig mana;
-    StrengthConfig strength;
-    AgilityConfig agility;
     StartingItemsConfig starting_items;
     VendorsConfig vendors;
     MerchantConfig merchant;
     NpcDropConfig npc_drop;
     NpcDropConfig npc_drop_dungeon;
+
+    const RaceStats& race_stat(Race r) const noexcept {
+        return race_stats[static_cast<size_t>(r) - 1];
+    }
+    RaceStats& race_stat(Race r) noexcept { return race_stats[static_cast<size_t>(r) - 1]; }
+    const ClassStats& class_stat(PlayerClass c) const noexcept {
+        return class_stats[static_cast<size_t>(c) - 1];
+    }
+    ClassStats& class_stat(PlayerClass c) noexcept {
+        return class_stats[static_cast<size_t>(c) - 1];
+    }
+
+private:
+    // Order: HUMAN, ELF, DWARF, GNOME
+    std::array<RaceStats, 4> race_stats = {{
+            {20, 1.0, 20, 1.0, 1.0, 0.9, 1.0},  // HUMAN
+            {15, 0.8, 25, 1.3, 0.7, 1.5, 1.5},  // ELF
+            {25, 1.2, 15, 0.7, 1.3, 0.6, 0.8},  // DWARF
+            {20, 1.0, 23, 1.1, 0.9, 1.0, 1.2},  // GNOME
+    }};
+    // Order: MAGE, CLERIC, PALADIN, WARRIOR
+    std::array<ClassStats, 4> class_stats = {{
+            {0.8, 2.0, 0.5, 1.0, 2.0},  // MAGE
+            {1.2, 1.3, 0.8, 1.1, 1.0},  // CLERIC
+            {1.5, 0.5, 1.2, 0.9, 0.5},  // PALADIN
+            {2.0, 0.0, 1.5, 0.7, 0.0},  // WARRIOR
+    }};
+};
+
+struct MessagesConfig {
+    // Combat
+    std::string attack_newbie_attacker = "No puedes atacar siendo newbie";
+    std::string attack_newbie_target = "No puedes atacar a un jugador newbie";
+    std::string attack_level_diff =
+            "No puedes atacar a un jugador con diferencia de niveles mayor a 10";
+    std::string attack_same_clan = "No puedes atacar a un miembro de tu clan";
+    std::string attack_safe_zone = "No puedes atacar en una zona segura";
+    std::string attack_self = "No puedes atacarte a ti mismo";
+    // Spell
+    std::string warrior_no_magic = "Los guerreros no pueden usar magia";
+    std::string no_weapon_equipped = "No tienes un arma equipada";
+    std::string weapon_not_magic = "El arma equipada no es magica";
+    std::string insufficient_mana = "Mana insuficiente";
+    std::string spell_safe_zone = "No puedes lanzar hechizos en una zona segura";
+    // Ghost restrictions
+    std::string ghost_cant_interact = "Los fantasmas no pueden interactuar";
+    std::string ghost_cant_pickup = "Los fantasmas no pueden recoger objetos";
+    std::string ghost_cant_drop = "Los fantasmas no pueden tirar objetos";
+    std::string ghost_cant_deposit = "Los fantasmas no pueden depositar";
+    std::string ghost_cant_withdraw = "Los fantasmas no pueden retirar";
+    std::string ghost_cant_be_healed = "Los fantasmas no pueden ser curados";
+    std::string ghost_cant_list = "Los fantasmas no pueden listar";
+    // Inventory / capacity
+    std::string inventory_full = "Inventario lleno";
+    // Bank
+    std::string no_banker_nearby = "No hay un banquero cerca";
+    std::string insufficient_gold = "Oro insuficiente";
+    std::string bank_full = "El banco está lleno";
+    std::string insufficient_bank_gold = "No tenés suficiente oro en el banco";
+    // Ground items
+    std::string nothing_to_pickup = "No hay nada para recoger aquí";
+    // Merchant / NPC
+    std::string no_merchant_priest_banker = "No hay un comerciante, sacerdote ni banquero cerca";
+    std::string no_merchant_priest = "No hay un sacerdote ni un comerciante cerca";
+    std::string no_merchant_nearby = "No hay un comerciante cerca";
+    std::string merchant_doesnt_buy = "El comerciante no compra ese tipo de objeto";
+    std::string no_priest_nearby = "No hay un sacerdote cerca";
+    // Resurrect / heal
+    std::string warrior_cant_meditate = "Los guerreros no pueden meditar";
+    std::string not_dead = "No estás muerto";
+    std::string already_resurrecting = "Ya estás resucitando, espera";
+    std::string priest_resurrect = "Sacerdote: ¡Que la luz te devuelva a la vida!";
+    std::string priest_heal = "Sacerdote: ¡Que la luz te sane!";
+    std::string self_heal_success = "Te has curado!";
+    // Clan
+    std::string not_in_clan = "No perteneces a ningun clan";
+    std::string only_founder_review = "Solo el fundador puede revisar el clan";
+    std::string no_pending_requests = "No hay pedidos pendientes";
+    std::string usage_found_clan = "Uso: /fundar-clan <nombre>";
+    std::string usage_join_clan = "Uso: /unirse <nombre del clan>";
+    std::string usage_clan_accept = "Uso: /clan-aceptar <nick>";
+    std::string usage_clan_reject = "Uso: /clan-rechazar <nick>";
+    std::string usage_clan_ban = "Uso: /clan-ban <nick>";
+    std::string usage_clan_kick = "Uso: /clan-kick <nick>";
+    std::string usage_clan_unban = "Uso: /clan-unban <nick>";
+    std::string usage_clan_chat = "Uso: /c <mensaje>";
+    // Dynamic — item/player names interpolated at runtime
+    std::string item_not_found = "Objeto '{}' no encontrado";
+    std::string item_not_in_bank = "No tenés '{}' en el banco";
+    std::string item_not_in_inventory = "No tenés '{}' en el inventario";
+    std::string item_not_on_ground = "No hay '{}' en el piso aquí";
+    std::string vendor_doesnt_sell = "{} no vende ese objeto";
+    std::string insufficient_gold_item = "Oro insuficiente. El {} cuesta {}";
+    std::string ghost_cant_action = "Los fantasmas no pueden {}";
+    std::string usage_action_item = "Uso: /{} <nombre del objeto>";
+    std::string npc_drop_inventory_full = "{} soltó {} pero tu inventario está lleno";
+    std::string gold_stolen_from = "Le robaste {} de oro a {}";
+    std::string gold_stolen_by = "{} te robó {} de oro";
+    std::string gold_lost_on_death = "Perdiste {} de oro al morir";
+    std::string npc_attacked_player = "{} atacó a {} por {} de daño";
+    std::string player_killed = "{} mató a {}";
+    std::string player_not_found = "Jugador {} no encontrado";
+    std::string command_not_recognized = "Comando {} no reconocido";
+    std::string resurrect_countdown = "Resucitando en {} segundos... Permanece inmóvil.";
+    std::string clan_level_required = "Necesitas nivel {} para fundar un clan";
+    // Cheats
+    std::string cheat_inf_hp_on = "[Cheat] HP infinito: ON";
+    std::string cheat_inf_hp_off = "[Cheat] HP infinito: OFF";
+    std::string cheat_inf_mana_on = "[Cheat] Mana infinito: ON";
+    std::string cheat_inf_mana_off = "[Cheat] Mana infinito: OFF";
+    std::string cheat_died = "[Cheat] Moriste!";
+    std::string cheat_not_dead = "[Cheat] No estás muerto";
+    std::string cheat_revived = "[Cheat] Reviviste!";
+    std::string cheat_max_level = "Ya estas en el nivel maximo";
+    std::string cheat_min_level = "Ya estas en el nivel minimo";
+    std::string cheat_gold_reset = "[Cheat] Oro reseteado a 0";
+    std::string cheat_mana_reset = "[Cheat] Mana reseteado a 0";
+    std::string cheat_velocity_on = "[Cheat] Velocidad: ON";
+    std::string cheat_velocity_off = "[Cheat] Velocidad: OFF";
+    std::string cheat_inventory_filled = "[Cheat] Inventario lleno con todos los items!";
+    std::string cheat_inventory_cleared = "[Cheat] Inventario vaciado!";
 };
 
 struct NpcConfig {
@@ -205,6 +279,7 @@ struct ServerConfig {
     std::vector<NpcTemplate> npc_templates;
     std::vector<std::string> help_lines;
     NpcConfig npc;
+    MessagesConfig messages;
 };
 
 std::vector<NpcTemplate> load_npc_templates(const std::string& path);

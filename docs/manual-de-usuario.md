@@ -1,4 +1,4 @@
-# Manual de Argentum MALT
+# Manual de Usuario
 
 ## 1. Introducción
 

@@ -10,14 +10,16 @@
 CheatService::CheatService(std::map<uint16_t, Player>& players, const BalanceConfig& balance,
                            const ItemCatalog& item_catalog, PlayerDataService& player_data_service,
                            CombatController& combat_controller,
-                           const std::vector<std::string>& help_lines, bool cheats_enabled):
+                           const std::vector<std::string>& help_lines, bool cheats_enabled,
+                           const MessagesConfig& msgs):
         players_(players),
         balance_(balance),
         item_catalog_(item_catalog),
         player_data_service_(player_data_service),
         combat_controller_(combat_controller),
         help_lines_(help_lines),
-        cheats_enabled_(cheats_enabled) {}
+        cheats_enabled_(cheats_enabled),
+        msgs_(msgs) {}
 
 CommandResult CheatService::dispatch_cheat_infinite_hp(uint16_t player_id) {
     if (!cheats_enabled_)
@@ -102,9 +104,7 @@ CommandResult CheatService::handle_cheat_infinite_hp(uint16_t player_id) {
     if (it == players_.end())
         return {};
     bool active = it->second.toggle_cheat_infinite_hp();
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     active ? "[Cheat] HP infinito: ON" : "[Cheat] HP infinito: OFF"};
-    return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    return CommandResult::with_msg(active ? msgs_.cheat_inf_hp_on : msgs_.cheat_inf_hp_off);
 }
 
 CommandResult CheatService::handle_cheat_infinite_mana(uint16_t player_id) {
@@ -116,7 +116,7 @@ CommandResult CheatService::handle_cheat_infinite_mana(uint16_t player_id) {
     if (active)
         player.restore_mana(player.get_mana_max());
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     active ? "[Cheat] Mana infinito: ON" : "[Cheat] Mana infinito: OFF"};
+                     active ? msgs_.cheat_inf_mana_on : msgs_.cheat_inf_mana_off};
     PlayerStatsEvent stats = make_player_stats_event(player);
     return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
@@ -132,7 +132,7 @@ CommandResult CheatService::handle_cheat_die(uint16_t player_id) {
                             .hp_current = 0,
                             .hp_max = it->second.get_hp_max()};
     EntityDiedEvent died{.entity_id = player_id};
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Moriste!"};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.cheat_died};
     CommandResult r;
     r.private_events = {msg};
     r.map_events = {dmg, died};
@@ -145,12 +145,11 @@ CommandResult CheatService::handle_cheat_revive(uint16_t player_id) {
         return {};
     Player& player = it->second;
     if (!player.is_dead()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] No estás muerto"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg(msgs_.cheat_not_dead);
     }
     player.resurrect();
     PlayerRespawnedEvent respawn_ev{player_id, player.get_hp_current(), player.get_hp_max()};
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Reviviste!"};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.cheat_revived};
     CommandResult r;
     r.private_events = {msg};
     r.map_events = {respawn_ev};
@@ -163,8 +162,7 @@ CommandResult CheatService::handle_cheat_level_up(uint16_t player_id) {
         return {};
     Player& player = it->second;
     if (player.get_level() >= balance_.max_level) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Ya estas en el nivel maximo"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg(msgs_.cheat_max_level);
     }
     player.level_up();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
@@ -180,8 +178,7 @@ CommandResult CheatService::handle_cheat_level_down(uint16_t player_id) {
         return {};
     Player& player = it->second;
     if (player.get_level() <= balance_.min_level) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Ya estas en el nivel minimo"};
-        return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+        return CommandResult::with_msg(msgs_.cheat_min_level);
     }
     player.level_down();
     ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
@@ -209,7 +206,7 @@ CommandResult CheatService::handle_cheat_reset_gold(uint16_t player_id) {
         return {};
     Player& player = it->second;
     player.spend_gold(player.get_gold());
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Oro reseteado a 0"};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.cheat_gold_reset};
     GoldUpdateEvent gold{player.get_gold()};
     return {.private_events = {msg, gold}, .broadcast_events = {}, .targeted_events = {}};
 }
@@ -220,7 +217,7 @@ CommandResult CheatService::handle_cheat_reset_mana(uint16_t player_id) {
         return {};
     Player& player = it->second;
     player.use_mana(player.get_mana_current());
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Mana reseteado a 0"};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.cheat_mana_reset};
     PlayerStatsEvent stats = make_player_stats_event(player);
     return {.private_events = {msg, stats}, .broadcast_events = {}, .targeted_events = {}};
 }
@@ -231,9 +228,7 @@ CommandResult CheatService::handle_cheat_velocity(uint16_t player_id) {
         return {};
     Player& player = it->second;
     bool active = player.toggle_cheat_fast_velocity();
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                     std::string("[Cheat] Velocidad: ") + (active ? "ON" : "OFF")};
-    return {.private_events = {msg}, .broadcast_events = {}, .targeted_events = {}};
+    return CommandResult::with_msg(active ? msgs_.cheat_velocity_on : msgs_.cheat_velocity_off);
 }
 
 CommandResult CheatService::handle_cheat_fill_inventory(uint16_t player_id) {
@@ -248,7 +243,7 @@ CommandResult CheatService::handle_cheat_fill_inventory(uint16_t player_id) {
     }
     std::vector<InventorySlot> slots = player.dump_inventory();
     InventoryUpdateEvent inv{.slots = std::move(slots)};
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Inventario lleno con todos los items!"};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.cheat_inventory_filled};
     player_data_service_.save_player(player);
     return {.private_events = {msg, inv}, .broadcast_events = {}, .targeted_events = {}};
 }
@@ -261,7 +256,7 @@ CommandResult CheatService::handle_cheat_clear_inventory(uint16_t player_id) {
     player.clear_inventory();
     std::vector<InventorySlot> slots = player.dump_inventory();
     InventoryUpdateEvent inv{.slots = std::move(slots)};
-    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "[Cheat] Inventario vaciado!"};
+    ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.cheat_inventory_cleared};
     player_data_service_.save_player(player);
     return {.private_events = {msg, inv}, .broadcast_events = {}, .targeted_events = {}};
 }

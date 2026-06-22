@@ -9,30 +9,14 @@ Protocol::Protocol(Socket& skt): skt(skt) {}
 
 void Protocol::send_uint8(uint8_t value) { skt.sendall(&value, sizeof(value)); }
 
-uint8_t Protocol::recv_uint8() {
-    uint8_t value;
-    int bytes = this->skt.recvall(&value, sizeof(value));
-
-    if (bytes <= 0)
-        throw std::runtime_error("Closed socket or error while receiving uint8_t");
-
-    return value;
-}
+uint8_t Protocol::recv_uint8() { return recv_raw<uint8_t>(); }
 
 void Protocol::send_uint16(uint16_t value) {
     uint16_t net_value = htons(value);  // Host to network
     this->skt.sendall(&net_value, sizeof(net_value));
 }
 
-uint16_t Protocol::recv_uint16() {
-    uint16_t net_value;
-    int bytes = this->skt.recvall(&net_value, sizeof(net_value));
-
-    if (bytes <= 0)
-        throw std::runtime_error("Closed socket or error while receiving uint16_t");
-
-    return ntohs(net_value);  // Network to host
-}
+uint16_t Protocol::recv_uint16() { return ntohs(recv_raw<uint16_t>()); }
 
 void Protocol::send_str(const std::string& message) {
     uint16_t len_str = static_cast<uint16_t>(message.length());
@@ -68,24 +52,8 @@ void Protocol::send_uint32(uint32_t value) {
     this->skt.sendall(&net_value, sizeof(net_value));
 }
 
-uint32_t Protocol::recv_uint32() {
-    uint32_t net_value;
-    int bytes = this->skt.recvall(&net_value, sizeof(net_value));
-
-    if (bytes <= 0)
-        throw std::runtime_error("Closed socket or error while receiving uint32_t");
-
-    return ntohl(net_value);  // Network to host
-}
+uint32_t Protocol::recv_uint32() { return ntohl(recv_raw<uint32_t>()); }
 
 void Protocol::send_bool(bool value) { this->skt.sendall(&value, sizeof(value)); }
 
-bool Protocol::recv_bool() {
-    bool value;
-    int bytes = this->skt.recvall(&value, sizeof(value));
-
-    if (bytes <= 0)
-        throw std::runtime_error("Closed socket or error while receiving bool");
-
-    return value;
-}
+bool Protocol::recv_bool() { return recv_raw<bool>(); }

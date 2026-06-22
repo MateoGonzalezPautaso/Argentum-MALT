@@ -17,7 +17,7 @@ class BankService {
 public:
     BankService(std::map<uint16_t, Player>& players,
                 const std::unordered_map<std::string, Map>& maps, const ItemCatalog& item_catalog,
-                const BalanceConfig& balance);
+                const BalanceConfig& balance, const MessagesConfig& msgs);
 
     CommandResult handle_bank_deposit(uint16_t player_id, const BankDepositCmd& cmd);
     CommandResult handle_bank_withdraw(uint16_t player_id, const BankWithdrawCmd& cmd);
@@ -28,6 +28,7 @@ private:
     const std::unordered_map<std::string, Map>& maps_;
     const ItemCatalog& item_catalog_;
     const BalanceConfig& balance_;
+    const MessagesConfig& msgs_;
 };
 
 #endif  // BANK_SERVICE_H

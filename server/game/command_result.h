@@ -19,6 +19,10 @@ struct CommandResult {
 
     // Absorbe todos los eventos de `other` en este resultado.
     // Solo mergea targeted_events y broadcast_events (los más usados en tick()).
+    static CommandResult with_msg(const std::string& text) {
+        return {.private_events = {ChatMsgEvent{ChatMsgType::SYSTEM, "", text}}};
+    }
+
     CommandResult& merge(CommandResult&& other) {
         for (auto& [pid, evs]: other.targeted_events) {
             auto& target = targeted_events[pid];

@@ -6,10 +6,12 @@
 #include "common/item.h"
 #include "gtest/gtest.h"
 #include "server/core/config.h"
+#include "server/game/clan_manager.h"
 #include "server/game/combat_controller.h"
 #include "server/game/game_formulas.h"
 #include "server/game/map.h"
 #include "server/game/player.h"
+#include "server/persistence/clan_persistence.h"
 
 class CombatControllerTest: public ::testing::Test {
 protected:
@@ -19,6 +21,11 @@ protected:
     NpcConfig npc_config;
     ItemCatalog item_catalog;
     BalanceConfig balance_config;
+    std::unordered_map<std::string, Map> maps;
+    ClanConfig clan_config;
+    ClanPersistence clan_persistence{"", ""};
+    ClanManager clan_manager{clan_persistence, clan_config};
+    MessagesConfig msgs_config;
     std::optional<CombatController> controller;
     std::unordered_map<std::string, Map> test_maps;
     std::unordered_map<std::string, TilemapConfig> stored_configs;
@@ -35,7 +42,8 @@ protected:
         npc_config.idle_move_max_ticks = 20;
 
         controller.emplace(config, players, item_catalog, enemy_npcs, NpcDropConfig{},
-                           NpcDropConfig{}, balance_config, npc_config);
+                           NpcDropConfig{}, balance_config, npc_config, clan_manager, maps,
+                           msgs_config);
     }
 
     Player& add_player(uint16_t id, const std::string& username, Position pos = {100, 100}) {
@@ -46,10 +54,10 @@ protected:
         bal.level_exp_exponent = 1.8;
         bal.gold_cap_base = 1000;
         bal.gold_cap_exponent = 1.0;
-        bal.agility.race_agility_factor_human = 0.0;
-        bal.agility.class_agility_factor_warrior = 0.0;
-        bal.strength.race_strength_factor_human = 0.0;
-        bal.strength.class_strength_factor_warrior = 0.0;
+        bal.race_stat(Race::HUMAN).agility_factor = 0.0;
+        bal.class_stat(PlayerClass::WARRIOR).agility_factor = 0.0;
+        bal.race_stat(Race::HUMAN).strength_factor = 0.0;
+        bal.class_stat(PlayerClass::WARRIOR).strength_factor = 0.0;
         players.emplace(id, Player(id, username, pos, Direction::SOUTH, Race::HUMAN,
                                    PlayerClass::WARRIOR, bal, 20, 10, 10, 40));
         return players.at(id);
@@ -317,7 +325,7 @@ TEST_F(CombatControllerTest, WeaponEquipped_DamageUsesStrength) {
     sword.max_damage = 5;
     item_catalog.add(sword);
     controller.emplace(config, players, item_catalog, enemy_npcs, NpcDropConfig{}, NpcDropConfig{},
-                       balance_config, npc_config);
+                       balance_config, npc_config, clan_manager, maps, msgs_config);
 
     auto& attacker = add_player(1, "alice");
     auto& target = add_player(2, "bob");

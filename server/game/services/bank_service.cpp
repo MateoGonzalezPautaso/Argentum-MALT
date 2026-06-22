@@ -1,12 +1,14 @@
 #include "bank_service.h"
 
+#include <format>
 #include <string>
 #include <unordered_map>
 
 BankService::BankService(std::map<uint16_t, Player>& players,
                          const std::unordered_map<std::string, Map>& maps,
-                         const ItemCatalog& item_catalog, const BalanceConfig& balance):
-        players_(players), maps_(maps), item_catalog_(item_catalog), balance_(balance) {}
+                         const ItemCatalog& item_catalog, const BalanceConfig& balance,
+                         const MessagesConfig& msgs):
+        players_(players), maps_(maps), item_catalog_(item_catalog), balance_(balance), msgs_(msgs) {}
 
 BankUpdateEvent BankService::make_bank_update_event(const Player& p) const {
     return BankUpdateEvent{p.dump_bank(), p.get_bank_gold()};
@@ -19,8 +21,7 @@ CommandResult BankService::handle_bank_deposit(uint16_t player_id, const BankDep
     Player& player = it->second;
 
     if (player.is_dead()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden depositar"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg(msgs_.ghost_cant_deposit);
     }
 
     auto map_it = maps_.find(player.get_current_map());
@@ -33,14 +34,12 @@ CommandResult BankService::handle_bank_deposit(uint16_t player_id, const BankDep
     const int py = static_cast<int>(player.pos_y());
 
     if (!map.prop_grid().is_in_range_of("banquero", px, py, range)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un banquero cerca"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg(msgs_.no_banker_nearby);
     }
 
     if (cmd.is_gold) {
         if (cmd.gold_amount == 0 || player.get_gold() < cmd.gold_amount) {
-            ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Oro insuficiente"};
-            return {.private_events = {msg}};
+            return CommandResult::with_msg(msgs_.insufficient_gold);
         }
         player.spend_gold(cmd.gold_amount);
         player.add_bank_gold(cmd.gold_amount);
@@ -53,20 +52,20 @@ CommandResult BankService::handle_bank_deposit(uint16_t player_id, const BankDep
 
     const Item* item_def = item_catalog_.find_by_name(cmd.item_name);
     if (!item_def) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Objeto '" + cmd.item_name + "' no encontrado"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg(
+                std::vformat(msgs_.item_not_found, std::make_format_args(cmd.item_name)));
     }
 
     auto slot_opt = player.find_slot_by_type(item_def->type);
     if (!slot_opt) {
         ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                         "No tenés '" + item_def->name + "' en el inventario"};
+                         std::vformat(msgs_.item_not_in_inventory,
+                                      std::make_format_args(item_def->name))};
         return {.private_events = {msg}};
     }
 
     if (!player.add_to_bank(item_def->type, item_def->name)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "El banco está lleno"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg(msgs_.bank_full);
     }
     player.remove_inventory_item(static_cast<uint8_t>(slot_opt->slot_index));
 
@@ -82,8 +81,7 @@ CommandResult BankService::handle_bank_withdraw(uint16_t player_id, const BankWi
     Player& player = it->second;
 
     if (player.is_dead()) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Los fantasmas no pueden retirar"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg(msgs_.ghost_cant_withdraw);
     }
 
     auto map_it = maps_.find(player.get_current_map());
@@ -96,14 +94,12 @@ CommandResult BankService::handle_bank_withdraw(uint16_t player_id, const BankWi
     const int py = static_cast<int>(player.pos_y());
 
     if (!map.prop_grid().is_in_range_of("banquero", px, py, range)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No hay un banquero cerca"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg(msgs_.no_banker_nearby);
     }
 
     if (cmd.is_gold) {
         if (cmd.gold_amount == 0 || !player.take_bank_gold(cmd.gold_amount)) {
-            ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No tenés suficiente oro en el banco"};
-            return {.private_events = {msg}};
+            return CommandResult::with_msg(msgs_.insufficient_bank_gold);
         }
         player.gain_gold(cmd.gold_amount);
 
@@ -115,19 +111,18 @@ CommandResult BankService::handle_bank_withdraw(uint16_t player_id, const BankWi
 
     const Item* item_def = item_catalog_.find_by_name(cmd.item_name);
     if (!item_def) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Objeto '" + cmd.item_name + "' no encontrado"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg(
+                std::vformat(msgs_.item_not_found, std::make_format_args(cmd.item_name)));
     }
 
     auto slot_opt = player.find_bank_slot_by_type(item_def->type);
     if (!slot_opt) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "No tenés '" + item_def->name + "' en el banco"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg(
+                std::vformat(msgs_.item_not_in_bank, std::make_format_args(item_def->name)));
     }
 
     if (!player.add_item(item_def->type, item_def->name)) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", "Inventario lleno"};
-        return {.private_events = {msg}};
+        return CommandResult::with_msg(msgs_.inventory_full);
     }
     player.remove_bank_item(static_cast<uint8_t>(slot_opt->slot_index));
 

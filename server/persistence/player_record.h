@@ -28,8 +28,6 @@ struct PlayerRecord {
     uint32_t mana_current;
     uint32_t mana_max;
     uint32_t gold;
-    uint32_t strength;
-    uint32_t agility;
     uint32_t bank_gold;
     char current_map[MAP_NAME_MAX];
 

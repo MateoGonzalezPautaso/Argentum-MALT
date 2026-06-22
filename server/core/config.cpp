@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include <array>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -7,6 +8,21 @@
 #include <toml++/toml.h>
 
 #include "../../common/config.h"
+
+namespace {
+constexpr std::array<std::pair<const char*, Race>, 4> kRaceNames = {{
+        {"human", Race::HUMAN},
+        {"elf", Race::ELF},
+        {"dwarf", Race::DWARF},
+        {"gnome", Race::GNOME},
+}};
+constexpr std::array<std::pair<const char*, PlayerClass>, 4> kClassNames = {{
+        {"mage", PlayerClass::MAGE},
+        {"cleric", PlayerClass::CLERIC},
+        {"paladin", PlayerClass::PALADIN},
+        {"warrior", PlayerClass::WARRIOR},
+}};
+}  // namespace
 
 std::vector<NpcTemplate> load_npc_templates(const std::string& path) {
     toml::table root = toml::parse_file(path);
@@ -174,6 +190,8 @@ ServerConfig load_server_config(const std::string& path) {
                              config.balance.default_resurrect_wait_seconds);
         config.balance.cheat_gold_amount =
                 toml_get_int(*balance, "cheat_gold_amount", config.balance.cheat_gold_amount);
+        config.balance.cheat_velocity_multiplier = toml_get_int(
+                *balance, "cheat_velocity_multiplier", config.balance.cheat_velocity_multiplier);
         config.balance.npc_fallback_base_hp = static_cast<uint32_t>(toml_get_int(
                 *balance, "npc_fallback_base_hp", config.balance.npc_fallback_base_hp));
         config.balance.npc_fallback_base_damage = static_cast<uint32_t>(toml_get_int(
@@ -202,136 +220,88 @@ ServerConfig load_server_config(const std::string& path) {
         }
     }
 
-    if (auto recovery = root["recovery_rates"].as_table()) {
-        config.balance.race_recovery.human =
-                toml_get_double(*recovery, "human", config.balance.race_recovery.human);
-        config.balance.race_recovery.elf =
-                toml_get_double(*recovery, "elf", config.balance.race_recovery.elf);
-        config.balance.race_recovery.dwarf =
-                toml_get_double(*recovery, "dwarf", config.balance.race_recovery.dwarf);
-        config.balance.race_recovery.gnome =
-                toml_get_double(*recovery, "gnome", config.balance.race_recovery.gnome);
+    if (auto tbl = root["recovery_rates"].as_table()) {
+        for (auto [name, race]: kRaceNames) {
+            auto& rs = config.balance.race_stat(race);
+            rs.recovery = toml_get_double(*tbl, name, rs.recovery);
+        }
     }
 
-    if (auto c = root["constitution"].as_table()) {
-        config.balance.hp.constitution_human =
-                toml_get_int(*c, "human", config.balance.hp.constitution_human);
-        config.balance.hp.constitution_elf =
-                toml_get_int(*c, "elf", config.balance.hp.constitution_elf);
-        config.balance.hp.constitution_dwarf =
-                toml_get_int(*c, "dwarf", config.balance.hp.constitution_dwarf);
-        config.balance.hp.constitution_gnome =
-                toml_get_int(*c, "gnome", config.balance.hp.constitution_gnome);
+    if (auto tbl = root["constitution"].as_table()) {
+        for (auto [name, race]: kRaceNames) {
+            auto& rs = config.balance.race_stat(race);
+            rs.constitution = toml_get_int(*tbl, name, rs.constitution);
+        }
     }
 
-    if (auto r = root["race_hp_factor"].as_table()) {
-        config.balance.hp.race_hp_factor_human =
-                toml_get_double(*r, "human", config.balance.hp.race_hp_factor_human);
-        config.balance.hp.race_hp_factor_elf =
-                toml_get_double(*r, "elf", config.balance.hp.race_hp_factor_elf);
-        config.balance.hp.race_hp_factor_dwarf =
-                toml_get_double(*r, "dwarf", config.balance.hp.race_hp_factor_dwarf);
-        config.balance.hp.race_hp_factor_gnome =
-                toml_get_double(*r, "gnome", config.balance.hp.race_hp_factor_gnome);
+    if (auto tbl = root["intelligence"].as_table()) {
+        for (auto [name, race]: kRaceNames) {
+            auto& rs = config.balance.race_stat(race);
+            rs.intelligence = toml_get_int(*tbl, name, rs.intelligence);
+        }
     }
 
-    if (auto cl = root["class_hp_factor"].as_table()) {
-        config.balance.hp.class_hp_factor_warrior =
-                toml_get_double(*cl, "warrior", config.balance.hp.class_hp_factor_warrior);
-        config.balance.hp.class_hp_factor_paladin =
-                toml_get_double(*cl, "paladin", config.balance.hp.class_hp_factor_paladin);
-        config.balance.hp.class_hp_factor_cleric =
-                toml_get_double(*cl, "cleric", config.balance.hp.class_hp_factor_cleric);
-        config.balance.hp.class_hp_factor_mage =
-                toml_get_double(*cl, "mage", config.balance.hp.class_hp_factor_mage);
+    if (auto tbl = root["race_hp_factor"].as_table()) {
+        for (auto [name, race]: kRaceNames) {
+            auto& rs = config.balance.race_stat(race);
+            rs.hp_factor = toml_get_double(*tbl, name, rs.hp_factor);
+        }
     }
 
-    if (auto i = root["intelligence"].as_table()) {
-        config.balance.mana.intelligence_human =
-                toml_get_int(*i, "human", config.balance.mana.intelligence_human);
-        config.balance.mana.intelligence_elf =
-                toml_get_int(*i, "elf", config.balance.mana.intelligence_elf);
-        config.balance.mana.intelligence_dwarf =
-                toml_get_int(*i, "dwarf", config.balance.mana.intelligence_dwarf);
-        config.balance.mana.intelligence_gnome =
-                toml_get_int(*i, "gnome", config.balance.mana.intelligence_gnome);
+    if (auto tbl = root["race_mana_factor"].as_table()) {
+        for (auto [name, race]: kRaceNames) {
+            auto& rs = config.balance.race_stat(race);
+            rs.mana_factor = toml_get_double(*tbl, name, rs.mana_factor);
+        }
     }
 
-    if (auto r = root["race_mana_factor"].as_table()) {
-        config.balance.mana.race_mana_factor_human =
-                toml_get_double(*r, "human", config.balance.mana.race_mana_factor_human);
-        config.balance.mana.race_mana_factor_elf =
-                toml_get_double(*r, "elf", config.balance.mana.race_mana_factor_elf);
-        config.balance.mana.race_mana_factor_dwarf =
-                toml_get_double(*r, "dwarf", config.balance.mana.race_mana_factor_dwarf);
-        config.balance.mana.race_mana_factor_gnome =
-                toml_get_double(*r, "gnome", config.balance.mana.race_mana_factor_gnome);
+    if (auto tbl = root["race_strength_factor"].as_table()) {
+        for (auto [name, race]: kRaceNames) {
+            auto& rs = config.balance.race_stat(race);
+            rs.strength_factor = toml_get_double(*tbl, name, rs.strength_factor);
+        }
     }
 
-    if (auto cl = root["class_mana_factor"].as_table()) {
-        config.balance.mana.class_mana_factor_warrior =
-                toml_get_double(*cl, "warrior", config.balance.mana.class_mana_factor_warrior);
-        config.balance.mana.class_mana_factor_paladin =
-                toml_get_double(*cl, "paladin", config.balance.mana.class_mana_factor_paladin);
-        config.balance.mana.class_mana_factor_cleric =
-                toml_get_double(*cl, "cleric", config.balance.mana.class_mana_factor_cleric);
-        config.balance.mana.class_mana_factor_mage =
-                toml_get_double(*cl, "mage", config.balance.mana.class_mana_factor_mage);
+    if (auto tbl = root["race_agility_factor"].as_table()) {
+        for (auto [name, race]: kRaceNames) {
+            auto& rs = config.balance.race_stat(race);
+            rs.agility_factor = toml_get_double(*tbl, name, rs.agility_factor);
+        }
     }
 
-    if (auto cl = root["class_meditation_factor"].as_table()) {
-        config.balance.mana.class_meditation_factor_warrior = toml_get_double(
-                *cl, "warrior", config.balance.mana.class_meditation_factor_warrior);
-        config.balance.mana.class_meditation_factor_paladin = toml_get_double(
-                *cl, "paladin", config.balance.mana.class_meditation_factor_paladin);
-        config.balance.mana.class_meditation_factor_cleric =
-                toml_get_double(*cl, "cleric", config.balance.mana.class_meditation_factor_cleric);
-        config.balance.mana.class_meditation_factor_mage =
-                toml_get_double(*cl, "mage", config.balance.mana.class_meditation_factor_mage);
+    if (auto tbl = root["class_hp_factor"].as_table()) {
+        for (auto [name, cls]: kClassNames) {
+            auto& cs = config.balance.class_stat(cls);
+            cs.hp_factor = toml_get_double(*tbl, name, cs.hp_factor);
+        }
     }
 
-    if (auto r = root["race_strength_factor"].as_table()) {
-        config.balance.strength.race_strength_factor_human =
-                toml_get_double(*r, "human", config.balance.strength.race_strength_factor_human);
-        config.balance.strength.race_strength_factor_elf =
-                toml_get_double(*r, "elf", config.balance.strength.race_strength_factor_elf);
-        config.balance.strength.race_strength_factor_dwarf =
-                toml_get_double(*r, "dwarf", config.balance.strength.race_strength_factor_dwarf);
-        config.balance.strength.race_strength_factor_gnome =
-                toml_get_double(*r, "gnome", config.balance.strength.race_strength_factor_gnome);
+    if (auto tbl = root["class_mana_factor"].as_table()) {
+        for (auto [name, cls]: kClassNames) {
+            auto& cs = config.balance.class_stat(cls);
+            cs.mana_factor = toml_get_double(*tbl, name, cs.mana_factor);
+        }
     }
 
-    if (auto cs = root["class_strength_factor"].as_table()) {
-        config.balance.strength.class_strength_factor_warrior = toml_get_double(
-                *cs, "warrior", config.balance.strength.class_strength_factor_warrior);
-        config.balance.strength.class_strength_factor_paladin = toml_get_double(
-                *cs, "paladin", config.balance.strength.class_strength_factor_paladin);
-        config.balance.strength.class_strength_factor_cleric = toml_get_double(
-                *cs, "cleric", config.balance.strength.class_strength_factor_cleric);
-        config.balance.strength.class_strength_factor_mage =
-                toml_get_double(*cs, "mage", config.balance.strength.class_strength_factor_mage);
+    if (auto tbl = root["class_strength_factor"].as_table()) {
+        for (auto [name, cls]: kClassNames) {
+            auto& cs = config.balance.class_stat(cls);
+            cs.strength_factor = toml_get_double(*tbl, name, cs.strength_factor);
+        }
     }
 
-    if (auto r = root["race_agility_factor"].as_table()) {
-        config.balance.agility.race_agility_factor_human =
-                toml_get_double(*r, "human", config.balance.agility.race_agility_factor_human);
-        config.balance.agility.race_agility_factor_elf =
-                toml_get_double(*r, "elf", config.balance.agility.race_agility_factor_elf);
-        config.balance.agility.race_agility_factor_dwarf =
-                toml_get_double(*r, "dwarf", config.balance.agility.race_agility_factor_dwarf);
-        config.balance.agility.race_agility_factor_gnome =
-                toml_get_double(*r, "gnome", config.balance.agility.race_agility_factor_gnome);
+    if (auto tbl = root["class_agility_factor"].as_table()) {
+        for (auto [name, cls]: kClassNames) {
+            auto& cs = config.balance.class_stat(cls);
+            cs.agility_factor = toml_get_double(*tbl, name, cs.agility_factor);
+        }
     }
 
-    if (auto ca = root["class_agility_factor"].as_table()) {
-        config.balance.agility.class_agility_factor_warrior = toml_get_double(
-                *ca, "warrior", config.balance.agility.class_agility_factor_warrior);
-        config.balance.agility.class_agility_factor_paladin = toml_get_double(
-                *ca, "paladin", config.balance.agility.class_agility_factor_paladin);
-        config.balance.agility.class_agility_factor_cleric =
-                toml_get_double(*ca, "cleric", config.balance.agility.class_agility_factor_cleric);
-        config.balance.agility.class_agility_factor_mage =
-                toml_get_double(*ca, "mage", config.balance.agility.class_agility_factor_mage);
+    if (auto tbl = root["class_meditation_factor"].as_table()) {
+        for (auto [name, cls]: kClassNames) {
+            auto& cs = config.balance.class_stat(cls);
+            cs.meditation_factor = toml_get_double(*tbl, name, cs.meditation_factor);
+        }
     }
 
     if (auto si = root["starting_items"].as_table()) {
@@ -399,6 +369,165 @@ ServerConfig load_server_config(const std::string& path) {
                 toml_get_int(*npc, "idle_move_min_ticks", config.npc.idle_move_min_ticks));
         config.npc.idle_move_max_ticks = static_cast<uint32_t>(
                 toml_get_int(*npc, "idle_move_max_ticks", config.npc.idle_move_max_ticks));
+    }
+
+    if (auto msgs = root["messages"].as_table()) {
+        config.messages.attack_newbie_attacker = toml_get_string(
+                *msgs, "attack_newbie_attacker", config.messages.attack_newbie_attacker);
+        config.messages.attack_newbie_target = toml_get_string(
+                *msgs, "attack_newbie_target", config.messages.attack_newbie_target);
+        config.messages.attack_level_diff =
+                toml_get_string(*msgs, "attack_level_diff", config.messages.attack_level_diff);
+        config.messages.attack_same_clan =
+                toml_get_string(*msgs, "attack_same_clan", config.messages.attack_same_clan);
+        config.messages.attack_safe_zone =
+                toml_get_string(*msgs, "attack_safe_zone", config.messages.attack_safe_zone);
+        config.messages.attack_self =
+                toml_get_string(*msgs, "attack_self", config.messages.attack_self);
+        config.messages.warrior_no_magic =
+                toml_get_string(*msgs, "warrior_no_magic", config.messages.warrior_no_magic);
+        config.messages.no_weapon_equipped =
+                toml_get_string(*msgs, "no_weapon_equipped", config.messages.no_weapon_equipped);
+        config.messages.weapon_not_magic =
+                toml_get_string(*msgs, "weapon_not_magic", config.messages.weapon_not_magic);
+        config.messages.insufficient_mana =
+                toml_get_string(*msgs, "insufficient_mana", config.messages.insufficient_mana);
+        config.messages.spell_safe_zone =
+                toml_get_string(*msgs, "spell_safe_zone", config.messages.spell_safe_zone);
+        config.messages.ghost_cant_interact =
+                toml_get_string(*msgs, "ghost_cant_interact", config.messages.ghost_cant_interact);
+        config.messages.ghost_cant_pickup =
+                toml_get_string(*msgs, "ghost_cant_pickup", config.messages.ghost_cant_pickup);
+        config.messages.ghost_cant_drop =
+                toml_get_string(*msgs, "ghost_cant_drop", config.messages.ghost_cant_drop);
+        config.messages.ghost_cant_deposit =
+                toml_get_string(*msgs, "ghost_cant_deposit", config.messages.ghost_cant_deposit);
+        config.messages.ghost_cant_withdraw =
+                toml_get_string(*msgs, "ghost_cant_withdraw", config.messages.ghost_cant_withdraw);
+        config.messages.ghost_cant_be_healed = toml_get_string(
+                *msgs, "ghost_cant_be_healed", config.messages.ghost_cant_be_healed);
+        config.messages.ghost_cant_list =
+                toml_get_string(*msgs, "ghost_cant_list", config.messages.ghost_cant_list);
+        config.messages.inventory_full =
+                toml_get_string(*msgs, "inventory_full", config.messages.inventory_full);
+        config.messages.no_banker_nearby =
+                toml_get_string(*msgs, "no_banker_nearby", config.messages.no_banker_nearby);
+        config.messages.insufficient_gold =
+                toml_get_string(*msgs, "insufficient_gold", config.messages.insufficient_gold);
+        config.messages.bank_full = toml_get_string(*msgs, "bank_full", config.messages.bank_full);
+        config.messages.insufficient_bank_gold = toml_get_string(
+                *msgs, "insufficient_bank_gold", config.messages.insufficient_bank_gold);
+        config.messages.nothing_to_pickup =
+                toml_get_string(*msgs, "nothing_to_pickup", config.messages.nothing_to_pickup);
+        config.messages.no_merchant_priest_banker = toml_get_string(
+                *msgs, "no_merchant_priest_banker", config.messages.no_merchant_priest_banker);
+        config.messages.no_merchant_priest =
+                toml_get_string(*msgs, "no_merchant_priest", config.messages.no_merchant_priest);
+        config.messages.no_merchant_nearby =
+                toml_get_string(*msgs, "no_merchant_nearby", config.messages.no_merchant_nearby);
+        config.messages.merchant_doesnt_buy =
+                toml_get_string(*msgs, "merchant_doesnt_buy", config.messages.merchant_doesnt_buy);
+        config.messages.no_priest_nearby =
+                toml_get_string(*msgs, "no_priest_nearby", config.messages.no_priest_nearby);
+        config.messages.warrior_cant_meditate = toml_get_string(
+                *msgs, "warrior_cant_meditate", config.messages.warrior_cant_meditate);
+        config.messages.not_dead = toml_get_string(*msgs, "not_dead", config.messages.not_dead);
+        config.messages.already_resurrecting = toml_get_string(
+                *msgs, "already_resurrecting", config.messages.already_resurrecting);
+        config.messages.priest_resurrect =
+                toml_get_string(*msgs, "priest_resurrect", config.messages.priest_resurrect);
+        config.messages.priest_heal =
+                toml_get_string(*msgs, "priest_heal", config.messages.priest_heal);
+        config.messages.self_heal_success =
+                toml_get_string(*msgs, "self_heal_success", config.messages.self_heal_success);
+        config.messages.not_in_clan =
+                toml_get_string(*msgs, "not_in_clan", config.messages.not_in_clan);
+        config.messages.only_founder_review =
+                toml_get_string(*msgs, "only_founder_review", config.messages.only_founder_review);
+        config.messages.no_pending_requests =
+                toml_get_string(*msgs, "no_pending_requests", config.messages.no_pending_requests);
+        config.messages.usage_found_clan =
+                toml_get_string(*msgs, "usage_found_clan", config.messages.usage_found_clan);
+        config.messages.usage_join_clan =
+                toml_get_string(*msgs, "usage_join_clan", config.messages.usage_join_clan);
+        config.messages.usage_clan_accept =
+                toml_get_string(*msgs, "usage_clan_accept", config.messages.usage_clan_accept);
+        config.messages.usage_clan_reject =
+                toml_get_string(*msgs, "usage_clan_reject", config.messages.usage_clan_reject);
+        config.messages.usage_clan_ban =
+                toml_get_string(*msgs, "usage_clan_ban", config.messages.usage_clan_ban);
+        config.messages.usage_clan_kick =
+                toml_get_string(*msgs, "usage_clan_kick", config.messages.usage_clan_kick);
+        config.messages.usage_clan_unban =
+                toml_get_string(*msgs, "usage_clan_unban", config.messages.usage_clan_unban);
+        config.messages.usage_clan_chat =
+                toml_get_string(*msgs, "usage_clan_chat", config.messages.usage_clan_chat);
+        config.messages.cheat_inf_hp_on =
+                toml_get_string(*msgs, "cheat_inf_hp_on", config.messages.cheat_inf_hp_on);
+        config.messages.cheat_inf_hp_off =
+                toml_get_string(*msgs, "cheat_inf_hp_off", config.messages.cheat_inf_hp_off);
+        config.messages.cheat_inf_mana_on =
+                toml_get_string(*msgs, "cheat_inf_mana_on", config.messages.cheat_inf_mana_on);
+        config.messages.cheat_inf_mana_off =
+                toml_get_string(*msgs, "cheat_inf_mana_off", config.messages.cheat_inf_mana_off);
+        config.messages.cheat_died =
+                toml_get_string(*msgs, "cheat_died", config.messages.cheat_died);
+        config.messages.cheat_not_dead =
+                toml_get_string(*msgs, "cheat_not_dead", config.messages.cheat_not_dead);
+        config.messages.cheat_revived =
+                toml_get_string(*msgs, "cheat_revived", config.messages.cheat_revived);
+        config.messages.cheat_max_level =
+                toml_get_string(*msgs, "cheat_max_level", config.messages.cheat_max_level);
+        config.messages.cheat_min_level =
+                toml_get_string(*msgs, "cheat_min_level", config.messages.cheat_min_level);
+        config.messages.cheat_gold_reset =
+                toml_get_string(*msgs, "cheat_gold_reset", config.messages.cheat_gold_reset);
+        config.messages.cheat_mana_reset =
+                toml_get_string(*msgs, "cheat_mana_reset", config.messages.cheat_mana_reset);
+        config.messages.cheat_velocity_on =
+                toml_get_string(*msgs, "cheat_velocity_on", config.messages.cheat_velocity_on);
+        config.messages.cheat_velocity_off =
+                toml_get_string(*msgs, "cheat_velocity_off", config.messages.cheat_velocity_off);
+        config.messages.cheat_inventory_filled = toml_get_string(
+                *msgs, "cheat_inventory_filled", config.messages.cheat_inventory_filled);
+        config.messages.cheat_inventory_cleared = toml_get_string(
+                *msgs, "cheat_inventory_cleared", config.messages.cheat_inventory_cleared);
+        config.messages.item_not_found =
+                toml_get_string(*msgs, "item_not_found", config.messages.item_not_found);
+        config.messages.item_not_in_bank =
+                toml_get_string(*msgs, "item_not_in_bank", config.messages.item_not_in_bank);
+        config.messages.item_not_in_inventory = toml_get_string(
+                *msgs, "item_not_in_inventory", config.messages.item_not_in_inventory);
+        config.messages.item_not_on_ground =
+                toml_get_string(*msgs, "item_not_on_ground", config.messages.item_not_on_ground);
+        config.messages.vendor_doesnt_sell =
+                toml_get_string(*msgs, "vendor_doesnt_sell", config.messages.vendor_doesnt_sell);
+        config.messages.insufficient_gold_item = toml_get_string(
+                *msgs, "insufficient_gold_item", config.messages.insufficient_gold_item);
+        config.messages.ghost_cant_action =
+                toml_get_string(*msgs, "ghost_cant_action", config.messages.ghost_cant_action);
+        config.messages.usage_action_item =
+                toml_get_string(*msgs, "usage_action_item", config.messages.usage_action_item);
+        config.messages.npc_drop_inventory_full = toml_get_string(
+                *msgs, "npc_drop_inventory_full", config.messages.npc_drop_inventory_full);
+        config.messages.gold_stolen_from =
+                toml_get_string(*msgs, "gold_stolen_from", config.messages.gold_stolen_from);
+        config.messages.gold_stolen_by =
+                toml_get_string(*msgs, "gold_stolen_by", config.messages.gold_stolen_by);
+        config.messages.gold_lost_on_death =
+                toml_get_string(*msgs, "gold_lost_on_death", config.messages.gold_lost_on_death);
+        config.messages.npc_attacked_player =
+                toml_get_string(*msgs, "npc_attacked_player", config.messages.npc_attacked_player);
+        config.messages.player_killed =
+                toml_get_string(*msgs, "player_killed", config.messages.player_killed);
+        config.messages.player_not_found =
+                toml_get_string(*msgs, "player_not_found", config.messages.player_not_found);
+        config.messages.command_not_recognized = toml_get_string(
+                *msgs, "command_not_recognized", config.messages.command_not_recognized);
+        config.messages.resurrect_countdown =
+                toml_get_string(*msgs, "resurrect_countdown", config.messages.resurrect_countdown);
+        config.messages.clan_level_required =
+                toml_get_string(*msgs, "clan_level_required", config.messages.clan_level_required);
     }
 
     return config;
