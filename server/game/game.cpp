@@ -509,7 +509,7 @@ CommandResult Game::handle_cast_spell(uint16_t player_id, const CastSpellCmd& cm
     player.set_meditating(false);
 
     if (weapon_slot.item_type == ItemType::ELVEN_FLUTE) {
-        uint32_t heal_amount = player.get_hp_max() / 2;
+        uint32_t heal_amount = GameFormulas::spell_self_heal(player.get_hp_max());
         player.heal(heal_amount);
         HealReceivedEvent heal_ev{player_id, player.get_hp_current(), player.get_mana_current()};
         PlayerStatsEvent stats = make_player_stats_event(player);
@@ -1150,31 +1150,9 @@ bool Game::is_username_logged_in(const std::string& username) const {
 
 std::tuple<uint16_t, uint16_t, uint16_t, uint16_t> Game::compute_combat_ranges(
         const Player& p) const {
-    uint16_t dmg_min = 0, dmg_max = 0, def_min = 0, def_max = 0;
-
-    const InventorySlot& weapon = p.get_equipped(EquipSlot::WEAPON);
-    if (weapon.item_type != ItemType::NONE) {
-        const Item* w = item_catalog.find(weapon.item_type);
-        if (w && w->max_damage > 0) {
-            dmg_min = static_cast<uint16_t>(p.get_strength() * w->min_damage);
-            dmg_max = static_cast<uint16_t>(p.get_strength() * w->max_damage);
-        }
-    } else {
-        auto [unarmed_min, unarmed_max] = combat_controller.unarmed_damage_range();
-        dmg_min = unarmed_min;
-        dmg_max = unarmed_max;
-    }
-
-    for (EquipSlot slot: {EquipSlot::ARMOR, EquipSlot::HELMET, EquipSlot::SHIELD}) {
-        const InventorySlot& s = p.get_equipped(slot);
-        if (s.item_type != ItemType::NONE) {
-            const Item* item = item_catalog.find(s.item_type);
-            if (item) {
-                def_min += static_cast<uint16_t>(item->min_defense);
-                def_max += static_cast<uint16_t>(item->max_defense);
-            }
-        }
-    }
+    auto [dmg_min, dmg_max] = GameFormulas::display_damage_range(
+            p, item_catalog, combat_controller.get_attack_config());
+    auto [def_min, def_max] = GameFormulas::display_defense_range(p, item_catalog);
     return {dmg_min, dmg_max, def_min, def_max};
 }
 

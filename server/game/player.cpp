@@ -118,7 +118,7 @@ void Player::heal(uint32_t amount) {
 void Player::gain_gold(uint32_t amount) {
     uint64_t max_gold = GameFormulas::gold_cap(balance, get_level());
     // Players can hold up to (1 + gold_excess_ratio) * OroMax; the excess is "at risk" on death
-    uint64_t hard_cap = max_gold + static_cast<uint64_t>(max_gold * balance.gold_excess_ratio);
+    uint64_t hard_cap = GameFormulas::gold_hard_cap(max_gold, balance.gold_excess_ratio);
     uint64_t total = static_cast<uint64_t>(gold) + amount;
     gold = static_cast<uint32_t>(std::min<uint64_t>(total, hard_cap));
 }
@@ -208,11 +208,9 @@ bool Player::equip(uint8_t inv_slot_index, const ItemCatalog& catalog) {
         if (def->restore_hp_percent == 0 && def->restore_mana_percent == 0)
             return false;  // consumable with no defined effect
         if (def->restore_hp_percent > 0)
-            heal(static_cast<uint32_t>(static_cast<uint64_t>(get_hp_max()) *
-                                       def->restore_hp_percent / 100));
+            heal(GameFormulas::potion_restore(get_hp_max(), def->restore_hp_percent));
         if (def->restore_mana_percent > 0)
-            restore_mana(static_cast<uint32_t>(static_cast<uint64_t>(get_mana_max()) *
-                                               def->restore_mana_percent / 100));
+            restore_mana(GameFormulas::potion_restore(get_mana_max(), def->restore_mana_percent));
         inv.clear(inv_slot_index);
         return true;
     }

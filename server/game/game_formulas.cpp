@@ -215,6 +215,58 @@ uint32_t GameFormulas::attack_experience(uint32_t damage, uint8_t attacker_level
     return damage * static_cast<uint32_t>(std::max(level_factor, 0));
 }
 
+uint32_t GameFormulas::spell_self_heal(uint32_t hp_max) {
+    return hp_max / 2;
+}
+
+uint64_t GameFormulas::gold_hard_cap(uint64_t max_gold, double gold_excess_ratio) {
+    return max_gold + static_cast<uint64_t>(max_gold * gold_excess_ratio);
+}
+
+uint32_t GameFormulas::potion_restore(uint32_t stat_max, uint8_t restore_percent) {
+    return static_cast<uint32_t>(static_cast<uint64_t>(stat_max) * restore_percent / 100);
+}
+
+std::pair<uint16_t, uint16_t> GameFormulas::unarmed_damage_range(const AttackConfig& config) {
+    return {static_cast<uint16_t>(config.base_damage),
+            static_cast<uint16_t>(config.base_damage + config.damage_variance)};
+}
+
+std::pair<uint16_t, uint16_t> GameFormulas::display_damage_range(const Player& player,
+                                                                   const ItemCatalog& catalog,
+                                                                   const AttackConfig& config) {
+    uint16_t dmg_min = 0, dmg_max = 0;
+    const InventorySlot& weapon = player.get_equipped(EquipSlot::WEAPON);
+    if (weapon.item_type != ItemType::NONE) {
+        const Item* w = catalog.find(weapon.item_type);
+        if (w && w->max_damage > 0) {
+            dmg_min = static_cast<uint16_t>(player.get_strength() * w->min_damage);
+            dmg_max = static_cast<uint16_t>(player.get_strength() * w->max_damage);
+        }
+    } else {
+        auto [unarmed_min, unarmed_max] = unarmed_damage_range(config);
+        dmg_min = unarmed_min;
+        dmg_max = unarmed_max;
+    }
+    return {dmg_min, dmg_max};
+}
+
+std::pair<uint16_t, uint16_t> GameFormulas::display_defense_range(const Player& player,
+                                                                    const ItemCatalog& catalog) {
+    uint16_t def_min = 0, def_max = 0;
+    for (EquipSlot slot : {EquipSlot::ARMOR, EquipSlot::HELMET, EquipSlot::SHIELD}) {
+        const InventorySlot& s = player.get_equipped(slot);
+        if (s.item_type != ItemType::NONE) {
+            const Item* item = catalog.find(s.item_type);
+            if (item) {
+                def_min += static_cast<uint16_t>(item->min_defense);
+                def_max += static_cast<uint16_t>(item->max_defense);
+            }
+        }
+    }
+    return {def_min, def_max};
+}
+
 double GameFormulas::hp_regen_per_second(const BalanceConfig& balance, Race race) {
     return recovery_rate(balance, race);
 }

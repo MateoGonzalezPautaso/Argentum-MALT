@@ -1,6 +1,5 @@
 #include "combat_controller.h"
 
-#include <algorithm>
 #include <cmath>
 #include <utility>
 #include <vector>
@@ -544,8 +543,7 @@ uint8_t CombatController::crit_chance_for(const Player& p) const {
 }
 
 std::pair<uint16_t, uint16_t> CombatController::unarmed_damage_range() const {
-    return {static_cast<uint16_t>(config.base_damage),
-            static_cast<uint16_t>(config.base_damage + config.damage_variance)};
+    return GameFormulas::unarmed_damage_range(config);
 }
 
 uint8_t CombatController::dodge_chance_for(const Player& p) const {
@@ -562,29 +560,8 @@ void CombatController::fill_player_stats_event(PlayerStatsEvent& ev, const Playe
     ev.mana_max = p.get_mana_max();
     ev.crit_chance = crit_chance_for(p);
 
-    uint16_t dmg_min = 0, dmg_max = 0, def_min = 0, def_max = 0;
-    const InventorySlot& weapon = p.get_equipped(EquipSlot::WEAPON);
-    if (weapon.item_type != ItemType::NONE) {
-        const Item* w = item_catalog_.find(weapon.item_type);
-        if (w && w->max_damage > 0) {
-            dmg_min = static_cast<uint16_t>(p.get_strength() * w->min_damage);
-            dmg_max = static_cast<uint16_t>(p.get_strength() * w->max_damage);
-        }
-    } else {
-        auto [unarmed_min, unarmed_max] = unarmed_damage_range();
-        dmg_min = unarmed_min;
-        dmg_max = unarmed_max;
-    }
-    for (EquipSlot slot: {EquipSlot::ARMOR, EquipSlot::HELMET, EquipSlot::SHIELD}) {
-        const InventorySlot& s = p.get_equipped(slot);
-        if (s.item_type != ItemType::NONE) {
-            const Item* item = item_catalog_.find(s.item_type);
-            if (item) {
-                def_min += static_cast<uint16_t>(item->min_defense);
-                def_max += static_cast<uint16_t>(item->max_defense);
-            }
-        }
-    }
+    auto [dmg_min, dmg_max] = GameFormulas::display_damage_range(p, item_catalog_, config);
+    auto [def_min, def_max] = GameFormulas::display_defense_range(p, item_catalog_);
     ev.damage_min = dmg_min;
     ev.damage_max = dmg_max;
     ev.defense_min = def_min;

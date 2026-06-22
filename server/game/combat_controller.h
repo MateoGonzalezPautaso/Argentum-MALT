@@ -37,6 +37,7 @@ public:
     uint8_t crit_chance_for(const Player& p) const;
     uint8_t dodge_chance_for(const Player& p) const;
     std::pair<uint16_t, uint16_t> unarmed_damage_range() const;
+    const AttackConfig& get_attack_config() const { return config; }
 
     void fill_player_stats_event(PlayerStatsEvent& ev, const Player& p) const;
 
