@@ -38,9 +38,6 @@ public:
     // Stops and joins all clients (used on server shutdown).
     void stop_all();
 
-    // Returns true when no clients are registered.
-    bool is_empty();
-
     ClientListMonitor(const ClientListMonitor&) = delete;
     ClientListMonitor& operator=(const ClientListMonitor&) = delete;
 };
