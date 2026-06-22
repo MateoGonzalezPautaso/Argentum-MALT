@@ -26,9 +26,13 @@ PlayerRecord::PlayerRecord() {
     std::memset(equipped_name, 0, sizeof(equipped_name));
 }
 
+void PlayerRecord::set_fixed_string(char* dst, std::size_t cap, const std::string& src) {
+    std::strncpy(dst, src.c_str(), cap - 1);
+    dst[cap - 1] = '\0';
+}
+
 void PlayerRecord::set_current_map(const std::string& name) {
-    std::strncpy(current_map, name.c_str(), MAP_NAME_MAX - 1);
-    current_map[MAP_NAME_MAX - 1] = '\0';
+    set_fixed_string(current_map, MAP_NAME_MAX, name);
 }
 
 std::string PlayerRecord::get_current_map() const {
@@ -38,8 +42,7 @@ std::string PlayerRecord::get_current_map() const {
 }
 
 void PlayerRecord::set_username(const std::string& name) {
-    std::strncpy(username, name.c_str(), USERNAME_MAX - 1);
-    username[USERNAME_MAX - 1] = '\0';
+    set_fixed_string(username, USERNAME_MAX, name);
 }
 
 std::string PlayerRecord::get_username() const {
@@ -47,8 +50,7 @@ std::string PlayerRecord::get_username() const {
 }
 
 void PlayerRecord::set_password(const std::string& pw) {
-    std::strncpy(password, pw.c_str(), PASSWORD_MAX - 1);
-    password[PASSWORD_MAX - 1] = '\0';
+    set_fixed_string(password, PASSWORD_MAX, pw);
 }
 
 bool PlayerRecord::check_password(const std::string& pw) const {

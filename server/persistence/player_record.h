@@ -42,6 +42,8 @@ struct PlayerRecord {
     bool check_password(const std::string& pw) const;
     void set_current_map(const std::string& name);
     std::string get_current_map() const;
+
+    void set_fixed_string(char* dst, std::size_t cap, const std::string& src);
 };
 
 void write_player_record(std::ostream& os, const PlayerRecord& rec);

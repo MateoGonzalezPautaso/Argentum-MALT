@@ -89,9 +89,8 @@ void PlayerDataService::save_player(const Player& player) {
     player.dump_equipped(equipped);
     for (uint8_t i = 0; i < EQUIP_SLOT_COUNT; ++i) {
         rec.equipped_type[i] = static_cast<uint8_t>(equipped[i].item_type);
-        std::memset(rec.equipped_name[i], 0, PlayerRecord::EQUIPPED_NAME_MAX);
-        std::strncpy(rec.equipped_name[i], equipped[i].item_name.c_str(),
-                     PlayerRecord::EQUIPPED_NAME_MAX - 1);
+        rec.set_fixed_string(rec.equipped_name[i], PlayerRecord::EQUIPPED_NAME_MAX,
+                             equipped[i].item_name);
     }
 
     player_persistence.save(player.get_name(), rec);
