@@ -2,6 +2,7 @@
 #define PROTOCOL_H
 
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 
 #include "socket.h"
@@ -105,6 +106,15 @@ public:
     bool recv_bool();
 
 private:
+    template <typename T>
+    T recv_raw() {
+        T value;
+        int bytes = skt.recvall(&value, sizeof(value));
+        if (bytes <= 0)
+            throw std::runtime_error("Connection closed");
+        return value;
+    }
+
     Socket& skt;
 };
 
