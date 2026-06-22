@@ -1,6 +1,7 @@
 #include "cheat_service.h"
 
 #include <algorithm>
+#include <map>
 #include <string>
 #include <utility>
 #include <vector>
@@ -19,78 +20,29 @@ CheatService::CheatService(std::map<uint16_t, Player>& players, const BalanceCon
         combat_controller_(combat_controller),
         help_lines_(help_lines),
         cheats_enabled_(cheats_enabled),
-        msgs_(msgs) {}
+        msgs_(msgs),
+        handlers_({
+                {CheatType::INFINITE_HP,     &CheatService::handle_cheat_infinite_hp},
+                {CheatType::INFINITE_MANA,   &CheatService::handle_cheat_infinite_mana},
+                {CheatType::DIE,             &CheatService::handle_cheat_die},
+                {CheatType::LEVEL_UP,        &CheatService::handle_cheat_level_up},
+                {CheatType::LEVEL_DOWN,      &CheatService::handle_cheat_level_down},
+                {CheatType::ADD_GOLD,        &CheatService::handle_cheat_add_gold},
+                {CheatType::RESET_GOLD,      &CheatService::handle_cheat_reset_gold},
+                {CheatType::VELOCITY,        &CheatService::handle_cheat_velocity},
+                {CheatType::REVIVE,          &CheatService::handle_cheat_revive},
+                {CheatType::FILL_INVENTORY,  &CheatService::handle_cheat_fill_inventory},
+                {CheatType::CLEAR_INVENTORY, &CheatService::handle_cheat_clear_inventory},
+                {CheatType::RESET_MANA,      &CheatService::handle_cheat_reset_mana},
+        }) {}
 
-CommandResult CheatService::dispatch_cheat_infinite_hp(uint16_t player_id) {
+CommandResult CheatService::dispatch(CheatType cheat_type, uint16_t player_id) {
     if (!cheats_enabled_)
         return {};
-    return handle_cheat_infinite_hp(player_id);
-}
-
-CommandResult CheatService::dispatch_cheat_infinite_mana(uint16_t player_id) {
-    if (!cheats_enabled_)
+    auto it = handlers_.find(cheat_type);
+    if (it == handlers_.end())
         return {};
-    return handle_cheat_infinite_mana(player_id);
-}
-
-CommandResult CheatService::dispatch_cheat_die(uint16_t player_id) {
-    if (!cheats_enabled_)
-        return {};
-    return handle_cheat_die(player_id);
-}
-
-CommandResult CheatService::dispatch_cheat_level_up(uint16_t player_id) {
-    if (!cheats_enabled_)
-        return {};
-    return handle_cheat_level_up(player_id);
-}
-
-CommandResult CheatService::dispatch_cheat_level_down(uint16_t player_id) {
-    if (!cheats_enabled_)
-        return {};
-    return handle_cheat_level_down(player_id);
-}
-
-CommandResult CheatService::dispatch_cheat_add_gold(uint16_t player_id) {
-    if (!cheats_enabled_)
-        return {};
-    return handle_cheat_add_gold(player_id);
-}
-
-CommandResult CheatService::dispatch_cheat_reset_gold(uint16_t player_id) {
-    if (!cheats_enabled_)
-        return {};
-    return handle_cheat_reset_gold(player_id);
-}
-
-CommandResult CheatService::dispatch_cheat_velocity(uint16_t player_id) {
-    if (!cheats_enabled_)
-        return {};
-    return handle_cheat_velocity(player_id);
-}
-
-CommandResult CheatService::dispatch_cheat_revive(uint16_t player_id) {
-    if (!cheats_enabled_)
-        return {};
-    return handle_cheat_revive(player_id);
-}
-
-CommandResult CheatService::dispatch_cheat_fill_inventory(uint16_t player_id) {
-    if (!cheats_enabled_)
-        return {};
-    return handle_cheat_fill_inventory(player_id);
-}
-
-CommandResult CheatService::dispatch_cheat_clear_inventory(uint16_t player_id) {
-    if (!cheats_enabled_)
-        return {};
-    return handle_cheat_clear_inventory(player_id);
-}
-
-CommandResult CheatService::dispatch_cheat_reset_mana(uint16_t player_id) {
-    if (!cheats_enabled_)
-        return {};
-    return handle_cheat_reset_mana(player_id);
+    return (this->*it->second)(player_id);
 }
 
 PlayerStatsEvent CheatService::make_player_stats_event(const Player& p) const {

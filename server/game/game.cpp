@@ -8,6 +8,7 @@
 #include <variant>
 #include <vector>
 
+
 #include "../../common/error_logger.h"
 #include "../../common/visit.h"
 
@@ -136,38 +137,40 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const MeditateCmd&) { return handle_meditate(player_id); },
                     [&](const ResurrectCmd&) { return resurrection_service_.handle_resurrect(player_id); },
                     [&](const CheatInfiniteHpCmd&) {
-                        return cheat_service.dispatch_cheat_infinite_hp(player_id);
+                        return cheat_service.dispatch(CheatType::INFINITE_HP, player_id);
                     },
                     [&](const CheatInfiniteManaCmd&) {
-                        return cheat_service.dispatch_cheat_infinite_mana(player_id);
+                        return cheat_service.dispatch(CheatType::INFINITE_MANA, player_id);
                     },
-                    [&](const CheatDieCmd&) { return cheat_service.dispatch_cheat_die(player_id); },
+                    [&](const CheatDieCmd&) {
+                        return cheat_service.dispatch(CheatType::DIE, player_id);
+                    },
                     [&](const CheatLevelUpCmd&) {
-                        return cheat_service.dispatch_cheat_level_up(player_id);
+                        return cheat_service.dispatch(CheatType::LEVEL_UP, player_id);
                     },
                     [&](const CheatLevelDownCmd&) {
-                        return cheat_service.dispatch_cheat_level_down(player_id);
+                        return cheat_service.dispatch(CheatType::LEVEL_DOWN, player_id);
                     },
                     [&](const CheatAddGoldCmd&) {
-                        return cheat_service.dispatch_cheat_add_gold(player_id);
+                        return cheat_service.dispatch(CheatType::ADD_GOLD, player_id);
                     },
                     [&](const CheatResetGoldCmd&) {
-                        return cheat_service.dispatch_cheat_reset_gold(player_id);
+                        return cheat_service.dispatch(CheatType::RESET_GOLD, player_id);
                     },
                     [&](const CheatVelocityCmd&) {
-                        return cheat_service.dispatch_cheat_velocity(player_id);
+                        return cheat_service.dispatch(CheatType::VELOCITY, player_id);
                     },
                     [&](const CheatReviveCmd&) {
-                        return cheat_service.dispatch_cheat_revive(player_id);
+                        return cheat_service.dispatch(CheatType::REVIVE, player_id);
                     },
                     [&](const CheatFillInventoryCmd&) {
-                        return cheat_service.dispatch_cheat_fill_inventory(player_id);
+                        return cheat_service.dispatch(CheatType::FILL_INVENTORY, player_id);
                     },
                     [&](const CheatClearInventoryCmd&) {
-                        return cheat_service.dispatch_cheat_clear_inventory(player_id);
+                        return cheat_service.dispatch(CheatType::CLEAR_INVENTORY, player_id);
                     },
                     [&](const CheatResetManaCmd&) {
-                        return cheat_service.dispatch_cheat_reset_mana(player_id);
+                        return cheat_service.dispatch(CheatType::RESET_MANA, player_id);
                     },
                     [&](const CastSpellCmd& cmd) { return spell_service_.handle_cast_spell(player_id, cmd, tick_count); },
                     [&](const ChangeMapCmd& cmd) {
