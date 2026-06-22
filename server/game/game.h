@@ -21,6 +21,7 @@
 #include "services/movement_service.h"
 #include "services/player_session_service.h"
 #include "services/regen_service.h"
+#include "services/resurrection_service.h"
 #include "services/spawn_service.h"
 
 #include "clan_command_handler.h"
@@ -63,6 +64,7 @@ private:
     PlayerSessionService player_session_service;
     CheatService cheat_service;
     std::unordered_map<uint16_t, PendingResurrection> pending_resurrections_;
+    ResurrectionService resurrection_service_;
     MovementService movement_service_;
     RegenService regen_service_;
     uint32_t tick_count = 0;
@@ -72,12 +74,9 @@ private:
     std::unordered_map<uint16_t, double> hp_regen_accum;
     std::unordered_map<uint16_t, double> mana_regen_accum;
 
-    CommandResult process_pending_resurrections();
-
     CommandResult handle_attack(uint16_t player_id, const AttackCmd& cmd);
     CommandResult handle_cast_spell(uint16_t player_id, const CastSpellCmd& cmd);
     CommandResult handle_send_chat_msg(uint16_t player_id, const SendChatMsgCmd& cmd);
-    CommandResult handle_resurrect(uint16_t player_id);
     CommandResult handle_meditate(uint16_t player_id);
     CommandResult handle_equip(uint16_t player_id, const EquipItemCmd& cmd);
     CommandResult handle_unequip(uint16_t player_id, const UnequipItemCmd& cmd);

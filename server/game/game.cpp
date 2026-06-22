@@ -59,6 +59,9 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
                                clan_handler, combat_controller, ground_item_service),
         cheat_service(players, config.balance, config.item_catalog, player_data_service,
                       combat_controller, config.help_lines, config.cheats_enabled, msgs_),
+        resurrection_service_(players, maps, enemy_npcs, pending_resurrections_,
+                              ground_item_service, config.balance, config.messages,
+                              config.sprite_width, config.sprite_height, config.tick_rate_hz),
         movement_service_(players, maps, enemy_npcs, pending_resurrections_, config.balance,
                           config.move_step, config.sprite_width, config.sprite_height,
                           map_transition_service),
@@ -130,7 +133,7 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const AttackCmd& cmd) { return handle_attack(player_id, cmd); },
                     [&](const SendChatMsgCmd& cmd) { return handle_send_chat_msg(player_id, cmd); },
                     [&](const MeditateCmd&) { return handle_meditate(player_id); },
-                    [&](const ResurrectCmd&) { return handle_resurrect(player_id); },
+                    [&](const ResurrectCmd&) { return resurrection_service_.handle_resurrect(player_id); },
                     [&](const CheatInfiniteHpCmd&) {
                         return cheat_service.dispatch_cheat_infinite_hp(player_id);
                     },
@@ -230,7 +233,7 @@ CommandResult Game::tick() {
     ++tick_count;
     CommandResult result = regen_service_.apply_regen();
 
-    result.merge(process_pending_resurrections());
+    result.merge(resurrection_service_.process_pending_resurrections());
 
     CommandResult npc_result = combat_controller.update_npc_ai(tick_count);
     ground_item_service.commit_ground_drops(npc_result, npc_result.ground_drops);
@@ -241,74 +244,6 @@ CommandResult Game::tick() {
     return result;
 }
 
-
-CommandResult Game::process_pending_resurrections() {
-    CommandResult result;
-
-    for (auto it = pending_resurrections_.begin(); it != pending_resurrections_.end();) {
-        auto& [player_id, pending] = *it;
-
-        if (pending.remaining_ticks > 0) {
-            --pending.remaining_ticks;
-            ++it;
-            continue;
-        }
-
-        auto player_it = players.find(player_id);
-        if (player_it == players.end()) {
-            it = pending_resurrections_.erase(it);
-            continue;
-        }
-
-        Player& player = player_it->second;
-        const std::string old_map = player.get_current_map();
-        const bool needs_map_transition = (pending.target_map != old_map);
-
-        if (needs_map_transition) {
-            EntityDespawnEvent despawn{player_id};
-            for (uint16_t pid: get_player_ids_on_map(old_map)) {
-                if (pid != player_id)
-                    result.targeted_events[pid].push_back(despawn);
-            }
-
-            player.set_current_map(pending.target_map);
-            player.set_pos(pending.target_pos.x, pending.target_pos.y);
-
-            player.resurrect();
-
-            std::vector<ServerEvent> private_events;
-            private_events.push_back(MapTransitionEvent{pending.target_map, pending.target_pos.x,
-                                                        pending.target_pos.y});
-            append_existing_entities(private_events, player_id, pending.target_map);
-            result.targeted_events[player_id] = std::move(private_events);
-
-            EntitySpawnEvent spawn = EntityEventFactory::make_entity_spawn(player);
-            PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
-            for (uint16_t pid: get_player_ids_on_map(pending.target_map)) {
-                if (pid != player_id)
-                    result.targeted_events[pid].push_back(spawn);
-                result.targeted_events[pid].push_back(respawn);
-            }
-        } else {
-            player.set_pos(pending.target_pos.x, pending.target_pos.y);
-            player.resurrect();
-
-            EntitySpawnEvent spawn = EntityEventFactory::make_entity_spawn(player);
-            EntityMoveEvent move_ev{player_id, player.get_pos(), player.get_dir()};
-            PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
-            for (uint16_t pid: get_player_ids_on_map(pending.target_map)) {
-                if (pid != player_id)
-                    result.targeted_events[pid].push_back(spawn);
-                result.targeted_events[pid].push_back(move_ev);
-                result.targeted_events[pid].push_back(respawn);
-            }
-        }
-
-        it = pending_resurrections_.erase(it);
-    }
-
-    return result;
-}
 
 CommandResult Game::handle_attack(uint16_t player_id, const AttackCmd& cmd) {
     auto it = players.find(player_id);
@@ -568,80 +503,6 @@ PlayerStatsEvent Game::make_player_stats_event(const Player& p) const {
     PlayerStatsEvent ev{};
     combat_controller.fill_player_stats_event(ev, p);
     return ev;
-}
-
-CommandResult Game::handle_resurrect(uint16_t player_id) {
-    auto it = players.find(player_id);
-    if (it == players.end())
-        return {};
-
-    Player& player = it->second;
-    if (!player.is_dead()) {
-        return CommandResult::with_msg(msgs_.not_dead);
-    }
-
-    if (pending_resurrections_.contains(player_id)) {
-        return CommandResult::with_msg(msgs_.already_resurrecting);
-    }
-
-    const std::string& current_map = player.get_current_map();
-    auto map_it = maps.find(current_map);
-    if (map_it == maps.end())
-        return {};
-
-    const int tile_size = map_it->second.tile_size();
-    const int px = static_cast<int>(player.pos_x());
-    const int py = static_cast<int>(player.pos_y());
-    const int range = tile_size * balance.npc_interaction_range_tiles;
-
-    // If the ghost is near a sacerdote, resurrect immediately
-    if (map_it->second.prop_grid().is_in_range_of(std::string(PropNames::PRIEST), px, py, range)) {
-        player.resurrect();
-        PlayerRespawnedEvent respawn{player_id, player.get_hp_current(), player.get_hp_max()};
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "", msgs_.priest_resurrect};
-        CommandResult result;
-        result.private_events = {msg};
-        result.map_events = {respawn};
-        return result;
-    }
-
-
-    std::string target_map;
-    uint32_t wait_ticks;
-    int san_cx, san_cy;
-
-    const PropGrid::Entry* san_entry =
-            map_it->second.prop_grid().find_closest(std::string(PropNames::HEALER), px, py);
-    if (san_entry) {
-        target_map = current_map;
-        san_cx = san_entry->center_x;
-        san_cy = san_entry->center_y;
-        int dx = px - san_cx;
-        int dy = py - san_cy;
-        int dist_px = static_cast<int>(std::sqrt(static_cast<double>(dx * dx + dy * dy)));
-        int dist_tiles = dist_px / tile_size;
-        wait_ticks = static_cast<uint32_t>(dist_tiles * tick_rate_hz);
-    } else {
-        auto main_it = maps.find(balance.starting_map);
-        if (main_it == maps.end())
-            return {};
-        san_entry = main_it->second.prop_grid().find_closest(std::string(PropNames::HEALER), 0, 0);
-        if (!san_entry)
-            return {};
-        target_map = balance.starting_map;
-        san_cx = san_entry->center_x;
-        san_cy = san_entry->center_y;
-        wait_ticks = static_cast<uint32_t>(balance.default_resurrect_wait_seconds * tick_rate_hz);
-    }
-
-    Position target_pos{static_cast<uint16_t>(san_cx - sprite_width / 2),
-                        static_cast<uint16_t>(san_cy - sprite_height)};
-
-    pending_resurrections_[player_id] = {wait_ticks, target_map, target_pos};
-
-    uint32_t remaining_tiles = wait_ticks / tick_rate_hz;
-    return CommandResult::with_msg(
-            std::vformat(msgs_.resurrect_countdown, std::make_format_args(remaining_tiles)));
 }
 
 CommandResult Game::handle_equip(uint16_t player_id, const EquipItemCmd& cmd) {
