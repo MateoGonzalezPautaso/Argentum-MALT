@@ -22,7 +22,7 @@ Guía completa del juego: instalación, controles, combate, ítems, clanes, coma
 
 **[Documentación técnica](documentacion-tecnica)**
 
-Arquitectura, protocolo, configuración y detalles de implementación. *(En construcción)*
+Arquitectura, protocolo, configuración y detalles de implementación.
 
 **[Manual de Proyecto](manual-de-proyecto)**
 
