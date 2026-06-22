@@ -1,77 +1,40 @@
 #ifndef CLIENT_LOGIN_RENDERER_H
 #define CLIENT_LOGIN_RENDERER_H
 
-#include <optional>
 #include <string>
 
 #include <SDL2pp/SDL2pp.hh>
-#include <SDL_ttf.h>
 
 #include "../../config/config.h"
-
 #include "../../render/gfx/button.h"
-#include "form_widgets.h"
+#include "credential_screen_renderer.h"
 
 class ChatInput;
 
-class LoginRenderer {
-private:
-    SDL2pp::Renderer& renderer;
-    const ChatInput& username_model;
-    const ChatInput& password_model;
-
-    std::string error_text;
-    SDL_Color error_color{255, 60, 60, 255};
-
-    SDL2pp::Texture background_texture;
-    SDL2pp::Texture logo_texture;
-    Button connect_button;
-    Button audio_button;
-    SDL2pp::Texture audio_off_texture;
-    bool audio_muted_ = false;
-    Button new_account_button;
-
-    SDL2pp::Rect background_rect;
-    SDL2pp::Rect logo_rect;
-    SDL2pp::Rect title_rect;
-    SDL2pp::Rect username_field_rect;
-    SDL2pp::Rect password_field_rect;
-
-    TTF_Font* field_font = nullptr;
-    TTF_Font* title_font = nullptr;
-    SDL_Color text_color{255, 255, 255, 255};
-    SDL_Color placeholder_color{160, 160, 160, 255};
-    SDL_Color title_color{255, 215, 0, 255};
-    UIConfig ui_cfg;
-    std::optional<FormWidgets> form_widgets_;
-
+class LoginRenderer : public CredentialScreenRenderer {
 public:
     LoginRenderer(SDL2pp::Renderer& renderer, const UIConfig& ui_cfg,
                   const ChatInput& username_model, const ChatInput& password_model);
-    ~LoginRenderer();
 
     void render();
 
-    bool is_username_hit(int x, int y) const;
-    bool is_password_hit(int x, int y) const;
     bool is_connect_button_hit(int x, int y) const;
     bool is_audio_hit(int x, int y) const;
+    bool is_new_account_hit(int x, int y) const;
 
     void set_connect_button_hovered(int x, int y);
     void set_audio_button_hovered(int x, int y);
     void set_new_account_button_hovered(int x, int y);
     void set_audio_muted(bool muted) { audio_muted_ = muted; }
 
-    void set_error(const std::string& text);
-    void clear_error();
-
-    bool is_new_account_hit(int x, int y) const;
-
 private:
+    Button connect_button;
+    Button audio_button;
+    SDL2pp::Texture audio_off_texture;
+    bool audio_muted_ = false;
+    Button new_account_button;
+
     void init_layout();
-    void render_text_field(const SDL2pp::Rect& rect, const std::string& text, bool focused,
-                           const std::string& placeholder) const;
-    void render_error() const;
 };
 
-#endif
+#endif  // CLIENT_LOGIN_RENDERER_H
