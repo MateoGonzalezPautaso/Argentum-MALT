@@ -32,3 +32,5 @@ Organización del equipo, herramientas, planificación semanal y retrospectiva.
 
 
 *Repositorio: [github.com/.../Argentum-MALT](https://github.com/MateoGonzalezPautaso/Argentum-MALT)*
+
+![](images/fiuba_argentum.png)
