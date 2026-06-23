@@ -86,7 +86,7 @@ Estado central del mundo. Contiene:
 - `enemy_npcs`: `map<uint16_t, EnemyNpc>` — NPCs enemigos.
 - `maps`: `map<string, Map>` — mapas cargados desde TOML.
 - `clan_manager`: gestión de clanes.
-- 7 servicios especializados (`BankService`, `MerchantService`, `SpawnService`, `GroundItemService`, `MapTransitionService`, `PlayerSessionService`, `CheatService`).
+- 12 servicios especializados (en `server/game/services/`): `BankService`, `MerchantService`, `SpawnService`, `GroundItemService`, `MapTransitionService`, `MapDataService`, `PlayerSessionService`, `CheatService`, `MovementService`, `RegenService`, `ResurrectionService`, `SpellService`.
 - `combat_controller`: lógica de combate (daño, crítico, evasión, defensa).
 
 Procesa comandos (`process_command`) a través de `std::visit` sobre `ClientCommand`, y produce `CommandResult` con los eventos generados.
@@ -195,48 +195,66 @@ Todos los valores numéricos de balance, UI y assets viven en archivos TOML bajo
 Configuración del servidor: tick rate, balance de combate, drops.
 
 ```toml
-[tick]
-tick_rate_hz = 20          # ticks por segundo (50ms/tick)
-save_interval_ticks = 600  # guardar persistencia cada N ticks
+[server]
+tick_rate_hz = 20            # ticks por segundo (50ms/tick)
+cheats_enabled = true        # habilita los comandos de debug
+save_interval_seconds = 30   # (default) persistencia automática cada N segundos
+                             #   GameLoop lo convierte a save_interval_ticks internamente
 
 [attack]
-attack_cooldown_ms = 500
+base_damage = 10
 attack_range_px = 80
-npc_vision_range_px = 250  # rango de visión de NPCs
-critical_chance = 0.15
-max_level_diff = 10         # diferencia máxima de nivel para atacar
+spell_attack_range_px = 400
+cooldown_ticks = 10
+newbie_level = 12
+max_level_diff = 10          # diferencia máxima de nivel para atacar
+critical_chance = 0.003
+critical_multiplier = 2
+dodge_threshold = 0.001
+clan_bonus_range_px = 200
+clan_bonus_per_member = 0.05 # +5% daño/defensa por aliado cercano
+clan_bonus_max = 0.25
 
 [clan]
 max_members = 16
 min_level_found = 6
-clan_bonus_per_member = 0.05  # +5% daño/defensa por aliado cercano
-clan_bonus_max = 0.25
+max_name_length = 30
 
-[mob_spawn]
-spawn_interval_ticks = 10
-max_per_spawn_zone = 3
-spawn_distance_px = 200     # distancia desde jugador
+[mob_spawn]                  # rango de nivel sorteado en zona normal
+min_level = 1
+max_level = 5
+spawn_radius = 10
+[mob_spawn.dungeon]          # rango de nivel sorteado en mazmorra
+min_level = 6
+max_level = 15
 
-[npc_drop]
-potion_chance = 0.20
-gold_min = 1
-gold_max = 10
+[balance]                    # oro, experiencia, posición inicial, fórmulas
+starting_gold = 0
+starting_map = "city"
+level_exp_base = 1000
+level_exp_exponent = 1.8
+gold_cap_base = 100
+gold_cap_exponent = 1.1
 
-[race_factors]              # multiplicadores de stats por raza
-human = { hp = 1.0, mana = 1.0 }
-elf = { hp = 0.85, mana = 1.20 }
-dwarf = { hp = 1.20, mana = 0.75 }
-gnome = { hp = 0.85, mana = 1.05 }
+[balance.npc_drop]           # probabilidades de drop en zona normal (%)
+gold_chance = 8.0
+potion_chance = 1.0
+item_chance = 1.0
+[balance.npc_drop_dungeon]   # probabilidades de drop en mazmorra (%)
+gold_chance = 20.0
+potion_chance = 3.0
+item_chance = 6.0
 
-[class_factors]             # multiplicadores de stats por clase
-warrior = { evasion = 0.25, mp_recovery = 0.75 }
-mage = { evasion = 0.30, mp_recovery = 1.25 }
-cleric = { evasion = 0.20, mp_recovery = 1.10 }
-paladin = { evasion = 0.25, mp_recovery = 1.0 }
+# Factores de raza/clase, cada uno en su propia tabla:
+[race_hp_factor]             # (y [class_hp_factor], [race_mana_factor],
+human = 1.0                  #  [class_mana_factor], [class_meditation_factor],
+elf = 0.8                    #  [race_strength_factor], [class_strength_factor],
+dwarf = 1.2                  #  [race_agility_factor], [class_agility_factor],
+gnome = 1.0                  #  [recovery_rates], [constitution], [intelligence])
 
-[vendors]                   # qué vende cada NPC interactivo
-[vendors.comerciante]       # items que vende el comerciante
-[vendors.sacerdote]         # items que vende el sacerdote
+[vendors]                    # qué vende cada NPC interactivo (lista de item_type)
+sacerdote = ["ASH_STAFF", "ELVEN_FLUTE", "HEALTH_POTION", "MANA_POTION"]
+comerciante = ["SWORD", "AXE", "PLATE_ARMOR", "HEALTH_POTION"]
 ```
 
 ### 5.2 `config/client.toml`
@@ -473,14 +491,17 @@ TA045-1C2026/
 │   ├── main.cpp     # Entry point del servidor
 │   ├── core/        # Server, GameLoop, ServerConfig
 │   ├── game/
-│   │   ├── services/      # BankService, SpawnService, GroundItemService,
-│   │   │                  #   MerchantService, MapTransitionService, CheatService,
-│   │   │                  #   PlayerSessionService
+│   │   ├── services/      # 12 servicios: BankService, MerchantService,
+│   │   │                  #   SpawnService, GroundItemService, MapTransitionService,
+│   │   │                  #   MapDataService, PlayerSessionService, CheatService,
+│   │   │                  #   MovementService, RegenService, ResurrectionService,
+│   │   │                  #   SpellService
 │   │   ├── game.h/.cpp    # Game: process_command() + tick()
 │   │   ├── entity.h/.cpp  # Entity base (HP, posición, dirección)
 │   │   ├── player.h/.cpp  # Player extends Entity (stats, inventario, clan)
 │   │   ├── enemy_npc.h/.cpp     # EnemyNpc extends Entity (IA, daño, drops)
-│   │   ├── combat_controller.h/.cpp  # Ataques melee, spells, IA de NPCs
+│   │   ├── combat_controller.h/.cpp  # Ataques melee e IA de NPCs (los hechizos
+│   │   │                  #   se despachan en services/spell_service)
 │   │   ├── clan_manager.h/.cpp      # Gestión de clanes
 │   │   ├── entity_event_factory.h/.cpp # Factoría de eventos ServerEvent
 │   │   ├── inventory.h/.cpp         # Inventario genérico
@@ -488,7 +509,6 @@ TA045-1C2026/
 │   │   ├── game_formulas.h/.cpp     # Fórmulas de combate y progresión
 │   │   ├── map.h/.cpp               # Tilemap, walkability, spawn zones
 │   │   ├── map_level_data_builder.h/.cpp  # Map -> MapLevelData (DTO de red)
-│   │   ├── services/map_data_service.*    # Responde REQUEST_MAP_DATA
 │   │   └── prop_grid.h/.cpp         # Props y NPCs en el mapa
 │   ├── network/     # Acceptor, ClientHandler, ServerProtocol, Sender, Receiver
 │   └── persistence/ # PlayerPersistence, ClanPersistence (archivos binarios)

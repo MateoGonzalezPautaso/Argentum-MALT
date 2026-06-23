@@ -40,7 +40,7 @@
 
 > Esta tabla refleja `common/protocol.h` (`enum class OpCode`) exactamente.
 
-### 3.1 Cliente → Servidor (`0x01` – `0x29`)
+### 3.1 Cliente → Servidor (`0x01` – `0x2A`)
 
 | OpCode | Nombre                  | Descripción                            |
 |--------|-------------------------|-----------------------------------------|
@@ -863,25 +863,6 @@ Cliente                                 Servidor
 > catálogo visual local (`config/visuals/`: paths de assets, frames, hitboxes de
 > dibujo), nunca la estructura del nivel.
 
-### 6.6 Descarga de un mapa al cruzar un portal
-
-```
-Cliente                                 Servidor
-   |                                        |
-   |------- CHANGE_MAP (0x21) ------------->|  (interactúa con un portal)
-   |<------ MAP_TRANSITION (0x9D) ----------|  (nuevo mapa + posición destino)
-   |                                        |
-   | ¿mapa ya descargado en esta sesión?    |
-   |   sí -> reconstruye y renderiza ya     |
-   |   no -> REQUEST_MAP_DATA (0x2A) ------->|
-   |       <----- MAP_DATA (0x9B) ----------|
-   |             reconstruye y renderiza     |
-```
-
-> El `MapLevelData` recibido se cachea en memoria de sesión: volver a un mapa ya
-> visitado no vuelve a pedirlo. Si llegan dos transiciones antes de que responda
-> la primera, gana la última pedida.
-
 ### 6.2 Creación de personaje
 
 ```
@@ -952,6 +933,25 @@ Cliente                                 Servidor
    |<------ INVENTORY_UPDATE (0x90) --------|
    |<------ PLAYER_STATS (0x85) ------------|  (stats derivados cambiaron)
 ```
+
+### 6.6 Descarga de un mapa al cruzar un portal
+
+```
+Cliente                                 Servidor
+   |                                        |
+   |------- CHANGE_MAP (0x21) ------------->|  (interactúa con un portal)
+   |<------ MAP_TRANSITION (0x9D) ----------|  (nuevo mapa + posición destino)
+   |                                        |
+   | ¿mapa ya descargado en esta sesión?    |
+   |   sí -> reconstruye y renderiza ya     |
+   |   no -> REQUEST_MAP_DATA (0x2A) ------->|
+   |       <----- MAP_DATA (0x9B) ----------|
+   |             reconstruye y renderiza     |
+```
+
+> El `MapLevelData` recibido se cachea en memoria de sesión: volver a un mapa ya
+> visitado no vuelve a pedirlo. Si llegan dos transiciones antes de que responda
+> la primera, gana la última pedida.
 
 ---
 
