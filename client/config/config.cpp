@@ -609,14 +609,8 @@ ClientConfig load_client_config(const std::string& path) {
     parse_damage_overlay_config(root, config);
     parse_spell_sheets_config(root, config);
 
-    config.tilemap_configs = load_all_map_configs("config/map_list.toml");
-
-    auto main_it = config.tilemap_configs.find("city");
-    if (main_it != config.tilemap_configs.end()) {
-        config.tilemap = main_it->second;
-    } else if (!config.tilemap_configs.empty()) {
-        config.tilemap = config.tilemap_configs.begin()->second;
-    }
+    // La geometría de los niveles se descarga del servidor en runtime (REQUEST_MAP_DATA / MAP_DATA).
+    config.map_visuals = load_all_map_visual_catalogs("config/visuals");
 
     SharedConfig shared = load_shared_config("config/common.toml");
     config.network.port = std::to_string(shared.port);

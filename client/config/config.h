@@ -10,6 +10,8 @@
 #include "../../common/config.h"
 #include "../../common/messages.h"
 
+#include "map_visuals_config.h"
+
 struct NetworkConfig {
     std::string host = "127.0.0.1";
     std::string port = "1234";
@@ -355,8 +357,10 @@ struct ClientConfig {
     NetworkConfig network;
     WindowConfig window;
     BackgroundConfig background;
-    TilemapConfig tilemap;
-    std::unordered_map<std::string, TilemapConfig> tilemap_configs;
+    // Catálogo visual local por mapa (config/visuals/). La geometría de cada
+    // nivel (mapa, props, walkable, spawn zones) ya NO se lee de disco: se
+    // descarga del servidor (MapLevelData) y se combina con estos catálogos.
+    std::unordered_map<std::string, MapVisualCatalog> map_visuals;
     std::vector<SpriteConfig> sprites;
     SkinConfig skins;
     FontConfig font;

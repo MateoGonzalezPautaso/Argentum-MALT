@@ -30,6 +30,7 @@ public:
     void tick_game();
     void apply_server_event(const ServerEvent& ev);
     void load_game_assets();
+    bool is_world_map_loaded() const;
 
     bool try_submit_login(std::string& username, std::string& password);
     void handle_login_error(const std::string& msg);

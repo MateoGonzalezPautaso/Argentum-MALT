@@ -32,6 +32,7 @@ private:
     std::optional<LoginOkEvent> run_login();
     std::optional<LoginOkEvent> run_create_character();
     void game_loop();
+    void wait_for_initial_map();
     void shutdown();
 
     void frame_sync(uint32_t& last_tick, std::function<void()> render) const;

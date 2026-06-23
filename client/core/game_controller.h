@@ -35,6 +35,8 @@ public:
     bool handle_event(const SDL_Event& event);
     bool is_chat_focused() const { return chat_input.is_focused(); }
     void load_game_assets();
+    // True una vez que el primer mapa descargado del servidor ya está cargado.
+    bool is_world_map_loaded() const { return map_session_.world_map_loaded; }
 
 private:
     AudioManager& audio_manager;
@@ -59,6 +61,7 @@ private:
     int mouse_y = 0;
     std::unordered_map<SDL_Keycode, ClientCommand> cheat_commands_;
     std::unique_ptr<MerchantController> merchant_controller;
+    MapSessionState map_session_;
     ServerEventHandler event_handler_;
 
     bool handle_mouse_button(const SDL_Event& event);

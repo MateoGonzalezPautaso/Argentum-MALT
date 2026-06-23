@@ -39,7 +39,7 @@ GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& c
                                                                  player_stats)),
         event_handler_(player_stats, world_renderer, audio_manager, chat_history, move_controller,
                        config, move_config, *merchant_controller, player_is_ghost,
-                       current_map_name) {
+                       current_map_name, this->command_queue, map_session_) {
     world_renderer.sprites().set_direction_src_y(config.dir_src_y_down, config.dir_src_y_up,
                                                  config.dir_src_y_left, config.dir_src_y_right);
 }
@@ -101,7 +101,10 @@ void GameController::render() {
 void GameController::apply_server_event(const ServerEvent& ev) { event_handler_.apply(ev); }
 
 void GameController::load_game_assets() {
-    world_renderer.load_assets(config.tilemap, config.sprites, config.skins, config.item_sprites,
+    // El mapa se carga después, cuando llega su geometría del servidor (MAP_DATA).
+    // Acá solo se cargan los assets que no dependen del nivel (sprites, overlays,
+    // hechizos); se pasa un tilemap vacío como placeholder.
+    world_renderer.load_assets(TilemapConfig{}, config.sprites, config.skins, config.item_sprites,
                                config.ground_item, config.damage_overlay, config.spell_sheets,
                                config.walk_anim_timeout_ms);
 }
@@ -374,13 +377,9 @@ bool GameController::is_clickable_prop(const std::string& prop_name) const {
 }
 
 bool GameController::is_transition_prop(const std::string& prop_name) const {
-    auto map_it = config.tilemap_configs.find(current_map_name);
-    if (map_it == config.tilemap_configs.end())
-        return false;
-    auto prop_it = map_it->second.props.find(prop_name);
-    if (prop_it == map_it->second.props.end())
-        return false;
-    return !prop_it->second.transition_map.empty();
+    // Las props-transición del mapa actual las marca el servidor en MapLevelData
+    // (PropPlacement::is_transition); el cliente solo las consulta para el cursor.
+    return map_session_.transition_prop_names.count(prop_name) > 0;
 }
 
 void GameController::flush_pending_chat() {

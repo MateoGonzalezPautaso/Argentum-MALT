@@ -1,11 +1,14 @@
 #include "server_event_handler.h"
 
+#include <iostream>
 #include <string>
 #include <unordered_map>
 #include <variant>
 
 #include "../../common/visit.h"
 #include "../ui/controllers/merchant_controller.h"
+
+#include "map_render_data_builder.h"
 
 namespace {
 const std::unordered_map<ItemType, std::string> weapon_sounds = {
@@ -22,7 +25,9 @@ ServerEventHandler::ServerEventHandler(PlayerStats& player_stats, WorldRenderer&
                                        MoveController& move_controller, const ClientConfig& config,
                                        const MoveConfig& move_config,
                                        MerchantController& merchant_controller,
-                                       bool& player_is_ghost, std::string& current_map_name):
+                                       bool& player_is_ghost, std::string& current_map_name,
+                                       Queue<ClientCommand>& command_queue,
+                                       MapSessionState& map_session):
         player_stats_(player_stats),
         world_renderer_(world_renderer),
         audio_manager_(audio_manager),
@@ -32,7 +37,9 @@ ServerEventHandler::ServerEventHandler(PlayerStats& player_stats, WorldRenderer&
         move_config_(move_config),
         merchant_controller_(merchant_controller),
         player_is_ghost_(player_is_ghost),
-        current_map_name_(current_map_name) {}
+        current_map_name_(current_map_name),
+        command_queue_(command_queue),
+        map_session_(map_session) {}
 
 void ServerEventHandler::apply(const ServerEvent& ev) {
     std::visit(
@@ -62,6 +69,7 @@ void ServerEventHandler::apply(const ServerEvent& ev) {
                     [this](const ClanNotificationEvent& e) { handle_clan_notification(e); },
                     [this](const ClanUpdateEvent& e) { handle_clan_update(e); },
                     [this](const MapTransitionEvent& e) { handle_map_transition(e); },
+                    [this](const MapDataEvent& e) { handle_map_data(e); },
                     [this](const HealReceivedEvent& e) { handle_heal_received(e); },
                     [this](const InventoryUpdateEvent& e) { handle_inventory_update(e); },
                     [this](const EquipUpdateEvent& e) { handle_equip_update(e); },
@@ -191,6 +199,10 @@ void ServerEventHandler::handle_login_ok(const LoginOkEvent& e) {
     world_renderer_.sprites().rebuild_local_player_sprites(e.race, e.player_class);
     if (player_is_ghost_)
         world_renderer_.sprites().set_movable_alpha(128);
+
+    // El cliente descarga la geometría del mapa inicial del servidor (no la lee
+    // de disco). current_map_name_ ya apunta al mapa de arranque (city).
+    request_or_load_map(current_map_name_);
 }
 
 void ServerEventHandler::handle_entity_despawn(const EntityDespawnEvent& e) {
@@ -319,17 +331,74 @@ void ServerEventHandler::handle_heal_received(const HealReceivedEvent& e) {
 }
 
 void ServerEventHandler::handle_map_transition(const MapTransitionEvent& e) {
-    auto it = config_.tilemap_configs.find(e.map_name);
-    if (it == config_.tilemap_configs.end())
-        return;
-
     current_map_name_ = e.map_name;
     world_renderer_.sprites().clear_entities();
     world_renderer_.ground_items().clear();
-    world_renderer_.load_map(it->second);
+
+    // Carga la geometría desde el cache de sesión si ya la tenemos; si no, la
+    // pide al servidor (se cargará cuando llegue el MAP_DATA correspondiente).
+    request_or_load_map(e.map_name);
+
     world_renderer_.sprites().move_movable(e.pos_x, e.pos_y);
     move_controller_.set_position(e.pos_x, e.pos_y);
     player_stats_.pos = {e.pos_x, e.pos_y};
+}
+
+void ServerEventHandler::request_or_load_map(const std::string& map_name) {
+    if (map_session_.network_cache.count(map_name)) {
+        load_map_from_cache(map_name);
+        return;
+    }
+    // No está cacheado: pedirlo y recordarlo como pendiente. Si llegan dos
+    // transiciones seguidas, gana la última pedida (no hace falta cola).
+    map_session_.pending_map_name = map_name;
+    command_queue_.push(RequestMapDataCmd{map_name});
+}
+
+void ServerEventHandler::handle_map_data(const MapDataEvent& e) {
+    // Cachear siempre (memoria de sesión; nunca se persiste a disco).
+    map_session_.network_cache[e.data.map_name] = e.data;
+
+    // Solo cargar si es el mapa que estábamos esperando.
+    if (e.data.map_name == map_session_.pending_map_name) {
+        load_map_from_cache(e.data.map_name);
+        map_session_.pending_map_name.clear();
+    }
+}
+
+void ServerEventHandler::load_map_from_cache(const std::string& map_name) {
+    auto level_it = map_session_.network_cache.find(map_name);
+    if (level_it == map_session_.network_cache.end())
+        return;
+    auto visuals_it = config_.map_visuals.find(map_name);
+    if (visuals_it == config_.map_visuals.end()) {
+        // Sin catálogo visual local no se puede dibujar el mapa: avisar en vez de
+        // quedarse en pantalla negra silenciosamente (falta config/visuals/<map>.toml).
+        std::cerr << "[cliente] falta el catalogo visual del mapa '" << map_name
+                  << "' (config/visuals/" << map_name << ".toml); no se puede renderizar"
+                  << std::endl;
+        return;
+    }
+
+    const MapLevelData& level = level_it->second;
+    world_renderer_.load_map(MapRenderDataBuilder::build(level, visuals_it->second));
+    current_map_name_ = map_name;
+
+    // Re-aplicar la posición del jugador AHORA que el tilemap está cargado: si se
+    // fijó antes (p. ej. en handle_login_ok, con el mapa todavía vacío), quedó
+    // recortada a los límites de la ventana en vez de los del mapa. Con la
+    // geometría ya cargada el clamp usa los límites reales del nivel.
+    world_renderer_.sprites().move_movable(player_stats_.pos.x, player_stats_.pos.y);
+    move_controller_.set_position(player_stats_.pos.x, player_stats_.pos.y);
+
+    // Recalcular qué props del mapa actual son transiciones (para el cursor/click).
+    map_session_.transition_prop_names.clear();
+    for (const PropPlacement& p: level.props) {
+        if (p.is_transition && p.prop_id_index < level.prop_id_table.size())
+            map_session_.transition_prop_names.insert(level.prop_id_table[p.prop_id_index]);
+    }
+
+    map_session_.world_map_loaded = true;
 }
 
 void ServerEventHandler::handle_bank_update(const BankUpdateEvent& e) {

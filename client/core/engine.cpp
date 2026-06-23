@@ -112,6 +112,8 @@ void Engine::apply_server_event(const ServerEvent& ev) { game_controller.apply_s
 
 void Engine::load_game_assets() { game_controller.load_game_assets(); }
 
+bool Engine::is_world_map_loaded() const { return game_controller.is_world_map_loaded(); }
+
 bool Engine::try_submit_login(std::string& username, std::string& password) {
     if (!login_ctrl.is_submitted()) {
         return false;

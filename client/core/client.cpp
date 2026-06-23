@@ -205,11 +205,33 @@ void Client::run() {
         if (auth_result) {
             std::cout << "Logged in as " << auth_result->username << std::endl;
             engine.load_game_assets();
+            // apply_server_event(LoginOk) dispara el pedido del mapa inicial al
+            // servidor (RequestMapDataCmd). Esperamos su MAP_DATA antes de jugar
+            // para que el primer frame ya tenga geometría.
             engine.apply_server_event(*auth_result);
+            wait_for_initial_map();
             break;
         }
     }
 
     game_loop();
     shutdown();
+}
+
+void Client::wait_for_initial_map() {
+    const uint32_t start = SDL_GetTicks();
+    const uint32_t timeout_ms = 10000;
+    while (!engine.is_world_map_loaded()) {
+        ServerEvent ev;
+        if (event_queue.try_pop(ev)) {
+            engine.apply_server_event(ev);
+        } else {
+            SDL_Delay(5);
+        }
+        if (SDL_GetTicks() - start > timeout_ms) {
+            std::cerr << "Timeout esperando la geometria del mapa inicial del servidor"
+                      << std::endl;
+            break;
+        }
+    }
 }
