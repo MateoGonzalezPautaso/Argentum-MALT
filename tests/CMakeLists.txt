@@ -10,6 +10,8 @@ target_sources(taller_tests
     PRIVATE
     ${SERVER_SRC}
     ${CMAKE_SOURCE_DIR}/client/network/client_protocol.cpp
+    ${CMAKE_SOURCE_DIR}/client/config/map_visuals_config.cpp
+    ${CMAKE_SOURCE_DIR}/client/core/map_render_data_builder.cpp
     ${CMAKE_SOURCE_DIR}/server/network/server_protocol.cpp
     ${CMAKE_SOURCE_DIR}/server/network/client_handler.cpp
     ${CMAKE_SOURCE_DIR}/server/network/sender.cpp
