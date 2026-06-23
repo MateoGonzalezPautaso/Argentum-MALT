@@ -4,9 +4,10 @@ title Flujo de Ataque Jugador → NPC
 actor Usuario
 participant "GameController\n(client/screen/)" as GC
 participant "command_queue" as CQ
-participant "Sender\n(Thread)" as S
+participant "Client Sender\n(Thread)" as CS
 participant TCP
-participant "Receiver\n(Thread)" as R
+participant "Server Receiver\n(Thread)" as SR
+participant "Server Sender\n(Thread)" as SS
 participant "input_queue" as IQ
 participant "GameLoop\n(Thread)" as GL
 participant Game
@@ -15,10 +16,10 @@ participant EnemyNpc as NPC
 
 Usuario -> GC: presiona tecla ataque
 GC -> CQ: push(AttackCmd{target_id})
-CQ -> S: pop()
-S -> TCP: ClientProtocol::send_attack()
-TCP -> R: bytes
-R -> IQ: push(PlayerCommand{player_id, AttackCmd})
+CQ -> CS: pop()
+CS -> TCP: ClientProtocol::send_attack()
+TCP -> SR: bytes
+SR -> IQ: push(PlayerCommand{player_id, AttackCmd})
 IQ -> GL: try_pop()
 GL -> Game: process_command(player_id, cmd)
 Game -> CC: melee_attack(attacker, target_id, tick)
@@ -31,7 +32,8 @@ CC -> CC: construye DamageDealtEvent / DamageReceivedEvent\ny EntityDiedEvent (s
 CC -> Game: CommandResult\n{private_events, broadcast_events, ...}
 Game -> GL: CommandResult
 GL -> GL: despachar eventos a colas de salida
-S -> TCP: ServerProtocol::send_event(DamageDealtEvent)
+SS -> TCP: ServerProtocol::send_event(DamageDealtEvent)
+TCP -> Client: bytes
 
 note over Usuario, TCP
   El cliente recibe DamageDealtEvent,
