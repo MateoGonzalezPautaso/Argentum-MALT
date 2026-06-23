@@ -16,6 +16,7 @@
 #include "services/bank_service.h"
 #include "services/cheat_service.h"
 #include "services/ground_item_service.h"
+#include "services/map_data_service.h"
 #include "services/map_transition_service.h"
 #include "services/merchant_service.h"
 #include "services/movement_service.h"
@@ -62,6 +63,7 @@ private:
     SpawnService spawn_service;
     GroundItemService ground_item_service;
     MapTransitionService map_transition_service;
+    MapDataService map_data_service;
     PlayerSessionService player_session_service;
     CheatService cheat_service;
     std::unordered_map<uint16_t, PendingResurrection> pending_resurrections_;

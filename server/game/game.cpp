@@ -54,6 +54,7 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         ground_item_service(players, maps, config.item_catalog, msgs_),
         map_transition_service(players, maps, enemy_npcs, player_data_service, config.balance,
                                config.sprite_width, config.sprite_height, ground_item_service),
+        map_data_service(maps),
         player_session_service(players, player_name_index_, player_data_service, maps, enemy_npcs,
                                config.balance, config.inventory, config.item_catalog, clan_manager,
                                clan_handler, combat_controller, ground_item_service),
@@ -176,6 +177,9 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const CastSpellCmd& cmd) { return spell_service_.handle_cast_spell(player_id, cmd, tick_count); },
                     [&](const ChangeMapCmd& cmd) {
                         return map_transition_service.handle_change_map(player_id, cmd);
+                    },
+                    [&](const RequestMapDataCmd& cmd) {
+                        return map_data_service.handle_request(cmd.map_name);
                     },
                     [&](const EquipItemCmd& cmd) { return handle_equip(player_id, cmd); },
                     [&](const UnequipItemCmd& cmd) { return handle_unequip(player_id, cmd); },
