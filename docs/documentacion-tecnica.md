@@ -297,6 +297,7 @@ save_interval_seconds = 30   # (default) persistencia automática cada N segundo
 
 [attack]
 base_damage = 10
+damage_variance = 5       # ±5 de daño aleatorio sobre base_damage
 attack_range_px = 80
 spell_attack_range_px = 400
 cooldown_ticks = 10

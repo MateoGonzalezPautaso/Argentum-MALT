@@ -820,7 +820,13 @@ Efecto visual a reproducir sobre la entidad objetivo (no representa daño/curaci
 0x9E <target_id> <effect_type>
 ```
 
-`effect_type`: `uint8_t`. `0x00` = curar (único valor usado actualmente, ver `Flauta élfica` en el manual).
+`effect_type`: `uint8_t`.
+```
+0x00    curar               (Flauta élfica)
+0x01    flecha mágica       (Vara de fresno)
+0x02    misil               (Báculo nudoso)
+0x03    explosión           (Báculo engarzado)
+```
 
 ---
 
@@ -1054,6 +1060,26 @@ Todos los valores son `uint8_t`.
 0x01    USERNAME_TAKEN
 0x02    INVALID_USERNAME    (vacío, muy largo, caracteres inválidos)
 ```
+
+### MapType
+```
+0x00    NONE
+0x01    CITY
+0x02    DUNGEON
+```
+
+> Se usa en el campo `map_type` del mensaje `MAP_DATA` (`0x9B`). `CITY` es zona segura (no se puede atacar); `DUNGEON` tiene NPCs de mayor nivel y mejor drops.
+
+### TransactionType
+```
+0x01    BUY
+0x02    SELL
+0x03    DEPOSIT
+0x04    WITHDRAW
+0x05    HEAL
+```
+
+> Se usa internamente en el servidor para validar transacciones con NPCs; no viaja por el protocolo binario como campo independiente.
 
 ### ChatMsgType
 ```

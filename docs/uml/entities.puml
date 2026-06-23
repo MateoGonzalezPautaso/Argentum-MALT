@@ -9,7 +9,7 @@ class Entity {
   - dir: Direction
   - level: int
   - sprite_id: uint16_t
-  - speed: int
+  - speed: uint32_t
   + take_damage(damage: int)
   + is_dead(): bool
   + try_attack(tick: int, cooldown: int): bool
@@ -41,7 +41,7 @@ class Player {
 }
 
 class EnemyNpc {
-  - damage: int
+  - damage: uint32_t
   - rng: RNG
   + get_kill_reward(drop_config: NpcDropConfig, balance: BalanceConfig): EnemyDrop
 }
