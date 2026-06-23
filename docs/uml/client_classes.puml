@@ -12,6 +12,16 @@ note as N1
   Para el pipeline de renderizado de sprites
   (SpriteRenderer, EntitySpriteRegistry,
   EffectOverlaySystem), ver client.puml.
+  NOTA: este diagrama cubre ~30% de las clases
+  reales. Faltan: UI layer completa (UIRenderer,
+  InventoryRenderer, MenuRenderer, LoginRenderer,
+  CreateCharacterRenderer, MerchantRenderer,
+  FormWidgets, CredentialForm, ItemSpriteDrawer),
+  utilidades (TextureCache, TextureLoader,
+  TextRenderer, Button, Geometry, Viewport),
+  MapSessionState, MapRenderDataBuilder, MoveConfig,
+  DirectionData, AnimationSystem, etc.
+  Ver el código fuente para el detalle completo.
 end note
 
 ' ============================================================

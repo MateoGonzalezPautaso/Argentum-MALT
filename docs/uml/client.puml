@@ -1,6 +1,15 @@
 @startuml
 title Pipeline de Renderizado — Cliente
 
+note as N1
+  Diagrama parcial (~20% de los métodos reales).
+  SpriteRenderer tiene ~40+ métodos públicos
+  (load_sprites, set_map_bounds, move_movable,
+  set_skin_config, hit_test_entity, tick_animations,
+  etc.). EntitySpriteRegistry tiene ~30+ métodos.
+  Ver client/headers para el detalle completo.
+end note
+
 class SpriteRenderer {
   - entity_registry_: EntitySpriteRegistry
   - effects_: EffectOverlaySystem

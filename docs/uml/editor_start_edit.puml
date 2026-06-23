@@ -21,14 +21,14 @@ participant MapInteraction as MI
 
 Main -> MW: MainWindow(config_path)
 MW -> EC: EditorController(scene)
-EC -> CFG: load_default_tile_config()
-CFG --> EC: default_tile_config_
 EC -> Doc: load(config_path)
 Doc -> Doc: TomlSerializer::load()
+EC -> CFG: load_default_tile_config("config/common_tilemap.toml")
+CFG --> EC: default_tile_config_
 EC -> AL: reload_atlas()
-EC -> MSR: render_all(doc)
-MSR -> MSR: tile_items, prop_items,\n walkable/spawn overlays
-EC -> MSR: rebuild_grid(doc)
+EC -> MSR: full_rebuild()
+MSR -> MSR: render_all(doc) + rebuild_grid(doc)
+note right: full_rebuild llama a render_all\nseguido de rebuild_grid
 MW -> MW: setup_ui()
 MW -> TP: TilePalette(atlases, config)
 note right: Panel con miniaturas\nde tiles y props

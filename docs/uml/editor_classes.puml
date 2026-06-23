@@ -27,7 +27,8 @@ class EditorController {
   + fill_rect(r1, c1, r2, c2, name)
   + erase_tile(row, col)
   + erase_prop(row, col)
-  + save(path)
+  + save()
+  + save_as()
   + open()
   + create_new_map(rows, cols, type)
   - doc_ : TilemapDocument
@@ -40,23 +41,30 @@ note right of EditorController
   Orquestador central.
   Delega en Document (datos)
   y Renderer (escena).
+  Además: load_document(), load_default_tile_config(),
+  reload_atlas(), full_rebuild(), validate_city_map(),
+  register_current_map_in_list(), set_map_type(),
+  resize_map(), toggle_walkable_overlay(),
+  toggle_spawn_overlay(), set_spawn_zone(),
+  fill_spawn_zone_rect(), set_prop_transition(), ...
 end note
 
 class TilemapDocument {
-  + load(path) : bool
-  + save(path) : bool
+  + load(path)
+  + save(path)
   + create_new(rows, cols, tile_config, type)
   + set_tile(row, col, name)
   + set_prop(row, col, name)
-  + set_spawn_zone(row, col, active)
+  + set_mob_spawn_zone(row, col, bool)
   + set_tile_walkable(name, bool)
   + set_transition_override(row, col, ov)
   - config_ : TilemapConfig
+  - path_ : string
 }
 
 class MapSceneRenderer {
   + render_all(doc, show_walkable)
-  + render_props(doc)
+  - render_props(doc)
   + update_tile(row, col, name, doc, ...)
   + update_prop(row, col, name, doc)
   + rebuild_grid(doc)
@@ -83,9 +91,11 @@ class TilePalette {
 }
 
 class FileManager {
+  + FileManager(parent: QWidget*)
   + save(doc) : bool
   + save_as(doc) : bool
   + open(doc) : bool
+  - parent_ : QWidget*
 }
 
 class TomlSerializer {
@@ -106,7 +116,25 @@ class MapInteraction {
 MainWindow *-- EditorController : dueño
 MainWindow *-- TilePalette : dueño
 MainWindow *-- MapInteraction : dueño
-MainWindow --> "dialogs" : usa (show_*_dialog)
+MainWindow --> Dialogs : usa (show_*_dialog)
+MainWindow *-- "dialogs (show_new_map_dialog, show_transition_dialog)" : llama
+
+class Dialogs {
+  {static} + show_new_map_dialog(parent) : NewMapResult
+  {static} + show_transition_dialog(parent, ...) : TransitionResult
+}
+struct NewMapResult {
+  + width : int
+  + height : int
+  + map_type : MapType
+  + accepted : bool
+}
+struct TransitionResult {
+  + transition_map : string
+  + transition_x : int
+  + transition_y : int
+  + accepted : bool
+}
 
 EditorController *-- TilemapDocument : dueño
 EditorController *-- MapSceneRenderer : dueño

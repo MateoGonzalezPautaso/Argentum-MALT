@@ -84,7 +84,7 @@ Hereda de `Thread`. Corre a frecuencia fija configurable (default 20 Hz) con alg
 Estado central del mundo. Contiene:
 - `players`: `map<uint16_t, Player>` — todos los jugadores conectados.
 - `enemy_npcs`: `map<uint16_t, EnemyNpc>` — NPCs enemigos.
-- `maps`: `map<string, Map>` — mapas cargados desde TOML.
+- `maps`: `unordered_map<string, Map>` — mapas cargados desde TOML.
 - `clan_manager`: gestión de clanes.
 - 12 servicios especializados (en `server/game/services/`): `BankService`, `MerchantService`, `SpawnService`, `GroundItemService`, `MapTransitionService`, `MapDataService`, `PlayerSessionService`, `CheatService`, `MovementService`, `RegenService`, `ResurrectionService`, `SpellService`.
 - `combat_controller`: lógica de combate (daño, crítico, evasión, defensa).
@@ -265,7 +265,7 @@ A nivel de clases, tanto servidor como cliente extienden `Protocol` (`common/pro
 
 ![](images/communication_messages_protocol.png)
 
-[communication_mesagges_protocol.puml](uml/communication_mesagges_protocol.puml)
+[communication_messages_protocol.puml](uml/communication_messages_protocol.puml)
 
 ```cpp
 std::visit(overloaded{
