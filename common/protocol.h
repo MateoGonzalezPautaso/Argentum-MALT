@@ -8,7 +8,7 @@
 #include "socket.h"
 
 enum class OpCode : uint8_t {
-    // Commands (client -> server) 0x01 - 0x1D
+    // Commands (client -> server) 0x01 - 0x2A
     LOGIN = 0x01,
     CREATE_CHARACTER = 0x02,
     MOVE = 0x03,

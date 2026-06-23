@@ -67,21 +67,34 @@ class Inventory {
 }
 
 class PlayerRegistry {
-  - players: map<uint16_t, Player>
+  - players: map<uint16_t, Player>&
+  + ids_on_map(map_name): vector<uint16_t>
   + get(id: uint16_t): Player&
-  + add(id: uint16_t, player: Player)
-  + remove(id: uint16_t)
   + count(): size_t
 }
+note bottom of PlayerRegistry
+  Wrapper de consulta efímero sobre el
+  map<uint16_t, Player> de Game. No es
+  dueño de los Player ni un miembro de
+  Game: se construye on-the-fly como
+  PlayerRegistry(players).
+end note
 
 class Game {
-  - player_registry: PlayerRegistry
+  - players: map<uint16_t, Player>
+  - enemy_npcs: map<uint16_t, EnemyNpc>
+  - maps: unordered_map<string, Map>
   - combat_controller: CombatController
   - clan_manager: ClanManager
-  - map_manager: MapManager
   + process_command(id: uint16_t, cmd: ClientCommand): CommandResult
   + tick(): CommandResult
 }
+note bottom of Game
+  Además compone 12 servicios
+  especializados (BankService,
+  SpawnService, SpellService, ...).
+  Ver game_services.puml.
+end note
 
 class CombatController {
   + melee_attack(attacker_id, target_id, tick): CommandResult
@@ -99,9 +112,10 @@ Entity <|-- Player
 Entity <|-- EnemyNpc
 Player *-- PlayerInventory
 PlayerInventory *-- Inventory
-Game "1" *-- "1" PlayerRegistry
+Game "1" o-- "*" Player : players
+Game "1" o-- "*" EnemyNpc : enemy_npcs
 Game "1" *-- "1" CombatController
 Game "1" *-- "1" ClanManager
-PlayerRegistry "1" o-- "*" Player
-CombatController o-- EnemyNpc
+Game ..> PlayerRegistry : <<envuelve players>>
+CombatController ..> EnemyNpc : opera (por referencia)
 @enduml

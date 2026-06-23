@@ -56,7 +56,7 @@ class ClientProtocol {
   + send_chat_msg(cmd)
   + send_clan_found(cmd) / ... (8 comandos de clan)
   + send_cheat_infinite_hp() / ... (12 cheats)
-  + ... (35 métodos send_* en total, uno por ClientCommand)
+  + ... (41 métodos send_* en total, uno por ClientCommand)
   + send_command(cmd: ClientCommand)
   + recv_event(): ServerEvent
   + shutdown_from_other_thread()

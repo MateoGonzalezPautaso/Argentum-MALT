@@ -12,7 +12,7 @@ class PlayerSessionService {
 }
 
 class SpawnService {
-  + tick_spawn(tick, map_manager, ...): CommandResult
+  + spawn_mobs(): CommandResult
 }
 
 class CombatController {
@@ -45,6 +45,27 @@ class CheatService {
   + handle_cheat(player, cmd): CommandResult
 }
 
+class MapDataService {
+  + handle_request_map_data(player, cmd): CommandResult
+}
+
+class MovementService {
+  + handle_move(player, cmd, map): CommandResult
+}
+
+class RegenService {
+  + apply_regen(players, tick): CommandResult
+}
+
+class ResurrectionService {
+  + handle_resurrect(player): CommandResult
+  + process_pending(tick): CommandResult
+}
+
+class SpellService {
+  + handle_cast_spell(attacker, cmd, tick): CommandResult
+}
+
 class EntityEventFactory {
   + make_spawn_event(entity): ServerEvent
   + make_move_event(entity): ServerEvent
@@ -59,6 +80,12 @@ Game *--> MerchantService
 Game *--> BankService
 Game *--> MapTransitionService
 Game *--> CheatService
+Game *--> MapDataService
+Game *--> MovementService
+Game *--> RegenService
+Game *--> ResurrectionService
+Game *--> SpellService
 CombatController --> EntityEventFactory
 SpawnService --> EntityEventFactory
+SpellService --> EntityEventFactory
 @enduml
