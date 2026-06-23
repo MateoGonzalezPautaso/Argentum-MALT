@@ -23,6 +23,7 @@ target_sources(taller_tests
     ${CMAKE_SOURCE_DIR}/server/game/enemy_npc.cpp
     ${CMAKE_SOURCE_DIR}/server/game/entity.cpp
     ${CMAKE_SOURCE_DIR}/server/game/map.cpp
+    ${CMAKE_SOURCE_DIR}/server/game/map_level_data_builder.cpp
     ${CMAKE_SOURCE_DIR}/server/game/prop_grid.cpp
     ${CMAKE_SOURCE_DIR}/server/game/game_formulas.cpp
     ${CMAKE_SOURCE_DIR}/server/game/entity_event_factory.cpp
