@@ -53,6 +53,7 @@ public:
     void send_cheat_clear_inventory();
     void send_cheat_reset_mana();
     void send_change_map(const ChangeMapCmd& cmd);
+    void send_request_map_data(const RequestMapDataCmd& cmd);
 
     // Envía cualquier comando usando std::visit.
     void send_command(const ClientCommand& cmd);
@@ -89,6 +90,7 @@ private:
     ServerEvent recv_heal_received();
     ServerEvent recv_spell_effect();
     ServerEvent recv_map_transition();
+    ServerEvent recv_map_data();
     ServerEvent recv_player_stats();
     ServerEvent recv_npc_item_list();
     ServerEvent recv_bank_update();

@@ -173,6 +173,11 @@ void ClientProtocol::send_change_map(const ChangeMapCmd& cmd) {
     protocol.send_str(cmd.prop_name);
 }
 
+void ClientProtocol::send_request_map_data(const RequestMapDataCmd& cmd) {
+    protocol.send_opcode(OpCode::REQUEST_MAP_DATA);
+    protocol.send_str(cmd.map_name);
+}
+
 void ClientProtocol::send_equip_item(const EquipItemCmd& cmd) {
     protocol.send_opcode(OpCode::EQUIP_ITEM);
     protocol.send_uint8(cmd.slot_index);
@@ -206,6 +211,7 @@ void ClientProtocol::send_command(const ClientCommand& cmd) {
                        [this](const CheatClearInventoryCmd&) { send_cheat_clear_inventory(); },
                        [this](const CheatResetManaCmd&) { send_cheat_reset_mana(); },
                        [this](const ChangeMapCmd& msg) { send_change_map(msg); },
+                       [this](const RequestMapDataCmd& msg) { send_request_map_data(msg); },
                        [this](const EquipItemCmd& msg) { send_equip_item(msg); },
                        [this](const UnequipItemCmd& msg) { send_unequip_item(msg); },
                        [this](const NpcHealCmd& msg) { send_npc_heal(msg); },
@@ -302,6 +308,8 @@ ServerEvent ClientProtocol::recv_event() {
             return recv_spell_effect();
         case OpCode::MAP_TRANSITION:
             return recv_map_transition();
+        case OpCode::MAP_DATA:
+            return recv_map_data();
         case OpCode::PLAYER_STATS:
             return recv_player_stats();
         case OpCode::GOLD_UPDATE:
@@ -415,6 +423,62 @@ ServerEvent ClientProtocol::recv_map_transition() {
     ev.pos_x = protocol.recv_uint16();
     ev.pos_y = protocol.recv_uint16();
     return ev;
+}
+
+ServerEvent ClientProtocol::recv_map_data() {
+    MapLevelData d;
+    d.map_name = protocol.recv_str();
+    d.map_type = static_cast<MapType>(protocol.recv_uint8());
+    d.tile_size = protocol.recv_uint16();
+    d.rows = protocol.recv_uint16();
+    d.cols = protocol.recv_uint16();
+
+    uint16_t tile_table_count = protocol.recv_uint16();
+    d.tile_id_table.reserve(tile_table_count);
+    for (uint16_t i = 0; i < tile_table_count; ++i)
+        d.tile_id_table.push_back(protocol.recv_str());
+
+    uint16_t tile_rows = protocol.recv_uint16();
+    d.tile_grid.resize(tile_rows);
+    for (uint16_t r = 0; r < tile_rows; ++r) {
+        uint16_t row_len = protocol.recv_uint16();
+        d.tile_grid[r].reserve(row_len);
+        for (uint16_t c = 0; c < row_len; ++c)
+            d.tile_grid[r].push_back(protocol.recv_uint16());
+    }
+
+    uint16_t prop_table_count = protocol.recv_uint16();
+    d.prop_id_table.reserve(prop_table_count);
+    for (uint16_t i = 0; i < prop_table_count; ++i)
+        d.prop_id_table.push_back(protocol.recv_str());
+
+    uint16_t props_count = protocol.recv_uint16();
+    d.props.reserve(props_count);
+    for (uint16_t i = 0; i < props_count; ++i) {
+        PropPlacement p;
+        p.prop_id_index = protocol.recv_uint16();
+        p.row = protocol.recv_uint16();
+        p.col = protocol.recv_uint16();
+        p.is_transition = protocol.recv_bool();
+        d.props.push_back(p);
+    }
+
+    auto recv_bool_grid = [this]() {
+        std::vector<std::vector<bool>> grid;
+        uint16_t rows = protocol.recv_uint16();
+        grid.resize(rows);
+        for (uint16_t r = 0; r < rows; ++r) {
+            uint16_t len = protocol.recv_uint16();
+            grid[r].reserve(len);
+            for (uint16_t c = 0; c < len; ++c)
+                grid[r].push_back(protocol.recv_bool());
+        }
+        return grid;
+    };
+    d.walkable = recv_bool_grid();
+    d.mob_spawn_zones = recv_bool_grid();
+
+    return MapDataEvent{std::move(d)};
 }
 
 ServerEvent ClientProtocol::recv_entity_spawn() {

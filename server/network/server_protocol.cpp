@@ -75,6 +75,8 @@ ClientCommand ServerProtocol::recv_command() {
             return CheatResetManaCmd{};
         case OpCode::CHANGE_MAP:
             return recv_change_map();
+        case OpCode::REQUEST_MAP_DATA:
+            return recv_request_map_data();
         case OpCode::EQUIP_ITEM:
             return recv_equip_item();
         case OpCode::UNEQUIP_ITEM:
@@ -143,6 +145,12 @@ ClientCommand ServerProtocol::recv_send_chat_msg() {
 ClientCommand ServerProtocol::recv_change_map() {
     ChangeMapCmd cmd;
     cmd.prop_name = protocol.recv_str();
+    return cmd;
+}
+
+ClientCommand ServerProtocol::recv_request_map_data() {
+    RequestMapDataCmd cmd;
+    cmd.map_name = protocol.recv_str();
     return cmd;
 }
 
@@ -285,6 +293,51 @@ void ServerProtocol::send_map_transition(const MapTransitionEvent& ev) {
     protocol.send_uint16(ev.pos_y);
 }
 
+void ServerProtocol::send_map_data(const MapDataEvent& ev) {
+    const MapLevelData& d = ev.data;
+    protocol.send_opcode(OpCode::MAP_DATA);
+    protocol.send_str(d.map_name);
+    protocol.send_uint8(static_cast<uint8_t>(d.map_type));
+    protocol.send_uint16(d.tile_size);
+    protocol.send_uint16(d.rows);
+    protocol.send_uint16(d.cols);
+
+    // Diccionario de tiles + grilla de índices.
+    protocol.send_uint16(static_cast<uint16_t>(d.tile_id_table.size()));
+    for (const auto& id: d.tile_id_table)
+        protocol.send_str(id);
+    protocol.send_uint16(static_cast<uint16_t>(d.tile_grid.size()));
+    for (const auto& row: d.tile_grid) {
+        protocol.send_uint16(static_cast<uint16_t>(row.size()));
+        for (uint16_t index: row)
+            protocol.send_uint16(index);
+    }
+
+    // Diccionario de props + lista dispersa.
+    protocol.send_uint16(static_cast<uint16_t>(d.prop_id_table.size()));
+    for (const auto& id: d.prop_id_table)
+        protocol.send_str(id);
+    protocol.send_uint16(static_cast<uint16_t>(d.props.size()));
+    for (const auto& p: d.props) {
+        protocol.send_uint16(p.prop_id_index);
+        protocol.send_uint16(p.row);
+        protocol.send_uint16(p.col);
+        protocol.send_bool(p.is_transition);
+    }
+
+    // Grillas de bool (walkable y zonas de spawn).
+    auto send_bool_grid = [this](const std::vector<std::vector<bool>>& grid) {
+        protocol.send_uint16(static_cast<uint16_t>(grid.size()));
+        for (const auto& row: grid) {
+            protocol.send_uint16(static_cast<uint16_t>(row.size()));
+            for (bool cell: row)
+                protocol.send_bool(cell);
+        }
+    };
+    send_bool_grid(d.walkable);
+    send_bool_grid(d.mob_spawn_zones);
+}
+
 void ServerProtocol::send_clan_update(const ClanUpdateEvent& ev) {
     protocol.send_opcode(OpCode::CLAN_UPDATE);
     protocol.send_str(ev.clan_name);
@@ -374,6 +427,7 @@ void ServerProtocol::send_event(const ServerEvent& ev) {
                        [this](const ClanNotificationEvent& msg) { send_clan_notification(msg); },
                        [this](const ClanUpdateEvent& msg) { send_clan_update(msg); },
                        [this](const MapTransitionEvent& msg) { send_map_transition(msg); },
+                       [this](const MapDataEvent& msg) { send_map_data(msg); },
                        [this](const PlayerStatsEvent& msg) { send_player_stats(msg); },
                        [this](const HealReceivedEvent& msg) { send_heal_received(msg); },
                        [this](const SpellEffectEvent& msg) { send_spell_effect(msg); },

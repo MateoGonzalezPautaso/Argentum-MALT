@@ -35,6 +35,7 @@ public:
     void send_clan_notification(const ClanNotificationEvent& ev);
     void send_clan_update(const ClanUpdateEvent& ev);
     void send_map_transition(const MapTransitionEvent& ev);
+    void send_map_data(const MapDataEvent& ev);
     void send_heal_received(const HealReceivedEvent& ev);
     void send_spell_effect(const SpellEffectEvent& ev);
 
@@ -64,6 +65,7 @@ private:
     ClientCommand recv_attack();
     ClientCommand recv_send_chat_msg();
     ClientCommand recv_change_map();
+    ClientCommand recv_request_map_data();
     ClientCommand recv_cast_spell();
     ClientCommand recv_equip_item();
     ClientCommand recv_unequip_item();

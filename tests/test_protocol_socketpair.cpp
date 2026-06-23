@@ -1303,3 +1303,81 @@ TEST_F(ProtocolTest, BankUpdateWithItemsRoundtrip) {
     EXPECT_EQ(received.slots[0].item_name, "ash_staff");
     EXPECT_EQ(received.gold, 999);
 }
+
+// ─────────────────────────────────────────────────────────────
+// MAP_DATA / REQUEST_MAP_DATA (descarga de niveles por red)
+// ─────────────────────────────────────────────────────────────
+
+TEST_F(ProtocolTest, RequestMapDataRoundtrip) {
+    ClientProtocol client(Socket::from_fd(fds[0]));
+    ServerProtocol server(Socket::from_fd(fds[1]));
+
+    client.send_command(RequestMapDataCmd{"dungeon"});
+
+    ClientCommand cmd = server.recv_command();
+    ASSERT_TRUE(std::holds_alternative<RequestMapDataCmd>(cmd));
+    EXPECT_EQ(std::get<RequestMapDataCmd>(cmd).map_name, "dungeon");
+}
+
+TEST_F(ProtocolTest, MapDataRoundtripPreservesDictionaryAndGrids) {
+    ServerProtocol server(Socket::from_fd(fds[0]));
+    ClientProtocol client(Socket::from_fd(fds[1]));
+
+    // Mapa 3x3 armado a mano, con diccionario de 2 tiles y 2 props.
+    MapLevelData sent;
+    sent.map_name = "city";
+    sent.map_type = MapType::CITY;
+    sent.tile_size = 128;
+    sent.rows = 3;
+    sent.cols = 3;
+    sent.tile_id_table = {"grass", "wall"};
+    sent.tile_grid = {
+            {0, 0, 0},
+            {0, 1, 0},
+            {0, 0, 0},
+    };
+    sent.prop_id_table = {"tree", "door"};
+    sent.props = {
+            {0, 0, 2, false},  // tree en (0,2)
+            {1, 2, 0, true},   // door en (2,0), transición
+    };
+    sent.walkable = {
+            {true, true, false},
+            {true, false, true},
+            {true, true, true},
+    };
+    sent.mob_spawn_zones = {
+            {false, false, false},
+            {false, true, false},
+            {false, false, false},
+    };
+
+    server.send_event(MapDataEvent{sent});
+
+    ServerEvent ev = client.recv_event();
+    ASSERT_TRUE(std::holds_alternative<MapDataEvent>(ev));
+    const MapLevelData& got = std::get<MapDataEvent>(ev).data;
+
+    EXPECT_EQ(got.map_name, "city");
+    EXPECT_EQ(got.map_type, MapType::CITY);
+    EXPECT_EQ(got.tile_size, 128);
+    EXPECT_EQ(got.rows, 3);
+    EXPECT_EQ(got.cols, 3);
+
+    // El diccionario y los índices resuelven al mismo string del otro lado.
+    ASSERT_EQ(got.tile_id_table, sent.tile_id_table);
+    ASSERT_EQ(got.tile_grid, sent.tile_grid);
+    EXPECT_EQ(got.tile_id_table[got.tile_grid[1][1]], "wall");
+
+    ASSERT_EQ(got.prop_id_table, sent.prop_id_table);
+    ASSERT_EQ(got.props.size(), 2u);
+    EXPECT_EQ(got.prop_id_table[got.props[0].prop_id_index], "tree");
+    EXPECT_FALSE(got.props[0].is_transition);
+    EXPECT_EQ(got.prop_id_table[got.props[1].prop_id_index], "door");
+    EXPECT_TRUE(got.props[1].is_transition);
+    EXPECT_EQ(got.props[1].row, 2);
+    EXPECT_EQ(got.props[1].col, 0);
+
+    EXPECT_EQ(got.walkable, sent.walkable);
+    EXPECT_EQ(got.mob_spawn_zones, sent.mob_spawn_zones);
+}
