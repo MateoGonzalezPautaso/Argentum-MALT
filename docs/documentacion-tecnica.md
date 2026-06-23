@@ -27,7 +27,7 @@ Las tres comparten una biblioteca estática `taller_common` (`common/`) con la i
 
 Centrado en `Entity` como clase base del modelo de objetos del juego.
 
-![](images/entities.png)
+![](images/uml/entities.png)
 
 [entities.puml](uml/entities.puml)
 
@@ -35,7 +35,7 @@ Centrado en `Entity` como clase base del modelo de objetos del juego.
 
 El `Game` delega lógica a servicios especializados. Cada uno recibe referencias a las dependencias que necesita (`PlayerRegistry`, `ClanManager`, etc.).
 
-![](images/game_services.png)
+![](images/uml/game_services.png)
 
 [game_services.puml](uml/game_services.puml)
 
@@ -102,7 +102,7 @@ Procesa comandos (`process_command`) a través de `std::visit` sobre `ClientComm
 
 Muestra cómo los threads del servidor se comunican mediante colas bloqueantes:
 
-![](images/server_threads_architecture.png)
+![](images/uml/server_threads_architecture.png)
 
 Diagrama de clases completo de threading: [server_threads_architecture.puml](uml/server_threads_architecture.puml).
 
@@ -112,19 +112,19 @@ Diagrama de clases completo de threading: [server_threads_architecture.puml](uml
 
 Diagrama de clases centrado en la infraestructura de red y la lógica de juego/UI (`Socket`, `Protocol`, `ClientProtocol`, `Engine`, `GameController`, `ServerEventHandler`), análogo a [server_classes.puml](uml/server_classes.puml) del lado servidor. `GameController` cumple un rol similar a `Game`, pero solo refleja el estado que llega por `ServerEvent` — no es fuente de verdad.
 
-![](images/client_classes.png)
+![](images/uml/client_classes.png)
 
 [client_classes.puml](uml/client_classes.puml)
 
 El cliente corre todo en el thread principal salvo `Sender`/`Receiver` de red, que son simétricos a su contraparte del servidor: `Client` ≈ `ClientHandler`, compone un `Sender` y un `Receiver`, cada uno con su propia `Queue`. La diferencia es que hay un solo `Client` por proceso, y el thread "dueño" además dibuja la UI.
 
-![](images/client_threads_architecture.png)
+![](images/uml/client_threads_architecture.png)
 
 [client_threads_architecture.puml](uml/client_threads_architecture.puml)
 
 Tras el refactor del renderizado, el `SpriteRenderer` delega la gestión de entidades a `EntitySpriteRegistry` y los efectos visuales a `EffectOverlaySystem`:
 
-![](images/client.png)
+![](images/uml/client.png)
 
 [client.puml](uml/client.puml)
 
@@ -134,7 +134,7 @@ Tras el refactor del renderizado, el `SpriteRenderer` delega la gestión de enti
 
 ### 3.1 Diagrama de clases
 
-![](images/editor_classes.png)
+![](images/uml/editor_classes.png)
 
 [editor_classes.puml](uml/editor_classes.puml) — Diagrama de clases del editor gráfico, mostrando las relaciones entre `MainWindow`, `EditorController`, `TilemapDocument`, `MapSceneRenderer`, `AtlasLoader`, `TilePalette` y `FileManager`.
 
@@ -214,7 +214,7 @@ Esto garantiza que el formato de mapa que produce el editor es exactamente el qu
 
 Recorrido completo comando → `GameLoop` → `Game` → `CombatController` → eventos de vuelta a los clientes.
 
-![](images/attack.png)
+![](images/uml/attack.png)
 
 [attack.puml](uml/attack.puml)
 
@@ -222,7 +222,7 @@ Recorrido completo comando → `GameLoop` → `Game` → `CombatController` → 
 
 `LoginCmd` → `PlayerSessionService::handle_login` → `PlayerDataService::load_player` → `LoginOkEvent`/`LoginErrorEvent`.
 
-![](images/login.png)
+![](images/uml/login.png)
 
 [login.puml](uml/login.puml)
 
@@ -230,7 +230,7 @@ Recorrido completo comando → `GameLoop` → `Game` → `CombatController` → 
 
 IA de NPCs en cada tick del `GameLoop`: detección de jugador en rango de visión, persecución, ataque, respeto de zonas seguras.
 
-![](images/npc_ai.png)
+![](images/uml/npc_ai.png)
 
 [npc_ai.puml](uml/npc_ai.puml)
 
@@ -238,7 +238,7 @@ IA de NPCs en cada tick del `GameLoop`: detección de jugador en rango de visió
 
 Recorrido completo desde que arranca el editor hasta que el usuario coloca un tile en el mapa: carga de configuración default, carga del mapa inicial, renderizado de la escena, selección de tile en el palette y colocación en la grilla.
 
-![](images/editor_start_edit.png)
+![](images/uml/editor_start_edit.png)
 
 [editor_start_edit.puml](uml/editor_start_edit.puml)
 
@@ -246,7 +246,7 @@ Recorrido completo desde que arranca el editor hasta que el usuario coloca un ti
 
 Validación del mapa (ciudad requiere NPCs), serialización TOML a través de `TomlSerializer`, escritura del archivo `.toml` y registro del mapa en `config/map_list.toml`.
 
-![](images/editor_save.png)
+![](images/uml/editor_save.png)
 
 [editor_save.puml](uml/editor_save.puml)
 
@@ -263,7 +263,7 @@ El protocolo binario completo está documentado en [`protocol.md`](protocol.md).
 
 A nivel de clases, tanto servidor como cliente extienden `Protocol` (`common/protocol.h`) con su propia capa de alto nivel — `ServerProtocol` y `ClientProtocol` respectivamente — que serializan/deserializan los variants `ClientCommand` (41 tipos) y `ServerEvent` (29 tipos) vía `std::visit` + patrón `overloaded`:
 
-![](images/communication_messages_protocol.png)
+![](images/uml/communication_messages_protocol.png)
 
 [communication_messages_protocol.puml](uml/communication_messages_protocol.puml)
 
