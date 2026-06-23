@@ -275,7 +275,7 @@ El cambio es inmediato al equipar o desequipar un objeto (ver [7.6](#76-cómo-eq
 
 | Acción | Tecla / Input |
 |--------|---------------|
-| Moverse | Flechas direccionales / WASD |
+| Moverse | Flechas direccionales |
 | Moverse a una posición | Clic izquierdo en el mapa |
 | Atacar (cuerpo a cuerpo / arco) | Clic izquierdo en el objetivo |
 | Lanzar hechizo | Clic derecho en el objetivo |

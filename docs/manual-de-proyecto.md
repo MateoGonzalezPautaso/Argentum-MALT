@@ -65,9 +65,6 @@
 - **¿Pudieron llegar con todo?**
   - Sí, se completaron todas las features requeridas: servidor multithread, cliente gráfico, editor de mapas, protocolo binario, persistencia, clanes, hechizos, audio, mazmorras, sistema de combate completo.
 
-- **¿Algo que debería darse en Taller?**
-  - Un ejemplo concreto de cómo estructurar un proyecto CMake con FetchContent y dependencias externas.
-
 ## Enlaces
 
 - Repositorio: [GitHub](https://github.com/MateoGonzalezPautaso/Argentum-MALT)
