@@ -4,8 +4,6 @@ title IA de NPCs en cada Tick
 participant "GameLoop\n(Thread)" as GL
 participant Game
 participant CombatController as CC
-participant EntityEventFactory as EF
-participant Map
 participant EnemyNpc as NPC
 participant Player as P
 
@@ -13,16 +11,15 @@ GL -> Game: tick()
 Game -> CC: update_npc_ai(tick_count)
 
 loop para cada NPC vivo
-  CC -> Map: nearest_alive_player(npc.pos, map)
-  Map -> CC: Player* o nullptr
+  CC -> CC: get_nearest_player(npc)
+  note right: Player* o nullptr\n(itera jugadores del mapa del NPC)
 
   alt jugador dentro de npc_vision_range_px (250px)
     CC -> CC: ¿está en zona segura?
     alt fuera de zona segura
       alt jugador fuera de attack_range (80px)
         CC -> NPC: mover hacia jugador (chase)
-        CC -> EF: make_move_event(npc)
-        EF -> CC: EntityMoveEvent
+        CC -> CC: construye EntityMoveEvent
         CC -> Game: CommandResult{EntityMoveEvent}
         note right: paso de 8px por tick\nrespeta walkability\nrespeta safe zones
       else jugador en rango de ataque
@@ -30,11 +27,10 @@ loop para cada NPC vivo
         alt ataque exitoso
           CC -> CC: calcular daño
           CC -> P: take_damage(damage)
-          CC -> EF: make_damage_event(...)
-          EF -> CC: DamageDealtEvent
-          CC -> Game: CommandResult{DamageDealtEvent}
+          CC -> CC: construye DamageReceivedEvent
+          CC -> Game: CommandResult{DamageReceivedEvent}
           alt jugador muere
-            CC -> EF: make_death_event(...)
+            CC -> CC: construye EntityDiedEvent
             CC -> Game: EntityDiedEvent
           end
         end

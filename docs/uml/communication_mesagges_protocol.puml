@@ -2,14 +2,19 @@
 title Protocolo de Mensajes
 
 class Protocol {
+  - skt: Socket&
   + send_uint8(v: uint8_t)
   + send_uint16(v: uint16_t)
   + send_uint32(v: uint32_t)
-  + send_string(s: string)
+  + send_str(s: string)
+  + send_bool(v: bool)
+  + send_opcode(op: OpCode)
   + recv_uint8(): uint8_t
   + recv_uint16(): uint16_t
   + recv_uint32(): uint32_t
-  + recv_string(): string
+  + recv_str(): string
+  + recv_bool(): bool
+  + recv_opcode(): OpCode
 }
 
 class ServerProtocol {
@@ -35,9 +40,11 @@ class ClientProtocol {
 }
 
 class Socket {
-  - fd: int
-  + send(buf, len): int
-  + recv(buf, len): int
+  - skt: int
+  + sendall(data, sz): int
+  + recvall(data, sz): int
+  + sendsome(data, sz): int
+  + recvsome(data, sz): int
 }
 
 class ClientCommand <<variant>> {
@@ -45,13 +52,13 @@ class ClientCommand <<variant>> {
   MoveCmd
   AttackCmd
   CastSpellCmd
-  PickUpItemCmd
-  EquipCmd
+  PickupItemCmd
+  EquipItemCmd
   MeditateCmd
   CreateCharacterCmd
-  SendMessageCmd
-  ClanCommandCmd
-  ... (40 variantes)
+  SendChatMsgCmd
+  ClanFoundCmd
+  ... (41 variantes)
 }
 
 class ServerEvent <<variant>> {
@@ -64,19 +71,22 @@ class ServerEvent <<variant>> {
   PlayerStatsEvent
   InventoryUpdateEvent
   ClanUpdateEvent
-  GroundItemSpawnEvent
+  ItemDroppedEvent
+  MapDataEvent
   ... (29 variantes)
 }
 
-Protocol <|-- ServerProtocol
-Protocol <|-- ClientProtocol
-Protocol *-- Socket
+Protocol o-- ServerProtocol : <<compone>>
+Protocol o-- ClientProtocol : <<compone>>
+Socket <-- Protocol : &skt (referencia)
+Socket *-- ServerProtocol : <<dueño>>
+Socket *-- ClientProtocol : <<dueño>>
 ServerProtocol ..> ServerEvent: serializa
 ServerProtocol ..> ClientCommand: deserializa
 ClientProtocol ..> ClientCommand: serializa
 ClientProtocol ..> ServerEvent: deserializa
 note right of ClientCommand
-  std::variant con ~40 tipos
+  std::variant con 41 tipos
   Dispatch via std::visit + overloaded
 end note
 note right of ServerEvent

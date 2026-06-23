@@ -2,30 +2,38 @@
 title Pipeline de Renderizado — Cliente
 
 class SpriteRenderer {
-  - entity_registry: EntitySpriteRegistry
-  - overlay_system: EffectOverlaySystem
-  + spawn_entity(id, x, y, name, race, class, sprite_id)
-  + step_entity_src_x(id, step, frame_count)
+  - entity_registry_: EntitySpriteRegistry
+  - effects_: EffectOverlaySystem
+  + add_entity(id, x, y, name, race, class, sprite_id)
+  + remove_entity(id)
+  + move_entity(id, x, y)
+  + advance_entity_src_x(id, step, frame_count)
   + set_entity_src_y(id, body_y, head_y)
-  + render(camera)
+  + render(cam)
+  + render_overlays(cam)
 }
 
 class EntitySpriteRegistry {
   - entities: map<uint16_t, RenderedEntity>
   - skin_config: SkinConfig
-  + spawn_entity(id, x, y, name, race, class, sprite_id)
-  + despawn_entity(id)
-  + step_entity_src_x(id, step, frame_count)
+  + add_entity(id, x, y, name, race, class, sprite_id)
+  + remove_entity(id)
+  + move_entity(id, x, y)
+  + advance_entity_src_x(id, step, frame_count)
   + set_entity_src_y(id, body_y, head_y)
   + set_local_clan_name(name)
   + set_entity_clan_name(id, name)
+  + collect_drawables(cam, out)
   + {static} resolve_entity_skin(skin, cfg, race, class, sprite_id): SpriteConfig
 }
 
 class EffectOverlaySystem {
-  + add_overlay(entity_id, effect)
-  + tick_overlays(tick)
-  + render(entity_id, camera)
+  + load_damage_overlay(cfg)
+  + trigger_damage_effect(world_x, world_y)
+  + load_spell_sheets(sheets)
+  + trigger_spell_effect(effect_type, world_x, world_y)
+  + advance()
+  + render(cam)
 }
 
 class RenderedEntity {
@@ -36,21 +44,21 @@ class RenderedEntity {
   base_src_y: int
   speed: int
   move_counter: int
+  last_move_tick: uint32_t
   parts: vector<SpriteRender>
   name_label: optional<EntityNameRender>
+  equip: EntityEquipState
   clan_name: string
+  username: string
 }
 
 class SkinConfig {
   body: map<string, string>
   head: map<string, string>
   npc: map<uint16_t, NpcSkinDef>
-  + npc_path_for(id): string
-  + npc_frame_w(id): int
-  + npc_row_positions(id): vector<int>
-  + npc_frame_positions(id): vector<int>
-  + npc_walk_row_offset(id): int
-  + speed(id): int
+  + head_path_for(race): string
+  + body_path_for(player_class): string
+  + npc_def(sprite_id): NpcSkinDef&
 }
 
 class NpcSkinDef {

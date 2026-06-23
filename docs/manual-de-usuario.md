@@ -752,8 +752,8 @@ Ubicado en `config/server.toml`. Controla parámetros del servidor:
 | `[attack]` | `critical_chance` | Probabilidad base de golpe crítico |
 | `[attack]` | `critical_multiplier` | Multiplicador de daño en golpe crítico (defecto: 2 = doble daño) |
 | `[attack]` | `dodge_threshold` | Umbral de la fórmula de evasión (`rand(0,1)^Agilidad < dodge_threshold`) |
-| `[attack]` | `npc_vision_range_px` | Rango de visión de las criaturas (píxeles) |
-| `[attack]` | `npc_speed` | Velocidad de movimiento de las criaturas |
+| `[npc]` | `vision_range_px` | Rango de visión de las criaturas (píxeles) |
+| `[npc]` | `idle_move_min_ticks`, `idle_move_max_ticks` | Rango de ticks entre movimientos al azar de una criatura ociosa |
 | `[clan]` | `max_members` | Máximo de miembros por clan (incluido el fundador) |
 | `[clan]` | `min_level_found` | Nivel mínimo para fundar un clan |
 | `[clan]` | `max_name_length` | Longitud máxima del nombre de un clan |

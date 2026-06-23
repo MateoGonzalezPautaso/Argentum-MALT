@@ -7,8 +7,8 @@ class Game {
 }
 
 class PlayerSessionService {
-  + handle_login(cmd, registry, ...): CommandResult
-  + handle_create_character(cmd, ...): CommandResult
+  + handle_login(player_id, cmd): CommandResult
+  + handle_create_character(player_id, cmd): CommandResult
 }
 
 class SpawnService {
@@ -21,32 +21,32 @@ class CombatController {
 }
 
 class GroundItemService {
-  + handle_pickup(player, cmd, map): CommandResult
-  + handle_drop(player, cmd, map): CommandResult
+  + handle_pickup_item(player_id, cmd): CommandResult
+  + handle_drop_item(player_id, cmd): CommandResult
 }
 
 class MerchantService {
-  + handle_npc_buy(player, cmd): CommandResult
-  + handle_npc_sell(player, cmd): CommandResult
+  + handle_npc_buy(player_id, cmd): CommandResult
+  + handle_npc_sell(player_id, cmd): CommandResult
+  + handle_npc_list(player_id): CommandResult
 }
 
 class BankService {
-  + handle_deposit_gold(player, amount): CommandResult
-  + handle_withdraw_gold(player, amount): CommandResult
-  + handle_deposit_item(player, slot): CommandResult
-  + handle_withdraw_item(player, slot): CommandResult
+  + handle_bank_deposit(player_id, cmd): CommandResult
+  + handle_bank_withdraw(player_id, cmd): CommandResult
 }
 
 class MapTransitionService {
-  + handle_map_change(player, ...): CommandResult
+  + handle_change_map(player_id, cmd): CommandResult
 }
 
 class CheatService {
-  + handle_cheat(player, cmd): CommandResult
+  + dispatch(cheat_type, player_id): CommandResult
+  + handle_help(): CommandResult
 }
 
 class MapDataService {
-  + handle_request_map_data(player, cmd): CommandResult
+  + handle_request(map_name): CommandResult
 }
 
 class MovementService {
@@ -66,11 +66,17 @@ class SpellService {
   + handle_cast_spell(attacker, cmd, tick): CommandResult
 }
 
-class EntityEventFactory {
-  + make_spawn_event(entity): ServerEvent
-  + make_move_event(entity): ServerEvent
-  + make_death_event(entity): ServerEvent
+class EntityEventFactory <<namespace>> {
+  + make_entity_spawn(player): EntitySpawnEvent
+  + make_npc_spawn(npc, npc_id): EntitySpawnEvent
+  + make_equip_update(player_id, player): EquipUpdateEvent
 }
+note bottom of EntityEventFactory
+  Namespace de funciones libres (no una clase).
+  Solo eventos de spawn/equip; los eventos de
+  daño/muerte/movimiento los construyen los
+  servicios/CombatController directamente.
+end note
 
 Game *--> PlayerSessionService
 Game *--> SpawnService
@@ -85,7 +91,7 @@ Game *--> MovementService
 Game *--> RegenService
 Game *--> ResurrectionService
 Game *--> SpellService
-CombatController --> EntityEventFactory
+PlayerSessionService --> EntityEventFactory
 SpawnService --> EntityEventFactory
-SpellService --> EntityEventFactory
+CombatController --> EntityEventFactory
 @enduml

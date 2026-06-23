@@ -256,7 +256,7 @@ Validación del mapa (ciudad requiere NPCs), serialización TOML a través de `T
 
 El protocolo binario completo está documentado en [`protocol.md`](protocol.md). Incluye:
 
-- 50 OpCodes (cliente → servidor y servidor → cliente)
+- 70 OpCodes (41 cliente → servidor y 29 servidor → cliente)
 - Formato de cada mensaje (diagramas de bytes)
 - Enums para razas, clases, tipos de ítem, dirección, etc.
 - Flujos de sesión: login, creación de personaje, combate, muerte, equipamiento
@@ -461,20 +461,21 @@ Definición de todos los items del juego.
 item_type = "SWORD"
 name = "Espada"
 equip_slot = "WEAPON"
-min_damage = 3
-max_damage = 9
+min_damage = 2
+max_damage = 5
 mana_cost = 0
-price = 100
-attack_range = 80
+min_defense = 0
+max_defense = 0
+price = 50
 
 [[item]]
 item_type = "HEALTH_POTION"
 name = "Pocion de vida"
-equip_slot = "NONE"
+equip_slot = "CONSUMABLE"
 min_damage = 0
 max_damage = 0
-hp_restore = 50
-price = 25
+restore_hp_percent = 100   # las pociones restauran el 100% del recurso
+price = 30
 ```
 
 ### 6.5 `config/map_list.toml` y archivos de mapa
@@ -482,13 +483,10 @@ price = 25
 Lista de mapas y su configuración de tiles/props/NPCs.
 
 ```toml
-[[map]]
-name = "city"
-config = "config/city.toml"
-
-[[map]]
-name = "dungeon"
-config = "config/dungeon.toml"
+maps = [
+    { name = 'city',    path = 'config/city.toml' },
+    { name = 'dungeon', path = 'config/dungeon.toml' },
+]
 ```
 
 Cada archivo de mapa define:

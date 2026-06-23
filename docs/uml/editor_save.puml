@@ -36,7 +36,7 @@ else validación OK
   Doc --> FM: ok
   FM --> EC: ok
   EC -> ML: register_current_map_in_list()
-  note right: Agrega entrada [[map]] {name, config}\na config/map_list.toml
+  note right: Agrega entrada { name, path } al\narray maps de config/map_list.toml
   ML --> EC: ok
   EC --> MW: is_saved = true
   MW --> Usuario: barra de estado:\n"Mapa guardado"

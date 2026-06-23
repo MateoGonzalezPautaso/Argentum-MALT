@@ -13,7 +13,7 @@ class Entity {
   + take_damage(damage: int)
   + is_dead(): bool
   + try_attack(tick: int, cooldown: int): bool
-  + kill(): EnemyDrop
+  + kill()
   + get_dir(): Direction
   + set_dir(d: Direction)
 }
@@ -33,36 +33,39 @@ class Player {
   - bank_gold: int
   - clan_name: string
   + level_up()
-  + gain_experience(amount: int)
-  + equip(item: ItemSlot)
-  + unequip(slot: EquipSlot)
-  + heal(amount: int)
-  + restore_mana(amount: int)
+  + gain_experience(exp: uint32_t)
+  + equip(inv_slot_index: uint8_t, catalog: ItemCatalog): bool
+  + unequip(eslot: EquipSlot)
+  + heal(amount: uint32_t)
+  + restore_mana(amount: uint32_t)
 }
 
 class EnemyNpc {
   - damage: int
   - rng: RNG
-  + get_kill_reward(config: NpcDropConfig): EnemyDrop
+  + get_kill_reward(drop_config: NpcDropConfig, balance: BalanceConfig): EnemyDrop
 }
 
 class PlayerInventory {
-  - equip: Inventory
-  - hp_potions: Inventory
-  - mana_potions: Inventory
-  + equip_item(slot: ItemSlot): ItemSlot
-  + unequip_item(slot: EquipSlot): ItemSlot
-  + add_potion(item: ItemSlot)
-  + use_hp_potion(): int
-  + use_mana_potion(): int
+  + equip: Inventory
+  + hp_potions: Inventory
+  + mana_potions: Inventory
+  + slot_count(): uint8_t
+  + at(index: uint8_t): InventorySlot&
+  + place(type: ItemType, name: string): bool
+  + place_at(index: uint8_t, type: ItemType, name: string): bool
+  + clear(index: uint8_t)
+  + is_full(): bool
 }
 
 class Inventory {
-  - slots: vector<ItemSlot>
-  - max_slots: int
-  + add_item(item: ItemSlot): bool
-  + remove_item(slot: int): ItemSlot
-  + get_item(slot: int): ItemSlot
+  - slots: vector<InventorySlot>
+  + place(type: ItemType, name: string): bool
+  + place_at(index: uint8_t, type: ItemType, name: string): bool
+  + at(index: uint8_t): InventorySlot&
+  + clear(index: uint8_t)
+  + swap(a: uint8_t, b: uint8_t)
+  + first_free_slot(): uint8_t
   + is_full(): bool
 }
 

@@ -18,11 +18,12 @@ CS -> TCP: ClientProtocol::send_login()
 TCP -> SR: bytes
 SR -> GL: push(PlayerCommand{0, LoginCmd})
 GL -> Game: process_command(0, cmd)
-Game -> PSS: handle_login(cmd, registry, ...)
-PSS -> PDS: load_player(username)
+Game -> PSS: handle_login(player_id, cmd)
+PSS -> PDS: load_record(username)
 alt jugador existe
   PDS -> PSS: PlayerRecord (stats, inv, clan)
-  PSS -> PSS: crear Player, asignar id
+  PSS -> PDS: load_player(player_id, username, rec)
+  PDS -> PSS: Player
   PSS -> OQ: LoginOkEvent{player_id, stats, ...}
 else jugador nuevo
   PSS -> OQ: LoginErrorEvent

@@ -102,6 +102,7 @@ class ServerProtocol {
   + send_clan_notification(ev)
   + send_clan_update(ev)
   + send_map_transition(ev)
+  + send_map_data(ev)
   + send_heal_received(ev)
   + send_spell_effect(ev)
   + send_event(ev)
@@ -114,6 +115,7 @@ class ServerProtocol {
   - recv_attack()
   - recv_send_chat_msg()
   - recv_change_map()
+  - recv_request_map_data()
   - recv_cast_spell()
   - recv_equip_item()
   - recv_unequip_item()
@@ -196,8 +198,13 @@ class Game {
   - SpawnService spawn_service
   - GroundItemService ground_item_service
   - MapTransitionService map_transition_service
+  - MapDataService map_data_service
   - PlayerSessionService player_session_service
   - CheatService cheat_service
+  - ResurrectionService resurrection_service_
+  - MovementService movement_service_
+  - RegenService regen_service_
+  - SpellService spell_service_
   - ClanCommandHandler clan_handler
   - RNG rng
   - vector<NpcTemplate> world_npc_templates, dungeon_npc_templates
