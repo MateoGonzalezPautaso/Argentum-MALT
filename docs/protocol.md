@@ -8,7 +8,7 @@
 4. [Mensajes Cliente → Servidor](#4-mensajes-cliente--servidor)
 5. [Mensajes Servidor → Cliente](#5-mensajes-servidor--cliente)
 6. [Flujos de sesión](#6-flujos-de-sesión)
-7. [Enums](#7-Enums)
+7. [Enums](#7-enums)
 8. [Notas de implementación](#8-notas-de-implementación)
 
 ---
