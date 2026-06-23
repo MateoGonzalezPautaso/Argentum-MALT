@@ -130,9 +130,87 @@ Tras el refactor del renderizado, el `SpriteRenderer` delega la gestión de enti
 
 ---
 
-## 3. Diagramas de secuencia
+## 3. Arquitectura del editor
 
-### 3.1 Flujo de ataque (el más importante)
+### 3.1 Diagrama de clases
+
+![](images/editor_classes.png)
+
+[editor_classes.puml](uml/editor_classes.puml) — Diagrama de clases del editor gráfico, mostrando las relaciones entre `MainWindow`, `EditorController`, `TilemapDocument`, `MapSceneRenderer`, `AtlasLoader`, `TilePalette` y `FileManager`.
+
+### 3.2 Resumen de las clases principales
+
+#### `MainWindow` (`editor/core/main_window.h`)
+`QMainWindow` que orquesta toda la interfaz del editor. Compone:
+- `EditorController` — lógica de edición.
+- `QGraphicsScene` + `QGraphicsView` — lienzo donde se renderiza el mapa.
+- `TilePalette` — panel de selección de tiles y props.
+- Menús (Archivo, Mapa, Ver), barra de herramientas y barra de estado (zoom).
+
+Captura todos los eventos de mouse vía `eventFilter`: click izquierdo coloca el tile/prop seleccionado, click derecho borra, arrastre pinta rectángulos, Ctrl + rueda hace zoom.
+
+#### `EditorController` (`editor/core/editor_controller.h`)
+Orquestador central. Es dueño de:
+- `TilemapDocument` — modelo del mapa en memoria.
+- `AtlasLoader` — caché de `QPixmap` de los spritesheets.
+- `MapSceneRenderer` — gestión de los `QGraphicsItem` en escena.
+- `FileManager` — diálogos de archivo Qt.
+
+Operaciones de edición: `place_tile_or_prop()`, `fill_rect()`, `erase_tile()`, `erase_prop()`. Maneja zonas de spawn, validación de mapas ciudad (deben tener comerciante, banquero y sacerdote), y registro del mapa en `config/map_list.toml` al guardar.
+
+#### `TilemapDocument` (`editor/document/tilemap_document.h`)
+Modelo de datos de un mapa. Wrappe un `TilemapConfig` (definido en `common/config.h`) y una ruta de archivo. Mantiene cuatro grillas paralelas:
+- **Tiles** (`mapa`): nombre del tile en cada celda.
+- **Props** (`prop_map`): nombre del prop en cada celda.
+- **Spawn zones** (`mob_spawn_zones`): `bool` por celda indicando zona de spawn de NPCs.
+- **Transition overrides** (`prop_transition_overrides`): portal destino por instancia (anula el default del `PropDef`).
+
+#### `MapSceneRenderer` (`editor/render/map_scene_renderer.h`)
+Mantiene grillas paralelas de `QGraphicsPixmapItem*` para tiles y props, y `QGraphicsRectItem*` para overlays. Métodos clave:
+- `render_all()` / `render_props()` — construye la escena completa.
+- `update_tile()` / `update_prop()` — reemplaza un item individual.
+- Indicadores visuales: borde rojo en tiles no transitables, borde azul en props con portal, overlay verde en zonas de spawn.
+
+#### `AtlasLoader` (`editor/render/atlas_loader.h`)
+Carga spritesheets (`QPixmap`) desde disco deduplicando por ruta. Usado por `MapSceneRenderer` para los pixmaps de tiles/props y por `TilePalette` para las miniaturas.
+
+#### `TilePalette` (`editor/ui/tile_palette.h`)
+Panel plegable en el lado derecho con dos secciones ("Tiles" y "Props"). Cada entrada es un `QToolButton` con miniatura recortada del atlas. Soporta:
+- Click izquierdo: seleccionar tile/prop.
+- Click derecho en tile: alternar transitabilidad.
+- Click derecho en prop: configurar portal (destino y posición de spawn vía `show_transition_dialog`).
+
+#### `FileManager` (`editor/io/file_manager.h`)
+Wrapper sobre `QFileDialog` para abrir y guardar archivos TOML.
+
+#### `TomlSerializer` (`editor/io/toml_serializer.h`)
+Serialización bidireccional entre `TilemapConfig` y archivo TOML. La lectura (`load`) delega en `parse_tilemap_config()` y `parse_prop_config()` de `common/config.cpp`, compartidas con servidor y cliente. La escritura (`save`) construye la tabla TOML manualmente con las secciones `[tilemap]`, `[metadata]`, `[mob_spawn_zones]` y `[prop]`.
+
+
+### 3.3 Dependencia con `taller_common`
+
+El editor comparte con servidor y cliente los tipos de `common/config.h`:
+- `TilemapConfig`, `TileDef`, `PropDef`, `PropPartDef`, `HitboxDef`, `PropTransitionOverride`.
+- Las funciones de parseo `parse_tilemap_config()`, `parse_prop_config()`.
+- `MapType` enum (`NONE`, `CITY`, `DUNGEON`).
+- `parse_map_grid()` para leer la matriz del mapa desde TOML.
+
+Esto garantiza que el formato de mapa que produce el editor es exactamente el que consumen el servidor (para gameplay) y el cliente (para los catálogos visuales).
+
+### 3.5 Tecnologías
+
+| Componente | Tecnología | Propósito |
+|---|---|---|
+| GUI | Qt6 (Core, Widgets, OpenGL) | Ventanas, menús, diálogos, panel de selección |
+| Renderizado | SDL2 (vía QPixmap) | Sprites del mapa, tiles, props, overlays |
+| Serialización | toml++ | Carga/guardado de mapas en formato TOML |
+| Librería común | `taller_common` | Tipos compartidos (`TilemapConfig`) y parseo TOML |
+
+---
+
+## 4. Diagramas de secuencia
+
+### 4.1 Flujo de ataque (el más importante)
 
 Recorrido completo comando → `GameLoop` → `Game` → `CombatController` → eventos de vuelta a los clientes.
 
@@ -140,7 +218,7 @@ Recorrido completo comando → `GameLoop` → `Game` → `CombatController` → 
 
 [attack.puml](uml/attack.puml)
 
-### 3.2 Flujo de login
+### 4.2 Flujo de login
 
 `LoginCmd` → `PlayerSessionService::handle_login` → `PlayerDataService::load_player` → `LoginOkEvent`/`LoginErrorEvent`.
 
@@ -148,7 +226,7 @@ Recorrido completo comando → `GameLoop` → `Game` → `CombatController` → 
 
 [login.puml](uml/login.puml)
 
-### 3.3 AI de NPCs — tick del GameLoop
+### 4.3 AI de NPCs — tick del GameLoop
 
 IA de NPCs en cada tick del `GameLoop`: detección de jugador en rango de visión, persecución, ataque, respeto de zonas seguras.
 
@@ -156,9 +234,25 @@ IA de NPCs en cada tick del `GameLoop`: detección de jugador en rango de visió
 
 [npc_ai.puml](uml/npc_ai.puml)
 
+### 4.4 Flujo de inicio y edición (editor)
+
+Recorrido completo desde que arranca el editor hasta que el usuario coloca un tile en el mapa: carga de configuración default, carga del mapa inicial, renderizado de la escena, selección de tile en el palette y colocación en la grilla.
+
+![](images/editor_start_edit.png)
+
+[editor_start_edit.puml](uml/editor_start_edit.puml)
+
+### 4.5 Flujo de guardado de mapa (editor)
+
+Validación del mapa (ciudad requiere NPCs), serialización TOML a través de `TomlSerializer`, escritura del archivo `.toml` y registro del mapa en `config/map_list.toml`.
+
+![](images/editor_save.png)
+
+[editor_save.puml](uml/editor_save.puml)
+
 ---
 
-## 4. Protocolo de comunicación
+## 5. Protocolo de comunicación
 
 El protocolo binario completo está documentado en [`protocol.md`](protocol.md). Incluye:
 
@@ -186,11 +280,11 @@ El servidor despacha en `Game::process_command()` y devuelve un `CommandResult` 
 
 ---
 
-## 5. Formato de archivos de configuración
+## 6. Formato de archivos de configuración
 
 Todos los valores numéricos de balance, UI y assets viven en archivos TOML bajo `config/`.
 
-### 5.1 `config/server.toml`
+### 6.1 `config/server.toml`
 
 Configuración del servidor: tick rate, balance de combate, drops.
 
@@ -257,7 +351,7 @@ sacerdote = ["ASH_STAFF", "ELVEN_FLUTE", "HEALTH_POTION", "MANA_POTION"]
 comerciante = ["SWORD", "AXE", "PLATE_ARMOR", "HEALTH_POTION"]
 ```
 
-### 5.2 `config/client.toml`
+### 6.2 `config/client.toml`
 
 Configuración del cliente: ventana, UI, sprites, skins, audio.
 
@@ -336,7 +430,7 @@ hit = "345.ogg"
 sword = "180.ogg"
 ```
 
-### 5.3 `config/npcs.toml`
+### 6.3 `config/npcs.toml`
 
 Plantillas de NPCs (vida, daño, sprite, velocidad).
 
@@ -358,7 +452,7 @@ sprite_id = 4754
 # dungeon_only = false (default)
 ```
 
-### 5.4 `config/items.toml`
+### 6.4 `config/items.toml`
 
 Definición de todos los items del juego.
 
@@ -383,7 +477,7 @@ hp_restore = 50
 price = 25
 ```
 
-### 5.5 `config/map_list.toml` y archivos de mapa
+### 6.5 `config/map_list.toml` y archivos de mapa
 
 Lista de mapas y su configuración de tiles/props/NPCs.
 
@@ -406,7 +500,7 @@ Cada archivo de mapa define:
 > Estos archivos son la **fuente de verdad del servidor**. El cliente ya **no** los
 > lee: descarga la geometría del servidor por red (ver 5.6).
 
-### 5.6 Separación nivel (red) / visual (local): `config/visuals/`
+### 6.6 Separación nivel (red) / visual (local): `config/visuals/`
 
 La consigna exige que *"el cliente descargue los niveles del servidor"*. Para
 cumplirlo respetando responsabilidad única se separan dos cosas que antes vivían
@@ -437,7 +531,7 @@ persiste), así volver a un mapa ya visitado no lo vuelve a pedir.
 
 ---
 
-## 6. Formato de persistencia
+## 7. Formato de persistencia
 
 Los archivos de jugadores, inventarios, bancos y clanes se almacenan en `data/` con un formato binario de **tamaño fijo + archivo índice**:
 
@@ -476,13 +570,13 @@ Los enteros multi-byte se almacenan en **little-endian** (nativo del sistema), a
 
 ---
 
-## 7. Decisiones de arquitectura (ADRs)
+## 8. Decisiones de arquitectura (ADRs)
 
 - **[ADR 0001](adr/0001-socket-shutdown-cross-thread-race.md)**: Eliminar la data race entre `Socket::shutdown` y `recvsome`/`sendsome`. Separación de `shutdown_from_other_thread()` + `stream_status` atómico.
 
 ---
 
-## 8. Estructura del proyecto (resumen de carpetas)
+## 9. Estructura del proyecto (resumen de carpetas)
 
 ```
 TA045-1C2026/

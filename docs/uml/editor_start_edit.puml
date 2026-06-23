@@ -1,0 +1,53 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam backgroundColor #FEFEFE
+skinparam ArrowColor #000000
+skinparam ParticipantBackgroundColor #F2F2F2
+skinparam ParticipantBorderColor #6C8EBF
+skinparam NoteBackgroundColor #FEFEFE
+skinparam NoteBorderColor #6C8EBF
+title Flujo de Inicio y Edición de Mapa
+
+actor Usuario
+participant "main.cpp" as Main
+participant "MainWindow\n(QMainWindow)" as MW
+participant EditorController as EC
+participant "Config\n(common_tilemap.toml)" as CFG
+participant TilemapDocument as Doc
+participant AtlasLoader as AL
+participant MapSceneRenderer as MSR
+participant TilePalette as TP
+participant MapInteraction as MI
+
+Main -> MW: MainWindow(config_path)
+MW -> EC: EditorController(scene)
+EC -> CFG: load_default_tile_config()
+CFG --> EC: default_tile_config_
+EC -> Doc: load(config_path)
+Doc -> Doc: TomlSerializer::load()
+EC -> AL: reload_atlas()
+EC -> MSR: render_all(doc)
+MSR -> MSR: tile_items, prop_items,\n walkable/spawn overlays
+EC -> MSR: rebuild_grid(doc)
+MW -> MW: setup_ui()
+MW -> TP: TilePalette(atlases, config)
+note right: Panel con miniaturas\nde tiles y props
+
+Usuario -> MW: click izquierdo en tile del palette
+MW -> MI: set_selected(tile_name)
+note right: Queda seleccionado\nel tile a colocar
+
+Usuario -> MW: click en celda del mapa
+MW -> MW: eventFilter() captura click
+MW -> MI: resolve_click(event, view,\n          tile_size, h, w)
+MI --> MW: (row, col)
+MW -> EC: place_tile_or_prop(row, col, name)
+EC -> Doc: set_tile(row, col, name)
+EC -> MSR: update_tile(row, col, name, doc)
+MSR -> MSR: reemplaza QGraphicsPixmapItem\nen escena
+
+note over MW, MSR
+  El cambio es inmediato en escena:
+  se ve el tile colocado al instante.
+end note
+@enduml

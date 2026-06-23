@@ -1,0 +1,44 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam backgroundColor #FEFEFE
+skinparam ArrowColor #000000
+skinparam ParticipantBackgroundColor #F2F2F2
+skinparam ParticipantBorderColor #6C8EBF
+skinparam NoteBackgroundColor #FEFEFE
+skinparam NoteBorderColor #6C8EBF
+title Flujo de Guardado de Mapa
+
+actor Usuario
+participant "MainWindow\n(QMainWindow)" as MW
+participant EditorController as EC
+participant TilemapDocument as Doc
+participant TomlSerializer as TS
+participant FileManager as FM
+participant "map_list.toml" as ML
+participant "archivo.toml" as FILE
+
+Usuario -> MW: Ctrl+S / menú Guardar
+MW -> EC: save()
+EC -> EC: validate_city_map()
+note right: Verifica que CITY tenga\ncomerciante, banquero,\nsacerdote en prop_map
+
+alt falta algún NPC requerido
+  EC --> MW: mensaje de error\n"Faltan NPCs requeridos"
+  MW -> Usuario: QMessageBox::warning()
+else validación OK
+  EC -> FM: save(doc)
+  FM -> Doc: save(path)
+  Doc -> TS: save(path, config_)
+  TS -> FILE: toml::table →\narchivo .toml
+  note right: Serializa:\n[tilemap]\n[metadata]\n[mob_spawn_zones]\n[prop]
+  FILE --> TS: ok
+  TS --> Doc: ok
+  Doc --> FM: ok
+  FM --> EC: ok
+  EC -> ML: register_current_map_in_list()
+  note right: Agrega entrada [[map]] {name, config}\na config/map_list.toml
+  ML --> EC: ok
+  EC --> MW: is_saved = true
+  MW --> Usuario: barra de estado:\n"Mapa guardado"
+end
+@enduml

@@ -1,0 +1,123 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam backgroundColor #FEFEFE
+skinparam ArrowColor #000000
+skinparam ClassBackgroundColor #F2F2F2
+skinparam ClassHeaderBackgroundColor #F2F2F2
+skinparam ClassBorderColor #000000
+skinparam ClassFontColor #000000
+skinparam ClassAttributeFontColor #000000
+skinparam NoteBackgroundColor #FEFEFE
+skinparam NoteBorderColor #000000
+skinparam NoteFontColor #000000
+title Arquitectura del Editor
+
+class MainWindow {
+  + setup_ui()
+  + eventFilter()
+  - controller_ : EditorController
+  - scene_ : QGraphicsScene
+  - view_ : QGraphicsView
+  - palette_ : TilePalette
+  - interaction_ : MapInteraction
+}
+
+class EditorController {
+  + place_tile_or_prop(row, col, name)
+  + fill_rect(r1, c1, r2, c2, name)
+  + erase_tile(row, col)
+  + erase_prop(row, col)
+  + save(path)
+  + open()
+  + create_new_map(rows, cols, type)
+  - doc_ : TilemapDocument
+  - renderer_ : MapSceneRenderer
+  - atlas_loader_ : AtlasLoader
+  - file_manager_ : FileManager
+  - default_tile_config_ : TilemapConfig
+}
+note right of EditorController
+  Orquestador central.
+  Delega en Document (datos)
+  y Renderer (escena).
+end note
+
+class TilemapDocument {
+  + load(path) : bool
+  + save(path) : bool
+  + create_new(rows, cols, tile_config, type)
+  + set_tile(row, col, name)
+  + set_prop(row, col, name)
+  + set_spawn_zone(row, col, active)
+  + set_tile_walkable(name, bool)
+  + set_transition_override(row, col, ov)
+  - config_ : TilemapConfig
+}
+
+class MapSceneRenderer {
+  + render_all(doc, show_walkable)
+  + render_props(doc)
+  + update_tile(row, col, name, doc, ...)
+  + update_prop(row, col, name, doc)
+  + rebuild_grid(doc)
+  + rebuild_spawn_overlay(doc)
+  + clear_all()
+  - tile_items_ : QGraphicsPixmapItem[][]
+  - prop_items_ : QGraphicsPixmapItem[][]
+  - spawn_overlay_ : QGraphicsRectItem[][]
+  - atlases_ : AtlasLoader*
+}
+
+class AtlasLoader {
+  + load(config)
+  + get(path) : QPixmap*
+  + clear()
+  - atlases_ : map<string, QPixmap>
+}
+
+class TilePalette {
+  + {signal} tile_selected(name)
+  + {signal} prop_selected(name)
+  + {signal} configure_portal(name)
+  - selected_tile_ : string
+}
+
+class FileManager {
+  + save(doc) : bool
+  + save_as(doc) : bool
+  + open(doc) : bool
+}
+
+class TomlSerializer {
+  {static} + load(path) : TilemapConfig
+  {static} + save(path, config) : void
+}
+
+class MapInteraction {
+  + selected() : string
+  + set_selected(name)
+  + has_selection() : bool
+  {static} + resolve_click(event, view, tile_size, h, w) : ClickResult
+}
+
+' ============================================================
+' Relaciones
+' ============================================================
+MainWindow *-- EditorController : dueño
+MainWindow *-- TilePalette : dueño
+MainWindow *-- MapInteraction : dueño
+MainWindow --> "dialogs" : usa (show_*_dialog)
+
+EditorController *-- TilemapDocument : dueño
+EditorController *-- MapSceneRenderer : dueño
+EditorController *-- AtlasLoader : dueño
+EditorController *-- FileManager : dueño
+
+MapSceneRenderer --> AtlasLoader : lee
+MapSceneRenderer --> TilemapDocument : lee
+
+FileManager --> TomlSerializer : usa
+TilePalette --> AtlasLoader : lee (thumbnails)
+TilePalette --> TilemapDocument : lee (config)
+
+@enduml
