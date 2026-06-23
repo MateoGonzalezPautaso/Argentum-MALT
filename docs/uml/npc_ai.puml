@@ -21,7 +21,7 @@ loop para cada NPC vivo
         CC -> NPC: mover hacia jugador (chase)
         CC -> CC: construye EntityMoveEvent
         CC -> Game: CommandResult{EntityMoveEvent}
-        note right: paso de 8px por tick\nrespeta walkability\nrespeta safe zones
+        note right: paso de speed px por tick\n(get_speed(): 1-2 px segun el NPC)\nrespeta walkability\nrespeta safe zones
       else jugador en rango de ataque
         CC -> NPC: try_attack(tick, cooldown)
         alt ataque exitoso
@@ -38,8 +38,9 @@ loop para cada NPC vivo
     else NPC en zona segura
       note right: NPC no ataca ni\npersigue en safe zones
     end
-  else nadie en rango
-    note right: NPC idle, sin acción
+  else nadie en rango (sin jugador o fuera de visión)
+    CC -> CC: move_random(npc)
+    note right: deambula al azar\n(no queda inmóvil)
   end
 end
 

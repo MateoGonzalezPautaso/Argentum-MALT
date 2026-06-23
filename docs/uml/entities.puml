@@ -2,15 +2,15 @@
 title Jerarquía de Entidades
 
 class Entity {
-  - hp_current: int
-  - hp_max: int
+  - hp_current: uint32_t
+  - hp_max: uint32_t
   - name: string
   - pos: Position
   - dir: Direction
-  - level: int
+  - level: uint8_t
   - sprite_id: uint16_t
   - speed: uint32_t
-  + take_damage(damage: int)
+  + take_damage(damage: uint32_t)
   + is_dead(): bool
   + try_attack(tick: int, cooldown: int): bool
   + kill()
@@ -22,15 +22,15 @@ class Player {
   - id: uint16_t
   - race: Race
   - player_class: PlayerClass
-  - experience: int
-  - gold: int
-  - mana_current: int
-  - mana_max: int
-  - strength: int
-  - agility: int
+  - experience: uint32_t
+  - gold: uint32_t
+  - mana_current: uint32_t
+  - mana_max: uint32_t
+  - strength: uint32_t
+  - agility: uint32_t
   - inv: PlayerInventory
   - bank_inv: Inventory
-  - bank_gold: int
+  - bank_gold: uint32_t
   - clan_name: string
   + level_up()
   + gain_experience(exp: uint32_t)
@@ -42,7 +42,7 @@ class Player {
 
 class EnemyNpc {
   - damage: uint32_t
-  - rng: RNG
+  - rng: Rng&
   + get_kill_reward(drop_config: NpcDropConfig, balance: BalanceConfig): EnemyDrop
 }
 
@@ -103,10 +103,10 @@ class CombatController {
 }
 
 class ClanManager {
-  + create_clan(founder, name): CommandResult
-  + request_join(applicant, clan): CommandResult
-  + accept_member(founder, target): CommandResult
-  + kick_member(founder, target): CommandResult
+  + create_clan(founder, name): ClanResult
+  + request_join(applicant, clan): ClanResult
+  + accept_member(founder, target): ClanResult
+  + kick_member(founder, target): ClanResult
 }
 
 Entity <|-- Player

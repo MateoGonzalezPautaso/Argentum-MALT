@@ -206,7 +206,7 @@ class Game {
   - RegenService regen_service_
   - SpellService spell_service_
   - ClanCommandHandler clan_handler
-  - RNG rng
+  - Rng rng
   - vector<NpcTemplate> world_npc_templates, dungeon_npc_templates
   - uint32_t tick_count
   - ... (config cacheado, contadores de regen/spawn, pending_resurrections_)
@@ -307,8 +307,7 @@ Server *-- ClientListMonitor : <<dueño>>
 ' Relaciones
 ' ============================================================
 
-' Socket connections
-Socket --* ServerProtocol : 1 skt (dueña)
+' Socket connections (ServerProtocol *-- Socket ya declarado arriba)
 Socket <-- Protocol : &skt (referencia)
 
 ' Queue sharing

@@ -50,20 +50,20 @@ class MapDataService {
 }
 
 class MovementService {
-  + handle_move(player, cmd, map): CommandResult
+  + handle_move(player_id, cmd): CommandResult
 }
 
 class RegenService {
-  + apply_regen(players, tick): CommandResult
+  + apply_regen(): CommandResult
 }
 
 class ResurrectionService {
-  + handle_resurrect(player): CommandResult
-  + process_pending(tick): CommandResult
+  + handle_resurrect(player_id): CommandResult
+  + process_pending_resurrections(): CommandResult
 }
 
 class SpellService {
-  + handle_cast_spell(attacker, cmd, tick): CommandResult
+  + handle_cast_spell(player_id, cmd, tick_count): CommandResult
 }
 
 class EntityEventFactory <<namespace>> {
