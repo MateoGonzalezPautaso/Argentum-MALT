@@ -22,8 +22,8 @@ abstract class Runnable {
 }
 
 class Thread {
-  # std::atomic<bool> _keep_running
-  # std::atomic<bool> _is_alive
+  - std::atomic<bool> _keep_running
+  - std::atomic<bool> _is_alive
   - std::thread thread
   + {abstract} run()
   + start()

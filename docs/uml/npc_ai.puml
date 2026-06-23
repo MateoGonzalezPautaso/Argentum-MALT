@@ -14,10 +14,10 @@ loop para cada NPC vivo
   CC -> CC: get_nearest_player(npc)
   note right: Player* o nullptr\n(itera jugadores del mapa del NPC)
 
-  alt jugador dentro de npc_vision_range_px (250px)
+  alt jugador dentro de npc_vision_range_px (250px — configurable vía server.toml [npc] vision_range_px)
     CC -> CC: ¿está en zona segura?
     alt fuera de zona segura
-      alt jugador fuera de attack_range (80px)
+      alt jugador fuera de attack_range (80px — configurable vía server.toml [attack] attack_range_px)
         CC -> NPC: mover hacia jugador (chase)
         CC -> CC: construye EntityMoveEvent
         CC -> Game: CommandResult{EntityMoveEvent}

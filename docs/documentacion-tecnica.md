@@ -21,7 +21,15 @@ Las tres comparten una biblioteca estática `taller_common` (`common/`) con la i
 
 ### 1.1 Diagrama de clases
 
-[server_classes.puml](uml/server_classes.puml) — Diagrama de clases centrado en la infraestructura de red y la lógica de juego (`Socket`, `Protocol`, `ServerProtocol`, `GameLoop`, `Game`, `ClientListMonitor`, `Server`), con atributos clave y métodos públicos. El detalle de threading (`Acceptor`, `Sender`, `Receiver` y los límites de cada hilo) está en [server_threads_architecture.puml](uml/server_threads_architecture.puml) para no duplicarlo.
+![](images/uml/server_classes.png) 
+Diagrama de clases centrado en la infraestructura de red y la lógica de juego (`Socket`, `Protocol`, `ServerProtocol`, `GameLoop`, `Game`, `ClientListMonitor`, `Server`), con atributos clave y métodos públicos. 
+
+[server_classes.puml](uml/server_classes.puml)
+
+![](images/uml/server_threads_architecture.png)
+Detalles de threading (`Acceptor`, `Sender`, `Receiver` y los límites de cada hilo).
+
+[server_threads_architecture.puml](uml/server_threads_architecture.puml)
 
 ### 1.2 Jerarquía de entidades, jugador e inventario
 
@@ -96,6 +104,9 @@ Procesa comandos (`process_command`) a través de `std::visit` sobre `ClientComm
 **Colas MPMC bloqueantes:**
 - `Queue<PlayerCommand>` — una sola, global. Escriben todos los `Receiver`; lee `GameLoop`.
 - `Queue<ServerEvent>` — una por cliente. Escribe `GameLoop` vía `ClientListMonitor`; lee `Sender`.
+
+**Sincronización:**
+- `ClientListMonitor` protege con `std::mutex` el mapa de `ClientHandler` compartido entre `Acceptor` (escribe) y `GameLoop` (lee/limpia). Es el único punto de sincronización explícito del servidor; el resto de la comunicación se hace por colas bloqueantes libres de locks.
 
 **Cierre de conexiones:**
 - Cuando un thread `Receiver` detecta que el socket se cerró, su `run()` termina. En el próximo `clean_dead()` el `GameLoop` detecta al cliente muerto, llama `shutdown_from_other_thread()` al `Socket` para destrabar al `Sender` (si está bloqueado), hace `join()` de ambos threads y remueve al `ClientHandler`. Ver [ADR 0001](adr/0001-socket-shutdown-cross-thread-race.md) para el detalle de la data race resuelta.
@@ -261,7 +272,7 @@ El protocolo binario completo está documentado en [`protocol.md`](protocol.md).
 - Enums para razas, clases, tipos de ítem, dirección, etc.
 - Flujos de sesión: login, creación de personaje, combate, muerte, equipamiento
 
-A nivel de clases, tanto servidor como cliente extienden `Protocol` (`common/protocol.h`) con su propia capa de alto nivel — `ServerProtocol` y `ClientProtocol` respectivamente — que serializan/deserializan los variants `ClientCommand` (41 tipos) y `ServerEvent` (29 tipos) vía `std::visit` + patrón `overloaded`:
+A nivel de clases, tanto servidor como cliente extienden `Protocol` (`common/protocol.h`) con su propia capa de alto nivel — `ServerProtocol` y `ClientProtocol` respectivamente — que serializan/deserializan los variants `ClientCommand` (41 tipos) y `ServerEvent` (29 tipos) vía `std::visit` + patrón `overloaded` (definido en `common/visit.h`):
 
 ![](images/uml/communication_messages_protocol.png)
 
@@ -292,8 +303,13 @@ Configuración del servidor: tick rate, balance de combate, drops.
 [server]
 tick_rate_hz = 20            # ticks por segundo (50ms/tick)
 cheats_enabled = true        # habilita los comandos de debug
-save_interval_seconds = 30   # (default) persistencia automática cada N segundos
-                             #   GameLoop lo convierte a save_interval_ticks internamente
+# save_interval_seconds = 30   <-- opcional: default 30 (persistencia automática cada N segundos)
+                                #   GameLoop lo convierte a save_interval_ticks internamente
+npc_id_base = 2000           # ID base para asignar a NPCs spawneados
+
+[sprite]                     # dimensiones del sprite del jugador
+width = 27
+height = 48
 
 [attack]
 base_damage = 10
@@ -301,6 +317,7 @@ damage_variance = 5       # ±5 de daño aleatorio sobre base_damage
 attack_range_px = 80
 spell_attack_range_px = 400
 cooldown_ticks = 10
+xp_per_level_kill = 100   # experiencia ganada por matar un NPC de tu mismo nivel
 newbie_level = 12
 max_level_diff = 10          # diferencia máxima de nivel para atacar
 critical_chance = 0.003
@@ -356,9 +373,10 @@ comerciante = ["SWORD", "AXE", "HAMMER", "SIMPLE_BOW", "COMPOSITE_BOW",
                "HEALTH_POTION", "MANA_POTION"]
 ```
 
-> El servidor tiene además secciones `[messages]` (textos de error/sistema, con
-> placeholders `{}`) y `[help]` (texto del comando `/help`). Se omiten acá por
-> extensión; ver `config/server.toml` para el detalle.
+> El servidor tiene además secciones `[npc]` (visión y movimiento idle de NPCs),
+> `[messages]` (textos de error/sistema, con placeholders `{}`) y `[help]` (texto
+> del comando `/help`). Se omiten acá por extensión; ver `config/server.toml`
+> para el detalle.
 
 ### 6.2 `config/client.toml`
 
