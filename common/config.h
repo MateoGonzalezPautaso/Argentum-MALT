@@ -8,7 +8,7 @@
 
 #include <toml++/toml.h>
 
-enum class MapType : uint8_t { NONE = 0, CITY, DUNGEON };
+#include "map_type.h"
 
 struct TileDef {
     int x = 0;
@@ -87,6 +87,13 @@ double toml_get_double(const toml::table& tbl, const char* key, double fallback)
 std::vector<std::vector<std::string>> parse_map_grid(const toml::table& tbl);
 void parse_tilemap_config(const toml::table& root, TilemapConfig& config);
 void parse_prop_config(const toml::table& root, TilemapConfig& config);
+
+// Parsers de definiciones visuales reutilizables (mapa de juego y catálogo
+// visual del cliente comparten el mismo formato de tile/prop en TOML).
+void parse_tile_definitions(const toml::table& tiles,
+                            std::unordered_map<std::string, TileDef>& out);
+void parse_prop_definitions(const toml::table& prop_tiles,
+                            std::unordered_map<std::string, PropDef>& out);
 std::unordered_map<std::string, TilemapConfig> load_all_map_configs(
         const std::string& map_list_path);
 
