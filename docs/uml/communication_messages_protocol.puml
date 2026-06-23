@@ -79,8 +79,8 @@ class ServerEvent <<variant>> {
 Protocol o-- ServerProtocol : <<compone>>
 Protocol o-- ClientProtocol : <<compone>>
 Socket <-- Protocol : &skt (referencia)
-Socket *-- ServerProtocol : <<dueño>>
-Socket *-- ClientProtocol : <<dueño>>
+ServerProtocol *-- Socket : <<dueño>>
+ClientProtocol *-- Socket : <<dueño>>
 ServerProtocol ..> ServerEvent: serializa
 ServerProtocol ..> ClientCommand: deserializa
 ClientProtocol ..> ClientCommand: serializa

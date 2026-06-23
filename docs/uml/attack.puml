@@ -19,7 +19,7 @@ CQ -> S: pop()
 S -> TCP: ClientProtocol::send_attack()
 TCP -> R: bytes
 R -> IQ: push(PlayerCommand{player_id, AttackCmd})
-IQ -> GL: pop()
+IQ -> GL: try_pop()
 GL -> Game: process_command(player_id, cmd)
 Game -> CC: melee_attack(attacker, target_id, tick)
 CC -> NPC: try_attack(tick, cooldown)

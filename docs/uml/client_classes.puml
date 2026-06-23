@@ -74,7 +74,7 @@ class ClientProtocol {
   - recv_login_ok() / recv_entity_spawn() / ... (~20 deserializadores privados)
 }
 Protocol o-- ClientProtocol : <<compone>>
-Socket *-- ClientProtocol : <<dueño>>
+ClientProtocol *-- Socket : <<dueño>>
 
 ' ============================================================
 ' Top-level: Client

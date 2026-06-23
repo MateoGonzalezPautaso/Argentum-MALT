@@ -6,6 +6,7 @@ participant "Client\n(Main Thread)" as Client
 participant "Sender\n(Thread)" as CS
 participant TCP
 participant "Receiver\n(Thread)" as SR
+participant "input_queue\n(Queue<PlayerCommand>)" as IQ
 participant "GameLoop\n(Thread)" as GL
 participant Game
 participant PlayerSessionService as PSS
@@ -16,8 +17,9 @@ Usuario -> Client: ingresar usuario + contraseña
 Client -> CS: push(LoginCmd{user, pass})
 CS -> TCP: ClientProtocol::send_login()
 TCP -> SR: bytes
-SR -> GL: push(PlayerCommand{player_id, LoginCmd})
+SR -> IQ: push(PlayerCommand{player_id, LoginCmd})
 note right of SR: player_id = id de conexión\nasignado por ClientListMonitor (≥ 1)
+IQ -> GL: try_pop()
 GL -> Game: process_command(player_id, cmd)
 Game -> PSS: handle_login(player_id, cmd)
 PSS -> PDS: load_record(username)

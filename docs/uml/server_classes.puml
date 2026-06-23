@@ -127,7 +127,7 @@ class ServerProtocol {
   - recv_pickup_item()
 }
 Protocol o-- ServerProtocol : <<compone>>
-Socket *-- ServerProtocol : <<dueño>>
+ServerProtocol *-- Socket : <<dueño>>
 
 ' ============================================================
 ' Queue template
@@ -208,7 +208,7 @@ class Game {
   - ClanCommandHandler clan_handler
   - RNG rng
   - vector<NpcTemplate> world_npc_templates, dungeon_npc_templates
-  - uint64_t tick_count
+  - uint32_t tick_count
   - ... (config cacheado, contadores de regen/spawn, pending_resurrections_)
   + Game(config, player_data_service, clan_persistence)
   + process_command(player_id, cmd)
@@ -217,20 +217,14 @@ class Game {
   + save_all_players()
   + get_player_map_name(player_id)
   + get_player_ids_on_map(map_name)
-  - handle_move(player_id, cmd)
   - handle_attack(player_id, cmd)
-  - handle_cast_spell(player_id, cmd)
   - handle_send_chat_msg(player_id, cmd)
-  - handle_resurrect(player_id)
   - handle_meditate(player_id)
   - handle_equip(player_id, cmd)
   - handle_unequip(player_id, cmd)
   - handle_npc_heal(player_id)
-  - apply_regen(...)
-  - process_pending_resurrections(...)
   - find_player_id_by_name(name)
   - target_in_safe_zone(...)
-  - collides_with_entities(...)
 }
 
 struct CommandResult {
