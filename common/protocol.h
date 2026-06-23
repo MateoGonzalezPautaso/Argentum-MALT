@@ -49,7 +49,8 @@ enum class OpCode : uint8_t {
     CHEAT_RESET_MANA = 0x27,
     CHEAT_CLEAR_INVENTORY = 0x28,
     CLAN_UNBAN = 0x29,
-    // Events (server -> client) 0x80 - 0x9B
+    REQUEST_MAP_DATA = 0x2A,
+    // Events (server -> client) 0x80 - 0x9F
     LOGIN_OK = 0x80,
     LOGIN_ERROR = 0x81,
     CHARACTER_CREATED = 0x82,
@@ -74,6 +75,7 @@ enum class OpCode : uint8_t {
     CHAT_MSG = 0x98,
     CLAN_NOTIFICATION = 0x99,
     CLAN_UPDATE = 0x9A,
+    MAP_DATA = 0x9B,
     HEAL_RECEIVED = 0x9C,
     MAP_TRANSITION = 0x9D,
     SPELL_EFFECT = 0x9E,

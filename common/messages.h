@@ -20,6 +20,8 @@
 #include <variant>
 #include <vector>
 
+#include "map_type.h"
+
 // ---------------------------------------------------------------------------
 // Enums (sección 7 de protocol.md)
 // ---------------------------------------------------------------------------
@@ -139,6 +141,41 @@ struct ClanMember {
     std::string username;
     bool is_founder = false;
     bool is_online = false;
+};
+
+// ---------------------------------------------------------------------------
+// Datos de nivel transmitidos por red (MAP_DATA, 0x9B)
+//
+// MapLevelData es el struct de gameplay de un mapa: qué hay en cada
+// celda, si es transitable, dónde están los props y las zonas de spawn. NO
+// contiene paths de assets ni nada visual: eso vive en el catálogo visual local
+// del cliente (config/visuals/). El servidor es la única autoridad de esta información; 
+// el cliente la descarga en vez de leerla de disco.
+//
+// ---------------------------------------------------------------------------
+
+struct PropPlacement {
+    uint16_t prop_id_index = 0;  // índice dentro de MapLevelData::prop_id_table
+    uint16_t row = 0;
+    uint16_t col = 0;
+    bool is_transition = false;  // si interactuar con este prop dispara CHANGE_MAP
+};
+
+struct MapLevelData {
+    std::string map_name;
+    MapType map_type = MapType::NONE;
+    uint16_t tile_size = 0;
+    uint16_t rows = 0;
+    uint16_t cols = 0;
+
+    std::vector<std::string> tile_id_table;          // diccionario de tile ids únicos
+    std::vector<std::vector<uint16_t>> tile_grid;    // índices a tile_id_table, por celda
+
+    std::vector<std::string> prop_id_table;          // diccionario de prop ids únicos
+    std::vector<PropPlacement> props;                // lista dispersa, no grid completo
+
+    std::vector<std::vector<bool>> walkable;          // walkability
+    std::vector<std::vector<bool>> mob_spawn_zones;
 };
 
 // ---------------------------------------------------------------------------
@@ -278,6 +315,11 @@ struct ChangeMapCmd {
     std::string prop_name;
 };
 
+// 0x2A — el cliente pide al servidor la geometría de un mapa (estructura, no assets).
+struct RequestMapDataCmd {
+    std::string map_name;
+};
+
 /*
  * ClientCommand es la variante que engloba todos los comandos.
  * El GameLoop hace std::visit sobre esta variante para despacharlos.
@@ -291,7 +333,7 @@ using ClientCommand =
                      CheatInfiniteHpCmd, CheatInfiniteManaCmd, CheatDieCmd, CheatLevelUpCmd,
                      CheatLevelDownCmd, CheatAddGoldCmd, CheatResetGoldCmd, CheatVelocityCmd,
                      CheatReviveCmd, CheatFillInventoryCmd, CheatClearInventoryCmd,
-                     CheatResetManaCmd, ChangeMapCmd>;
+                     CheatResetManaCmd, ChangeMapCmd, RequestMapDataCmd>;
 
 // ---------------------------------------------------------------------------
 // Eventos: Servidor -> Cliente (sección 3.2 y 5 de protocol.md)
@@ -476,6 +518,11 @@ struct ClanUpdateEvent {
     std::vector<ClanMember> members;
 };
 
+// 0x9B — respuesta a REQUEST_MAP_DATA: la geometría completa del mapa pedido.
+struct MapDataEvent {
+    MapLevelData data;
+};
+
 // 0x9D
 struct MapTransitionEvent {
     std::string map_name;
@@ -512,6 +559,6 @@ using ServerEvent =
                      InventoryUpdateEvent, EquipUpdateEvent, GoldUpdateEvent, ItemDroppedEvent,
                      ItemPickedEvent, NpcItemListEvent, ChatMsgEvent, ClanNotificationEvent,
                      ClanUpdateEvent, MapTransitionEvent, HealReceivedEvent, SpellEffectEvent,
-                     BankUpdateEvent>;
+                     BankUpdateEvent, MapDataEvent>;
 
 #endif  // MESSAGES_H_
