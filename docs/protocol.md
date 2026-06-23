@@ -84,6 +84,7 @@
 | `0x27` | `CHEAT_RESET_MANA`      | Cheat: resetear maná a 0               |
 | `0x28` | `CHEAT_CLEAR_INVENTORY` | Cheat: limpiar inventario              |
 | `0x29` | `CLAN_UNBAN`            | Desbanear jugador del clan             |
+| `0x2A` | `REQUEST_MAP_DATA`      | Pide al servidor la geometría de un mapa |
 
 ### 3.2 Servidor → Cliente (`0x80` – `0x9F`)
 
@@ -113,6 +114,7 @@
 | `0x98` | `CHAT_MSG`              | Mensaje de chat (sistema, privado, clan o chat general) — también usado para confirmaciones/errores de transacción y mensajes genéricos del servidor |
 | `0x99` | `CLAN_NOTIFICATION`     | Notificación del clan (entrada/salida/ataque/pedidos) |
 | `0x9A` | `CLAN_UPDATE`           | Lista de miembros del clan y su estado online/offline, a todos los miembros |
+| `0x9B` | `MAP_DATA`              | Geometría completa de un mapa (respuesta a `REQUEST_MAP_DATA`) |
 | `0x9C` | `HEAL_RECEIVED`         | El jugador recuperó vida y/o maná (regen pasiva, meditación o `/curar`) |
 | `0x9D` | `MAP_TRANSITION`        | El jugador cruzó un portal: nuevo mapa y posición |
 | `0x9E` | `SPELL_EFFECT`          | Efecto visual de hechizo a reproducir sobre un objetivo |
@@ -450,6 +452,22 @@ Enviado cuando el jugador interactúa con un prop de transición (portal).
 
 ---
 
+### `0x2A` REQUEST_MAP_DATA
+
+El cliente pide la geometría (estructura, no assets) de un mapa. Se envía tras
+`LOGIN_OK`/`CHARACTER_CREATED` para el mapa inicial, y cada vez que se cruza un
+portal hacia un mapa que el cliente todavía no descargó en esta sesión.
+
+```
+0x2A <len_map_name> <map_name>
+```
+
+`map_name`: nombre del mapa pedido (coincide con las claves de `config/map_list.toml`
+del servidor). El servidor responde con `MAP_DATA` (`0x9B`) como evento privado al
+jugador que lo pidió.
+
+---
+
 ## 5. Mensajes Servidor → Cliente
 
 ---
@@ -460,7 +478,7 @@ Enviado cuando el jugador interactúa con un prop de transición (portal).
 0x80 <player_id> <len_username> <username> <race> <class> <level> <experience> <exp_to_next> <hp_curr> <hp_max> <mana_current> <mana_max> <gold> <pos_x> <pos_y>
 ```
 
-Inmediatamente después el servidor envía `INVENTORY_UPDATE`, `EQUIP_UPDATE`, `GOLD_UPDATE` y un `ENTITY_SPAWN` por cada entidad cercana (ver [6.1](#61-login-de-jugador-existente)). No hay un mensaje de "info de mapa": el cliente carga la geometría desde `config/*.toml` en disco.
+Inmediatamente después el servidor envía `INVENTORY_UPDATE`, `EQUIP_UPDATE`, `GOLD_UPDATE` y un `ENTITY_SPAWN` por cada entidad cercana (ver [6.1](#61-login-de-jugador-existente)). El cliente, además, pide la geometría del mapa inicial con `REQUEST_MAP_DATA` (`0x2A`) y espera el `MAP_DATA` (`0x9B`) antes de renderizar.
 
 ---
 
@@ -730,6 +748,48 @@ tipo `JOIN_REQUEST`, en el momento en que se piden.
 
 ---
 
+### `0x9B` MAP_DATA
+
+Respuesta a `REQUEST_MAP_DATA`: la geometría completa de un mapa. Es la
+*estructura de gameplay* del nivel (qué hay en cada celda, si es transitable,
+dónde están los props y las zonas de spawn). **No** incluye nada visual (paths de
+assets, frames, hitboxes de dibujo): eso es contenido local del cliente
+(`config/visuals/`, ver [8](#8-notas-de-implementación)).
+
+Para no repetir el string del tile/prop en cada celda (un mapa grande sería
+~600KB), se usa un **diccionario**: una tabla de ids únicos + una grilla de
+índices `uint16_t` hacia esa tabla.
+
+```
+0x9B <len_map_name> <map_name> <map_type> <tile_size> <rows> <cols>
+     <tile_table_count> (<len_tile_id> <tile_id>)*tile_table_count
+     <tile_grid_rows> (<row_len> (<tile_index>)*row_len)*tile_grid_rows
+     <prop_table_count> (<len_prop_id> <prop_id>)*prop_table_count
+     <props_count> (<prop_id_index> <row> <col> <is_transition>)*props_count
+     <walkable_rows> (<row_len> (<walkable>)*row_len)*walkable_rows
+     <spawn_rows> (<row_len> (<is_spawn>)*row_len)*spawn_rows
+```
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `map_name` | string | nombre del mapa |
+| `map_type` | `uint8_t` | `0` NONE, `1` CITY, `2` DUNGEON |
+| `tile_size` | `uint16_t` | tamaño de tile en píxeles |
+| `rows`, `cols` | `uint16_t` | dimensiones de la grilla de tiles |
+| `tile_table_count` | `uint16_t` | cantidad de tile ids únicos; luego ese tantos strings |
+| `tile_grid_rows` | `uint16_t` | filas de la grilla; cada fila: `row_len` (`uint16_t`) + `row_len` índices (`uint16_t`) a la tabla de tiles |
+| `prop_table_count` | `uint16_t` | cantidad de prop ids únicos; luego ese tantos strings |
+| `props_count` | `uint16_t` | cantidad de props ubicados (lista dispersa). Por cada uno: `prop_id_index` (`uint16_t`, índice a la tabla de props), `row`/`col` (`uint16_t`), `is_transition` (`bool`, si interactuar dispara `CHANGE_MAP`) |
+| `walkable_rows` | `uint16_t` | grilla de transitabilidad resuelta server-side; cada fila: `row_len` (`uint16_t`) + `row_len` `bool` |
+| `spawn_rows` | `uint16_t` | grilla de zonas de spawn de NPCs; mismo formato que `walkable` |
+
+El cliente combina este `MAP_DATA` con su catálogo visual local
+(`MapVisualCatalog`) para reconstruir el `TilemapConfig` que ya consumen sus
+renderers. La transitabilidad y el flag `is_transition` los calcula el servidor,
+que es la única autoridad de gameplay.
+
+---
+
 ### `0x9C` HEAL_RECEIVED
 
 El jugador recuperó vida y/o maná: regeneración pasiva por tiempo, meditación, o `/curar` de un sacerdote.
@@ -790,15 +850,37 @@ Cliente                                 Servidor
    |<------ EQUIP_UPDATE (0x91) ------------|
    |<------ GOLD_UPDATE (0x92) -------------|
    |        (ENTITY_SPAWN x N cercanos)     |
+   |------- REQUEST_MAP_DATA (0x2A) ------->|  (mapa inicial)
+   |<------ MAP_DATA (0x9B) ----------------|  (geometría del nivel)
    |             ... juego ...              |
    |                                        |
    |        [socket cerrado por cliente]    |
    |                                        | libera al jugador
 ```
 
-> No hay un mensaje de "info de mapa" en el protocolo: el cliente carga la geometría
-> directamente desde `config/*.toml` en disco (los mismos archivos que usa el servidor),
-> no por red.
+> El cliente **descarga los niveles del servidor**: pide la geometría con
+> `REQUEST_MAP_DATA` y la recibe en `MAP_DATA`. Lo único que lee de disco es el
+> catálogo visual local (`config/visuals/`: paths de assets, frames, hitboxes de
+> dibujo), nunca la estructura del nivel.
+
+### 6.6 Descarga de un mapa al cruzar un portal
+
+```
+Cliente                                 Servidor
+   |                                        |
+   |------- CHANGE_MAP (0x21) ------------->|  (interactúa con un portal)
+   |<------ MAP_TRANSITION (0x9D) ----------|  (nuevo mapa + posición destino)
+   |                                        |
+   | ¿mapa ya descargado en esta sesión?    |
+   |   sí -> reconstruye y renderiza ya     |
+   |   no -> REQUEST_MAP_DATA (0x2A) ------->|
+   |       <----- MAP_DATA (0x9B) ----------|
+   |             reconstruye y renderiza     |
+```
+
+> El `MapLevelData` recibido se cachea en memoria de sesión: volver a un mapa ya
+> visitado no vuelve a pedirlo. Si llegan dos transiciones antes de que responda
+> la primera, gana la última pedida.
 
 ### 6.2 Creación de personaje
 
@@ -955,8 +1037,10 @@ Todos los valores son `uint8_t`.
 ```
 
 > `TileType` está definido en `common/messages.h` pero no viaja por el protocolo binario
-> (no hay un `TILE_*` opcode ni un campo que lo use en ningún mensaje): el mapa se carga
-> desde `config/*.toml` en disco, no por red. Ver [8](#8-notas-de-implementación).
+> (no hay un `TILE_*` opcode ni un campo que lo use en ningún mensaje). El mapa **sí**
+> viaja por red, pero como `MAP_DATA` (`0x9B`): la transitabilidad de cada celda ya
+> viene resuelta server-side en una grilla de `bool`, sin necesidad de transmitir el
+> `TileType`. Ver [8](#8-notas-de-implementación).
 
 ### LoginError
 ```
@@ -1019,5 +1103,10 @@ existentes:
 - **Confirmaciones y errores de transacción** (compra/venta/depósito/retiro) y **mensajes
   genéricos del servidor**: viajan como `CHAT_MSG` tipo `SYSTEM`, junto con el evento de
   estado correspondiente (`GOLD_UPDATE`, `INVENTORY_UPDATE`, `BANK_UPDATE`).
-- **Info del mapa**: no se transmite — el cliente carga la geometría directamente de
-  `config/*.toml` en disco, los mismos archivos que usa el servidor.
+- **Info del mapa**: se transmite con `REQUEST_MAP_DATA` (`0x2A`) / `MAP_DATA` (`0x9B`).
+  El servidor envía la *estructura* del nivel (grilla de tiles comprimida con
+  diccionario, props con su posición, walkability y zonas de spawn). El cliente combina
+  eso con su catálogo visual local (`config/visuals/<mapa>.toml`: paths de assets,
+  frames, hitboxes de dibujo) para reconstruir el `TilemapConfig` que renderiza. Así la
+  separación es estricta: el servidor es autoridad del *gameplay* del mapa y el cliente
+  aporta solo lo *visual*, que es contenido pre-instalado (análogo a `[skins.npc]`).

@@ -167,7 +167,7 @@ El protocolo binario completo está documentado en [`protocol.md`](protocol.md).
 - Enums para razas, clases, tipos de ítem, dirección, etc.
 - Flujos de sesión: login, creación de personaje, combate, muerte, equipamiento
 
-A nivel de clases, tanto servidor como cliente extienden `Protocol` (`common/protocol.h`) con su propia capa de alto nivel — `ServerProtocol` y `ClientProtocol` respectivamente — que serializan/deserializan los variants `ClientCommand` (~40 tipos) y `ServerEvent` (~29 tipos) vía `std::visit` + patrón `overloaded`:
+A nivel de clases, tanto servidor como cliente extienden `Protocol` (`common/protocol.h`) con su propia capa de alto nivel — `ServerProtocol` y `ClientProtocol` respectivamente — que serializan/deserializan los variants `ClientCommand` (~41 tipos) y `ServerEvent` (~30 tipos) vía `std::visit` + patrón `overloaded`:
 
 ![](images/communication_messages_protocol.png)
 
@@ -385,6 +385,38 @@ Cada archivo de mapa define:
 - **Npcs**: NPCs precolocados con tipo y posición
 - **mob_spawn_zones**: rectángulos verdes donde spawnean mobs y se permite PvP
 
+> Estos archivos son la **fuente de verdad del servidor**. El cliente ya **no** los
+> lee: descarga la geometría del servidor por red (ver 5.6).
+
+### 5.6 Separación nivel (red) / visual (local): `config/visuals/`
+
+La consigna exige que *"el cliente descargue los niveles del servidor"*. Para
+cumplirlo respetando responsabilidad única se separan dos cosas que antes vivían
+juntas en `config/<mapa>.toml`:
+
+- **Dato de nivel** (gameplay/estructura): qué hay en cada celda, transitabilidad,
+  posición de props y zonas de spawn. Es autoridad del servidor y viaja por red en
+  `MapLevelData` (mensaje `MAP_DATA`, opcode `0x9B`), con la grilla comprimida por
+  diccionario (tabla de ids únicos + índices `uint16_t`).
+- **Dato visual** (`MapVisualCatalog`): paths de assets, frames de animación,
+  tamaños y offsets de hitbox para dibujar. Es contenido pre-instalado del cliente,
+  análogo a cómo `[skins.npc]` en `client.toml` resuelve el `sprite_id` que manda
+  `ENTITY_SPAWN`. Vive en `config/visuals/<mapa>.toml` y se carga entero al boot.
+
+Piezas nuevas:
+
+| Clase | Lado | Rol |
+|---|---|---|
+| `MapLevelDataBuilder` | servidor | `Map` (TilemapConfig + PropGrid) → `MapLevelData` (DTO de red) |
+| `MapDataService` | servidor | responde `REQUEST_MAP_DATA` con `MapDataEvent` privado al jugador |
+| `MapVisualCatalog` | cliente | catálogo visual local por mapa (`config/visuals/`) |
+| `MapRenderDataBuilder` | cliente | `MapLevelData` + `MapVisualCatalog` → `TilemapConfig` reconstruido |
+
+Así **no hubo que tocar `TilemapRenderer` ni `PropRenderer`**: siguen consumiendo
+un `TilemapConfig`, solo que ahora reconstruido a partir de la red en vez de leído
+de disco. El cliente cachea cada `MapLevelData` en memoria de sesión (no se
+persiste), así volver a un mapa ya visitado no lo vuelve a pedir.
+
 ---
 
 ## 6. Formato de persistencia
@@ -455,21 +487,25 @@ TA045-1C2026/
 │   │   ├── player_inventory.h/.cpp  # Inventario compuesto (equip + pociones)
 │   │   ├── game_formulas.h/.cpp     # Fórmulas de combate y progresión
 │   │   ├── map.h/.cpp               # Tilemap, walkability, spawn zones
+│   │   ├── map_level_data_builder.h/.cpp  # Map -> MapLevelData (DTO de red)
+│   │   ├── services/map_data_service.*    # Responde REQUEST_MAP_DATA
 │   │   └── prop_grid.h/.cpp         # Props y NPCs en el mapa
 │   ├── network/     # Acceptor, ClientHandler, ServerProtocol, Sender, Receiver
 │   └── persistence/ # PlayerPersistence, ClanPersistence (archivos binarios)
 ├── client/
 │   ├── main.cpp     # Entry point del cliente
-│   ├── core/        # Client, Engine (máquina de estados)
+│   ├── core/        # Client, Engine, GameController, ServerEventHandler,
+│   │                 #   MapRenderDataBuilder (MapLevelData + visual -> TilemapConfig)
+│   ├── config/      # ClientConfig, MapVisualCatalog (config/visuals/)
 │   ├── network/     # ClientProtocol, Sender, Receiver
-│   ├── screen/      # GameController, ServerEventHandler, login, merchant
 │   ├── render/
 │   │   └── world/   # SpriteRenderer, EntitySpriteRegistry, EffectOverlaySystem,
 │   │                 #   Camera, TilemapRenderer, PropRenderer, GroundItemRenderer
 │   └── audio/       # AudioManager (SDL2_mixer)
 ├── config/          # Archivos TOML de configuración
+│   └── visuals/     # Catálogos visuales por mapa (cliente; sin geometría)
 ├── data/            # Archivos binarios de persistencia
-├── tests/           # Tests unitarios (GoogleTest, 294 tests)
+├── tests/           # Tests unitarios (GoogleTest, 314 tests)
 ├── assets/          # Gráficos, sonidos, fuentes
 └── editor/          # Editor de mapas (Qt)
 ```
