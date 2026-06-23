@@ -116,13 +116,17 @@ class MapInteraction {
 MainWindow *-- EditorController : dueño
 MainWindow *-- TilePalette : dueño
 MainWindow *-- MapInteraction : dueño
-MainWindow --> Dialogs : usa (show_*_dialog)
-MainWindow *-- "dialogs (show_new_map_dialog, show_transition_dialog)" : llama
+MainWindow ..> dialogs : usa (show_*_dialog)
 
-namespace dialogs {
+class dialogs <<namespace>> {
   {static} + show_new_map_dialog(parent) : NewMapResult
-  {static} + show_transition_dialog(parent, ...) : TransitionResult
+  {static} + show_transition_dialog(parent, current_map, x, y) : TransitionResult
 }
+note bottom of dialogs
+  Funciones libres (no una clase),
+  en editor/ui/dialogs.h
+end note
+
 struct NewMapResult {
   + width : int
   + height : int
@@ -135,6 +139,8 @@ struct TransitionResult {
   + transition_y : int
   + accepted : bool
 }
+dialogs ..> NewMapResult : devuelve
+dialogs ..> TransitionResult : devuelve
 
 EditorController *-- TilemapDocument : dueño
 EditorController *-- MapSceneRenderer : dueño
