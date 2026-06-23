@@ -197,7 +197,7 @@ El editor comparte con servidor y cliente los tipos de `common/config.h`:
 
 Esto garantiza que el formato de mapa que produce el editor es exactamente el que consumen el servidor (para gameplay) y el cliente (para los catálogos visuales).
 
-### 3.5 Tecnologías
+### 3.4 Tecnologías
 
 | Componente | Tecnología | Propósito |
 |---|---|---|
@@ -261,7 +261,7 @@ El protocolo binario completo está documentado en [`protocol.md`](protocol.md).
 - Enums para razas, clases, tipos de ítem, dirección, etc.
 - Flujos de sesión: login, creación de personaje, combate, muerte, equipamiento
 
-A nivel de clases, tanto servidor como cliente extienden `Protocol` (`common/protocol.h`) con su propia capa de alto nivel — `ServerProtocol` y `ClientProtocol` respectivamente — que serializan/deserializan los variants `ClientCommand` (~41 tipos) y `ServerEvent` (~30 tipos) vía `std::visit` + patrón `overloaded`:
+A nivel de clases, tanto servidor como cliente extienden `Protocol` (`common/protocol.h`) con su propia capa de alto nivel — `ServerProtocol` y `ClientProtocol` respectivamente — que serializan/deserializan los variants `ClientCommand` (41 tipos) y `ServerEvent` (29 tipos) vía `std::visit` + patrón `overloaded`:
 
 ![](images/communication_messages_protocol.png)
 
@@ -347,9 +347,17 @@ dwarf = 1.2                  #  [race_agility_factor], [class_agility_factor],
 gnome = 1.0                  #  [recovery_rates], [constitution], [intelligence])
 
 [vendors]                    # qué vende cada NPC interactivo (lista de item_type)
-sacerdote = ["ASH_STAFF", "ELVEN_FLUTE", "HEALTH_POTION", "MANA_POTION"]
-comerciante = ["SWORD", "AXE", "PLATE_ARMOR", "HEALTH_POTION"]
+sacerdote = ["ASH_STAFF", "ELVEN_FLUTE", "KNOTTED_STAFF", "STUDDED_STAFF",
+             "HEALTH_POTION", "MANA_POTION"]
+comerciante = ["SWORD", "AXE", "HAMMER", "SIMPLE_BOW", "COMPOSITE_BOW",
+               "LEATHER_ARMOR", "PLATE_ARMOR", "BLUE_TUNIC", "HOOD",
+               "IRON_HELMET", "MAGIC_HAT", "TURTLE_SHIELD", "IRON_SHIELD",
+               "HEALTH_POTION", "MANA_POTION"]
 ```
+
+> El servidor tiene además secciones `[messages]` (textos de error/sistema, con
+> placeholders `{}`) y `[help]` (texto del comando `/help`). Se omiten acá por
+> extensión; ver `config/server.toml` para el detalle.
 
 ### 6.2 `config/client.toml`
 
@@ -410,8 +418,7 @@ width = 27; height = 48
 src_x = 0; src_y = 0
 movable = true
 
-[movement]
-move_step = 8
+[movement]                  # move_step vive en common.toml (compartido con el servidor)
 walk_src_step = 27
 walk_src_frames_down = 6
 walk_src_frames_up = 6
@@ -429,6 +436,10 @@ death = "11.ogg"
 hit = "345.ogg"
 sword = "180.ogg"
 ```
+
+> Los valores que deben coincidir entre servidor y cliente viven en
+> `config/common.toml`, no duplicados en cada lado: `[network] port`,
+> `[movement] move_step` y `[merchant] sell_price_ratio`.
 
 ### 6.3 `config/npcs.toml`
 
@@ -541,30 +552,36 @@ Los archivos de jugadores, inventarios, bancos y clanes se almacenan en `data/` 
 | `data/bank.idx` / `data/bank.dat` | Banco de jugadores |
 
 ### Archivo de datos (`*.dat`)
-Registros de tamaño fijo y constante. Cada registro corresponde a un jugador, clan, slot de inventario o banco. Estructura típica del registro de jugador:
+Registros de tamaño fijo y constante. Cada registro corresponde a un jugador, clan, slot de inventario o banco. El registro de jugador (`PlayerRecord`, `server/persistence/player_record.h`) se serializa en este orden exacto:
 
 | Campo | Tipo | Tamaño |
 |---|---|---|
-| `deleted_flag` | uint8_t | 1 byte (0x00 = activo, 0xFF = borrado) |
-| `username` | string | longitud + datos |
-| `password` | string | longitud + datos |
-| `race`, `player_class`, `body`, `head` | uint8_t | 1 byte c/u |
-| `experience`, `gold`, `bank_gold` | uint32_t | 4 bytes c/u |
-| `hp_max`, `mana_max` | uint16_t | 2 bytes c/u |
-| `strength`, `agility`, `level` | uint16_t | 2 bytes c/u |
-| `clan_name` | string | longitud + datos |
-| `cheat_flags` | uint8_t[4] | 4 bytes |
+| `username` | char[32] | 32 bytes (string C de longitud fija, padding con `\0`) |
+| `password` | char[32] | 32 bytes |
+| `pos_x`, `pos_y` | uint16_t | 2 bytes c/u |
+| `dir`, `race`, `player_class`, `level` | uint8_t | 1 byte c/u |
+| `experience` | uint32_t | 4 bytes |
+| `hp_current`, `hp_max` | uint32_t | 4 bytes c/u |
+| `mana_current`, `mana_max` | uint32_t | 4 bytes c/u |
+| `gold`, `bank_gold` | uint32_t | 4 bytes c/u |
+| `current_map` | char[32] | 32 bytes |
+| `equipped_type[4]` | uint8_t[4] | 4 bytes (arma, armadura, casco, escudo) |
+| `equipped_name[4][32]` | char[4][32] | 128 bytes |
 
-Los enteros multi-byte se almacenan en **little-endian** (nativo del sistema), a diferencia del protocolo de red que es big-endian.
+No se persisten `strength`/`agility` (se derivan de raza/clase/nivel vía `GameFormulas`), la pertenencia a clan (vive en `clans.dat`) ni los cheats (son de sesión). Tampoco hay flag de borrado: no existe mecanismo de baja de cuentas.
+
+Los enteros multi-byte se almacenan en **little-endian** de forma explícita e independiente de la arquitectura del host (`server/persistence/endian_io.h`), a diferencia del protocolo de red que es big-endian.
+
+El inventario y el banco usan su propio registro (`InventorySlotRecord`: `char item_name[32]` + `uint8_t item_type`) en `inventory.dat`/`bank.dat`. Los clanes usan `ClanRecord` (`clan_name`, `founder_username`, lista de miembros y de baneados) en `clans.dat`.
 
 ### Archivo índice (`*.idx`)
-- Header: `uint32_t count`
-- Mapa serializado `string → uint32_t` que asocia cada nombre de jugador (u otra clave) con su offset dentro del `.dat`. Al cargar, se lee completo en memoria; el archivo de datos se accede con `seek` + `read` de a un registro.
+- No tiene header. Es una secuencia de entradas leídas hasta EOF; cada entrada es `uint32_t name_len` (LE) + `name_len` bytes (la clave, p. ej. el nombre de jugador) + `uint32_t offset` (LE) hacia el registro dentro del `.dat`.
+- Al cargar se lee completo a un `map<string, uint32_t>` en memoria; el `.dat` se accede con `seek(offset)` + lectura de un registro.
 
 ### Estrategia de guardado
-- `GameLoop::save_all_players()` se ejecuta cada `save_interval_ticks` (default: 600 ticks = 30 s a 20 Hz).
-- En cada guardado se reescribe el archivo `.dat` completo y luego el `.idx`.
-- Los archivos de inventario y banco se guardan por separado con el mismo esquema.
+- `GameLoop::save_all_players()` se ejecuta cada `save_interval_ticks` (default: 600 ticks = 30 s a 20 Hz) e itera los jugadores conectados llamando `PlayerDataService::save_player()` por cada uno.
+- El guardado es **por registro**, no reescribe el `.dat` entero: si el jugador ya existe, se sobrescribe su registro in situ (`seek(offset)` + write); si es nuevo, se hace append al final del `.dat` y se reescribe el `.idx` con la nueva entrada.
+- Inventario y banco se guardan por separado con el mismo esquema (`.dat` de registros fijos + `.idx` de offsets).
 
 ---
 
@@ -577,7 +594,7 @@ Los enteros multi-byte se almacenan en **little-endian** (nativo del sistema), a
 ## 9. Estructura del proyecto (resumen de carpetas)
 
 ```
-TA045-1C2026/
+Argentum-MALT/
 ├── common/          # Código compartido (socket, protocolo, queue, thread, config, rng)
 ├── server/
 │   ├── main.cpp     # Entry point del servidor
@@ -603,7 +620,8 @@ TA045-1C2026/
 │   │   ├── map_level_data_builder.h/.cpp  # Map -> MapLevelData (DTO de red)
 │   │   └── prop_grid.h/.cpp         # Props y NPCs en el mapa
 │   ├── network/     # Acceptor, ClientHandler, ServerProtocol, Sender, Receiver
-│   └── persistence/ # PlayerPersistence, ClanPersistence (archivos binarios)
+│   └── persistence/ # PlayerPersistence, InventoryPersistence (inventario y banco),
+│                     #   ClanPersistence (archivos binarios)
 ├── client/
 │   ├── main.cpp     # Entry point del cliente
 │   ├── core/        # Client, Engine, GameController, ServerEventHandler,

@@ -16,16 +16,17 @@ Usuario -> Client: ingresar usuario + contraseña
 Client -> CS: push(LoginCmd{user, pass})
 CS -> TCP: ClientProtocol::send_login()
 TCP -> SR: bytes
-SR -> GL: push(PlayerCommand{0, LoginCmd})
-GL -> Game: process_command(0, cmd)
+SR -> GL: push(PlayerCommand{player_id, LoginCmd})
+note right of SR: player_id = id de conexión\nasignado por ClientListMonitor (≥ 1)
+GL -> Game: process_command(player_id, cmd)
 Game -> PSS: handle_login(player_id, cmd)
 PSS -> PDS: load_record(username)
-alt jugador existe
+alt credenciales válidas
   PDS -> PSS: PlayerRecord (stats, inv, clan)
   PSS -> PDS: load_player(player_id, username, rec)
   PDS -> PSS: Player
   PSS -> OQ: LoginOkEvent{player_id, stats, ...}
-else jugador nuevo
+else no existe / contraseña incorrecta
   PSS -> OQ: LoginErrorEvent
 end
 OQ -> CS: pop() evento
