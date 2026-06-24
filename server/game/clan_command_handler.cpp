@@ -12,7 +12,9 @@ ClanCommandHandler::ClanCommandHandler(
         ClanManager& clan_manager, std::map<uint16_t, Player>& players,
         const std::unordered_map<std::string, uint16_t>& player_name_index,
         const MessagesConfig& msgs):
-        clan_manager(clan_manager), players(players), player_name_index_(player_name_index),
+        clan_manager(clan_manager),
+        players(players),
+        player_name_index_(player_name_index),
         msgs_(msgs) {}
 
 std::optional<uint16_t> ClanCommandHandler::find_player_id_by_name(const std::string& name) const {
@@ -33,8 +35,9 @@ CommandResult ClanCommandHandler::apply_removal(
     if (args.empty())
         return CommandResult::with_msg(usage_msg);
 
-    Player* player = require_player(player_id);
-    if (!player) return {};
+    const Player* player = require_player(player_id);
+    if (!player)
+        return {};
 
     const std::string& sender_name = player->get_name();
     ClanResult result = (clan_manager.*action)(sender_name, args);
@@ -84,7 +87,8 @@ CommandResult ClanCommandHandler::handle_found_clan(uint16_t player_id, const st
         return CommandResult::with_msg(msgs_.usage_found_clan);
 
     Player* player = require_player(player_id);
-    if (!player) return {};
+    if (!player)
+        return {};
 
     if (player->get_level() < clan_manager.min_level_found()) {
         const int min_level = clan_manager.min_level_found();
@@ -106,8 +110,9 @@ CommandResult ClanCommandHandler::handle_join_clan(uint16_t player_id, const std
     if (args.empty())
         return CommandResult::with_msg(msgs_.usage_join_clan);
 
-    Player* player = require_player(player_id);
-    if (!player) return {};
+    const Player* player = require_player(player_id);
+    if (!player)
+        return {};
 
     const std::string& sender_name = player->get_name();
     ClanResult result = clan_manager.request_join(sender_name, args);
@@ -129,8 +134,9 @@ CommandResult ClanCommandHandler::handle_join_clan(uint16_t player_id, const std
 }
 
 CommandResult ClanCommandHandler::handle_clan_status(uint16_t player_id) {
-    Player* player = require_player(player_id);
-    if (!player) return {};
+    const Player* player = require_player(player_id);
+    if (!player)
+        return {};
 
     const std::string& sender_name = player->get_name();
     if (!clan_manager.is_in_clan(sender_name))
@@ -167,8 +173,9 @@ CommandResult ClanCommandHandler::handle_clan_accept(uint16_t player_id, const s
     if (args.empty())
         return CommandResult::with_msg(msgs_.usage_clan_accept);
 
-    Player* player = require_player(player_id);
-    if (!player) return {};
+    const Player* player = require_player(player_id);
+    if (!player)
+        return {};
 
     const std::string& sender_name = player->get_name();
     ClanResult result = clan_manager.accept_member(sender_name, args);
@@ -192,8 +199,9 @@ CommandResult ClanCommandHandler::handle_clan_reject(uint16_t player_id, const s
     if (args.empty())
         return CommandResult::with_msg(msgs_.usage_clan_reject);
 
-    Player* player = require_player(player_id);
-    if (!player) return {};
+    const Player* player = require_player(player_id);
+    if (!player)
+        return {};
 
     const std::string& sender_name = player->get_name();
     ClanResult result = clan_manager.reject_member(sender_name, args);
@@ -218,8 +226,9 @@ CommandResult ClanCommandHandler::handle_clan_unban(uint16_t player_id, const st
     if (args.empty())
         return CommandResult::with_msg(msgs_.usage_clan_unban);
 
-    Player* player = require_player(player_id);
-    if (!player) return {};
+    const Player* player = require_player(player_id);
+    if (!player)
+        return {};
 
     const std::string& sender_name = player->get_name();
     ClanResult result = clan_manager.unban_member(sender_name, args);
@@ -233,7 +242,8 @@ CommandResult ClanCommandHandler::handle_clan_kick(uint16_t player_id, const std
 
 CommandResult ClanCommandHandler::handle_leave_clan(uint16_t player_id) {
     Player* player = require_player(player_id);
-    if (!player) return {};
+    if (!player)
+        return {};
 
     std::string clan_name = player->get_clan_name();
     ClanResult result = clan_manager.leave_clan(player->get_name());
@@ -253,8 +263,9 @@ CommandResult ClanCommandHandler::handle_clan_chat(uint16_t player_id, const std
     if (args.empty())
         return CommandResult::with_msg(msgs_.usage_clan_chat);
 
-    Player* player = require_player(player_id);
-    if (!player) return {};
+    const Player* player = require_player(player_id);
+    if (!player)
+        return {};
 
     const std::string& clan_name = player->get_clan_name();
     if (clan_name.empty())

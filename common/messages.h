@@ -149,7 +149,7 @@ struct ClanMember {
 // MapLevelData es el struct de gameplay de un mapa: qué hay en cada
 // celda, si es transitable, dónde están los props y las zonas de spawn. NO
 // contiene paths de assets ni nada visual: eso vive en el catálogo visual local
-// del cliente (config/visuals/). El servidor es la única autoridad de esta información; 
+// del cliente (config/visuals/). El servidor es la única autoridad de esta información;
 // el cliente la descarga en vez de leerla de disco.
 //
 // ---------------------------------------------------------------------------
@@ -168,13 +168,13 @@ struct MapLevelData {
     uint16_t rows = 0;
     uint16_t cols = 0;
 
-    std::vector<std::string> tile_id_table;          // diccionario de tile ids únicos
-    std::vector<std::vector<uint16_t>> tile_grid;    // índices a tile_id_table, por celda
+    std::vector<std::string> tile_id_table;        // diccionario de tile ids únicos
+    std::vector<std::vector<uint16_t>> tile_grid;  // índices a tile_id_table, por celda
 
-    std::vector<std::string> prop_id_table;          // diccionario de prop ids únicos
-    std::vector<PropPlacement> props;                // lista dispersa, no grid completo
+    std::vector<std::string> prop_id_table;  // diccionario de prop ids únicos
+    std::vector<PropPlacement> props;        // lista dispersa, no grid completo
 
-    std::vector<std::vector<bool>> walkable;          // walkability
+    std::vector<std::vector<bool>> walkable;  // walkability
     std::vector<std::vector<bool>> mob_spawn_zones;
 };
 

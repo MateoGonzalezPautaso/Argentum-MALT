@@ -506,10 +506,10 @@ TEST(PlayerTest, RaceClassStats_GnomeCleric_StrengthAndAgilityMatchFormula) {
 
     const auto& r = bal.race_stat(Race::GNOME);
     const auto& c = bal.class_stat(PlayerClass::CLERIC);
-    uint32_t expected_strength = static_cast<uint32_t>(
-            std::ceil(r.strength_factor * c.strength_factor * p.get_level()));
-    uint32_t expected_agility = static_cast<uint32_t>(
-            std::ceil(r.agility_factor * c.agility_factor * p.get_level()));
+    uint32_t expected_strength =
+            static_cast<uint32_t>(std::ceil(r.strength_factor * c.strength_factor * p.get_level()));
+    uint32_t expected_agility =
+            static_cast<uint32_t>(std::ceil(r.agility_factor * c.agility_factor * p.get_level()));
 
     EXPECT_EQ(p.get_strength(), expected_strength);
     EXPECT_EQ(p.get_agility(), expected_agility);

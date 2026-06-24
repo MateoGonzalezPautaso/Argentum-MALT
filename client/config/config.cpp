@@ -609,7 +609,8 @@ ClientConfig load_client_config(const std::string& path) {
     parse_damage_overlay_config(root, config);
     parse_spell_sheets_config(root, config);
 
-    // La geometría de los niveles se descarga del servidor en runtime (REQUEST_MAP_DATA / MAP_DATA).
+    // La geometría de los niveles se descarga del servidor en runtime (REQUEST_MAP_DATA /
+    // MAP_DATA).
     config.map_visuals = load_all_map_visual_catalogs("config/visuals");
 
     SharedConfig shared = load_shared_config("config/common.toml");

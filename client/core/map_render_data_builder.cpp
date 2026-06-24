@@ -1,6 +1,8 @@
 #include "map_render_data_builder.h"
 
 #include <cstddef>
+#include <string>
+#include <vector>
 
 TilemapConfig MapRenderDataBuilder::build(const MapLevelData& level,
                                           const MapVisualCatalog& visuals) {

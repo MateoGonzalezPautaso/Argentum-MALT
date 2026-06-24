@@ -11,8 +11,7 @@
 
 GroundItemService::GroundItemService(std::map<uint16_t, Player>& players,
                                      std::unordered_map<std::string, Map>& maps,
-                                     const ItemCatalog& item_catalog,
-                                     const MessagesConfig& msgs):
+                                     const ItemCatalog& item_catalog, const MessagesConfig& msgs):
         players_(players), maps_(maps), item_catalog_(item_catalog), msgs_(msgs) {}
 
 std::pair<int, int> GroundItemService::tile_cell(const Map& map, int px, int py) {

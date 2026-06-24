@@ -18,8 +18,7 @@
 
 class MovementService {
 public:
-    MovementService(std::map<uint16_t, Player>& players,
-                    std::unordered_map<std::string, Map>& maps,
+    MovementService(std::map<uint16_t, Player>& players, std::unordered_map<std::string, Map>& maps,
                     const std::map<uint16_t, EnemyNpc>& enemy_npcs,
                     const std::unordered_map<uint16_t, PendingResurrection>& pending_resurrections,
                     const BalanceConfig& balance, int move_step, int sprite_width,

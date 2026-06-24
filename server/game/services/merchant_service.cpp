@@ -150,8 +150,7 @@ CommandResult MerchantService::handle_npc_buy(uint16_t player_id, const NpcBuyCm
 
     if (player.get_gold() < found->price) {
         return CommandResult::with_msg(std::vformat(
-                msgs_.insufficient_gold_item,
-                std::make_format_args(found->name, found->price)));
+                msgs_.insufficient_gold_item, std::make_format_args(found->name, found->price)));
     }
 
     player.spend_gold(found->price);

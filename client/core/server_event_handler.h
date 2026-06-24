@@ -22,8 +22,8 @@ class MerchantController;
 struct MapSessionState {
     std::unordered_map<std::string, MapLevelData> network_cache;  // por nombre de mapa
     std::string pending_map_name;                                 // mapa pedido y no resuelto aún
-    std::unordered_set<std::string> transition_prop_names;        // props-transición del mapa actual
-    bool world_map_loaded = false;  // ya se cargó al menos un mapa por red
+    std::unordered_set<std::string> transition_prop_names;  // props-transición del mapa actual
+    bool world_map_loaded = false;                          // ya se cargó al menos un mapa por red
 };
 
 class ServerEventHandler {

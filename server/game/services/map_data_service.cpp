@@ -1,5 +1,7 @@
 #include "map_data_service.h"
 
+#include <utility>
+
 #include "../map_level_data_builder.h"
 
 MapDataService::MapDataService(const std::unordered_map<std::string, Map>& maps): maps_(maps) {}

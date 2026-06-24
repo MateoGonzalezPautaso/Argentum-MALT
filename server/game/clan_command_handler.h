@@ -48,7 +48,7 @@ private:
     CommandResult apply_removal(uint16_t player_id, const std::string& args,
                                 const std::string& usage_msg,
                                 ClanResult (ClanManager::*action)(const std::string&,
-                                                                   const std::string&));
+                                                                  const std::string&));
 
     CommandResult handle_clan_chat(uint16_t player_id, const std::string& args);
     void send_clan_update(const std::string& clan_name,

@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <unordered_map>
+#include <vector>
 
 namespace {
 
@@ -18,8 +19,8 @@ uint16_t intern(const std::string& id, std::vector<std::string>& table,
     return index;
 }
 
-bool placement_is_transition(const TilemapConfig& cfg, const std::string& prop_name, std::size_t row,
-                             std::size_t col) {
+bool placement_is_transition(const TilemapConfig& cfg, const std::string& prop_name,
+                             std::size_t row, std::size_t col) {
     auto def_it = cfg.props.find(prop_name);
     if (def_it != cfg.props.end() && !def_it->second.transition_map.empty())
         return true;

@@ -435,22 +435,19 @@ ServerEvent ClientProtocol::recv_map_data() {
 
     uint16_t tile_table_count = protocol.recv_uint16();
     d.tile_id_table.reserve(tile_table_count);
-    for (uint16_t i = 0; i < tile_table_count; ++i)
-        d.tile_id_table.push_back(protocol.recv_str());
+    for (uint16_t i = 0; i < tile_table_count; ++i) d.tile_id_table.push_back(protocol.recv_str());
 
     uint16_t tile_rows = protocol.recv_uint16();
     d.tile_grid.resize(tile_rows);
     for (uint16_t r = 0; r < tile_rows; ++r) {
         uint16_t row_len = protocol.recv_uint16();
         d.tile_grid[r].reserve(row_len);
-        for (uint16_t c = 0; c < row_len; ++c)
-            d.tile_grid[r].push_back(protocol.recv_uint16());
+        for (uint16_t c = 0; c < row_len; ++c) d.tile_grid[r].push_back(protocol.recv_uint16());
     }
 
     uint16_t prop_table_count = protocol.recv_uint16();
     d.prop_id_table.reserve(prop_table_count);
-    for (uint16_t i = 0; i < prop_table_count; ++i)
-        d.prop_id_table.push_back(protocol.recv_str());
+    for (uint16_t i = 0; i < prop_table_count; ++i) d.prop_id_table.push_back(protocol.recv_str());
 
     uint16_t props_count = protocol.recv_uint16();
     d.props.reserve(props_count);
@@ -470,8 +467,7 @@ ServerEvent ClientProtocol::recv_map_data() {
         for (uint16_t r = 0; r < rows; ++r) {
             uint16_t len = protocol.recv_uint16();
             grid[r].reserve(len);
-            for (uint16_t c = 0; c < len; ++c)
-                grid[r].push_back(protocol.recv_bool());
+            for (uint16_t c = 0; c < len; ++c) grid[r].push_back(protocol.recv_bool());
         }
         return grid;
     };

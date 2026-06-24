@@ -56,9 +56,9 @@ Map& MovementService::player_map(const Player& p) {
     return it->second;
 }
 
-bool MovementService::collides_with_entities(uint16_t moving_player_id,
-                                             const std::string& map_name, int current_x,
-                                             int current_y, int new_x, int new_y) const {
+bool MovementService::collides_with_entities(uint16_t moving_player_id, const std::string& map_name,
+                                             int current_x, int current_y, int new_x,
+                                             int new_y) const {
     const int hw = sprite_width_ / 2;
     const int hh = sprite_height_ / 2;
 
@@ -106,9 +106,9 @@ CommandResult MovementService::handle_move(uint16_t player_id, const MoveCmd& cm
 
     Map& cur_map = player_map(player);
 
-    int effective_step = player.has_cheat_fast_velocity()
-                                 ? move_step_ * balance_.cheat_velocity_multiplier
-                                 : move_step_;
+    int effective_step = player.has_cheat_fast_velocity() ?
+                                 move_step_ * balance_.cheat_velocity_multiplier :
+                                 move_step_;
     auto [dx, dy] = direction_to_delta(cmd.direction, effective_step);
 
     const int current_x = static_cast<int>(player.pos_x());

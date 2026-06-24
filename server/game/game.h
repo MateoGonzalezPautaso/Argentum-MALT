@@ -12,7 +12,6 @@
 #include "../../common/rng.h"
 #include "../core/config.h"
 #include "../persistence/clan_persistence.h"
-#include "pending_resurrection.h"
 #include "services/bank_service.h"
 #include "services/cheat_service.h"
 #include "services/ground_item_service.h"
@@ -32,6 +31,7 @@
 #include "command_result.h"
 #include "enemy_npc.h"
 #include "map.h"
+#include "pending_resurrection.h"
 #include "player.h"
 #include "player_data_service.h"
 
@@ -87,11 +87,6 @@ private:
 
     PlayerStatsEvent make_player_stats_event(const Player& p) const;
     std::optional<uint16_t> find_player_id_by_name(const std::string& name) const;
-    std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id) const;
-    std::vector<ServerEvent> make_existing_spawns(uint16_t exclude_id,
-                                                  const std::string& map_name) const;
-    void append_existing_entities(std::vector<ServerEvent>& events, uint16_t exclude_id,
-                                  const std::string& map_name) const;
     Map& player_map(const Player& p);
     const Map& player_map(const Player& p) const;
     bool target_in_safe_zone(uint16_t target_id) const;

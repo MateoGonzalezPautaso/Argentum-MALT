@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <utility>
+#include <vector>
 
 #include <sys/socket.h>
 
@@ -304,19 +305,16 @@ void ServerProtocol::send_map_data(const MapDataEvent& ev) {
 
     // Diccionario de tiles + grilla de índices.
     protocol.send_uint16(static_cast<uint16_t>(d.tile_id_table.size()));
-    for (const auto& id: d.tile_id_table)
-        protocol.send_str(id);
+    for (const auto& id: d.tile_id_table) protocol.send_str(id);
     protocol.send_uint16(static_cast<uint16_t>(d.tile_grid.size()));
     for (const auto& row: d.tile_grid) {
         protocol.send_uint16(static_cast<uint16_t>(row.size()));
-        for (uint16_t index: row)
-            protocol.send_uint16(index);
+        for (uint16_t index: row) protocol.send_uint16(index);
     }
 
     // Diccionario de props + lista dispersa.
     protocol.send_uint16(static_cast<uint16_t>(d.prop_id_table.size()));
-    for (const auto& id: d.prop_id_table)
-        protocol.send_str(id);
+    for (const auto& id: d.prop_id_table) protocol.send_str(id);
     protocol.send_uint16(static_cast<uint16_t>(d.props.size()));
     for (const auto& p: d.props) {
         protocol.send_uint16(p.prop_id_index);
@@ -330,8 +328,7 @@ void ServerProtocol::send_map_data(const MapDataEvent& ev) {
         protocol.send_uint16(static_cast<uint16_t>(grid.size()));
         for (const auto& row: grid) {
             protocol.send_uint16(static_cast<uint16_t>(row.size()));
-            for (bool cell: row)
-                protocol.send_bool(cell);
+            for (bool cell: row) protocol.send_bool(cell);
         }
     };
     send_bool_grid(d.walkable);

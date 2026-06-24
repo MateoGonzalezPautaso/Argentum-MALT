@@ -1,8 +1,11 @@
 #include "spell_service.h"
 
+#include <utility>
+
 #include "../../../common/error_logger.h"
 #include "../combat_controller.h"
 #include "../game_formulas.h"
+
 #include "ground_item_service.h"
 
 SpellService::SpellService(std::map<uint16_t, Player>& players,

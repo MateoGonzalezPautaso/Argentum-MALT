@@ -2,22 +2,18 @@
 
 #include <cmath>
 #include <format>
+#include <utility>
 
 #include "../entity_event_factory.h"
 #include "../player_registry.h"
 #include "../prop_names.h"
 
 ResurrectionService::ResurrectionService(
-        std::map<uint16_t, Player>& players,
-        std::unordered_map<std::string, Map>& maps,
+        std::map<uint16_t, Player>& players, std::unordered_map<std::string, Map>& maps,
         std::map<uint16_t, EnemyNpc>& enemy_npcs,
         std::unordered_map<uint16_t, PendingResurrection>& pending_resurrections,
-        GroundItemService& ground_item_service,
-        const BalanceConfig& balance,
-        const MessagesConfig& msgs,
-        int sprite_width,
-        int sprite_height,
-        int tick_rate_hz):
+        GroundItemService& ground_item_service, const BalanceConfig& balance,
+        const MessagesConfig& msgs, int sprite_width, int sprite_height, int tick_rate_hz):
         players_(players),
         maps_(maps),
         enemy_npcs_(enemy_npcs),
@@ -118,15 +114,13 @@ CommandResult ResurrectionService::handle_resurrect(uint16_t player_id) {
         auto main_it = maps_.find(balance_.starting_map);
         if (main_it == maps_.end())
             return {};
-        san_entry =
-                main_it->second.prop_grid().find_closest(std::string(PropNames::HEALER), 0, 0);
+        san_entry = main_it->second.prop_grid().find_closest(std::string(PropNames::HEALER), 0, 0);
         if (!san_entry)
             return {};
         target_map = balance_.starting_map;
         san_cx = san_entry->center_x;
         san_cy = san_entry->center_y;
-        wait_ticks =
-                static_cast<uint32_t>(balance_.default_resurrect_wait_seconds * tick_rate_hz_);
+        wait_ticks = static_cast<uint32_t>(balance_.default_resurrect_wait_seconds * tick_rate_hz_);
     }
 
     Position target_pos{static_cast<uint16_t>(san_cx - sprite_width_ / 2),

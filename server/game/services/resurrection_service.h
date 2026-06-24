@@ -14,6 +14,7 @@
 #include "../map.h"
 #include "../pending_resurrection.h"
 #include "../player.h"
+
 #include "ground_item_service.h"
 
 class ResurrectionService {
@@ -22,11 +23,8 @@ public:
                         std::unordered_map<std::string, Map>& maps,
                         std::map<uint16_t, EnemyNpc>& enemy_npcs,
                         std::unordered_map<uint16_t, PendingResurrection>& pending_resurrections,
-                        GroundItemService& ground_item_service,
-                        const BalanceConfig& balance,
-                        const MessagesConfig& msgs,
-                        int sprite_width,
-                        int sprite_height,
+                        GroundItemService& ground_item_service, const BalanceConfig& balance,
+                        const MessagesConfig& msgs, int sprite_width, int sprite_height,
                         int tick_rate_hz);
 
     CommandResult handle_resurrect(uint16_t player_id);

@@ -12,17 +12,14 @@
 
 class RegenService {
 public:
-    RegenService(std::map<uint16_t, Player>& players,
-                 const BalanceConfig& balance,
-                 int tick_rate_hz,
-                 std::unordered_map<uint16_t, double>& hp_regen_accum,
+    RegenService(std::map<uint16_t, Player>& players, const BalanceConfig& balance,
+                 int tick_rate_hz, std::unordered_map<uint16_t, double>& hp_regen_accum,
                  std::unordered_map<uint16_t, double>& mana_regen_accum);
 
     CommandResult apply_regen();
 
 private:
-    bool apply_regen_channel(double& accum, double rate,
-                             uint32_t cur, uint32_t max,
+    bool apply_regen_channel(double& accum, double rate, uint32_t cur, uint32_t max,
                              std::function<void(uint32_t)> apply_fn);
 
     std::map<uint16_t, Player>& players_;

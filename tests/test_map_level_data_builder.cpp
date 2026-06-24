@@ -67,7 +67,8 @@ TilemapConfig make_test_config() {
 }
 
 const std::string& tile_at(const MapLevelData& d, int row, int col) {
-    return d.tile_id_table[d.tile_grid[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)]];
+    return d.tile_id_table[d.tile_grid[static_cast<std::size_t>(row)]
+                                      [static_cast<std::size_t>(col)]];
 }
 
 }  // namespace

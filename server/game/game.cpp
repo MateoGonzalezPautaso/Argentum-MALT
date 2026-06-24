@@ -8,7 +8,6 @@
 #include <variant>
 #include <vector>
 
-
 #include "../../common/error_logger.h"
 #include "../../common/visit.h"
 
@@ -66,8 +65,8 @@ Game::Game(const ServerConfig& config, PlayerDataService& player_data_service,
         movement_service_(players, maps, enemy_npcs, pending_resurrections_, config.balance,
                           config.move_step, config.sprite_width, config.sprite_height,
                           map_transition_service),
-        regen_service_(players, config.balance, config.tick_rate_hz,
-                       hp_regen_accum, mana_regen_accum),
+        regen_service_(players, config.balance, config.tick_rate_hz, hp_regen_accum,
+                       mana_regen_accum),
         spell_service_(players, enemy_npcs, maps, config.item_catalog, combat_controller,
                        ground_item_service, config.balance, config.messages),
         tick_rate_hz(config.tick_rate_hz),
@@ -137,7 +136,9 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const AttackCmd& cmd) { return handle_attack(player_id, cmd); },
                     [&](const SendChatMsgCmd& cmd) { return handle_send_chat_msg(player_id, cmd); },
                     [&](const MeditateCmd&) { return handle_meditate(player_id); },
-                    [&](const ResurrectCmd&) { return resurrection_service_.handle_resurrect(player_id); },
+                    [&](const ResurrectCmd&) {
+                        return resurrection_service_.handle_resurrect(player_id);
+                    },
                     [&](const CheatInfiniteHpCmd&) {
                         return cheat_service.dispatch(CheatType::INFINITE_HP, player_id);
                     },
@@ -174,7 +175,9 @@ CommandResult Game::process_command(uint16_t player_id, const ClientCommand& cmd
                     [&](const CheatResetManaCmd&) {
                         return cheat_service.dispatch(CheatType::RESET_MANA, player_id);
                     },
-                    [&](const CastSpellCmd& cmd) { return spell_service_.handle_cast_spell(player_id, cmd, tick_count); },
+                    [&](const CastSpellCmd& cmd) {
+                        return spell_service_.handle_cast_spell(player_id, cmd, tick_count);
+                    },
                     [&](const ChangeMapCmd& cmd) {
                         return map_transition_service.handle_change_map(player_id, cmd);
                     },
@@ -358,57 +361,12 @@ CommandResult Game::handle_meditate(uint16_t player_id) {
     }
 }
 
-std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id) const {
-    std::vector<ServerEvent> spawns;
-    for (const auto& [id, player]: players) {
-        if (id == exclude_id)
-            continue;
-        spawns.push_back(EntityEventFactory::make_entity_spawn(player));
-    }
-    for (const auto& [id, npc]: enemy_npcs) {
-        if (npc.is_dead())
-            continue;
-        spawns.push_back(EntityEventFactory::make_npc_spawn(npc, id));
-    }
-    return spawns;
-}
-
-std::vector<ServerEvent> Game::make_existing_spawns(uint16_t exclude_id,
-                                                    const std::string& map_name) const {
-    std::vector<ServerEvent> spawns;
-    for (const auto& [id, player]: players) {
-        if (id == exclude_id)
-            continue;
-        if (player.get_current_map() != map_name)
-            continue;
-        spawns.push_back(EntityEventFactory::make_entity_spawn(player));
-    }
-    for (const auto& [id, npc]: enemy_npcs) {
-        if (npc.is_dead())
-            continue;
-        if (npc.get_current_map() != map_name)
-            continue;
-        spawns.push_back(EntityEventFactory::make_npc_spawn(npc, id));
-    }
-    return spawns;
-}
-
 std::string Game::get_player_map_name(uint16_t player_id) const {
     auto it = players.find(player_id);
     if (it == players.end())
         return balance.starting_map;
     return it->second.get_current_map();
 }
-
-void Game::append_existing_entities(std::vector<ServerEvent>& events, uint16_t exclude_id,
-                                    const std::string& map_name) const {
-    std::vector<ServerEvent> spawns = make_existing_spawns(exclude_id, map_name);
-    events.insert(events.end(), spawns.begin(), spawns.end());
-
-    std::vector<ServerEvent> items = ground_item_service.make_existing_ground_items(map_name);
-    events.insert(events.end(), items.begin(), items.end());
-}
-
 
 std::vector<uint16_t> Game::get_player_ids_on_map(const std::string& map_name) const {
     return PlayerRegistry(players).ids_on_map(map_name);

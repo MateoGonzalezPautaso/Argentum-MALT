@@ -38,8 +38,8 @@ GameController::GameController(SDL2pp::Renderer& renderer, const ClientConfig& c
         merchant_controller(std::make_unique<MerchantController>(renderer, config.ui, command_queue,
                                                                  player_stats)),
         event_handler_(player_stats, world_renderer, audio_manager, chat_history, move_controller,
-                       config, move_config, *merchant_controller, player_is_ghost,
-                       current_map_name, this->command_queue, map_session_) {
+                       config, move_config, *merchant_controller, player_is_ghost, current_map_name,
+                       this->command_queue, map_session_) {
     world_renderer.sprites().set_direction_src_y(config.dir_src_y_down, config.dir_src_y_up,
                                                  config.dir_src_y_left, config.dir_src_y_right);
 }

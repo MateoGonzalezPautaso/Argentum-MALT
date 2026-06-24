@@ -8,7 +8,11 @@ BankService::BankService(std::map<uint16_t, Player>& players,
                          const std::unordered_map<std::string, Map>& maps,
                          const ItemCatalog& item_catalog, const BalanceConfig& balance,
                          const MessagesConfig& msgs):
-        players_(players), maps_(maps), item_catalog_(item_catalog), balance_(balance), msgs_(msgs) {}
+        players_(players),
+        maps_(maps),
+        item_catalog_(item_catalog),
+        balance_(balance),
+        msgs_(msgs) {}
 
 BankUpdateEvent BankService::make_bank_update_event(const Player& p) const {
     return BankUpdateEvent{p.dump_bank(), p.get_bank_gold()};
@@ -58,9 +62,9 @@ CommandResult BankService::handle_bank_deposit(uint16_t player_id, const BankDep
 
     auto slot_opt = player.find_slot_by_type(item_def->type);
     if (!slot_opt) {
-        ChatMsgEvent msg{ChatMsgType::SYSTEM, "",
-                         std::vformat(msgs_.item_not_in_inventory,
-                                      std::make_format_args(item_def->name))};
+        ChatMsgEvent msg{
+                ChatMsgType::SYSTEM, "",
+                std::vformat(msgs_.item_not_in_inventory, std::make_format_args(item_def->name))};
         return {.private_events = {msg}};
     }
 
