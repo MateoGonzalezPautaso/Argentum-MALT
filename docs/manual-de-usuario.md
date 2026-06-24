@@ -624,7 +624,7 @@ Al morir, el jugador pierde una cantidad de oro y experiencia proporcional a su 
 
 ### 11.3 Cómo resucitar
 
-Para resucitar, el jugador puede optar por el comando /resucitar, lo que puede tener dos interacciones diferentes. Si el jugador se encuentra cerca de un Sacerdote, entonces resucitara automaticamente. En caso contrario, la resurección sera llevada a cabo por la sanadora, que tardara una cantidad de tiempo proporcional a la distancia a la que el jugador se encuentra de ella. Durante este tiempo de espera el jugador no podrá moverse en su version fantasma.
+Para resucitar, el jugador puede optar por el comando /resucitar, lo que puede tener dos interacciones diferentes. Si el jugador se encuentra cerca de un Sacerdote, entonces resucitará automáticamente. En caso contrario, la resurrección será llevada a cabo por la sanadora, que tardará una cantidad de tiempo proporcional a la distancia a la que el jugador se encuentra de ella. Durante este tiempo de espera el jugador no podrá moverse en su versión fantasma.
 
 En ambos casos, el jugador sera teletransportado al lado del NPC con el que interactuó para revivir.
 
