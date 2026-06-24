@@ -624,9 +624,9 @@ Al morir, el jugador pierde una cantidad de oro y experiencia proporcional a su 
 
 ### 11.3 Cómo resucitar
 
-Para resucitar, el jugador puede dirigirse al sanador de la ciudad más cercana. El sanador es un NPC que se encuentra en cada ciudad y que ofrece servicios de curación y resurrección. Al acercarse al sanador, el jugador puede interactuar con él y seleccionar la opción de resucitar. 
+Para resucitar, el jugador puede optar por el comando /resucitar, lo que puede tener dos interacciones diferentes. Si el jugador se encuentra cerca de un Sacerdote, entonces resucitara automaticamente. En caso contrario, la resurección sera llevada a cabo por la sanadora, que tardara una cantidad de tiempo proporcional a la distancia a la que el jugador se encuentra de ella. Durante este tiempo de espera el jugador no podrá moverse en su version fantasma.
 
-Tambien el jugador puede optar por el comando /resucitar, lo que hará que el jugador aparezca resucitado junto al sanador de la ciudad más próxima después de un tiempo proporcional a la distancia entre él y el sanador. Esta opción es útil si el jugador no quiere caminar hasta el sanador o si está en una zona peligrosa donde otros jugadores podrían atacarlo mientras intenta llegar al sanador.
+En ambos casos, el jugador sera teletransportado al lado del NPC con el que interactuó para revivir.
 
 ---
 
