@@ -1,14 +1,19 @@
-file(GLOB SERVER_SRC
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
-)
-
-file(GLOB SERVER_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
-)
-
 target_sources(taller_tests
     PRIVATE
-    ${SERVER_SRC}
+    test_clan_manager.cpp
+    test_client_handler.cpp
+    test_combat_controller.cpp
+    test_game.cpp
+    test_game_formulas.cpp
+    test_inventory.cpp
+    test_item_catalog.cpp
+    test_map_data_service.cpp
+    test_map_level_data_builder.cpp
+    test_map_render_data_builder.cpp
+    test_player.cpp
+    test_player_inventory.cpp
+    test_protocol_socketpair.cpp
+    test_toml_serializer.cpp
     ${CMAKE_SOURCE_DIR}/client/network/client_protocol.cpp
     ${CMAKE_SOURCE_DIR}/client/config/map_visuals_config.cpp
     ${CMAKE_SOURCE_DIR}/client/core/map_render_data_builder.cpp
@@ -50,6 +55,4 @@ target_sources(taller_tests
     ${CMAKE_SOURCE_DIR}/server/persistence/player_record.cpp
     ${CMAKE_SOURCE_DIR}/server/persistence/inventory_persistence.cpp
     ${CMAKE_SOURCE_DIR}/editor/io/toml_serializer.cpp
-    PUBLIC
-    ${SERVER_HEADERS}
 )

@@ -1,14 +1,25 @@
-file(GLOB_RECURSE EDITOR_SRC
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
-)
-
-file(GLOB_RECURSE EDITOR_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
-)
-
 target_sources(taller_editor
     PRIVATE
-    ${EDITOR_SRC}
+    core/editor_controller.cpp
+    core/main_window.cpp
+    document/tilemap_document.cpp
+    input/map_interaction.cpp
+    io/file_manager.cpp
+    io/toml_serializer.cpp
+    main.cpp
+    render/atlas_loader.cpp
+    render/map_scene_renderer.cpp
+    ui/dialogs.cpp
+    ui/tile_palette.cpp
     PUBLIC
-    ${EDITOR_HEADERS}
+    core/editor_controller.h
+    core/main_window.h
+    document/tilemap_document.h
+    input/map_interaction.h
+    io/file_manager.h
+    io/toml_serializer.h
+    render/atlas_loader.h
+    render/map_scene_renderer.h
+    ui/dialogs.h
+    ui/tile_palette.h
 )
